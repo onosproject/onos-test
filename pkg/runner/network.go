@@ -127,7 +127,7 @@ func (c *ClusterController) createNetworkPod(name string, config *NetworkConfig)
 			Containers: []corev1.Container{
 				{
 					Name:            "stratum-simulator",
-					Image:           "opennetworking/mn-stratum",
+					Image:           c.imageName("opennetworking/mn-stratum"),
 					ImagePullPolicy: corev1.PullIfNotPresent,
 					Stdin:           true,
 					Args:            config.MininetOptions,
