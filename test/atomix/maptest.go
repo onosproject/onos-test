@@ -12,20 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package atomix
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/onosproject/onos-test/pkg/cli"
-	"github.com/onosproject/onos-test/test/integration"
+	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/test"
+	"github.com/onosproject/onos-test/test/env"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func main() {
-	cmd := cli.GetOnitK8sCommand(integration.Registry)
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+func TestAtomixMap(t *testing.T) {
+	client, err := env.NewAtomixClient()
+	assert.NoError(t, err)
+	assert.NotNil(t, client)
+}
+
+func init() {
+	test.Registry.RegisterTest("atomix-map", TestAtomixMap, []*runner.TestSuite{AtomixTests})
 }

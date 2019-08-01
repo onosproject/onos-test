@@ -17,6 +17,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/runner"
 	"io"
 	"os"
 	"path/filepath"
@@ -26,8 +27,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/onosproject/onos-test/pkg/console"
-	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/console"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -63,17 +64,6 @@ func GetOnitCommand(registry *runner.TestRegistry) *cobra.Command {
 	return cmd
 }
 
-// GetOnitK8sCommand returns a Cobra command for running tests on k8s
-func GetOnitK8sCommand(registry *runner.TestRegistry) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "onit-k8s",
-		Short: "This command is only intended to be used in a k8s instance for running integration tests.",
-	}
-	cmd.AddCommand(getTestTestLocalCommand(registry))
-	cmd.AddCommand(getTestSuiteLocalCommand(registry))
-	return cmd
-}
-
 // getCreateCommand returns a cobra "setup" command for setting up resources
 func getCreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -99,7 +89,7 @@ func getCreateClusterCommand() *cobra.Command {
 			configName, _ := cmd.Flags().GetString("config")
 
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -113,7 +103,7 @@ func getCreateClusterCommand() *cobra.Command {
 			}
 
 			// Create the cluster configuration
-			config := &runner.ClusterConfig{
+			config := &onit.ClusterConfig{
 				Registry:      dockerRegistry,
 				Preset:        configName,
 				ConfigNodes:   configNodes,
@@ -181,7 +171,7 @@ func getAddNetworkCommand() *cobra.Command {
 			configName, _ := cmd.Flags().GetString("preset")
 
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -200,7 +190,7 @@ func getAddNetworkCommand() *cobra.Command {
 
 			// Create the network configuration
 
-			config := &runner.NetworkConfig{
+			config := &onit.NetworkConfig{
 				Config: configName,
 			}
 			if len(args) > 1 {
@@ -208,7 +198,7 @@ func getAddNetworkCommand() *cobra.Command {
 			}
 
 			// Update number of devices in the network configuration
-			runner.ParseMininetOptions(config)
+			onit.ParseMininetOptions(config)
 
 			if err != nil {
 				exitError(err)
@@ -250,7 +240,7 @@ func getAddSimulatorCommand() *cobra.Command {
 			configName, _ := cmd.Flags().GetString("preset")
 
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -268,7 +258,7 @@ func getAddSimulatorCommand() *cobra.Command {
 			}
 
 			// Create the simulator configuration
-			config := &runner.SimulatorConfig{
+			config := &onit.SimulatorConfig{
 				Config: configName,
 			}
 
@@ -307,7 +297,7 @@ func getDeleteClusterCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Create the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -355,7 +345,7 @@ func getRemoveNetworkCommand() *cobra.Command {
 			name := args[0]
 
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -404,7 +394,7 @@ func getRemoveSimulatorCommand() *cobra.Command {
 			name := args[0]
 
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -484,7 +474,7 @@ func getGetNetworksCommand() *cobra.Command {
 		Short: "Get the currently configured cluster's networks",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -527,7 +517,7 @@ func getGetSimulatorsCommand() *cobra.Command {
 		Short: "Get the currently configured cluster's simulators",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -570,7 +560,7 @@ func getGetClustersCommand() *cobra.Command {
 		Short: "Get a list of all deployed clusters",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -589,7 +579,7 @@ func getGetClustersCommand() *cobra.Command {
 	return cmd
 }
 
-func printClusters(clusters map[string]*runner.ClusterConfig, includeHeaders bool) {
+func printClusters(clusters map[string]*onit.ClusterConfig, includeHeaders bool) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	if includeHeaders {
@@ -634,7 +624,7 @@ func getGetPartitionsCommand() *cobra.Command {
 		Short: "Get a list of partitions in the cluster",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -667,7 +657,7 @@ func getGetPartitionsCommand() *cobra.Command {
 	return cmd
 }
 
-func printPartitions(partitions []runner.PartitionInfo) {
+func printPartitions(partitions []onit.PartitionInfo) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	fmt.Fprintln(writer, "ID\tGROUP\tNODES")
@@ -685,7 +675,7 @@ func getGetPartitionCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -731,7 +721,7 @@ func getGetNodesCommand() *cobra.Command {
 		Short: "Get a list of nodes in the cluster",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -754,7 +744,7 @@ func getGetNodesCommand() *cobra.Command {
 			}
 
 			// Get the list of nodes and output
-			if strings.Compare(nodeType, string(runner.OnosAll)) == 0 {
+			if strings.Compare(nodeType, string(onit.OnosAll)) == 0 {
 				nodes, err := cluster.GetNodes()
 				if err != nil {
 					exitError(err)
@@ -762,7 +752,7 @@ func getGetNodesCommand() *cobra.Command {
 					noHeaders, _ := cmd.Flags().GetBool("no-headers")
 					printNodes(nodes, !noHeaders)
 				}
-			} else if strings.Compare(nodeType, string(runner.OnosConfig)) == 0 {
+			} else if strings.Compare(nodeType, string(onit.OnosConfig)) == 0 {
 				nodes, err := cluster.GetOnosConfigNodes()
 				if err != nil {
 					exitError(err)
@@ -771,7 +761,7 @@ func getGetNodesCommand() *cobra.Command {
 					printNodes(nodes, !noHeaders)
 				}
 
-			} else if strings.Compare(nodeType, string(runner.OnosTopo)) == 0 {
+			} else if strings.Compare(nodeType, string(onit.OnosTopo)) == 0 {
 				nodes, err := cluster.GetOnosTopoNodes()
 				if err != nil {
 					exitError(err)
@@ -792,7 +782,7 @@ func getGetNodesCommand() *cobra.Command {
 	return cmd
 }
 
-func printNodes(nodes []runner.NodeInfo, includeHeaders bool) {
+func printNodes(nodes []onit.NodeInfo, includeHeaders bool) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	if includeHeaders {
@@ -852,7 +842,7 @@ func getGetHistoryCommand() *cobra.Command {
 		Short: "Get the history of test runs",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -887,7 +877,7 @@ func getGetHistoryCommand() *cobra.Command {
 }
 
 // printHistory prints a test history in table format
-func printHistory(records []runner.TestRecord) {
+func printHistory(records []onit.TestRecord) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	fmt.Fprintln(writer, "ID\tTESTS\tSTATUS\tEXIT CODE\tMESSAGE")
@@ -916,7 +906,7 @@ To output the logs from a test, get the test ID from the test run or from 'onit 
 			stream, _ := cmd.Flags().GetBool("stream")
 
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -1038,7 +1028,7 @@ func getFetchLogsCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -1115,7 +1105,7 @@ func getDebugCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -1168,7 +1158,7 @@ func getSetClusterCommand() *cobra.Command {
 			clusterID := args[0]
 
 			// Get the onit controller
-			controller, err := runner.NewController()
+			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -1238,7 +1228,7 @@ func runTestsRemote(cmd *cobra.Command, commandType string, tests []string) {
 	testID := fmt.Sprintf("test-%d", newUUIDInt())
 
 	// Get the onit controller
-	controller, err := runner.NewController()
+	controller, err := onit.NewController()
 	if err != nil {
 		exitError(err)
 	}
@@ -1262,44 +1252,6 @@ func runTestsRemote(cmd *cobra.Command, commandType string, tests []string) {
 	} else {
 		fmt.Println(message)
 		os.Exit(code)
-	}
-}
-
-// getTestTestLocalCommand returns a cobra "test" command for tests in the given registry
-func getTestTestLocalCommand(registry *runner.TestRegistry) *cobra.Command {
-	return &cobra.Command{
-		Use:   "test [tests]",
-		Short: "Run integration tests",
-		Run: func(cmd *cobra.Command, args []string) {
-			runner := &runner.TestRunner{
-				Registry: registry,
-			}
-			err := runner.RunTests(args)
-			if err != nil {
-				exitError(err)
-			} else {
-				os.Exit(0)
-			}
-		},
-	}
-}
-
-// getTestSuiteLocalCommand returns a cobra "test" command for tests in the given registry
-func getTestSuiteLocalCommand(registry *runner.TestRegistry) *cobra.Command {
-	return &cobra.Command{
-		Use:   "suite [suite]",
-		Short: "Run integration test suites on Kubernetes",
-		Run: func(cmd *cobra.Command, args []string) {
-			runner := &runner.TestRunner{
-				Registry: registry,
-			}
-			err := runner.RunTestSuites(args)
-			if err != nil {
-				exitError(err)
-			} else {
-				os.Exit(0)
-			}
-		},
 	}
 }
 

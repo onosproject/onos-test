@@ -15,10 +15,11 @@
 package integration
 
 import (
+	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/test"
 	"testing"
 
-	"github.com/onosproject/onos-test/pkg/env"
-	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,5 +46,5 @@ func TestSingleState(t *testing.T) {
 }
 
 func init() {
-	Registry.RegisterTest("single-state", TestSingleState, []*runner.TestSuite{AllTests, IntegrationTests})
+	test.Registry.RegisterTest("single-state", TestSingleState, []*runner.TestSuite{AllTests, IntegrationTests})
 }
