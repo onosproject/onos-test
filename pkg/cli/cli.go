@@ -1109,7 +1109,7 @@ func getDebugCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "debug <resource>",
 		Short: "Open a debugger port to the given resource",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
 			controller, err := runner.NewController()
@@ -1128,12 +1128,16 @@ func getDebugCommand() *cobra.Command {
 			if err != nil {
 				exitError(err)
 			}
-
 			port, _ := cmd.Flags().GetInt("port")
-			if err := cluster.PortForward(args[0], port, 40000); err != nil {
-				exitError(err)
+			// assign a unique port to each of nodes in the cluster
+			if len(args) == 0 {
+
 			} else {
-				fmt.Println(port)
+				if err := cluster.PortForward(args[0], port, 40000); err != nil {
+					exitError(err)
+				} else {
+					fmt.Println(port)
+				}
 			}
 		},
 	}
