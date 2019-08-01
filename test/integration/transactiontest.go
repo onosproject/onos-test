@@ -16,11 +16,12 @@ package integration
 
 import (
 	"context"
+	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/test"
 	"testing"
 
 	admin "github.com/onosproject/onos-config/pkg/northbound/proto"
-	"github.com/onosproject/onos-test/pkg/env"
-	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/test/env"
 	"github.com/openconfig/gnmi/client"
 	"github.com/stretchr/testify/assert"
 )
@@ -38,7 +39,7 @@ var (
 )
 
 func init() {
-	Registry.RegisterTest("transaction", TestTransaction, []*runner.TestSuite{AllTests, SomeTests, IntegrationTests})
+	test.Registry.RegisterTest("transaction", TestTransaction, []*runner.TestSuite{AllTests, SomeTests, IntegrationTests})
 }
 
 func getDevicePaths(devices []string, paths []string) []DevicePath {

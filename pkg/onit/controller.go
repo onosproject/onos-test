@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runner
+package onit
 
 import (
 	atomixk8s "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"

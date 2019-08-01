@@ -20,6 +20,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	atomixclient "github.com/atomix/atomix-go-client/pkg/client"
 	"github.com/onosproject/onos-config/pkg/northbound"
 	"github.com/onosproject/onos-config/pkg/northbound/proto"
 	"github.com/openconfig/gnmi/client"
@@ -148,4 +149,9 @@ func GetAdminClient() (*grpc.ClientConn, proto.ConfigAdminServiceClient) {
 	}
 	conn := northbound.Connect(address, opts...)
 	return conn, proto.NewConfigAdminServiceClient(conn)
+}
+
+// NewAtomixClient returns an Atomix client from the environment
+func NewAtomixClient() (*atomixclient.Client, error) {
+	return atomixclient.NewClient(os.Getenv("ATOMIX_CONTROLLER"))
 }

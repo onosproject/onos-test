@@ -16,13 +16,14 @@ package integration
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/test"
 	"testing"
 	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/onosproject/onos-config/pkg/utils"
-	"github.com/onosproject/onos-test/pkg/env"
-	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/test/env"
 	"github.com/openconfig/gnmi/client"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +37,7 @@ const (
 
 func init() {
 	//example of registering groups
-	Registry.RegisterTest("subscribe", TestSubscribe, []*runner.TestSuite{AllTests, SomeTests, IntegrationTests})
+	test.Registry.RegisterTest("subscribe", TestSubscribe, []*runner.TestSuite{AllTests, SomeTests, IntegrationTests})
 }
 
 // TestSubscribe tests a stream subscription to updates to a device

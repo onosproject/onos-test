@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package runner
+package onit
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
-	"github.com/onosproject/onos-test/pkg/env"
+	"github.com/onosproject/onos-test/test/env"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -95,10 +96,22 @@ func (c *ClusterController) createTestJob(testID string, args []string, timeout 
 					Containers: []corev1.Container{
 						{
 							Name:            "test",
-							Image:           c.imageName("onosproject/onos-tests:latest"),
+							Image:           c.imageName("onosproject/onos-test-runner:latest"),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args:            args,
 							Env: []corev1.EnvVar{
+								{
+									Name:  "ATOMIX_CONTROLLER",
+									Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", c.clusterID),
+								},
+								{
+									Name:  "ATOMIX_APP",
+									Value: "test",
+								},
+								{
+									Name:  "ATOMIX_NAMESPACE",
+									Value: c.clusterID,
+								},
 								{
 									Name:  env.TestDevicesEnv,
 									Value: strings.Join(deviceIds, ","),

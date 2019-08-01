@@ -15,15 +15,16 @@
 package integration
 
 import (
+	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/test"
 	"testing"
 
-	"github.com/onosproject/onos-test/pkg/env"
-	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 )
 
 func init() {
-	Registry.RegisterTest("models", TestModels, []*runner.TestSuite{AllTests, SomeTests, IntegrationTests})
+	test.Registry.RegisterTest("models", TestModels, []*runner.TestSuite{AllTests, SomeTests, IntegrationTests})
 }
 
 // TestModels tests GNMI operation involving unknown or illegal paths

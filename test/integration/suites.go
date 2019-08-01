@@ -16,6 +16,7 @@ package integration
 
 import (
 	"github.com/onosproject/onos-test/pkg/runner"
+	"github.com/onosproject/onos-test/test"
 )
 
 var (
@@ -30,7 +31,7 @@ var (
 
 func init() {
 	//example of registering groups
-	Registry.RegisterTestSuite(*AllTests)
-	Registry.RegisterTestSuite(*SomeTests)
-	Registry.RegisterTestSuite(*IntegrationTests)
+	test.Registry.RegisterTestSuite(*AllTests)
+	test.Registry.RegisterTestSuite(*SomeTests)
+	test.Registry.RegisterTestSuite(*IntegrationTests)
 }
