@@ -50,6 +50,21 @@ func (c *ClusterController) createIngress() error {
 						HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
 							Paths: []extensionsv1beta1.HTTPIngressPath{
 								{
+									Path: "/proto.DeviceInventoryService",
+									Backend: extensionsv1beta1.IngressBackend{
+										ServiceName: "onos-config",
+										ServicePort: intstr.FromString("grpc"),
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					IngressRuleValue: extensionsv1beta1.IngressRuleValue{
+						HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
+							Paths: []extensionsv1beta1.HTTPIngressPath{
+								{
 									Path: "/proto.DeviceService",
 									Backend: extensionsv1beta1.IngressBackend{
 										ServiceName: "onos-topo",
