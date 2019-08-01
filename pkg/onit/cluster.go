@@ -96,6 +96,16 @@ func (c *ClusterController) Setup() console.ErrorStatus {
 	if err := c.setupOnosConfig(); err != nil {
 		return c.status.Fail(err)
 	}
+	c.status.Succeed()
+	c.status.Start("Setting up GUI")
+	if err := c.setupGUI(); err != nil {
+		return c.status.Fail(err)
+	}
+	c.status.Succeed()
+	c.status.Start("Creating ingress for services")
+	if err := c.setupIngress(); err != nil {
+		return c.status.Fail(err)
+	}
 	return c.status.Succeed()
 }
 
