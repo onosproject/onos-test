@@ -245,7 +245,7 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 					Containers: []corev1.Container{
 						{
 							Name:            "onos-config",
-							Image:           "onosproject/onos-config:debug",
+							Image:           c.imageName("onosproject/onos-config:debug"),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
 								{

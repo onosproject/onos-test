@@ -46,6 +46,19 @@ type ClusterController struct {
 	status           *console.StatusWriter
 }
 
+// imageName returns a fully qualified name for the given image
+func (c *ClusterController) imageName(image string) string {
+	return fmt.Sprintf("%s%s", c.imagePrefix(), image)
+}
+
+// imagePrefix returns a prefix for images
+func (c *ClusterController) imagePrefix() string {
+	if c.config.Registry != "" {
+		return fmt.Sprintf("%s/", c.config.Registry)
+	}
+	return ""
+}
+
 // Setup sets up a test cluster with the given configuration
 func (c *ClusterController) Setup() console.ErrorStatus {
 	c.status.Start("Setting up Atomix controller")

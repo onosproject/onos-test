@@ -31,6 +31,7 @@ var (
 
 // ClusterConfig provides the configuration for the Kubernetes test cluster
 type ClusterConfig struct {
+	Registry      string `yaml:"registry" mapstructure:"registry"`
 	Preset        string `yaml:"preset" mapstructure:"preset"`
 	ConfigNodes   int    `yaml:"configNodes" mapstructure:"topoNodes"`
 	TopoNodes     int    `yaml:"topoNodes" mapstructure:"topoNodes"`

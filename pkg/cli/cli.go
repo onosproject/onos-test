@@ -91,6 +91,7 @@ func getCreateClusterCommand() *cobra.Command {
 		Short: "Setup a test cluster on Kubernetes",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			dockerRegistry, _ := cmd.Flags().GetString("docker-registry")
 			configNodes, _ := cmd.Flags().GetInt("config-nodes")
 			topoNodes, _ := cmd.Flags().GetInt("topo-nodes")
 			partitions, _ := cmd.Flags().GetInt("partitions")
@@ -113,6 +114,7 @@ func getCreateClusterCommand() *cobra.Command {
 
 			// Create the cluster configuration
 			config := &runner.ClusterConfig{
+				Registry:      dockerRegistry,
 				Preset:        configName,
 				ConfigNodes:   configNodes,
 				TopoNodes:     topoNodes,
@@ -141,8 +143,9 @@ func getCreateClusterCommand() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP("config", "c", "default", "test cluster configuration")
-	cmd.Flags().IntP("config-nodes", "", 1, "the number of onos-config nodes to deploy")
-	cmd.Flags().IntP("topo-nodes", "", 1, "the number of onos-topo nodes to deploy")
+	cmd.Flags().String("docker-registry", "", "an optional host:port for a private Docker registry")
+	cmd.Flags().Int("config-nodes", 1, "the number of onos-config nodes to deploy")
+	cmd.Flags().Int("topo-nodes", 1, "the number of onos-topo nodes to deploy")
 	cmd.Flags().IntP("partitions", "p", 1, "the number of Raft partitions to deploy")
 	cmd.Flags().IntP("partition-size", "s", 1, "the size of each Raft partition")
 	return cmd

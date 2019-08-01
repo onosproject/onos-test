@@ -96,7 +96,7 @@ func (c *ClusterController) createSimulatorPod(name string) error {
 			Containers: []corev1.Container{
 				{
 					Name:            "onos-device-simulator",
-					Image:           "onosproject/device-simulator:latest",
+					Image:           c.imageName("onosproject/device-simulator:latest"),
 					ImagePullPolicy: corev1.PullIfNotPresent,
 					Ports: []corev1.ContainerPort{
 						{
