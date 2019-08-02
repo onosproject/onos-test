@@ -15,17 +15,59 @@
 package atomix
 
 import (
+	"bytes"
+	"context"
+	"github.com/atomix/atomix-go-client/pkg/client/session"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
 	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestAtomixMap(t *testing.T) {
 	client, err := env.NewAtomixClient("map")
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
+
+	println("1")
+	group, err := client.GetGroup(context.Background(), "raft")
+	assert.NoError(t, err)
+
+	println("2")
+	map_, err := group.GetMap(context.Background(), "test", session.WithTimeout(5 * time.Second))
+	assert.NoError(t, err)
+
+	println("3")
+	size, err := map_.Size(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, 0, size)
+
+	println("4")
+	value, err := map_.Get(context.Background(), "foo")
+	assert.NoError(t, err)
+	assert.Nil(t, value)
+
+	println("5")
+	value, err = map_.Put(context.Background(), "foo", []byte("Hello world!"))
+	assert.NoError(t, err)
+	assert.NotNil(t, value)
+	assert.Equal(t, "foo", value.Key)
+	assert.True(t, bytes.Equal([]byte("Hello world!"), value.Value))
+	assert.NotEqual(t, int64(0), value.Version)
+	version := value.Version
+
+	value, err = map_.Get(context.Background(), "foo")
+	assert.NoError(t, err)
+	assert.NotNil(t, value)
+	assert.Equal(t, "foo", value.Key)
+	assert.True(t, bytes.Equal([]byte("Hello world!"), value.Value))
+	assert.Equal(t, version, value.Version)
+
+	size, err = map_.Size(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, 1, size)
 }
 
 func init() {
