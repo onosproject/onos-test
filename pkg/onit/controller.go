@@ -26,7 +26,7 @@ import (
 )
 
 // NewController creates a new onit controller
-func NewController() (*OnitController, error) {
+func NewController() (*Controller, error) {
 	restconfig, err := getRestConfig()
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func NewController() (*OnitController, error) {
 		return nil, err
 	}
 
-	return &OnitController{
+	return &Controller{
 		restconfig:       restconfig,
 		kubeclient:       kubeclient,
 		atomixclient:     atomixclient,
@@ -57,7 +57,7 @@ func NewController() (*OnitController, error) {
 }
 
 // OnitController manages clusters for onit
-type OnitController struct {
+type Controller struct {
 	restconfig       *rest.Config
 	kubeclient       *kubernetes.Clientset
 	atomixclient     *atomixk8s.Clientset
@@ -66,7 +66,7 @@ type OnitController struct {
 }
 
 // GetClusters returns a list of onit clusters
-func (c *OnitController) GetClusters() (map[string]*ClusterConfig, error) {
+func (c *Controller) GetClusters() (map[string]*ClusterConfig, error) {
 	namespaces, err := c.kubeclient.CoreV1().Namespaces().List(metav1.ListOptions{
 		LabelSelector: "app=onit",
 	})
@@ -94,7 +94,7 @@ func (c *OnitController) GetClusters() (map[string]*ClusterConfig, error) {
 }
 
 // NewCluster creates a new cluster controller
-func (c *OnitController) NewCluster(clusterID string, config *ClusterConfig) (*ClusterController, console.ErrorStatus) {
+func (c *Controller) NewCluster(clusterID string, config *ClusterConfig) (*ClusterController, console.ErrorStatus) {
 	c.status.Start("Creating cluster namespace")
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -140,7 +140,7 @@ func (c *OnitController) NewCluster(clusterID string, config *ClusterConfig) (*C
 }
 
 // GetCluster returns a cluster controller
-func (c *OnitController) GetCluster(clusterID string) (*ClusterController, error) {
+func (c *Controller) GetCluster(clusterID string) (*ClusterController, error) {
 	_, err := c.kubeclient.CoreV1().Namespaces().Get(clusterID, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func (c *OnitController) GetCluster(clusterID string) (*ClusterController, error
 }
 
 // DeleteCluster deletes a cluster controller
-func (c *OnitController) DeleteCluster(clusterID string) console.ErrorStatus {
+func (c *Controller) DeleteCluster(clusterID string) console.ErrorStatus {
 	c.status.Start("Deleting cluster namespace")
 	if err := c.kubeclient.RbacV1().ClusterRoleBindings().Delete(clusterID, &metav1.DeleteOptions{}); err != nil {
 		c.status.Fail(err)
