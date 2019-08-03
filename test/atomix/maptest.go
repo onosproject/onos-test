@@ -31,25 +31,20 @@ func TestAtomixMap(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
 
-	println("1")
 	group, err := client.GetGroup(context.Background(), "raft")
 	assert.NoError(t, err)
 
-	println("2")
 	map_, err := group.GetMap(context.Background(), "test", session.WithTimeout(5 * time.Second))
 	assert.NoError(t, err)
 
-	println("3")
 	size, err := map_.Size(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 0, size)
 
-	println("4")
 	value, err := map_.Get(context.Background(), "foo")
 	assert.NoError(t, err)
 	assert.Nil(t, value)
 
-	println("5")
 	value, err = map_.Put(context.Background(), "foo", []byte("Hello world!"))
 	assert.NoError(t, err)
 	assert.NotNil(t, value)
