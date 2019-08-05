@@ -28,6 +28,8 @@ func GetOnosTestRunnerCommand(registry *TestRegistry) *cobra.Command {
 	}
 	cmd.AddCommand(getTestCommand(registry))
 	cmd.AddCommand(getSuiteCommand(registry))
+	cmd.AddCommand(getBenchCommand(registry))
+	cmd.AddCommand(getBenchSuiteCommand(registry))
 	return cmd
 }
 

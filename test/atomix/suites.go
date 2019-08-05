@@ -21,9 +21,11 @@ import (
 
 var (
 	// AtomixTests is the complete Atomix test suite
-	AtomixTests = runner.NewTestSuite("atomix")
+	AtomixTests      = runner.NewTestSuite("atomix")
+	AtomixBenchmarks = runner.NewBenchSuite("atomix")
 )
 
 func init() {
 	test.Registry.RegisterTestSuite(*AtomixTests)
+	test.Registry.RegisterBenchSuite(*AtomixBenchmarks)
 }

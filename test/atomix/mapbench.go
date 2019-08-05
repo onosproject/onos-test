@@ -15,6 +15,7 @@
 package atomix
 
 import (
+	"context"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
 	"github.com/onosproject/onos-test/test/env"
@@ -22,12 +23,25 @@ import (
 	"testing"
 )
 
-func TestAtomixMap(t *testing.T) {
+func BenchAtomixMap(b *testing.B) {
 	client, err := env.NewAtomixClient("map")
-	assert.NoError(t, err)
-	assert.NotNil(t, client)
+	assert.NoError(b, err)
+	assert.NotNil(b, client)
+
+	group, err := client.GetGroup(context.Background(), "raft")
+	assert.NoError(b, err)
+	assert.NotNil(b, group)
+
+	map_, err := group.GetMap(context.Background(), "bench")
+
+	b.Run("map", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			map_.Put(context.Background(), "foo", []byte("Hello world!"))
+		}
+	})
 }
 
 func init() {
-	test.Registry.RegisterTest("atomix-map", TestAtomixMap, []*runner.TestSuite{AtomixTests})
+	test.Registry.RegisterBench("atomix-map", BenchAtomixMap, []*runner.BenchSuite{AtomixBenchmarks})
 }

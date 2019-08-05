@@ -100,11 +100,12 @@ func (r *TestRunner) RunBenchmarks(args []string) error {
 	// Hack to enable verbose testing.
 	os.Args = []string{
 		os.Args[0],
+		"-test.bench=.",
 		"-test.v",
 	}
 
-	// Run the benchmarks via the testing package.
-	testing.RunBenchmarks(func(_, _ string) (bool, error) { return true, nil }, benchmarks)
+	// Run the integration tests via the testing package.
+	testing.Main(func(_, _ string) (bool, error) { return true, nil }, nil, benchmarks, nil)
 	return nil
 }
 
