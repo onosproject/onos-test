@@ -40,7 +40,7 @@ license_check: # @HELP examine and ensure license headers exist
 
 # integration: @HELP build and run integration tests
 integration: kind
-	onit create cluster
+	onit create cluster itests
 	onit add simulator
 	onit add simulator
 	onit run suite integration-tests
