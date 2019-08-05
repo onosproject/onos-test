@@ -32,12 +32,14 @@ func BenchAtomixMap(b *testing.B) {
 	assert.NoError(b, err)
 	assert.NotNil(b, group)
 
-	map_, err := group.GetMap(context.Background(), "bench")
+	m, err := group.GetMap(context.Background(), "bench")
+	assert.NoError(b, err)
+	assert.NotNil(b, m)
 
 	b.Run("map", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			map_.Put(context.Background(), "foo", []byte("Hello world!"))
+			_, _ = m.Put(context.Background(), "foo", []byte("Hello world!"))
 		}
 	})
 }
