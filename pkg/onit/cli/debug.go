@@ -23,7 +23,7 @@ import (
 
 var (
 	debugExample = ` 
-		# To debug a node in the cluster:
+		# Debug a node in the cluster
 		onit debug <name of a node>`
 )
 

@@ -32,7 +32,7 @@ var (
 		# Create a cluster that has two 3-node raft partitions
 		onit create cluster --partitions 2 --partition-size 3
 
-		# Create a cluster that fetches docker images from a private docker registry:
+		# Create a cluster that fetches docker images from a private docker registry
 		onit create cluster --docker-registry <host>:<port>`
 )
 

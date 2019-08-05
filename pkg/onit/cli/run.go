@@ -26,16 +26,16 @@ import (
 
 var (
 	runExample = `
-		# To run a single test on the cluster
+		# Run a single test on the cluster
 		onit run test <name of a test>
 
-		# To run a suite of tests on the cluster
+		# Run a suite of tests on the cluster
 		onit run test-suite <name of a suite>
 
-		# To run a benchmark on the cluster
+		# Run a benchmark on the cluster
 		onit run bench <name of a benchmark>
 
-		# To run a suite of benchmarks on the cluster
+		# Run a suite of benchmarks on the cluster
 		onit run bench-suite <name of a suite>`
 )
 

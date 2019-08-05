@@ -21,10 +21,10 @@ import (
 
 var (
 	deleteExample = `
-		# To delete a cluster with a given name:
+		# Delete a cluster with a given name
 		onit delete cluster <name of cluster>
 
-		# To delete the default cluster:
+		# Delete the currently configured cluster
 		onit delete cluster`
 )
 

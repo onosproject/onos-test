@@ -25,10 +25,10 @@ import (
 
 var (
 	fetchExample = `
-		# To download logs from all nodes
+		# Download logs from all nodes
 		onit fetch logs 
 
-		# To download logs from a node
+		# Download logs from a node
 		onit fetch logs <name of the node>`
 )
 
