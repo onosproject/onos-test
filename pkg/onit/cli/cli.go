@@ -16,9 +16,8 @@ package cli
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/onosproject/onos-test/pkg/runner"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/onosproject/onos-test/pkg/onit/console"

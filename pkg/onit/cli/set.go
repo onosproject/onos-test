@@ -17,18 +17,14 @@ package cli
 import (
 	"fmt"
 
-	"k8s.io/kubectl/pkg/util/i18n"
-	"k8s.io/kubectl/pkg/util/templates"
-
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/spf13/cobra"
 )
 
 var (
-	setExample = templates.Examples(i18n.T(` 
+	setExample = ` 
     # To change current cluster to another cluster
-    onit set cluster <name of a cluster>
-`))
+    onit set cluster <name of a cluster>`
 )
 
 // getSetCommand returns a cobra "set" command for setting configurations

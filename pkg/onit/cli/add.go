@@ -17,20 +17,17 @@ package cli
 import (
 	"fmt"
 
-	"k8s.io/kubectl/pkg/util/i18n"
-	"k8s.io/kubectl/pkg/util/templates"
-
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/spf13/cobra"
 )
 
 var (
-	addExample = templates.Examples(i18n.T(`
+	addExample = `
             # To add a simulator with a given name:
 			onit add simulator simulator-1
 
 			# To add a network of stratum switches that emulates a linear network topology with two nodes:
-			onit add network stratum-linear -- --topo linear,2`))
+			onit add network stratum-linear -- --topo linear,2`
 )
 
 // getAddCommand returns a cobra "add" command for adding resources to the cluster

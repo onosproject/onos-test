@@ -23,9 +23,6 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"k8s.io/kubectl/pkg/util/i18n"
-	"k8s.io/kubectl/pkg/util/templates"
-
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/spf13/cobra"
@@ -33,7 +30,7 @@ import (
 )
 
 var (
-	getExample = templates.Examples(i18n.T(` 
+	getExample = ` 
             # Get current Cluster:
             onit get cluster
 
@@ -65,9 +62,7 @@ var (
             onit get logs <name of resource>
             
             # Get the history of test runs
-            onit get history
-
-	`))
+            onit get history`
 )
 
 // getGetCommand returns a cobra "get" command to read test configurations
