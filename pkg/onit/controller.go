@@ -16,7 +16,7 @@ package onit
 
 import (
 	atomixk8s "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
-	"github.com/onosproject/onos-config/test/console"
+	"github.com/onosproject/onos-test/pkg/onit/console"
 	"gopkg.in/yaml.v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
