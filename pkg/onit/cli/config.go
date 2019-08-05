@@ -121,5 +121,9 @@ func init() {
 	viper.AddConfigPath(".")
 
 	// Read in the configuration and ignore the error if the configuration file is not found.
-	viper.ReadInConfig()
+	if err = viper.ReadInConfig(); err != nil {
+		if _, ok := err.(*viper.ConfigFileNotFoundError); ok {
+			exitError(err)
+		}
+	}
 }
