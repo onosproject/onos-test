@@ -119,9 +119,4 @@ func init() {
 	viper.AddConfigPath(home + "/.onos")
 	viper.AddConfigPath("/etc/onos")
 	viper.AddConfigPath(".")
-
-	err = viper.ReadInConfig()
-	if err != nil {
-		exitError(err)
-	}
 }
