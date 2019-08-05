@@ -23,11 +23,11 @@ import (
 
 var (
 	removeExample = `
-            # To remove a simulator with a given name:
-			onit remove simulator <simulator-name>
+		# To remove a simulator with a given name:
+		onit remove simulator <simulator-name>
 
-			# To remove a network with a given name:
-			onit remove network <network-name>`
+		# To remove a network with a given name:
+		onit remove network <network-name>`
 )
 
 // getRemoveCommand returns a cobra "remove" command for removing resources from the cluster

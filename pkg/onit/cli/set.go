@@ -23,8 +23,8 @@ import (
 
 var (
 	setExample = ` 
-    # To change current cluster to another cluster
-    onit set cluster <name of a cluster>`
+		# To change current cluster to another cluster
+		onit set cluster <name of a cluster>`
 )
 
 // getSetCommand returns a cobra "set" command for setting configurations

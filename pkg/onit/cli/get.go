@@ -31,44 +31,44 @@ import (
 
 var (
 	getExample = ` 
-            # Get current Cluster:
-            onit get cluster
+		# Get current configured cluster
+		onit get cluster
 
-            # Get a list of clusters
-            onit get clusters
+		# Get a list of clusters
+		onit get clusters
             
-            # Get a list of nodes
-            onit get nodes
+		# Get a list of nodes
+		onit get nodes
 
-            # Get a list of simulators
-            onit get simulators
+		# Get a list of simulators
+		onit get simulators
 
-            # Get a list of networks
-            onit get networks
+		# Get a list of networks
+		onit get networks
 
-            # Get a list of partitions
-            onit get partitions
+		# Get a list of partitions
+		onit get partitions
 
-            # Get a list of nodes in a partition
-            onit get partition <partition-id>
+		# Get a list of nodes in a partition
+		onit get partition <partition-id>
             
-            # Get a list of integration tests
-            onit get tests
+		# Get a list of integration tests
+		onit get tests
 
-            # Get a list of integration testing suites
-            onit get test-suites
+		# Get a list of integration testing suites
+		onit get test-suites
 
-			# Get a list of benchmarks
-			onit get benchmarks
+		# Get a list of benchmarks
+		onit get benchmarks
 
-			# Get a list of benchmark suites
-			onit get bench-suites
+		# Get a list of benchmark suites
+		onit get bench-suites
             
-            # Get the logs for a test resource
-            onit get logs <name of resource>
+		# Get the logs for a test resource
+		onit get logs <name of resource>
             
-            # Get the history of test runs
-            onit get history`
+		# Get the history of test runs
+		onit get history`
 )
 
 // getGetCommand returns a cobra "get" command to read test configurations

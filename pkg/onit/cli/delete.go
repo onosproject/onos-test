@@ -21,11 +21,11 @@ import (
 
 var (
 	deleteExample = `
-            # To delete a cluster with a given name:
-			onit delete cluster <name of cluster>
+		# To delete a cluster with a given name:
+		onit delete cluster <name of cluster>
 
-			# To delete the default cluster:
-			onit delete cluster`
+		# To delete the default cluster:
+		onit delete cluster`
 )
 
 // getDeleteCommand returns a cobra "teardown" command for tearing down Kubernetes test resources
