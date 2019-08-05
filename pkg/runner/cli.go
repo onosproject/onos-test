@@ -54,13 +54,53 @@ func getTestCommand(registry *TestRegistry) *cobra.Command {
 // getSuiteCommand returns a cobra "test" command for tests in the given registry
 func getSuiteCommand(registry *TestRegistry) *cobra.Command {
 	return &cobra.Command{
-		Use:   "suite [suite]",
+		Use:   "test-suite [suite]",
 		Short: "Run integration test suites on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
 			runner := &TestRunner{
 				Registry: registry,
 			}
 			err := runner.RunTestSuites(args)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			} else {
+				os.Exit(0)
+			}
+		},
+	}
+}
+
+// getBenchCommand returns a cobra "test" command for tests in the given registry
+func getBenchCommand(registry *TestRegistry) *cobra.Command {
+	return &cobra.Command{
+		Use:   "bench [tests]",
+		Short: "Run benchmarks",
+		Run: func(cmd *cobra.Command, args []string) {
+			runner := &TestRunner{
+				Registry: registry,
+			}
+			err := runner.RunBenchmarks(args)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			} else {
+				os.Exit(0)
+			}
+		},
+	}
+}
+
+// getBenchSuiteCommand returns a cobra "test" command for tests in the given registry
+func getBenchSuiteCommand(registry *TestRegistry) *cobra.Command {
+	return &cobra.Command{
+		Use:   "bench-suite [suite]",
+		Short: "Run benchmark suites on Kubernetes",
+		Run: func(cmd *cobra.Command, args []string) {
+			runner := &TestRunner{
+				Registry: registry,
+			}
+			err := runner.RunBenchmarkSuites(args)
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)
