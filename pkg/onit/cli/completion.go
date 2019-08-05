@@ -131,7 +131,7 @@ __onit_custom_func() {
             return
             ;;
 
-        onit_run_bench)
+        onit_run_benchmark)
             if [[ ${#nouns[@]} -eq 0 ]]; then
                 __onit_get_benchmarks
             fi

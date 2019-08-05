@@ -34,30 +34,36 @@ var (
             # Get current Cluster:
             onit get cluster
 
-            # Get a list of clusters:
+            # Get a list of clusters
             onit get clusters
             
-            # Get a list of nodes:
+            # Get a list of nodes
             onit get nodes
 
-            # Get a list of simulators:
+            # Get a list of simulators
             onit get simulators
 
-            # Get a list of networks:
+            # Get a list of networks
             onit get networks
 
-            # Get a list of partitions:
+            # Get a list of partitions
             onit get partitions
 
             # Get a list of nodes in a partition
             onit get partition <partition-id>
             
-            # Get a list of integration testing suites:
-            onit get suites
-            
             # Get a list of integration tests
             onit get tests
 
+            # Get a list of integration testing suites
+            onit get test-suites
+
+			# Get a list of benchmarks
+			onit get benchmarks
+
+			# Get a list of benchmark suites
+			onit get bench-suites
+            
             # Get the logs for a test resource
             onit get logs <name of resource>
             
@@ -473,8 +479,9 @@ func printTestSuites(registry *runner.TestRegistry, includeHeaders bool) {
 // getGetBenchmarksCommand returns a cobra command to get a list of available tests
 func getGetBenchmarksCommand(registry *runner.TestRegistry) *cobra.Command {
 	return &cobra.Command{
-		Use:   "benchmarks",
-		Short: "Get a list of benchmarks",
+		Use:     "benchmarks",
+		Aliases: []string{"bench", "benchmark"},
+		Short:   "Get a list of benchmarks",
 		Run: func(cmd *cobra.Command, args []string) {
 			for _, name := range registry.GetBenchmarkNames() {
 				fmt.Println(name)
@@ -486,8 +493,9 @@ func getGetBenchmarksCommand(registry *runner.TestRegistry) *cobra.Command {
 // getGetBenchmarkSuitesCommand returns a cobra command to get a list of available tests
 func getGetBenchmarkSuitesCommand(registry *runner.TestRegistry) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bench-suites",
-		Short: "Get a list of benchmark suites",
+		Use:     "bench-suites",
+		Aliases: []string{"benchmark-suites"},
+		Short:   "Get a list of benchmark suites",
 		Run: func(cmd *cobra.Command, args []string) {
 			noHeaders, _ := cmd.Flags().GetBool("no-headers")
 			printBenchSuites(registry, !noHeaders)
