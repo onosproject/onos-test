@@ -51,6 +51,10 @@ const (
 	OnosAll NodeType = "all"
 )
 
+const (
+	DebugPort int = 30000
+)
+
 // NodeInfo contains information about a node
 type NodeInfo struct {
 	ID     string
