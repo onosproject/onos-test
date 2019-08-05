@@ -124,7 +124,7 @@ __onit_custom_func() {
             return
             ;;
 
-        onit_run_test_suite)
+        onit_run_test-suite)
             if [[ ${#nouns[@]} -eq 0 ]]; then
                 __onit_get_test_suites
             fi
@@ -138,7 +138,7 @@ __onit_custom_func() {
             return
             ;;
 
-        onit_run_bench_suite)
+        onit_run_bench-suite)
             if [[ ${#nouns[@]} -eq 0 ]]; then
                 __onit_get_bench_suites
             fi

@@ -93,7 +93,7 @@ func getRunBenchCommand() *cobra.Command {
 		Aliases: []string{"bench", "benchmarks"},
 		Short:   "Run benchmarks on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
-			runTestsRemote(cmd, fmt.Sprintf("test-%d", newUUIDInt()), "test", args)
+			runTestsRemote(cmd, fmt.Sprintf("bench-%d", newUUIDInt()), "bench", args)
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
@@ -110,7 +110,7 @@ func getRunBenchSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 		Aliases: []string{"benchmark-suite", "benchmark-suites", "bench-suites"},
 		Short:   "Run a suite of benchmarks on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
-			runTestsRemote(cmd, fmt.Sprintf("test-%d", newUUIDInt()), "test-suite", args)
+			runTestsRemote(cmd, fmt.Sprintf("bench-%d", newUUIDInt()), "bench-suite", args)
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
