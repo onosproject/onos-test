@@ -17,20 +17,17 @@ package cli
 import (
 	"errors"
 
-	"k8s.io/kubectl/pkg/util/i18n"
-	"k8s.io/kubectl/pkg/util/templates"
-
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/spf13/cobra"
 )
 
 var (
-	removeExample = templates.Examples(i18n.T(`
+	removeExample = `
             # To remove a simulator with a given name:
 			onit remove simulator <simulator-name>
 
 			# To remove a network with a given name:
-			onit remove network <network-name>`))
+			onit remove network <network-name>`
 )
 
 // getRemoveCommand returns a cobra "remove" command for removing resources from the cluster

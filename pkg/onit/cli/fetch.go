@@ -18,22 +18,18 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"k8s.io/kubectl/pkg/util/i18n"
-	"k8s.io/kubectl/pkg/util/templates"
-
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/onit/console"
 	"github.com/spf13/cobra"
 )
 
 var (
-	fetchExample = templates.Examples(i18n.T(`
+	fetchExample = `
                     # To download logs from all nodes
                     onit fetch logs 
                     
                     # To download logs from a node
-                    onit fetch logs <name of the node>
-`))
+                    onit fetch logs <name of the node>`
 )
 
 // getFetchCommand returns a cobra "download" command for downloading resources from a test cluster

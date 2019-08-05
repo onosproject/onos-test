@@ -19,12 +19,10 @@ import (
 
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/spf13/cobra"
-	"k8s.io/kubectl/pkg/util/i18n"
-	"k8s.io/kubectl/pkg/util/templates"
 )
 
 var (
-	createExample = templates.Examples(i18n.T(`
+	createExample = `
             # To create a cluster with a given name that contains one instance of each subsystem (e.g. onos-config, onos-topo): 
 			onit create cluster onit-cluster-1 
 
@@ -35,7 +33,7 @@ var (
 			onit create cluster --partitions 2 
 
 			# To create a cluster that fetches docker images from a private docker registry:
-			onit create cluster --docker-registry <host>:<port>`))
+			onit create cluster --docker-registry <host>:<port>`
 )
 
 // getCreateCommand returns a cobra "setup" command for setting up resources

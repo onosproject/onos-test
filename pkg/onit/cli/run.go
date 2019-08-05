@@ -19,23 +19,18 @@ import (
 	"os"
 	"time"
 
-	"k8s.io/kubectl/pkg/util/i18n"
-	"k8s.io/kubectl/pkg/util/templates"
-
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/spf13/cobra"
 )
 
 var (
-	runExample = templates.Examples(i18n.T(`
+	runExample = `
     # To run all integration tests:
     onit run suite
 
     # To run a single test on a cluster
-    onit run test <name of a test>
-
-`))
+    onit run test <name of a test>`
 )
 
 // getRunCommand returns a cobra run command to run integration tests

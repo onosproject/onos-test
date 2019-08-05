@@ -17,19 +17,14 @@ package cli
 import (
 	"fmt"
 
-	"k8s.io/kubectl/pkg/util/i18n"
-	"k8s.io/kubectl/pkg/util/templates"
-
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/spf13/cobra"
 )
 
 var (
-	debugExample = templates.Examples(i18n.T(` 
+	debugExample = ` 
     # To debug a node in the cluster:
-    onit debug <name of a node>
-
-`))
+    onit debug <name of a node>`
 )
 
 // getDebugCommand returns a cobra "debug" command to open a debugger port to the given resource

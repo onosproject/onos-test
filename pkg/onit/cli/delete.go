@@ -17,17 +17,15 @@ package cli
 import (
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/spf13/cobra"
-	"k8s.io/kubectl/pkg/util/i18n"
-	"k8s.io/kubectl/pkg/util/templates"
 )
 
 var (
-	deleteExample = templates.Examples(i18n.T(`
+	deleteExample = `
             # To delete a cluster with a given name:
 			onit delete cluster <name of cluster>
 
 			# To delete the default cluster:
-			onit delete cluster`))
+			onit delete cluster`
 )
 
 // getDeleteCommand returns a cobra "teardown" command for tearing down Kubernetes test resources
