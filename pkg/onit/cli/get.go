@@ -31,38 +31,44 @@ import (
 
 var (
 	getExample = ` 
-            # Get current Cluster:
-            onit get cluster
+		# Get current configured cluster
+		onit get cluster
 
-            # Get a list of clusters:
-            onit get clusters
+		# Get a list of clusters
+		onit get clusters
             
-            # Get a list of nodes:
-            onit get nodes
+		# Get a list of nodes
+		onit get nodes
 
-            # Get a list of simulators:
-            onit get simulators
+		# Get a list of simulators
+		onit get simulators
 
-            # Get a list of networks:
-            onit get networks
+		# Get a list of networks
+		onit get networks
 
-            # Get a list of partitions:
-            onit get partitions
+		# Get a list of partitions
+		onit get partitions
 
-            # Get a list of nodes in a partition
-            onit get partition <partition-id>
+		# Get a list of nodes in a partition
+		onit get partition <partition-id>
             
-            # Get a list of integration testing suites:
-            onit get suites
-            
-            # Get a list of integration tests
-            onit get tests
+		# Get a list of integration tests
+		onit get tests
 
-            # Get the logs for a test resource
-            onit get logs <name of resource>
+		# Get a list of integration testing suites
+		onit get test-suites
+
+		# Get a list of benchmarks
+		onit get benchmarks
+
+		# Get a list of benchmark suites
+		onit get bench-suites
             
-            # Get the history of test runs
-            onit get history`
+		# Get the logs for a test resource
+		onit get logs <name of resource>
+            
+		# Get the history of test runs
+		onit get history`
 )
 
 // getGetCommand returns a cobra "get" command to read test configurations
@@ -83,6 +89,8 @@ func getGetCommand(registry *runner.TestRegistry) *cobra.Command {
 	cmd.AddCommand(getGetStorePresetsCommand())
 	cmd.AddCommand(getGetTestsCommand(registry))
 	cmd.AddCommand(getGetTestSuitesCommand(registry))
+	cmd.AddCommand(getGetBenchmarksCommand(registry))
+	cmd.AddCommand(getGetBenchmarkSuitesCommand(registry))
 	cmd.AddCommand(getGetHistoryCommand())
 	cmd.AddCommand(getGetLogsCommand())
 	return cmd
@@ -442,8 +450,9 @@ func getGetTestsCommand(registry *runner.TestRegistry) *cobra.Command {
 // getGetTestsCommand returns a cobra command to get a list of available tests
 func getGetTestSuitesCommand(registry *runner.TestRegistry) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "suites",
-		Short: "Get a list of integration testing suites",
+		Use:     "test-suites",
+		Aliases: []string{"suites"},
+		Short:   "Get a list of integration testing suites",
 		Run: func(cmd *cobra.Command, args []string) {
 			noHeaders, _ := cmd.Flags().GetBool("no-headers")
 			printTestSuites(registry, !noHeaders)
@@ -454,7 +463,7 @@ func getGetTestSuitesCommand(registry *runner.TestRegistry) *cobra.Command {
 	return cmd
 }
 
-//PrintTestSuites prints test suites in a table
+// PrintTestSuites prints test suites in a table
 func printTestSuites(registry *runner.TestRegistry, includeHeaders bool) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
@@ -463,6 +472,49 @@ func printTestSuites(registry *runner.TestRegistry, includeHeaders bool) {
 	}
 	for name, suite := range registry.TestSuites {
 		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s", name, strings.Join(suite.GetTestNames(), ", ")))
+	}
+	writer.Flush()
+}
+
+// getGetBenchmarksCommand returns a cobra command to get a list of available tests
+func getGetBenchmarksCommand(registry *runner.TestRegistry) *cobra.Command {
+	return &cobra.Command{
+		Use:     "benchmarks",
+		Aliases: []string{"bench", "benchmark"},
+		Short:   "Get a list of benchmarks",
+		Run: func(cmd *cobra.Command, args []string) {
+			for _, name := range registry.GetBenchmarkNames() {
+				fmt.Println(name)
+			}
+		},
+	}
+}
+
+// getGetBenchmarkSuitesCommand returns a cobra command to get a list of available tests
+func getGetBenchmarkSuitesCommand(registry *runner.TestRegistry) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "bench-suites",
+		Aliases: []string{"benchmark-suites"},
+		Short:   "Get a list of benchmark suites",
+		Run: func(cmd *cobra.Command, args []string) {
+			noHeaders, _ := cmd.Flags().GetBool("no-headers")
+			printBenchSuites(registry, !noHeaders)
+		},
+	}
+
+	cmd.Flags().Bool("no-headers", false, "whether to print column headers")
+	return cmd
+}
+
+// printBenchSuites prints benchmark suites in a table
+func printBenchSuites(registry *runner.TestRegistry, includeHeaders bool) {
+	writer := new(tabwriter.Writer)
+	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
+	if includeHeaders {
+		fmt.Fprintln(writer, "SUITE\tBENCHMARKS")
+	}
+	for name, suite := range registry.BenchSuites {
+		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s", name, strings.Join(suite.GetBenchNames(), ", ")))
 	}
 	writer.Flush()
 }

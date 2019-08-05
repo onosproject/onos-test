@@ -64,9 +64,25 @@ __onit_get_tests() {
     fi
 }
 
-__onit_get_suites() {
+__onit_get_test_suites() {
     local onit_output out
-    if onit_output=$(onit get suites --no-headers 2>/dev/null); then
+    if onit_output=$(onit get test-suites --no-headers 2>/dev/null); then
+        out=($(echo "${onit_output}" | awk '{print $1}'))
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__onit_get_benchmarks() {
+    local onit_output out
+    if onit_output=$(onit get benchmarks 2>/dev/null); then
+        out=($(echo "${onit_output}" | awk '{print $1}'))
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__onit_get_bench_suites() {
+    local onit_output out
+    if onit_output=$(onit get bench-suites --no-headers 2>/dev/null); then
         out=($(echo "${onit_output}" | awk '{print $1}'))
         COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
     fi
@@ -108,9 +124,23 @@ __onit_custom_func() {
             return
             ;;
 
-        onit_run_suite)
+        onit_run_test-suite)
             if [[ ${#nouns[@]} -eq 0 ]]; then
-                __onit_get_suites
+                __onit_get_test_suites
+            fi
+            return
+            ;;
+
+        onit_run_benchmark)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __onit_get_benchmarks
+            fi
+            return
+            ;;
+
+        onit_run_bench-suite)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __onit_get_bench_suites
             fi
             return
             ;;

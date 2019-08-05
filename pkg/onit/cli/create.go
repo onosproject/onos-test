@@ -23,17 +23,17 @@ import (
 
 var (
 	createExample = `
-            # To create a cluster with a given name that contains one instance of each subsystem (e.g. onos-config, onos-topo): 
-			onit create cluster onit-cluster-1 
+		# Create a cluster with a given name that contains one instance of each subsystem (e.g. onos-config, onos-topo)
+		onit create cluster onit-cluster-1 
 
-			# To create a cluster that contains two instances of onos-config subsystem and two instances of onos-topo subsystem:
-			onit-create-cluster onit-cluster-2 --topo-nodes 2 --config-nodes 2
+		# Create a cluster that contains two instances of onos-config subsystem and two instances of onos-topo subsystem
+		onit-create-cluster onit-cluster-2 --topo-nodes 2 --config-nodes 2
 
-			# To create a cluster that has two raft partitions:
-			onit create cluster --partitions 2 
+		# Create a cluster that has two 3-node raft partitions
+		onit create cluster --partitions 2 --partition-size 3
 
-			# To create a cluster that fetches docker images from a private docker registry:
-			onit create cluster --docker-registry <host>:<port>`
+		# Create a cluster that fetches docker images from a private docker registry
+		onit create cluster --docker-registry <host>:<port>`
 )
 
 // getCreateCommand returns a cobra "setup" command for setting up resources

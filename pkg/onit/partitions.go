@@ -125,7 +125,7 @@ func (c *ClusterController) createPartitionSet() error {
 				Spec: v1alpha1.PartitionSpec{
 					Size:     int32(c.config.PartitionSize),
 					Protocol: "raft",
-					Image:    "atomix/atomix-raft-protocol:latest",
+					Image:    "atomix/atomix-go-raft:latest",
 					Config:   string(bytes),
 				},
 			},

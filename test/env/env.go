@@ -152,6 +152,10 @@ func GetAdminClient() (*grpc.ClientConn, proto.ConfigAdminServiceClient) {
 }
 
 // NewAtomixClient returns an Atomix client from the environment
-func NewAtomixClient() (*atomixclient.Client, error) {
-	return atomixclient.NewClient(os.Getenv("ATOMIX_CONTROLLER"))
+func NewAtomixClient(test string) (*atomixclient.Client, error) {
+	opts := []atomixclient.ClientOption{
+		atomixclient.WithNamespace(os.Getenv("ATOMIX_NAMESPACE")),
+		atomixclient.WithApplication(test),
+	}
+	return atomixclient.NewClient(os.Getenv("ATOMIX_CONTROLLER"), opts...)
 }

@@ -16,6 +16,7 @@ package runner
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"testing"
 )
@@ -61,35 +62,70 @@ func (r *TestRunner) RunTests(args []string) error {
 
 // RunTestSuites Runs the tests groups
 func (r *TestRunner) RunTestSuites(args []string) error {
-	tests := make([]testing.InternalTest, 0, len(args))
+	for _, name := range args {
+		testSuite, ok := r.Registry.TestSuites[name]
+		if !ok {
+			return errors.New("unknown test suite" + name)
+		}
+		err := r.RunTests(testSuite.GetTestNames())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// RunBenchmarks runs the benchmarks
+func (r *TestRunner) RunBenchmarks(args []string, n int) error {
+	benchmarks := make([]testing.InternalBenchmark, 0, len(args))
 	if len(args) > 0 {
 		for _, name := range args {
-			testSuite, ok := r.Registry.TestSuites[name]
+			benchmark, ok := r.Registry.benchmarks[name]
 			if !ok {
-				return errors.New("unknown test suite" + name)
+				return errors.New("unknown benchmark " + name)
 			}
-
-			testNames := []string{}
-
-			for testName := range testSuite.tests {
-				testNames = append(testNames, testName)
-			}
-			err := r.RunTests(testNames)
-			if err != nil {
-				return err
-			}
+			benchmarks = append(benchmarks, testing.InternalBenchmark{
+				Name: name,
+				F:    benchmark,
+			})
 		}
 	} else {
-		return nil
+		for name, benchmark := range r.Registry.benchmarks {
+			benchmarks = append(benchmarks, testing.InternalBenchmark{
+				Name: name,
+				F:    benchmark,
+			})
+		}
 	}
 
 	// Hack to enable verbose testing.
 	os.Args = []string{
 		os.Args[0],
+		"-test.bench=.",
 		"-test.v",
 	}
 
+	// If a count was specified, append the count.
+	if n > 0 {
+		os.Args = append(os.Args, fmt.Sprintf("-test.count=%d", n))
+	}
+
 	// Run the integration tests via the testing package.
-	testing.Main(func(_, _ string) (bool, error) { return true, nil }, tests, nil, nil)
+	testing.Main(func(_, _ string) (bool, error) { return true, nil }, nil, benchmarks, nil)
+	return nil
+}
+
+// RunBenchmarkSuites Runs a benchmark suite
+func (r *TestRunner) RunBenchmarkSuites(args []string, n int) error {
+	for _, name := range args {
+		benchSuite, ok := r.Registry.BenchSuites[name]
+		if !ok {
+			return errors.New("unknown test suite" + name)
+		}
+		err := r.RunBenchmarks(benchSuite.GetBenchNames(), n)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

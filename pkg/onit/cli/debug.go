@@ -23,8 +23,8 @@ import (
 
 var (
 	debugExample = ` 
-    # To debug a node in the cluster:
-    onit debug <name of a node>`
+		# Debug a node in the cluster
+		onit debug <name of a node>`
 )
 
 // getDebugCommand returns a cobra "debug" command to open a debugger port to the given resource

@@ -28,6 +28,8 @@ func GetOnosTestRunnerCommand(registry *TestRegistry) *cobra.Command {
 	}
 	cmd.AddCommand(getTestCommand(registry))
 	cmd.AddCommand(getSuiteCommand(registry))
+	cmd.AddCommand(getBenchCommand(registry))
+	cmd.AddCommand(getBenchSuiteCommand(registry))
 	return cmd
 }
 
@@ -54,7 +56,7 @@ func getTestCommand(registry *TestRegistry) *cobra.Command {
 // getSuiteCommand returns a cobra "test" command for tests in the given registry
 func getSuiteCommand(registry *TestRegistry) *cobra.Command {
 	return &cobra.Command{
-		Use:   "suite [suite]",
+		Use:   "test-suite [suite]",
 		Short: "Run integration test suites on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
 			runner := &TestRunner{
@@ -69,4 +71,50 @@ func getSuiteCommand(registry *TestRegistry) *cobra.Command {
 			}
 		},
 	}
+}
+
+// getBenchCommand returns a cobra "test" command for tests in the given registry
+func getBenchCommand(registry *TestRegistry) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bench [tests]",
+		Short: "Run benchmarks",
+		Run: func(cmd *cobra.Command, args []string) {
+			n, _ := cmd.Flags().GetInt("count")
+			runner := &TestRunner{
+				Registry: registry,
+			}
+			err := runner.RunBenchmarks(args, n)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			} else {
+				os.Exit(0)
+			}
+		},
+	}
+	cmd.Flags().IntP("count", "n", 0, "the number of iterations to run")
+	return cmd
+}
+
+// getBenchSuiteCommand returns a cobra "test" command for tests in the given registry
+func getBenchSuiteCommand(registry *TestRegistry) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bench-suite [suite]",
+		Short: "Run benchmark suites on Kubernetes",
+		Run: func(cmd *cobra.Command, args []string) {
+			n, _ := cmd.Flags().GetInt("count")
+			runner := &TestRunner{
+				Registry: registry,
+			}
+			err := runner.RunBenchmarkSuites(args, n)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			} else {
+				os.Exit(0)
+			}
+		},
+	}
+	cmd.Flags().IntP("count", "n", 0, "the number of iterations to run")
+	return cmd
 }
