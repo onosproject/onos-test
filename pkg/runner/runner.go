@@ -16,6 +16,7 @@ package runner
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"testing"
 )
@@ -75,7 +76,7 @@ func (r *TestRunner) RunTestSuites(args []string) error {
 }
 
 // RunBenchmarks runs the benchmarks
-func (r *TestRunner) RunBenchmarks(args []string) error {
+func (r *TestRunner) RunBenchmarks(args []string, n int) error {
 	benchmarks := make([]testing.InternalBenchmark, 0, len(args))
 	if len(args) > 0 {
 		for _, name := range args {
@@ -104,19 +105,24 @@ func (r *TestRunner) RunBenchmarks(args []string) error {
 		"-test.v",
 	}
 
+	// If a count was specified, append the count.
+	if n > 0 {
+		os.Args = append(os.Args, fmt.Sprintf("-test.count=%d", n))
+	}
+
 	// Run the integration tests via the testing package.
 	testing.Main(func(_, _ string) (bool, error) { return true, nil }, nil, benchmarks, nil)
 	return nil
 }
 
 // RunBenchmarkSuites Runs a benchmark suite
-func (r *TestRunner) RunBenchmarkSuites(args []string) error {
+func (r *TestRunner) RunBenchmarkSuites(args []string, n int) error {
 	for _, name := range args {
 		benchSuite, ok := r.Registry.BenchSuites[name]
 		if !ok {
 			return errors.New("unknown test suite" + name)
 		}
-		err := r.RunBenchmarks(benchSuite.GetBenchNames())
+		err := r.RunBenchmarks(benchSuite.GetBenchNames(), n)
 		if err != nil {
 			return err
 		}

@@ -58,13 +58,15 @@ func getRunTestCommand() *cobra.Command {
 		Use:   "test [tests]",
 		Short: "Run tests on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
-			runTestsRemote(cmd, fmt.Sprintf("test-%d", newUUIDInt()), "test", args)
+			count, _ := cmd.Flags().GetInt("count")
+			runTestsRemote(cmd, fmt.Sprintf("test-%d", newUUIDInt()), "test", args, count)
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
+	cmd.Flags().IntP("count", "n", 0, "run tests n times")
 	cmd.Flags().IntP("timeout", "t", 60*10, "test timeout in seconds")
 	return cmd
 }
@@ -75,13 +77,15 @@ func getRunTestSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 		Aliases: []string{"suite"},
 		Short:   "Run a suite of tests on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
-			runTestsRemote(cmd, fmt.Sprintf("test-%d", newUUIDInt()), "test-suite", args)
+			count, _ := cmd.Flags().GetInt("count")
+			runTestsRemote(cmd, fmt.Sprintf("test-%d", newUUIDInt()), "test-suite", args, count)
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
+	cmd.Flags().IntP("count", "n", 0, "run tests n times")
 	cmd.Flags().IntP("timeout", "t", 60*10, "test timeout in seconds")
 
 	return cmd
@@ -93,13 +97,15 @@ func getRunBenchCommand() *cobra.Command {
 		Aliases: []string{"bench", "benchmarks"},
 		Short:   "Run benchmarks on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
-			runTestsRemote(cmd, fmt.Sprintf("bench-%d", newUUIDInt()), "bench", args)
+			count, _ := cmd.Flags().GetInt("count")
+			runTestsRemote(cmd, fmt.Sprintf("bench-%d", newUUIDInt()), "bench", args, count)
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
+	cmd.Flags().IntP("count", "n", 0, "the number of iterations to run")
 	cmd.Flags().IntP("timeout", "t", 60*10, "test timeout in seconds")
 	return cmd
 }
@@ -110,19 +116,20 @@ func getRunBenchSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 		Aliases: []string{"benchmark-suite", "benchmark-suites", "bench-suites"},
 		Short:   "Run a suite of benchmarks on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
-			runTestsRemote(cmd, fmt.Sprintf("bench-%d", newUUIDInt()), "bench-suite", args)
+			count, _ := cmd.Flags().GetInt("count")
+			runTestsRemote(cmd, fmt.Sprintf("bench-%d", newUUIDInt()), "bench-suite", args, count)
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
+	cmd.Flags().IntP("count", "n", 0, "the number of iterations to run")
 	cmd.Flags().IntP("timeout", "t", 60*10, "test timeout in seconds")
-
 	return cmd
 }
 
-func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests []string) {
+func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests []string, count int) {
 	// Get the onit controller
 	controller, err := onit.NewController()
 	if err != nil {
@@ -142,6 +149,10 @@ func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests
 	}
 
 	timeout, _ := cmd.Flags().GetInt("timeout")
+	if count > 0 {
+		tests = append(tests, fmt.Sprintf("-n=%d", count))
+	}
+
 	message, code, status := cluster.RunTests(testID, append([]string{commandType}, tests...), time.Duration(timeout)*time.Second)
 	if status.Failed() {
 		exitStatus(status)
