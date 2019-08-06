@@ -8,19 +8,25 @@ import (
 
 // setupIngress sets up the Ingress
 func (c *ClusterController) setupIngress() error {
-	return c.createIngress()
+	if err := c.createGRPCIngress(); err != nil {
+		return err
+	}
+	if err := c.createGUIIngress(); err != nil {
+		return err
+	}
+	return nil
 }
 
-// createIngress creates an ingress for onos services
-func (c *ClusterController) createIngress() error {
+// createGRPCIngress creates an ingress for onos services
+func (c *ClusterController) createGRPCIngress() error {
 	ing := &extensionsv1beta1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-ingress",
 			Namespace: c.clusterID,
 			Annotations: map[string]string{
-				"kubernetes.io/ingress.class": "nginx",
-				"nginx.org/grpc-services": "onos-config,onos-topo",
-				"nginx.ingress.kubernetes.io/backend-protocol": "GRPCS",
+				"kubernetes.io/ingress.class":                  "nginx",
+				"nginx.org/grpc-services":                      "onos-config,onos-topo",
+				"nginx.ingress.kubernetes.io/backend-protocol": "GRPC",
 			},
 		},
 		Spec: extensionsv1beta1.IngressSpec{
@@ -75,6 +81,31 @@ func (c *ClusterController) createIngress() error {
 						},
 					},
 				},
+			},
+		},
+	}
+	_, err := c.kubeclient.ExtensionsV1beta1().Ingresses(c.clusterID).Create(ing)
+	return err
+}
+
+// createGUIIngress creates an ingress for the GUI
+func (c *ClusterController) createGUIIngress() error {
+	ing := &extensionsv1beta1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-gui-ingress",
+			Namespace: c.clusterID,
+			Annotations: map[string]string{
+				"kubernetes.io/ingress.class": "nginx",
+			},
+		},
+		Spec: extensionsv1beta1.IngressSpec{
+			TLS: []extensionsv1beta1.IngressTLS{
+				{
+					SecretName: c.clusterID,
+				},
+			},
+			Rules: []extensionsv1beta1.IngressRule{
+				// Placeholder for GUI rules
 			},
 		},
 	}
