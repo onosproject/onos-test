@@ -15,9 +15,7 @@
 package atomix
 
 import (
-	"bytes"
 	"context"
-	atomixmap "github.com/atomix/atomix-go-client/pkg/client/map_"
 	"github.com/atomix/atomix-go-client/pkg/client/session"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
@@ -27,56 +25,63 @@ import (
 	"time"
 )
 
-func TestAtomixMap(t *testing.T) {
-	client, err := env.NewAtomixClient("map")
+func TestAtomixList(t *testing.T) {
+	client, err := env.NewAtomixClient("list")
 	assert.NoError(t, err)
 	assert.NotNil(t, client)
 
 	group, err := client.GetGroup(context.Background(), "raft")
 	assert.NoError(t, err)
 
-	m, err := group.GetMap(context.Background(), "test", session.WithTimeout(5*time.Second))
+	list, err := group.GetList(context.Background(), "test", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
-	size, err := m.Size(context.Background())
+	size, err := list.Size(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 0, size)
 
-	value, err := m.Get(context.Background(), "foo")
+	err = list.Append(context.Background(), "Hello world!")
 	assert.NoError(t, err)
-	assert.Nil(t, value)
 
-	value, err = m.Put(context.Background(), "foo", []byte("Hello world!"))
-	assert.NoError(t, err)
-	assert.NotNil(t, value)
-	assert.Equal(t, "foo", value.Key)
-	assert.True(t, bytes.Equal([]byte("Hello world!"), value.Value))
-	assert.NotEqual(t, int64(0), value.Version)
-	version := value.Version
-
-	value, err = m.Get(context.Background(), "foo")
-	assert.NoError(t, err)
-	assert.NotNil(t, value)
-	assert.Equal(t, "foo", value.Key)
-	assert.True(t, bytes.Equal([]byte("Hello world!"), value.Value))
-	assert.Equal(t, version, value.Version)
-
-	size, err = m.Size(context.Background())
+	size, err = list.Size(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 1, size)
 
-	ch := make(chan *atomixmap.KeyValue)
-	err = m.Entries(context.Background(), ch)
+	value, err := list.Get(context.Background(), 0)
 	assert.NoError(t, err)
+	assert.Equal(t, "Hello world!", value)
+
+	value, err = list.Remove(context.Background(), 0)
+	assert.NoError(t, err)
+	assert.Equal(t, "Hello world!", value)
+
+	size, err = list.Size(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, 0, size)
+
+	err = list.Append(context.Background(), "Hello world!")
+	assert.NoError(t, err)
+
+	err = list.Append(context.Background(), "Hello world again!")
+	assert.NoError(t, err)
+
+	ch := make(chan string)
+	err = list.Items(context.Background(), ch)
 	i := 0
-	for kv := range ch {
-		assert.Equal(t, "foo", kv.Key)
-		assert.Equal(t, "Hello world!", string(kv.Value))
-		i++
+	for value := range ch {
+		if i == 0 {
+			assert.Equal(t, "Hello world!", value)
+			i++
+		} else if i == 1 {
+			assert.Equal(t, "Hello world again!", value)
+			i++
+		} else {
+			assert.Fail(t, "Too many values")
+		}
 	}
-	assert.Equal(t, 1, i)
+	assert.NoError(t, err)
 }
 
 func init() {
-	test.Registry.RegisterTest("atomix-map", TestAtomixMap, []*runner.TestSuite{AtomixTests})
+	test.Registry.RegisterTest("atomix-list", TestAtomixList, []*runner.TestSuite{AtomixTests})
 }
