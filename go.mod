@@ -44,4 +44,5 @@ require (
 	k8s.io/apimachinery v0.0.0-20190620073744-d16981aedf33
 	k8s.io/client-go v0.0.0-20190620074045-585a16d2e773
 	k8s.io/klog v0.3.3
+	sigs.k8s.io/controller-runtime v0.1.12
 )

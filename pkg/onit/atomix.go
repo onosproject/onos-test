@@ -19,7 +19,6 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,15 +30,6 @@ func (c *ClusterController) setupAtomixController() error {
 		return err
 	}
 	if err := c.createAtomixPartitionResource(); err != nil {
-		return err
-	}
-	if err := c.createAtomixClusterRole(); err != nil {
-		return err
-	}
-	if err := c.createAtomixClusterRoleBinding(); err != nil {
-		return err
-	}
-	if err := c.createAtomixServiceAccount(); err != nil {
 		return err
 	}
 	if err := c.createAtomixDeployment(); err != nil {
@@ -112,138 +102,6 @@ func (c *ClusterController) createAtomixPartitionResource() error {
 	return nil
 }
 
-// createAtomixClusterRole creates the ClusterRole required by the Atomix controller if not yet created
-func (c *ClusterController) createAtomixClusterRole() error {
-	role := &rbacv1.ClusterRole{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "atomix-controller",
-			Namespace: c.clusterID,
-		},
-		Rules: []rbacv1.PolicyRule{
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"pods",
-					"services",
-					"endpoints",
-					"persistentvolumeclaims",
-					"events",
-					"configmaps",
-					"secrets",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-			{
-				APIGroups: []string{
-					"",
-				},
-				Resources: []string{
-					"namespaces",
-				},
-				Verbs: []string{
-					"get",
-				},
-			},
-			{
-				APIGroups: []string{
-					"apps",
-				},
-				Resources: []string{
-					"deployments",
-					"daemonsets",
-					"replicasets",
-					"statefulsets",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-			{
-				APIGroups: []string{
-					"policy",
-				},
-				Resources: []string{
-					"poddisruptionbudgets",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-			{
-				APIGroups: []string{
-					"k8s.atomix.io",
-				},
-				Resources: []string{
-					"*",
-				},
-				Verbs: []string{
-					"*",
-				},
-			},
-		},
-	}
-	_, err := c.kubeclient.RbacV1().ClusterRoles().Create(role)
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
-		return err
-	}
-	return nil
-}
-
-// createAtomixClusterRoleBinding creates the ClusterRoleBinding required by the Atomix controller for the test namespace
-func (c *ClusterController) createAtomixClusterRoleBinding() error {
-	roleBinding := &rbacv1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.clusterID,
-			Namespace: c.clusterID,
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:      "ServiceAccount",
-				Name:      "atomix-controller",
-				Namespace: c.clusterID,
-			},
-		},
-		RoleRef: rbacv1.RoleRef{
-			Kind:     "ClusterRole",
-			Name:     "atomix-controller",
-			APIGroup: "rbac.authorization.k8s.io",
-		},
-	}
-	_, err := c.kubeclient.RbacV1().ClusterRoleBindings().Create(roleBinding)
-	if err != nil {
-		if k8serrors.IsAlreadyExists(err) {
-			err := c.deleteAtomixClusterRoleBinding()
-			if err != nil {
-				return err
-			}
-			return c.createAtomixClusterRoleBinding()
-		}
-		return err
-	}
-	return nil
-}
-
-// deleteAtomixClusterRoleBinding deletes the ClusterRoleBinding required by the Atomix controller
-func (c *ClusterController) deleteAtomixClusterRoleBinding() error {
-	return c.kubeclient.RbacV1().ClusterRoleBindings().Delete("atomix-controller", &metav1.DeleteOptions{})
-}
-
-// createAtomixServiceAccount creates a ServiceAccount used by the Atomix controller
-func (c *ClusterController) createAtomixServiceAccount() error {
-	serviceAccount := &corev1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "atomix-controller",
-			Namespace: c.clusterID,
-		},
-	}
-	_, err := c.kubeclient.CoreV1().ServiceAccounts(c.clusterID).Create(serviceAccount)
-	return err
-}
-
 // createAtomixDeployment creates the Atomix controller Deployment
 func (c *ClusterController) createAtomixDeployment() error {
 	replicas := int32(1)
@@ -266,7 +124,7 @@ func (c *ClusterController) createAtomixDeployment() error {
 					},
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName: "atomix-controller",
+					ServiceAccountName: c.clusterID,
 					Containers: []corev1.Container{
 						{
 							Name:            "atomix-controller",

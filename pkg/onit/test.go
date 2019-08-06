@@ -92,7 +92,8 @@ func (c *ClusterController) createTestJob(testID string, args []string, timeout 
 					},
 				},
 				Spec: corev1.PodSpec{
-					RestartPolicy: corev1.RestartPolicyNever,
+					ServiceAccountName: c.clusterID,
+					RestartPolicy:      corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
 						{
 							Name:            "test",
@@ -100,6 +101,10 @@ func (c *ClusterController) createTestJob(testID string, args []string, timeout 
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args:            args,
 							Env: []corev1.EnvVar{
+								{
+									Name:  "TEST_NAMESPACE",
+									Value: c.clusterID,
+								},
 								{
 									Name:  "ATOMIX_CONTROLLER",
 									Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", c.clusterID),
