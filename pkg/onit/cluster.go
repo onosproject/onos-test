@@ -26,6 +26,7 @@ import (
 	atomixk8s "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/onit/console"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -61,6 +62,11 @@ func (c *ClusterController) imagePrefix() string {
 
 // Setup sets up a test cluster with the given configuration
 func (c *ClusterController) Setup() console.ErrorStatus {
+	c.status.Start("Setting up RBAC")
+	if err := c.setupRBAC(); err != nil {
+		return c.status.Fail(err)
+	}
+	c.status.Succeed()
 	c.status.Start("Setting up Atomix controller")
 	if err := c.setupAtomixController(); err != nil {
 		return c.status.Fail(err)
@@ -86,6 +92,137 @@ func (c *ClusterController) Setup() console.ErrorStatus {
 	}
 	c.status.Succeed()
 	return c.status.Succeed()
+}
+
+// setupRBAC sets up role based access controls for the cluster
+func (c *ClusterController) setupRBAC() error {
+	if err := c.createClusterRole(); err != nil {
+		return err
+	}
+	if err := c.createClusterRoleBinding(); err != nil {
+		return err
+	}
+	if err := c.createServiceAccount(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// createClusterRole creates the ClusterRole required by the Atomix controller and tests if not yet created
+func (c *ClusterController) createClusterRole() error {
+	role := &rbacv1.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      c.clusterID,
+			Namespace: c.clusterID,
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"pods",
+					"services",
+					"endpoints",
+					"persistentvolumeclaims",
+					"events",
+					"configmaps",
+					"secrets",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"namespaces",
+				},
+				Verbs: []string{
+					"get",
+				},
+			},
+			{
+				APIGroups: []string{
+					"apps",
+				},
+				Resources: []string{
+					"deployments",
+					"daemonsets",
+					"replicasets",
+					"statefulsets",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"policy",
+				},
+				Resources: []string{
+					"poddisruptionbudgets",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"k8s.atomix.io",
+				},
+				Resources: []string{
+					"*",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+		},
+	}
+	_, err := c.kubeclient.RbacV1().ClusterRoles().Create(role)
+	if err != nil && !k8serrors.IsAlreadyExists(err) {
+		return err
+	}
+	return nil
+}
+
+// createClusterRoleBinding creates the ClusterRoleBinding required by the Atomix controller and tests for the test namespace
+func (c *ClusterController) createClusterRoleBinding() error {
+	roleBinding := &rbacv1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      c.clusterID,
+			Namespace: c.clusterID,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      c.clusterID,
+				Namespace: c.clusterID,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind:     "ClusterRole",
+			Name:     c.clusterID,
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	}
+	_, err := c.kubeclient.RbacV1().ClusterRoleBindings().Create(roleBinding)
+	return err
+}
+
+// createServiceAccount creates a ServiceAccount used by the Atomix controller
+func (c *ClusterController) createServiceAccount() error {
+	serviceAccount := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      c.clusterID,
+			Namespace: c.clusterID,
+		},
+	}
+	_, err := c.kubeclient.CoreV1().ServiceAccounts(c.clusterID).Create(serviceAccount)
+	return err
 }
 
 // AddSimulator adds a device simulator with the given configuration
