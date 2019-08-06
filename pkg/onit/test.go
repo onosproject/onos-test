@@ -113,6 +113,10 @@ func (c *ClusterController) createTestJob(testID string, args []string, timeout 
 									Value: c.clusterID,
 								},
 								{
+									Name:  "ATOMIX_RAFT_GROUP",
+									Value: "raft",
+								},
+								{
 									Name:  env.TestDevicesEnv,
 									Value: strings.Join(deviceIds, ","),
 								},

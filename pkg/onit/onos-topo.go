@@ -132,6 +132,10 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 									Name:  "ATOMIX_NAMESPACE",
 									Value: c.clusterID,
 								},
+								{
+									Name:  "ATOMIX_RAFT_GROUP",
+									Value: "raft",
+								},
 							},
 							Args: []string{
 								"-caPath=/etc/onos-topo/certs/onf.cacrt",
