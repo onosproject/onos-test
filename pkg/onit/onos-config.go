@@ -260,6 +260,10 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 									Name:  "ATOMIX_NAMESPACE",
 									Value: c.clusterID,
 								},
+								{
+									Name:  "ATOMIX_RAFT_GROUP",
+									Value: "raft",
+								},
 							},
 							Args: []string{
 								"-caPath=/etc/onos-config/certs/onf.cacrt",
