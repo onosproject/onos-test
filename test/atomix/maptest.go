@@ -35,18 +35,18 @@ func TestAtomixMap(t *testing.T) {
 	group, err := client.GetGroup(context.Background(), "raft")
 	assert.NoError(t, err)
 
-	map_, err := group.GetMap(context.Background(), "test", session.WithTimeout(5*time.Second))
+	m, err := group.GetMap(context.Background(), "test", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
-	size, err := map_.Size(context.Background())
+	size, err := m.Size(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 0, size)
 
-	value, err := map_.Get(context.Background(), "foo")
+	value, err := m.Get(context.Background(), "foo")
 	assert.NoError(t, err)
 	assert.Nil(t, value)
 
-	value, err = map_.Put(context.Background(), "foo", []byte("Hello world!"))
+	value, err = m.Put(context.Background(), "foo", []byte("Hello world!"))
 	assert.NoError(t, err)
 	assert.NotNil(t, value)
 	assert.Equal(t, "foo", value.Key)
@@ -54,19 +54,19 @@ func TestAtomixMap(t *testing.T) {
 	assert.NotEqual(t, int64(0), value.Version)
 	version := value.Version
 
-	value, err = map_.Get(context.Background(), "foo")
+	value, err = m.Get(context.Background(), "foo")
 	assert.NoError(t, err)
 	assert.NotNil(t, value)
 	assert.Equal(t, "foo", value.Key)
 	assert.True(t, bytes.Equal([]byte("Hello world!"), value.Value))
 	assert.Equal(t, version, value.Version)
 
-	size, err = map_.Size(context.Background())
+	size, err = m.Size(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 1, size)
 
 	ch := make(chan *atomixmap.KeyValue)
-	err = map_.Entries(context.Background(), ch)
+	err = m.Entries(context.Background(), ch)
 	assert.NoError(t, err)
 	i := 0
 	for kv := range ch {
