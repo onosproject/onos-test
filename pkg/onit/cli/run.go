@@ -19,6 +19,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/pkg/errors"
+
+	"github.com/onosproject/onos-test/test"
+
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/spf13/cobra"
@@ -152,12 +156,17 @@ func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests
 	if count > 0 {
 		tests = append(tests, fmt.Sprintf("-n=%d", count))
 	}
+	testNames := test.Registry.GetTestNames()
+	if Contains(testNames, testID) {
 
-	message, code, status := cluster.RunTests(testID, append([]string{commandType}, tests...), time.Duration(timeout)*time.Second)
-	if status.Failed() {
-		exitStatus(status)
+		message, code, status := cluster.RunTests(testID, append([]string{commandType}, tests...), time.Duration(timeout)*time.Second)
+		if status.Failed() {
+			exitStatus(status)
+		} else {
+			fmt.Println(message)
+			os.Exit(code)
+		}
 	} else {
-		fmt.Println(message)
-		os.Exit(code)
+		exitError(errors.New(fmt.Sprintf("The test %s does not exist", testID)))
 	}
 }
