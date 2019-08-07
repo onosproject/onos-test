@@ -19,6 +19,7 @@ import (
 	"github.com/onosproject/onos-test/test"
 	_ "github.com/onosproject/onos-test/test/atomix"
 	_ "github.com/onosproject/onos-test/test/integration"
+	_ "github.com/onosproject/onos-test/test/topo"
 	"os"
 
 	"github.com/onosproject/onos-test/pkg/onit/cli"
