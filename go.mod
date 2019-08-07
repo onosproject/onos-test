@@ -5,7 +5,6 @@ go 1.12
 require (
 	github.com/atomix/atomix-go-client v0.0.0-20190807011524-58b4352273d7
 	github.com/atomix/atomix-k8s-controller v0.0.0-20190620084759-d5e65f7fbf68
-	github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 // indirect
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.3.2
