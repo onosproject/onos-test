@@ -3,7 +3,7 @@ module github.com/onosproject/onos-test
 go 1.12
 
 require (
-	github.com/atomix/atomix-go-client v0.0.0-20190806232548-71d620e0a5b3
+	github.com/atomix/atomix-go-client v0.0.0-20190807011524-58b4352273d7
 	github.com/atomix/atomix-k8s-controller v0.0.0-20190620084759-d5e65f7fbf68
 	github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 // indirect
 	github.com/fatih/color v1.7.0
@@ -12,7 +12,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onosproject/onos-config v0.0.0-20190731170328-b4ee3a917c9f
-	github.com/onosproject/onos-topo v0.0.0-20190806004156-537a9862c203
+	github.com/onosproject/onos-topo v0.0.0-20190807224236-53dad829743b
 	github.com/openconfig/gnmi v0.0.0-20180912164834-33a1865c3029
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0

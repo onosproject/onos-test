@@ -82,15 +82,15 @@ func (c *ClusterController) Setup() console.ErrorStatus {
 		return c.status.Fail(err)
 	}
 	c.status.Succeed()
-	c.status.Start("Bootstrapping onos-config cluster")
-	if err := c.setupOnosConfig(); err != nil {
-		return c.status.Fail(err)
-	}
 	c.status.Start("Bootstrapping onos-topo cluster")
 	if err := c.setupOnosTopo(); err != nil {
 		return c.status.Fail(err)
 	}
 	c.status.Succeed()
+	c.status.Start("Bootstrapping onos-config cluster")
+	if err := c.setupOnosConfig(); err != nil {
+		return c.status.Fail(err)
+	}
 	return c.status.Succeed()
 }
 
