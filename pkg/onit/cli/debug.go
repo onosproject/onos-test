@@ -16,15 +16,19 @@ package cli
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/spf13/cobra"
 )
 
 var (
-	debugExample = ` 
+	debugExample = `
 		# Debug a node in the cluster
-		onit debug <name of a node>`
+		onit debug <name of a node>
+
+        # Debug all nodes in the cluster
+        onit debug`
 )
 
 // getDebugCommand returns a cobra "debug" command to open a debugger port to the given resource
@@ -33,7 +37,7 @@ func getDebugCommand() *cobra.Command {
 		Use:     "debug <resource>",
 		Short:   "Open a debugger port to the given resource",
 		Example: debugExample,
-		Args:    cobra.ExactArgs(1),
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
 			controller, err := onit.NewController()
@@ -53,18 +57,59 @@ func getDebugCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			port, _ := cmd.Flags().GetInt("port")
-			if err := cluster.PortForward(args[0], port, 40000); err != nil {
+			nodes, err := cluster.GetNodes()
+			if err != nil {
 				exitError(err)
+			}
+
+			port, _ := cmd.Flags().GetInt("port")
+
+			if len(args) == 0 {
+				var wg sync.WaitGroup
+				n := len(nodes)
+				wg.Add(n)
+
+				asyncErrors := make(chan error, n)
+				freePorts, err := onit.GetFreePorts(n)
+				if err != nil {
+					exitError(err)
+				}
+
+				for index := range nodes {
+					go func(node onit.NodeInfo, port int) {
+						fmt.Println("Start Debugger for:", node.ID)
+						err = cluster.PortForward(node.ID, port, 40000)
+						asyncErrors <- err
+						wg.Done()
+					}(nodes[index], freePorts[index])
+
+				}
+
+				go func() {
+					wg.Wait()
+					close(asyncErrors)
+				}()
+
+				for err = range asyncErrors {
+					if err != nil {
+						exitError(err)
+					}
+				}
+
 			} else {
-				fmt.Println(port)
+				if err := cluster.PortForward(args[0], port, 40000); err != nil {
+					exitError(err)
+				} else {
+					fmt.Println(port)
+				}
+
 			}
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster for which to load the history")
+	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster for which to debug nodes")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
-	cmd.Flags().IntP("port", "p", 40000, "the local port to forward to the given resource")
+	cmd.Flags().IntP("port", "p", onit.DebugPort, "the local port to forward to the given resource")
 	return cmd
 }
