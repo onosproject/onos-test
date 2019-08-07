@@ -41,7 +41,16 @@ func (c *ClusterController) setupOnosConfig() error {
 	if err := c.createOnosConfigDeployment(); err != nil {
 		return err
 	}
+	if err := c.createOnosConfigProxyDeployment(); err != nil {
+		return err
+	}
+	if err := c.createOnosConfigProxyService(); err != nil {
+		return err
+	}
 	if err := c.awaitOnosConfigDeploymentReady(); err != nil {
+		return err
+	}
+	if err := c.awaitOnosConfigProxyDeploymentReady(); err != nil {
 		return err
 	}
 	return nil
@@ -415,6 +424,93 @@ func (c *ClusterController) awaitOnosConfigDeploymentReady() error {
 
 		// Return once the all replicas in the deployment are ready
 		if int(dep.Status.ReadyReplicas) == c.config.ConfigNodes {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// createOnosConfigProxyDeployment creates an onos-config Envoy proxy
+func (c *ClusterController) createOnosConfigProxyDeployment() error {
+	nodes := int32(1)
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-config-envoy",
+			Namespace: c.clusterID,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &nodes,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app":  "onos",
+					"type": "config-envoy",
+				},
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"app":      "onos",
+						"type":     "config-envoy",
+						"resource": "onos-config",
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:            "onos-config-envoy",
+							Image:           c.imageName("onosproject/onos-config-envoy:latest"),
+							ImagePullPolicy: corev1.PullIfNotPresent,
+							Ports: []corev1.ContainerPort{
+								{
+									Name:          "envoy",
+									ContainerPort: 8080,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	_, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Create(deployment)
+	return err
+}
+
+// createOnosConfigProxyService creates an onos-config Envoy proxy service
+func (c *ClusterController) createOnosConfigProxyService() error {
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-config-envoy",
+			Namespace: c.clusterID,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"app":  "onos",
+				"type": "config-envoy",
+			},
+			Ports: []corev1.ServicePort{
+				{
+					Name: "envoy",
+					Port: 8080,
+				},
+			},
+		},
+	}
+	_, err := c.kubeclient.CoreV1().Services(c.clusterID).Create(service)
+	return err
+}
+
+// awaitOnosConfigProxyDeploymentReady waits for the onos-config proxy pods to complete startup
+func (c *ClusterController) awaitOnosConfigProxyDeploymentReady() error {
+	for {
+		// Get the onos-config deployment
+		dep, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Get("onos-config-envoy", metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+
+		// Return once the all replicas in the deployment are ready
+		if int(dep.Status.ReadyReplicas) == 1 {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
