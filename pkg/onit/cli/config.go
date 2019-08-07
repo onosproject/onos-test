@@ -33,6 +33,11 @@ var (
 func getSimulatorPresets() []string {
 	configs := []string{}
 	err := filepath.Walk(deviceConfigsPath, func(path string, info os.FileInfo, err error) error {
+
+		if info == nil {
+			return nil
+		}
+
 		if info.IsDir() {
 			return nil
 		}
@@ -53,6 +58,11 @@ func getSimulatorPresets() []string {
 func getStorePresets() []string {
 	configs := []string{}
 	err := filepath.Walk(storeConfigsPath, func(path string, info os.FileInfo, err error) error {
+
+		if info == nil {
+			return nil
+		}
+
 		if info.IsDir() {
 			return nil
 		}
