@@ -16,13 +16,14 @@ package onit
 
 import (
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/atomix/atomix-k8s-controller/pkg/apis/k8s/v1alpha1"
 	raft "github.com/atomix/atomix-k8s-controller/proto/atomix/protocols/raft"
 	"github.com/ghodss/yaml"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strconv"
-	"time"
 )
 
 // PartitionInfo contains information about storage partitions
@@ -125,7 +126,7 @@ func (c *ClusterController) createPartitionSet() error {
 				Spec: v1alpha1.PartitionSpec{
 					Size:     int32(c.config.PartitionSize),
 					Protocol: "raft",
-					Image:    "atomix/atomix-go-raft:latest",
+					Image:    c.imageName("atomix/atomix-go-raft", c.config.ImageTags["raft"]),
 					Config:   string(bytes),
 				},
 			},

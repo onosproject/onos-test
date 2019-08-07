@@ -217,6 +217,7 @@ func (c *ClusterController) removeNetworkFromPod(name string, pod corev1.Pod) er
 func (c *ClusterController) createOnosConfigDeployment() error {
 	nodes := int32(c.config.ConfigNodes)
 	zero := int64(0)
+
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-config",
@@ -245,7 +246,7 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 					Containers: []corev1.Container{
 						{
 							Name:            "onos-config",
-							Image:           c.imageName("onosproject/onos-config:debug"),
+							Image:           c.imageName("onosproject/onos-config", c.config.ImageTags["config"]),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
 								{
