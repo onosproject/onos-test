@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	atomixclient "github.com/atomix/atomix-go-client/pkg/client"
-	"github.com/onosproject/onos-config/pkg/northbound"
 	"github.com/onosproject/onos-config/pkg/northbound/proto"
 	"github.com/openconfig/gnmi/client"
 	gnmi "github.com/openconfig/gnmi/client/gnmi"
@@ -47,7 +46,8 @@ const (
 	clientKeyPath = "/etc/onos-config/certs/client1.key"
 	clientCrtPath = "/etc/onos-config/certs/client1.crt"
 	caCertPath    = "/etc/onos-config/certs/onf.cacrt"
-	address       = "onos-config:5150"
+	configAddress = "onos-config:5150"
+	topoAddress   = "onos-topo:5150"
 )
 
 // GetNamespace returns the namespace within which the test is running
@@ -136,7 +136,7 @@ func GetDestination(target string) (client.Destination, error) {
 		return client.Destination{}, err
 	}
 	return client.Destination{
-		Addrs:   []string{address},
+		Addrs:   []string{configAddress},
 		Target:  target,
 		TLS:     tlsConfig,
 		Timeout: 10 * time.Second,
@@ -201,13 +201,35 @@ func handleCertArgs() ([]grpc.DialOption, error) {
 	return opts, nil
 }
 
+// getConn gets a gRPC connection to the given address
+func getConn(address string) (*grpc.ClientConn, error) {
+	opts, err := handleCertArgs()
+	if err != nil {
+		return nil, err
+	}
+	return grpc.Dial(address, opts...)
+}
+
+// GetTopoConn gets a gRPC connection to the topology service
+func GetTopoConn() (*grpc.ClientConn, error) {
+	return getConn(topoAddress)
+}
+
+// GetConfigConn gets a gRPC connection to the config service
+func GetConfigConn() (*grpc.ClientConn, error) {
+	return getConn(configAddress)
+}
+
 // GetAdminClient returns a client that can be used for the admin APIs
 func GetAdminClient() (*grpc.ClientConn, proto.ConfigAdminServiceClient) {
 	opts, err := handleCertArgs()
 	if err != nil {
 		fmt.Printf("Error loading cert %s", err)
 	}
-	conn := northbound.Connect(address, opts...)
+	conn, err := grpc.Dial(configAddress, opts...)
+	if err != nil {
+		panic(err)
+	}
 	return conn, proto.NewConfigAdminServiceClient(conn)
 }
 

@@ -12,22 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package topo
 
 import (
-	"fmt"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
-	_ "github.com/onosproject/onos-test/test/atomix"
-	_ "github.com/onosproject/onos-test/test/integration"
-	_ "github.com/onosproject/onos-test/test/topo"
-	"os"
 )
 
-func main() {
-	cmd := runner.GetOnosTestRunnerCommand(test.Registry)
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+var (
+	TopoTests = runner.NewTestSuite("topo")
+)
+
+func init() {
+	test.Registry.RegisterTestSuite(*TopoTests)
 }

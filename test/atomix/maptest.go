@@ -38,6 +38,13 @@ func TestAtomixMap(t *testing.T) {
 	m, err := group.GetMap(context.Background(), "test", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
+	ch := make(chan *atomixmap.KeyValue)
+	err = m.Entries(context.Background(), ch)
+	assert.NoError(t, err)
+	for range ch {
+		assert.Fail(t, "entries found in map")
+	}
+
 	size, err := m.Size(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 0, size)
@@ -65,7 +72,7 @@ func TestAtomixMap(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, size)
 
-	ch := make(chan *atomixmap.KeyValue)
+	ch = make(chan *atomixmap.KeyValue)
 	err = m.Entries(context.Background(), ch)
 	assert.NoError(t, err)
 	i := 0
