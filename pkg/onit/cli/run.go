@@ -61,7 +61,15 @@ func getRunTestCommand() *cobra.Command {
 		Short: "Run tests on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
 			count, _ := cmd.Flags().GetInt("count")
-			runTestsRemote(cmd, fmt.Sprintf("test-%d", newUUIDInt()), "test", args, count)
+			testNames := test.Registry.GetTestNames()
+			testID := fmt.Sprintf("test-%d", newUUIDInt())
+			testName := args
+			if Subset(testName, testNames) {
+				runTestsRemote(cmd, testID, "test", args, count)
+			} else {
+				err := fmt.Errorf("The test ID=%s:Name=%s does not exist", testID, testName)
+				exitError(err)
+			}
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
@@ -80,7 +88,15 @@ func getRunTestSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 		Short:   "Run a suite of tests on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
 			count, _ := cmd.Flags().GetInt("count")
-			runTestsRemote(cmd, fmt.Sprintf("test-%d", newUUIDInt()), "test-suite", args, count)
+			testSuiteID := fmt.Sprintf("test-%d", newUUIDInt())
+			testSuiteNames := test.Registry.GetTestSuiteNames()
+			testSuiteName := args
+			if Subset(testSuiteName, testSuiteNames) {
+				runTestsRemote(cmd, testSuiteID, "test-suite", args, count)
+			} else {
+				err := fmt.Errorf("The test suite ID=%s:Name=%s does not exist", testSuiteID, testSuiteName)
+				exitError(err)
+			}
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
@@ -95,12 +111,20 @@ func getRunTestSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 
 func getRunBenchCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "benchmark [tests]",
+		Use:     "bench [tests]",
 		Aliases: []string{"bench", "benchmarks"},
 		Short:   "Run benchmarks on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
 			count, _ := cmd.Flags().GetInt("count")
-			runTestsRemote(cmd, fmt.Sprintf("bench-%d", newUUIDInt()), "bench", args, count)
+			testBenchID := fmt.Sprintf("bench-%d", newUUIDInt())
+			testBenchNames := test.Registry.GetBenchmarkNames()
+			testBenchName := args
+			if Subset(testBenchName, testBenchNames) {
+				runTestsRemote(cmd, testBenchID, "bench", args, count)
+			} else {
+				err := fmt.Errorf("The benchmark ID=%s:Name=%s does not exist", testBenchID, testBenchName)
+				exitError(err)
+			}
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
@@ -119,7 +143,15 @@ func getRunBenchSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 		Short:   "Run a suite of benchmarks on Kubernetes",
 		Run: func(cmd *cobra.Command, args []string) {
 			count, _ := cmd.Flags().GetInt("count")
-			runTestsRemote(cmd, fmt.Sprintf("bench-%d", newUUIDInt()), "bench-suite", args, count)
+			testBenchSuiteID := fmt.Sprintf("bench-%d", newUUIDInt())
+			testBenchSuiteNames := test.Registry.GetBenchSuiteNames()
+			testBenchSutiteName := args
+			if Subset(testBenchSutiteName, testBenchSuiteNames) {
+				runTestsRemote(cmd, testBenchSuiteID, "bench-suite", args, count)
+			} else {
+				err := fmt.Errorf("The benchmark suite ID=%s:Name=%s does not exist", testBenchSuiteID, testBenchSutiteName)
+				exitError(err)
+			}
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
@@ -155,19 +187,12 @@ func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests
 		tests = append(tests, fmt.Sprintf("-n=%d", count))
 	}
 
-	testNames := test.Registry.GetTestNames()
-	if Contains(testNames, testID) {
-
-		message, code, status := cluster.RunTests(testID, append([]string{commandType}, tests...), time.Duration(timeout)*time.Second)
-		if status.Failed() {
-			exitStatus(status)
-		} else {
-			fmt.Println(message)
-			os.Exit(code)
-		}
+	message, code, status := cluster.RunTests(testID, append([]string{commandType}, tests...), time.Duration(timeout)*time.Second)
+	if status.Failed() {
+		exitStatus(status)
 	} else {
-		err := fmt.Errorf("The test %s does not exist", testID)
-		exitError(err)
+		fmt.Println(message)
+		os.Exit(code)
 	}
 
 }
