@@ -47,6 +47,31 @@ func getCreateCommand() *cobra.Command {
 	return cmd
 }
 
+func initImageTags(imageTags map[string]string) {
+	if imageTags["config"] == "" {
+		imageTags["config"] = string(onit.Debug)
+	}
+	if imageTags["topo"] == "" {
+		imageTags["topo"] = string(onit.Debug)
+	}
+	if imageTags["atomix"] == "" {
+		imageTags["atomix"] = string(onit.Latest)
+	}
+	if imageTags["raft"] == "" {
+		imageTags["raft"] = string(onit.Latest)
+	}
+	if imageTags["simulator"] == "" {
+		imageTags["simulator"] = string(onit.Latest)
+	}
+	if imageTags["stratum"] == "" {
+		imageTags["stratum"] = string(onit.Latest)
+	}
+	if imageTags["test"] == "" {
+		imageTags["test"] = string(onit.Latest)
+	}
+
+}
+
 // getCreateClusterCommand returns a cobra command for deploying a test cluster
 func getCreateClusterCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -60,6 +85,9 @@ func getCreateClusterCommand() *cobra.Command {
 			partitions, _ := cmd.Flags().GetInt("partitions")
 			partitionSize, _ := cmd.Flags().GetInt("partition-size")
 			configName, _ := cmd.Flags().GetString("config")
+			imageTags, _ := cmd.Flags().GetStringToString("image-tags")
+
+			initImageTags(imageTags)
 
 			// Get the onit controller
 			controller, err := onit.NewController()
@@ -79,6 +107,7 @@ func getCreateClusterCommand() *cobra.Command {
 			config := &onit.ClusterConfig{
 				Registry:      dockerRegistry,
 				Preset:        configName,
+				ImageTags:     imageTags,
 				ConfigNodes:   configNodes,
 				TopoNodes:     topoNodes,
 				Partitions:    partitions,
@@ -105,11 +134,23 @@ func getCreateClusterCommand() *cobra.Command {
 			}
 		},
 	}
+
+	imageTags := make(map[string]string)
+	imageTags["config"] = string(onit.Debug)
+	imageTags["topo"] = string(onit.Debug)
+	imageTags["simulator"] = string(onit.Latest)
+	imageTags["stratum"] = string(onit.Latest)
+	imageTags["test"] = string(onit.Latest)
+	imageTags["atomix"] = string(onit.Latest)
+	imageTags["raft"] = string(onit.Latest)
+
 	cmd.Flags().StringP("config", "c", "default", "test cluster configuration")
 	cmd.Flags().String("docker-registry", "", "an optional host:port for a private Docker registry")
 	cmd.Flags().Int("config-nodes", 1, "the number of onos-config nodes to deploy")
 	cmd.Flags().Int("topo-nodes", 1, "the number of onos-topo nodes to deploy")
 	cmd.Flags().IntP("partitions", "p", 1, "the number of Raft partitions to deploy")
 	cmd.Flags().IntP("partition-size", "s", 1, "the size of each Raft partition")
+	cmd.Flags().StringToString("image-tags", imageTags, "the image docker container tag for each node in the cluster")
+
 	return cmd
 }

@@ -31,12 +31,13 @@ var (
 
 // ClusterConfig provides the configuration for the Kubernetes test cluster
 type ClusterConfig struct {
-	Registry      string `yaml:"registry" mapstructure:"registry"`
-	Preset        string `yaml:"preset" mapstructure:"preset"`
-	ConfigNodes   int    `yaml:"configNodes" mapstructure:"topoNodes"`
-	TopoNodes     int    `yaml:"topoNodes" mapstructure:"topoNodes"`
-	Partitions    int    `yaml:"partitions" mapstructure:"partitions"`
-	PartitionSize int    `yaml:"partitionSize" mapstructure:"partitionSize"`
+	Registry      string            `yaml:"registry" mapstructure:"registry"`
+	Preset        string            `yaml:"preset" mapstructure:"preset"`
+	ImageTags     map[string]string `yaml:"image-tags" mapstructure:"image-tags"`
+	ConfigNodes   int               `yaml:"configNodes" mapstructure:"topoNodes"`
+	TopoNodes     int               `yaml:"topoNodes" mapstructure:"topoNodes"`
+	Partitions    int               `yaml:"partitions" mapstructure:"partitions"`
+	PartitionSize int               `yaml:"partitionSize" mapstructure:"partitionSize"`
 }
 
 // load loads the preset configuration for the cluster

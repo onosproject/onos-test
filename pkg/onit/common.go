@@ -51,6 +51,14 @@ const (
 	OnosAll NodeType = "all"
 )
 
+type ImageTag string
+
+const (
+	Debug ImageTag = "debug"
+
+	Latest ImageTag = "latest"
+)
+
 const (
 	DebugPort int = 30000
 )

@@ -117,7 +117,7 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 					Containers: []corev1.Container{
 						{
 							Name:            "onos-topo",
-							Image:           c.imageName("onosproject/onos-topo:debug"),
+							Image:           c.imageName("onosproject/onos-topo", c.config.ImageTags["topo"]),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
 								{

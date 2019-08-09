@@ -48,8 +48,13 @@ type ClusterController struct {
 }
 
 // imageName returns a fully qualified name for the given image
-func (c *ClusterController) imageName(image string) string {
-	return fmt.Sprintf("%s%s", c.imagePrefix(), image)
+func (c *ClusterController) imageName(image string, tag string) string {
+	imageName := bytes.Buffer{}
+	imageName.WriteString(c.imagePrefix())
+	imageName.WriteString(image)
+	imageName.WriteString(":")
+	imageName.WriteString(tag)
+	return imageName.String()
 }
 
 // imagePrefix returns a prefix for images
