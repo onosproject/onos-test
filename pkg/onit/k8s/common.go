@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"bytes"
@@ -83,7 +83,7 @@ func (c *ClusterController) GetNodes() ([]NodeInfo, error) {
 // execute executes a command in the given pod
 func (c *ClusterController) execute(pod corev1.Pod, command []string) error {
 	container := pod.Spec.Containers[0]
-	req := c.kubeclient.CoreV1().RESTClient().Post().
+	req := c.Kubeclient.CoreV1().RESTClient().Post().
 		Resource("pods").
 		Name(pod.Name).
 		Namespace(pod.Namespace).
@@ -97,7 +97,7 @@ func (c *ClusterController) execute(pod corev1.Pod, command []string) error {
 		Stdin:     false,
 	}, scheme.ParameterCodec)
 
-	exec, err := remotecommand.NewSPDYExecutor(c.restconfig, "POST", req.URL())
+	exec, err := remotecommand.NewSPDYExecutor(c.Restconfig, "POST", req.URL())
 	if err != nil {
 		return err
 	}
@@ -120,13 +120,18 @@ func (c *ClusterController) execute(pod corev1.Pod, command []string) error {
 func (c *ClusterController) createOnosSecret() error {
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.clusterID,
-			Namespace: c.clusterID,
+			Name:      c.ClusterID,
+			Namespace: c.ClusterID,
 		},
 		StringData: map[string]string{},
 	}
 
 	err := filepath.Walk(certsPath, func(path string, info os.FileInfo, errArg error) error {
+
+		if info == nil {
+			return nil
+		}
+
 		if info.IsDir() {
 			return nil
 		}
@@ -148,6 +153,6 @@ func (c *ClusterController) createOnosSecret() error {
 		return err
 	}
 
-	_, err = c.kubeclient.CoreV1().Secrets(c.clusterID).Create(secret)
+	_, err = c.Kubeclient.CoreV1().Secrets(c.ClusterID).Create(secret)
 	return err
 }

@@ -18,6 +18,7 @@ import (
 	"errors"
 
 	"github.com/onosproject/onos-test/pkg/onit"
+
 	"github.com/spf13/cobra"
 )
 

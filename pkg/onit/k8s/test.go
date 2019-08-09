@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
+	"github.com/onosproject/onos-test/pkg/onit/console"
 	"github.com/onosproject/onos-test/test/env"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -61,6 +63,49 @@ func (c *ClusterController) startTests(testID string, tests []string, timeout ti
 	return pod, nil
 }
 
+// RunTests runs the given tests on Kubernetes
+func (c *ClusterController) RunTests(testID string, tests []string, timeout time.Duration) (string, int, console.ErrorStatus) {
+	// Default the test timeout to 10 minutes
+	if timeout == 0 {
+		timeout = 10 * time.Minute
+	}
+
+	// Start the test job
+	c.Status.Start("Starting test job: " + testID)
+	pod, err := c.startTests(testID, tests, timeout)
+	if err != nil {
+		return "", 0, c.Status.Fail(err)
+	}
+	c.Status.Succeed()
+
+	// Get the stream of logs for the pod
+	reader, err := c.streamLogs(pod)
+	if err != nil {
+		return "", 0, c.Status
+	}
+	defer reader.Close()
+
+	// Stream the logs to stdout
+	buf := make([]byte, 1024)
+	for {
+		n, err := reader.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", 0, c.Status
+		}
+		fmt.Print(string(buf[:n]))
+	}
+
+	// Get the exit message and code
+	message, status, err := c.getStatus(pod)
+	if err != nil {
+		return "failed to retrieve exit code", 1, c.Status
+	}
+	return message, status, c.Status
+}
+
 // createTestJob creates the job to run tests
 func (c *ClusterController) createTestJob(testID string, args []string, timeout time.Duration) error {
 	deviceIds, err := c.getDeviceIds()
@@ -73,7 +118,7 @@ func (c *ClusterController) createTestJob(testID string, args []string, timeout 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      testID,
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 			Annotations: map[string]string{
 				"test-args": strings.Join(args, ","),
 			},
@@ -86,28 +131,28 @@ func (c *ClusterController) createTestJob(testID string, args []string, timeout 
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"cluster":  c.clusterID,
+						"cluster":  c.ClusterID,
 						"test":     testID,
 						"resource": testID,
 					},
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName: c.clusterID,
+					ServiceAccountName: c.ClusterID,
 					RestartPolicy:      corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
 						{
 							Name:            "test",
-							Image:           c.imageName("onosproject/onos-test-runner", c.config.ImageTags["test"]),
+							Image:           c.imageName("onosproject/onos-test-runner", c.Config.ImageTags["test"]),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args:            args,
 							Env: []corev1.EnvVar{
 								{
 									Name:  "TEST_NAMESPACE",
-									Value: c.clusterID,
+									Value: c.ClusterID,
 								},
 								{
 									Name:  "ATOMIX_CONTROLLER",
-									Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", c.clusterID),
+									Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", c.ClusterID),
 								},
 								{
 									Name:  "ATOMIX_APP",
@@ -115,7 +160,7 @@ func (c *ClusterController) createTestJob(testID string, args []string, timeout 
 								},
 								{
 									Name:  "ATOMIX_NAMESPACE",
-									Value: c.clusterID,
+									Value: c.ClusterID,
 								},
 								{
 									Name:  "ATOMIX_RAFT_GROUP",
@@ -140,7 +185,7 @@ func (c *ClusterController) createTestJob(testID string, args []string, timeout 
 							Name: "secret",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: c.clusterID,
+									SecretName: c.ClusterID,
 								},
 							},
 						},
@@ -150,7 +195,7 @@ func (c *ClusterController) createTestJob(testID string, args []string, timeout 
 		},
 	}
 
-	_, err = c.kubeclient.BatchV1().Jobs(c.clusterID).Create(job)
+	_, err = c.Kubeclient.BatchV1().Jobs(c.ClusterID).Create(job)
 	return err
 }
 
@@ -168,7 +213,7 @@ func (c *ClusterController) awaitTestJobRunning(testID string) (corev1.Pod, erro
 // getStatus gets the status message and exit code of the given pod
 func (c *ClusterController) getStatus(pod corev1.Pod) (string, int, error) {
 	for {
-		obj, err := c.kubeclient.CoreV1().Pods(c.clusterID).Get(pod.Name, metav1.GetOptions{})
+		obj, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).Get(pod.Name, metav1.GetOptions{})
 		if err != nil {
 			return "", 0, err
 		}
@@ -182,7 +227,7 @@ func (c *ClusterController) getStatus(pod corev1.Pod) (string, int, error) {
 
 // GetHistory returns the history of test runs on the cluster
 func (c *ClusterController) GetHistory() ([]TestRecord, error) {
-	jobs, err := c.kubeclient.BatchV1().Jobs(c.clusterID).List(metav1.ListOptions{})
+	jobs, err := c.Kubeclient.BatchV1().Jobs(c.ClusterID).List(metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +245,7 @@ func (c *ClusterController) GetHistory() ([]TestRecord, error) {
 
 // GetRecord returns a single record for the given test
 func (c *ClusterController) GetRecord(testID string) (TestRecord, error) {
-	job, err := c.kubeclient.BatchV1().Jobs(c.clusterID).Get(testID, metav1.GetOptions{})
+	job, err := c.Kubeclient.BatchV1().Jobs(c.ClusterID).Get(testID, metav1.GetOptions{})
 	if err != nil {
 		return TestRecord{}, err
 	}
@@ -247,7 +292,7 @@ func (c *ClusterController) getRecord(job batchv1.Job) (TestRecord, error) {
 
 // getPod finds the Pod for the given test
 func (c *ClusterController) getPod(testID string) (corev1.Pod, error) {
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+	pods, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).List(metav1.ListOptions{
 		LabelSelector: "test=" + testID,
 	})
 	if err != nil {
@@ -272,7 +317,7 @@ func (c *ClusterController) getDeviceIds() ([]string, error) {
 	devices := []string{}
 
 	// Load the cluster configuration
-	config, err := c.config.load()
+	config, err := c.Config.load()
 	if err != nil {
 		return nil, err
 	}

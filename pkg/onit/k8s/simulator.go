@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/onosproject/onos-test/pkg/onit/console"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +27,7 @@ import (
 
 // GetSimulators returns a list of simulators deployed in the cluster
 func (c *ClusterController) GetSimulators() ([]string, error) {
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+	pods, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).List(metav1.ListOptions{
 		LabelSelector: "type=simulator",
 	})
 
@@ -70,13 +72,13 @@ func (c *ClusterController) createSimulatorConfigMap(name string, config *Simula
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 		},
 		Data: map[string]string{
 			"config.json": string(configJSON),
 		},
 	}
-	_, err = c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
+	_, err = c.Kubeclient.CoreV1().ConfigMaps(c.ClusterID).Create(cm)
 	return err
 }
 
@@ -86,7 +88,7 @@ func (c *ClusterController) createSimulatorPod(name string) error {
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 			Labels: map[string]string{
 				"type":      "simulator",
 				"simulator": name,
@@ -96,7 +98,7 @@ func (c *ClusterController) createSimulatorPod(name string) error {
 			Containers: []corev1.Container{
 				{
 					Name:            "onos-device-simulator",
-					Image:           c.imageName("onosproject/device-simulator", c.config.ImageTags["simulator"]),
+					Image:           c.imageName("onosproject/device-simulator", c.Config.ImageTags["simulator"]),
 					ImagePullPolicy: corev1.PullIfNotPresent,
 					Ports: []corev1.ContainerPort{
 						{
@@ -146,7 +148,7 @@ func (c *ClusterController) createSimulatorPod(name string) error {
 		},
 	}
 
-	_, err := c.kubeclient.CoreV1().Pods(c.clusterID).Create(pod)
+	_, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).Create(pod)
 	return err
 }
 
@@ -156,7 +158,7 @@ func (c *ClusterController) createSimulatorService(name string) error {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
@@ -171,14 +173,14 @@ func (c *ClusterController) createSimulatorService(name string) error {
 		},
 	}
 
-	_, err := c.kubeclient.CoreV1().Services(c.clusterID).Create(service)
+	_, err := c.Kubeclient.CoreV1().Services(c.ClusterID).Create(service)
 	return err
 }
 
 // awaitSimulatorReady waits for the given simulator to complete startup
 func (c *ClusterController) awaitSimulatorReady(name string) error {
 	for {
-		pod, err := c.kubeclient.CoreV1().Pods(c.clusterID).Get(name, metav1.GetOptions{})
+		pod, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).Get(name, metav1.GetOptions{})
 		if err != nil {
 			return err
 		} else if len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].Ready {
@@ -187,6 +189,32 @@ func (c *ClusterController) awaitSimulatorReady(name string) error {
 			time.Sleep(100 * time.Millisecond)
 		}
 	}
+}
+
+// AddSimulator adds a device simulator with the given configuration
+func (c *ClusterController) AddSimulator(name string, config *SimulatorConfig) console.ErrorStatus {
+	c.Status.Start("Setting up simulator")
+	if err := c.setupSimulator(name, config); err != nil {
+		return c.Status.Fail(err)
+	}
+	c.Status.Start("Reconfiguring onos-config nodes")
+	if err := c.addSimulatorToConfig(name); err != nil {
+		return c.Status.Fail(err)
+	}
+	return c.Status.Succeed()
+}
+
+// RemoveSimulator removes a device simulator with the given name
+func (c *ClusterController) RemoveSimulator(name string) console.ErrorStatus {
+	c.Status.Start("Tearing down simulator")
+	if err := c.teardownSimulator(name); err != nil {
+		c.Status.Fail(err)
+	}
+	c.Status.Start("Reconfiguring onos-config nodes")
+	if err := c.removeSimulatorFromConfig(name); err != nil {
+		return c.Status.Fail(err)
+	}
+	return c.Status.Succeed()
 }
 
 // teardownSimulator tears down a simulator by name
@@ -206,15 +234,15 @@ func (c *ClusterController) teardownSimulator(name string) error {
 
 // deleteSimulatorConfigMap deletes a simulator ConfigMap by name
 func (c *ClusterController) deleteSimulatorConfigMap(name string) error {
-	return c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Delete(name, &metav1.DeleteOptions{})
+	return c.Kubeclient.CoreV1().ConfigMaps(c.ClusterID).Delete(name, &metav1.DeleteOptions{})
 }
 
 // deleteSimulatorPod deletes a simulator Pod by name
 func (c *ClusterController) deleteSimulatorPod(name string) error {
-	return c.kubeclient.CoreV1().Pods(c.clusterID).Delete(name, &metav1.DeleteOptions{})
+	return c.Kubeclient.CoreV1().Pods(c.ClusterID).Delete(name, &metav1.DeleteOptions{})
 }
 
 // deleteSimulatorService deletes a simulator Service by name
 func (c *ClusterController) deleteSimulatorService(name string) error {
-	return c.kubeclient.CoreV1().Services(c.clusterID).Delete(name, &metav1.DeleteOptions{})
+	return c.Kubeclient.CoreV1().Services(c.ClusterID).Delete(name, &metav1.DeleteOptions{})
 }

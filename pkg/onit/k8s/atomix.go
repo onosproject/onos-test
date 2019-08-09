@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"time"
@@ -66,7 +66,7 @@ func (c *ClusterController) createAtomixPartitionSetResource() error {
 		},
 	}
 
-	_, err := c.extensionsclient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
+	_, err := c.Extensionsclient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
@@ -95,7 +95,7 @@ func (c *ClusterController) createAtomixPartitionResource() error {
 		},
 	}
 
-	_, err := c.extensionsclient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
+	_, err := c.Extensionsclient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
@@ -108,7 +108,7 @@ func (c *ClusterController) createAtomixDeployment() error {
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "atomix-controller",
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
@@ -124,11 +124,11 @@ func (c *ClusterController) createAtomixDeployment() error {
 					},
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName: c.clusterID,
+					ServiceAccountName: c.ClusterID,
 					Containers: []corev1.Container{
 						{
 							Name:            "atomix-controller",
-							Image:           c.imageName("atomix/atomix-k8s-controller", c.config.ImageTags["atomix"]),
+							Image:           c.imageName("atomix/atomix-k8s-controller", c.Config.ImageTags["atomix"]),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Command:         []string{"atomix-controller"},
 							Env: []corev1.EnvVar{
@@ -186,7 +186,7 @@ func (c *ClusterController) createAtomixDeployment() error {
 			},
 		},
 	}
-	_, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Create(deployment)
+	_, err := c.Kubeclient.AppsV1().Deployments(c.ClusterID).Create(deployment)
 	return err
 }
 
@@ -195,7 +195,7 @@ func (c *ClusterController) createAtomixService() error {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "atomix-controller",
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
@@ -209,14 +209,14 @@ func (c *ClusterController) createAtomixService() error {
 			},
 		},
 	}
-	_, err := c.kubeclient.CoreV1().Services(c.clusterID).Create(service)
+	_, err := c.Kubeclient.CoreV1().Services(c.ClusterID).Create(service)
 	return err
 }
 
 // awaitAtomixControllerReady blocks until the Atomix controller is ready
 func (c *ClusterController) awaitAtomixControllerReady() error {
 	for {
-		dep, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Get("atomix-controller", metav1.GetOptions{})
+		dep, err := c.Kubeclient.AppsV1().Deployments(c.ClusterID).Get("atomix-controller", metav1.GetOptions{})
 		if err != nil {
 			return err
 		} else if dep.Status.ReadyReplicas == 1 {

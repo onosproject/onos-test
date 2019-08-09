@@ -19,9 +19,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/onosproject/onos-test/pkg/onit"
+
 	"github.com/onosproject/onos-test/test"
 
-	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/spf13/cobra"
 )

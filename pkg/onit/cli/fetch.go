@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 
 	"github.com/onosproject/onos-test/pkg/onit"
+
 	"github.com/onosproject/onos-test/pkg/onit/console"
 	"github.com/spf13/cobra"
 )
@@ -50,7 +51,7 @@ func getFetchLogsCommand() *cobra.Command {
 		Short: "Download logs from a node",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
+			// Get the k8s controller
 			controller, err := onit.NewController()
 			if err != nil {
 				exitError(err)

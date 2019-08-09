@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"bytes"
@@ -49,7 +49,7 @@ func (c *ClusterController) setupOnosConfig() error {
 
 // createOnosConfigConfigMap creates a ConfigMap for the onos-config Deployment
 func (c *ClusterController) createOnosConfigConfigMap() error {
-	config, err := c.config.load()
+	config, err := c.Config.load()
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (c *ClusterController) createOnosConfigConfigMap() error {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-config",
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 		},
 		Data: map[string]string{
 			"changeStore.json":  string(changeStore),
@@ -90,14 +90,14 @@ func (c *ClusterController) createOnosConfigConfigMap() error {
 			"networkStore.json": string(networkStore),
 		},
 	}
-	_, err = c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
+	_, err = c.Kubeclient.CoreV1().ConfigMaps(c.ClusterID).Create(cm)
 	return err
 }
 
 // addSimulatorToConfig adds a simulator to the onos-config configuration
 func (c *ClusterController) addSimulatorToConfig(name string) error {
 	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+	pods, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	})
 	if err != nil {
@@ -115,7 +115,7 @@ func (c *ClusterController) addSimulatorToConfig(name string) error {
 // addNetworkToConfig adds a network to the onos-config configuration
 func (c *ClusterController) addNetworkToConfig(name string, config *NetworkConfig) error {
 	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+	pods, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	})
 	if err != nil {
@@ -154,7 +154,7 @@ func (c *ClusterController) addNetworkToPod(name string, port int, pod corev1.Po
 // removeSimulatorFromConfig removes a simulator from the onos-config configuration
 func (c *ClusterController) removeSimulatorFromConfig(name string) error {
 	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+	pods, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	})
 	if err != nil {
@@ -172,7 +172,7 @@ func (c *ClusterController) removeSimulatorFromConfig(name string) error {
 // removeNetworkFromConfig removes a network from the onos-config configuration
 func (c *ClusterController) removeNetworkFromConfig(name string, configMap *corev1.ConfigMapList) error {
 	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+	pods, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	})
 	if err != nil {
@@ -215,13 +215,13 @@ func (c *ClusterController) removeNetworkFromPod(name string, pod corev1.Pod) er
 
 // createOnosConfigDeployment creates an onos-config Deployment
 func (c *ClusterController) createOnosConfigDeployment() error {
-	nodes := int32(c.config.ConfigNodes)
+	nodes := int32(c.Config.ConfigNodes)
 	zero := int64(0)
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-config",
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &nodes,
@@ -246,12 +246,12 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 					Containers: []corev1.Container{
 						{
 							Name:            "onos-config",
-							Image:           c.imageName("onosproject/onos-config", c.config.ImageTags["config"]),
+							Image:           c.imageName("onosproject/onos-config", c.Config.ImageTags["config"]),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
 								{
 									Name:  "ATOMIX_CONTROLLER",
-									Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", c.clusterID),
+									Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", c.ClusterID),
 								},
 								{
 									Name:  "ATOMIX_APP",
@@ -259,7 +259,7 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 								},
 								{
 									Name:  "ATOMIX_NAMESPACE",
-									Value: c.clusterID,
+									Value: c.ClusterID,
 								},
 								{
 									Name:  "ATOMIX_RAFT_GROUP",
@@ -346,7 +346,7 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 							Name: "secret",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: c.clusterID,
+									SecretName: c.ClusterID,
 								},
 							},
 						},
@@ -355,7 +355,7 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 			},
 		},
 	}
-	_, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Create(dep)
+	_, err := c.Kubeclient.AppsV1().Deployments(c.ClusterID).Create(dep)
 	return err
 }
 
@@ -364,7 +364,7 @@ func (c *ClusterController) createOnosConfigService() error {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-config",
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
@@ -379,7 +379,7 @@ func (c *ClusterController) createOnosConfigService() error {
 			},
 		},
 	}
-	_, err := c.kubeclient.CoreV1().Services(c.clusterID).Create(service)
+	_, err := c.Kubeclient.CoreV1().Services(c.ClusterID).Create(service)
 	return err
 }
 
@@ -389,7 +389,7 @@ func (c *ClusterController) awaitOnosConfigDeploymentReady() error {
 	unblocked := make(map[string]bool)
 	for {
 		// Get a list of the pods that match the deployment
-		pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+		pods, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).List(metav1.ListOptions{
 			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 		})
 		if err != nil {
@@ -408,13 +408,13 @@ func (c *ClusterController) awaitOnosConfigDeploymentReady() error {
 		}
 
 		// Get the onos-config deployment
-		dep, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Get("onos-config", metav1.GetOptions{})
+		dep, err := c.Kubeclient.AppsV1().Deployments(c.ClusterID).Get("onos-config", metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
 
 		// Return once the all replicas in the deployment are ready
-		if int(dep.Status.ReadyReplicas) == c.config.ConfigNodes {
+		if int(dep.Status.ReadyReplicas) == c.Config.ConfigNodes {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
@@ -425,7 +425,7 @@ func (c *ClusterController) awaitOnosConfigDeploymentReady() error {
 func (c *ClusterController) GetOnosConfigNodes() ([]NodeInfo, error) {
 	configLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
 
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+	pods, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).List(metav1.ListOptions{
 		LabelSelector: labels.Set(configLabelSelector.MatchLabels).String(),
 	})
 	if err != nil {

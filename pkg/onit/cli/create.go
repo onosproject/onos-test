@@ -18,6 +18,11 @@ import (
 	"fmt"
 
 	"github.com/onosproject/onos-test/pkg/onit"
+
+	interfaces "github.com/onosproject/onos-test/pkg/onit/cluster"
+
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
+
 	"github.com/spf13/cobra"
 )
 
@@ -49,25 +54,25 @@ func getCreateCommand() *cobra.Command {
 
 func initImageTags(imageTags map[string]string) {
 	if imageTags["config"] == "" {
-		imageTags["config"] = string(onit.Debug)
+		imageTags["config"] = string(k8s.Debug)
 	}
 	if imageTags["topo"] == "" {
-		imageTags["topo"] = string(onit.Debug)
+		imageTags["topo"] = string(k8s.Debug)
 	}
 	if imageTags["atomix"] == "" {
-		imageTags["atomix"] = string(onit.Latest)
+		imageTags["atomix"] = string(k8s.Latest)
 	}
 	if imageTags["raft"] == "" {
-		imageTags["raft"] = string(onit.Latest)
+		imageTags["raft"] = string(k8s.Latest)
 	}
 	if imageTags["simulator"] == "" {
-		imageTags["simulator"] = string(onit.Latest)
+		imageTags["simulator"] = string(k8s.Latest)
 	}
 	if imageTags["stratum"] == "" {
-		imageTags["stratum"] = string(onit.Latest)
+		imageTags["stratum"] = string(k8s.Latest)
 	}
 	if imageTags["test"] == "" {
-		imageTags["test"] = string(onit.Latest)
+		imageTags["test"] = string(k8s.Latest)
 	}
 
 }
@@ -104,7 +109,7 @@ func getCreateClusterCommand() *cobra.Command {
 			}
 
 			// Create the cluster configuration
-			config := &onit.ClusterConfig{
+			config := &k8s.ClusterConfig{
 				Registry:      dockerRegistry,
 				Preset:        configName,
 				ImageTags:     imageTags,
@@ -126,8 +131,10 @@ func getCreateClusterCommand() *cobra.Command {
 				exitError(err)
 			}
 
+			var k8sCluster interfaces.ClusterController = cluster
+
 			// Setup the cluster
-			if status := cluster.Setup(); status.Failed() {
+			if status := k8sCluster.Setup(); status.Failed() {
 				exitStatus(status)
 			} else {
 				fmt.Println(clusterID)
@@ -136,13 +143,13 @@ func getCreateClusterCommand() *cobra.Command {
 	}
 
 	imageTags := make(map[string]string)
-	imageTags["config"] = string(onit.Debug)
-	imageTags["topo"] = string(onit.Debug)
-	imageTags["simulator"] = string(onit.Latest)
-	imageTags["stratum"] = string(onit.Latest)
-	imageTags["test"] = string(onit.Latest)
-	imageTags["atomix"] = string(onit.Latest)
-	imageTags["raft"] = string(onit.Latest)
+	imageTags["config"] = string(k8s.Debug)
+	imageTags["topo"] = string(k8s.Debug)
+	imageTags["simulator"] = string(k8s.Latest)
+	imageTags["stratum"] = string(k8s.Latest)
+	imageTags["test"] = string(k8s.Latest)
+	imageTags["atomix"] = string(k8s.Latest)
+	imageTags["raft"] = string(k8s.Latest)
 
 	cmd.Flags().StringP("config", "c", "default", "test cluster configuration")
 	cmd.Flags().String("docker-registry", "", "an optional host:port for a private Docker registry")

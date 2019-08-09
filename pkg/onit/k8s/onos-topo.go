@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"fmt"
@@ -53,11 +53,11 @@ func (c *ClusterController) createOnosTopoConfigMap() error {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-topo",
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 		},
 		Data: map[string]string{},
 	}
-	_, err := c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
+	_, err := c.Kubeclient.CoreV1().ConfigMaps(c.ClusterID).Create(cm)
 	return err
 }
 
@@ -66,7 +66,7 @@ func (c *ClusterController) createOnosTopoService() error {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-topo",
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
@@ -81,18 +81,18 @@ func (c *ClusterController) createOnosTopoService() error {
 			},
 		},
 	}
-	_, err := c.kubeclient.CoreV1().Services(c.clusterID).Create(service)
+	_, err := c.Kubeclient.CoreV1().Services(c.ClusterID).Create(service)
 	return err
 }
 
 // createOnosTopoDeployment creates an onos-topo Deployment
 func (c *ClusterController) createOnosTopoDeployment() error {
-	nodes := int32(c.config.TopoNodes)
+	nodes := int32(c.Config.TopoNodes)
 	zero := int64(0)
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-topo",
-			Namespace: c.clusterID,
+			Namespace: c.ClusterID,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &nodes,
@@ -117,12 +117,12 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 					Containers: []corev1.Container{
 						{
 							Name:            "onos-topo",
-							Image:           c.imageName("onosproject/onos-topo", c.config.ImageTags["topo"]),
+							Image:           c.imageName("onosproject/onos-topo", c.Config.ImageTags["topo"]),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
 								{
 									Name:  "ATOMIX_CONTROLLER",
-									Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", c.clusterID),
+									Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", c.ClusterID),
 								},
 								{
 									Name:  "ATOMIX_APP",
@@ -130,7 +130,7 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 								},
 								{
 									Name:  "ATOMIX_NAMESPACE",
-									Value: c.clusterID,
+									Value: c.ClusterID,
 								},
 								{
 									Name:  "ATOMIX_RAFT_GROUP",
@@ -210,7 +210,7 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 							Name: "secret",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: c.clusterID,
+									SecretName: c.ClusterID,
 								},
 							},
 						},
@@ -219,7 +219,7 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 			},
 		},
 	}
-	_, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Create(dep)
+	_, err := c.Kubeclient.AppsV1().Deployments(c.ClusterID).Create(dep)
 	return err
 }
 
@@ -229,7 +229,7 @@ func (c *ClusterController) awaitOnosTopoDeploymentReady() error {
 	unblocked := make(map[string]bool)
 	for {
 		// Get a list of the pods that match the deployment
-		pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+		pods, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).List(metav1.ListOptions{
 			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 		})
 		if err != nil {
@@ -248,13 +248,13 @@ func (c *ClusterController) awaitOnosTopoDeploymentReady() error {
 		}
 
 		// Get the onos-topo deployment
-		dep, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Get("onos-topo", metav1.GetOptions{})
+		dep, err := c.Kubeclient.AppsV1().Deployments(c.ClusterID).Get("onos-topo", metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
 
 		// Return once the all replicas in the deployment are ready
-		if int(dep.Status.ReadyReplicas) == c.config.TopoNodes {
+		if int(dep.Status.ReadyReplicas) == c.Config.TopoNodes {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
@@ -265,7 +265,7 @@ func (c *ClusterController) awaitOnosTopoDeploymentReady() error {
 func (c *ClusterController) GetOnosTopoNodes() ([]NodeInfo, error) {
 	topoLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "topo"}}
 
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+	pods, err := c.Kubeclient.CoreV1().Pods(c.ClusterID).List(metav1.ListOptions{
 		LabelSelector: labels.Set(topoLabelSelector.MatchLabels).String(),
 	})
 	if err != nil {

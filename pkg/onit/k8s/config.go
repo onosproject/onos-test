@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"encoding/json"
@@ -24,9 +24,9 @@ import (
 
 var (
 	_, path, _, _     = runtime.Caller(0)
-	certsPath         = filepath.Join(filepath.Dir(filepath.Dir(path)), "certs")
-	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(path)), "../configs"), "device")
-	storeConfigsPath  = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(path)), "../configs"), "store")
+	certsPath         = filepath.Join(filepath.Dir(filepath.Dir(path)), "../certs")
+	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(path)), "../../configs"), "device")
+	storeConfigsPath  = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(path)), "../../configs"), "store")
 )
 
 // ClusterConfig provides the configuration for the Kubernetes test cluster

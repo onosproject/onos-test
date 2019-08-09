@@ -17,6 +17,7 @@ package onit
 import (
 	atomixk8s "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/onit/console"
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"gopkg.in/yaml.v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -27,7 +28,7 @@ import (
 
 // NewController creates a new onit controller
 func NewController() (*Controller, error) {
-	restconfig, err := getRestConfig()
+	restconfig, err := k8s.GetRestConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +67,7 @@ type Controller struct {
 }
 
 // GetClusters returns a list of onit clusters
-func (c *Controller) GetClusters() (map[string]*ClusterConfig, error) {
+func (c *Controller) GetClusters() (map[string]*k8s.ClusterConfig, error) {
 	namespaces, err := c.kubeclient.CoreV1().Namespaces().List(metav1.ListOptions{
 		LabelSelector: "app=onit",
 	})
@@ -74,7 +75,7 @@ func (c *Controller) GetClusters() (map[string]*ClusterConfig, error) {
 		return nil, err
 	}
 
-	clusters := make(map[string]*ClusterConfig)
+	clusters := make(map[string]*k8s.ClusterConfig)
 	for _, ns := range namespaces.Items {
 		if ns.Status.Phase == corev1.NamespaceActive {
 			name := ns.Name
@@ -83,7 +84,7 @@ func (c *Controller) GetClusters() (map[string]*ClusterConfig, error) {
 				return nil, err
 			}
 
-			config := &ClusterConfig{}
+			config := &k8s.ClusterConfig{}
 			if err = yaml.Unmarshal(cm.BinaryData["config"], config); err != nil {
 				return nil, err
 			}
@@ -94,7 +95,7 @@ func (c *Controller) GetClusters() (map[string]*ClusterConfig, error) {
 }
 
 // NewCluster creates a new cluster controller
-func (c *Controller) NewCluster(clusterID string, config *ClusterConfig) (*ClusterController, console.ErrorStatus) {
+func (c *Controller) NewCluster(clusterID string, config *k8s.ClusterConfig) (*k8s.ClusterController, console.ErrorStatus) {
 	c.status.Start("Creating cluster namespace")
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -128,19 +129,19 @@ func (c *Controller) NewCluster(clusterID string, config *ClusterConfig) (*Clust
 		return nil, c.status.Fail(err)
 	}
 
-	return &ClusterController{
-		clusterID:        clusterID,
-		restconfig:       c.restconfig,
-		kubeclient:       c.kubeclient,
-		atomixclient:     c.atomixclient,
-		extensionsclient: c.extensionsclient,
-		config:           config,
-		status:           c.status,
+	return &k8s.ClusterController{
+		ClusterID:        clusterID,
+		Restconfig:       c.restconfig,
+		Kubeclient:       c.kubeclient,
+		Atomixclient:     c.atomixclient,
+		Extensionsclient: c.extensionsclient,
+		Config:           config,
+		Status:           c.status,
 	}, c.status.Succeed()
 }
 
 // GetCluster returns a cluster controller
-func (c *Controller) GetCluster(clusterID string) (*ClusterController, error) {
+func (c *Controller) GetCluster(clusterID string) (*k8s.ClusterController, error) {
 	_, err := c.kubeclient.CoreV1().Namespaces().Get(clusterID, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -151,19 +152,19 @@ func (c *Controller) GetCluster(clusterID string) (*ClusterController, error) {
 		return nil, err
 	}
 
-	config := &ClusterConfig{}
+	config := &k8s.ClusterConfig{}
 	if err = yaml.Unmarshal(cm.BinaryData["config"], config); err != nil {
 		return nil, err
 	}
 
-	return &ClusterController{
-		clusterID:        clusterID,
-		restconfig:       c.restconfig,
-		kubeclient:       c.kubeclient,
-		atomixclient:     c.atomixclient,
-		extensionsclient: c.extensionsclient,
-		config:           config,
-		status:           c.status,
+	return &k8s.ClusterController{
+		ClusterID:        clusterID,
+		Restconfig:       c.restconfig,
+		Kubeclient:       c.kubeclient,
+		Atomixclient:     c.atomixclient,
+		Extensionsclient: c.extensionsclient,
+		Config:           config,
+		Status:           c.status,
 	}, nil
 }
 
