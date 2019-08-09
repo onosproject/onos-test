@@ -33,7 +33,10 @@ var (
 		onit create cluster --partitions 2 --partition-size 3
 
 		# Create a cluster that fetches docker images from a private docker registry
-		onit create cluster --docker-registry <host>:<port>`
+		onit create cluster --docker-registry <host>:<port>
+	
+		# Create a cluster to deploy topo and config subsystems using the images with custom tags 
+        onit create cluster --image-tags topo=test-topo-tag,config=test-config-tag`
 )
 
 // getCreateCommand returns a cobra "setup" command for setting up resources
