@@ -11,7 +11,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onosproject/onos-config v0.0.0-20190731170328-b4ee3a917c9f
-	github.com/onosproject/onos-topo v0.0.0-20190807224236-53dad829743b
+	github.com/onosproject/onos-topo v0.0.0-20190809180402-2931d9c31bf5
 	github.com/openconfig/gnmi v0.0.0-20180912164834-33a1865c3029
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
