@@ -16,13 +16,14 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/onosproject/onos-test/test"
 	_ "github.com/onosproject/onos-test/test/atomix"
 	_ "github.com/onosproject/onos-test/test/integration"
 	_ "github.com/onosproject/onos-test/test/topo"
-	"os"
 
-	"github.com/onosproject/onos-test/pkg/onit/cli"
+	"github.com/onosproject/onos-test/pkg/k8s/cli"
 )
 
 func main() {

@@ -21,7 +21,7 @@ import (
 	"github.com/onosproject/onos-test/pkg/runner"
 
 	"github.com/google/uuid"
-	"github.com/onosproject/onos-test/pkg/onit/console"
+	"github.com/onosproject/onos-test/pkg/k8s/console"
 	"github.com/spf13/cobra"
 )
 

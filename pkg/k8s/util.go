@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
+	"bytes"
+	"fmt"
 	"net"
 	"strconv"
 )
@@ -38,4 +40,22 @@ func GetFreePorts(count int) ([]int, error) {
 		debugPort++
 	}
 	return ports, nil
+}
+
+// imageName returns a fully qualified name for the given image
+func (c *ClusterController) imageName(image string, tag string) string {
+	imageName := bytes.Buffer{}
+	imageName.WriteString(c.imagePrefix())
+	imageName.WriteString(image)
+	imageName.WriteString(":")
+	imageName.WriteString(tag)
+	return imageName.String()
+}
+
+// imagePrefix returns a prefix for images
+func (c *ClusterController) imagePrefix() string {
+	if c.config.Registry != "" {
+		return fmt.Sprintf("%s/", c.config.Registry)
+	}
+	return ""
 }

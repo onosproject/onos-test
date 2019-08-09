@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
+	"github.com/onosproject/onos-test/pkg/k8s/console"
 	"github.com/onosproject/onos-test/test/env"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -59,6 +61,49 @@ func (c *ClusterController) startTests(testID string, tests []string, timeout ti
 		return corev1.Pod{}, err
 	}
 	return pod, nil
+}
+
+// RunTests runs the given tests on Kubernetes
+func (c *ClusterController) RunTests(testID string, tests []string, timeout time.Duration) (string, int, console.ErrorStatus) {
+	// Default the test timeout to 10 minutes
+	if timeout == 0 {
+		timeout = 10 * time.Minute
+	}
+
+	// Start the test job
+	c.status.Start("Starting test job: " + testID)
+	pod, err := c.startTests(testID, tests, timeout)
+	if err != nil {
+		return "", 0, c.status.Fail(err)
+	}
+	c.status.Succeed()
+
+	// Get the stream of logs for the pod
+	reader, err := c.streamLogs(pod)
+	if err != nil {
+		return "", 0, c.status
+	}
+	defer reader.Close()
+
+	// Stream the logs to stdout
+	buf := make([]byte, 1024)
+	for {
+		n, err := reader.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", 0, c.status
+		}
+		fmt.Print(string(buf[:n]))
+	}
+
+	// Get the exit message and code
+	message, status, err := c.getStatus(pod)
+	if err != nil {
+		return "failed to retrieve exit code", 1, c.status
+	}
+	return message, status, c.status
 }
 
 // createTestJob creates the job to run tests

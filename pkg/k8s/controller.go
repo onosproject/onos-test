@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	atomixk8s "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
-	"github.com/onosproject/onos-test/pkg/onit/console"
+	"github.com/onosproject/onos-test/pkg/k8s/console"
 	"gopkg.in/yaml.v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"

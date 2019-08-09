@@ -23,7 +23,8 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/k8s"
+
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -113,8 +114,8 @@ func getGetNetworksCommand() *cobra.Command {
 		Use:   "networks",
 		Short: "Get the currently configured cluster's networks",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := onit.NewController()
+			// Get the k8s controller
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -157,7 +158,7 @@ func getGetSimulatorsCommand() *cobra.Command {
 		Short: "Get the currently configured cluster's simulators",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -200,7 +201,7 @@ func getGetClustersCommand() *cobra.Command {
 		Short: "Get a list of all deployed clusters",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -219,7 +220,7 @@ func getGetClustersCommand() *cobra.Command {
 	return cmd
 }
 
-func printClusters(clusters map[string]*onit.ClusterConfig, includeHeaders bool) {
+func printClusters(clusters map[string]*k8s.ClusterConfig, includeHeaders bool) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	if includeHeaders {
@@ -264,7 +265,7 @@ func getGetPartitionsCommand() *cobra.Command {
 		Short: "Get a list of partitions in the cluster",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -297,7 +298,7 @@ func getGetPartitionsCommand() *cobra.Command {
 	return cmd
 }
 
-func printPartitions(partitions []onit.PartitionInfo) {
+func printPartitions(partitions []k8s.PartitionInfo) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	fmt.Fprintln(writer, "ID\tGROUP\tNODES")
@@ -315,7 +316,7 @@ func getGetPartitionCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -361,7 +362,7 @@ func getGetNodesCommand() *cobra.Command {
 		Short: "Get a list of nodes in the cluster",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -384,7 +385,7 @@ func getGetNodesCommand() *cobra.Command {
 			}
 
 			// Get the list of nodes and output
-			if strings.Compare(nodeType, string(onit.OnosAll)) == 0 {
+			if strings.Compare(nodeType, string(k8s.OnosAll)) == 0 {
 				nodes, err := cluster.GetNodes()
 				if err != nil {
 					exitError(err)
@@ -392,7 +393,7 @@ func getGetNodesCommand() *cobra.Command {
 					noHeaders, _ := cmd.Flags().GetBool("no-headers")
 					printNodes(nodes, !noHeaders)
 				}
-			} else if strings.Compare(nodeType, string(onit.OnosConfig)) == 0 {
+			} else if strings.Compare(nodeType, string(k8s.OnosConfig)) == 0 {
 				nodes, err := cluster.GetOnosConfigNodes()
 				if err != nil {
 					exitError(err)
@@ -401,7 +402,7 @@ func getGetNodesCommand() *cobra.Command {
 					printNodes(nodes, !noHeaders)
 				}
 
-			} else if strings.Compare(nodeType, string(onit.OnosTopo)) == 0 {
+			} else if strings.Compare(nodeType, string(k8s.OnosTopo)) == 0 {
 				nodes, err := cluster.GetOnosTopoNodes()
 				if err != nil {
 					exitError(err)
@@ -422,7 +423,7 @@ func getGetNodesCommand() *cobra.Command {
 	return cmd
 }
 
-func printNodes(nodes []onit.NodeInfo, includeHeaders bool) {
+func printNodes(nodes []k8s.NodeInfo, includeHeaders bool) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	if includeHeaders {
@@ -526,7 +527,7 @@ func getGetHistoryCommand() *cobra.Command {
 		Short: "Get the history of test runs",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -561,7 +562,7 @@ func getGetHistoryCommand() *cobra.Command {
 }
 
 // printHistory prints a test history in table format
-func printHistory(records []onit.TestRecord) {
+func printHistory(records []k8s.TestRecord) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	fmt.Fprintln(writer, "ID\tTESTS\tSTATUS\tEXIT CODE\tMESSAGE")
@@ -590,7 +591,7 @@ To output the logs from a test, get the test ID from the test run or from 'onit 
 			stream, _ := cmd.Flags().GetBool("stream")
 
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}

@@ -15,7 +15,7 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/k8s"
 	"github.com/spf13/cobra"
 )
 
@@ -46,8 +46,8 @@ func getDeleteClusterCommand() *cobra.Command {
 		Short: "Delete a test cluster on Kubernetes",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Create the onit controller
-			controller, err := onit.NewController()
+			// Create the k8s controller
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}

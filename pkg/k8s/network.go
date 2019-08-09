@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"bytes"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/onosproject/onos-test/pkg/k8s/console"
 
 	"gopkg.in/yaml.v1"
 	corev1 "k8s.io/api/core/v1"
@@ -259,6 +261,37 @@ func (c *ClusterController) createNetworkService(name string, config *NetworkCon
 	}
 
 	return nil
+}
+
+// AddNetwork adds a stratum network with the given configuration
+func (c *ClusterController) AddNetwork(name string, config *NetworkConfig) console.ErrorStatus {
+	c.status.Start("Setting up network")
+	if err := c.setupNetwork(name, config); err != nil {
+		return c.status.Fail(err)
+	}
+	c.status.Start("Reconfiguring onos-config nodes")
+	if err := c.addNetworkToConfig(name, config); err != nil {
+		return c.status.Fail(err)
+	}
+	return c.status.Succeed()
+}
+
+// RemoveNetwork removes a stratum network with the given name
+func (c *ClusterController) RemoveNetwork(name string) console.ErrorStatus {
+	c.status.Start("Tearing down network")
+	label := "network=" + name
+	configMaps, _ := c.kubeclient.CoreV1().ConfigMaps(c.clusterID).List(metav1.ListOptions{
+		LabelSelector: label,
+	})
+
+	if err := c.teardownNetwork(name); err != nil {
+		c.status.Fail(err)
+	}
+	c.status.Start("Reconfiguring onos-config nodes")
+	if err := c.removeNetworkFromConfig(name, configMaps); err != nil {
+		return c.status.Fail(err)
+	}
+	return c.status.Succeed()
 }
 
 // teardownNetwork tears down a network by name

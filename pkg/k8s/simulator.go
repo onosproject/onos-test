@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/onosproject/onos-test/pkg/k8s/console"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -187,6 +189,32 @@ func (c *ClusterController) awaitSimulatorReady(name string) error {
 			time.Sleep(100 * time.Millisecond)
 		}
 	}
+}
+
+// AddSimulator adds a device simulator with the given configuration
+func (c *ClusterController) AddSimulator(name string, config *SimulatorConfig) console.ErrorStatus {
+	c.status.Start("Setting up simulator")
+	if err := c.setupSimulator(name, config); err != nil {
+		return c.status.Fail(err)
+	}
+	c.status.Start("Reconfiguring onos-config nodes")
+	if err := c.addSimulatorToConfig(name); err != nil {
+		return c.status.Fail(err)
+	}
+	return c.status.Succeed()
+}
+
+// RemoveSimulator removes a device simulator with the given name
+func (c *ClusterController) RemoveSimulator(name string) console.ErrorStatus {
+	c.status.Start("Tearing down simulator")
+	if err := c.teardownSimulator(name); err != nil {
+		c.status.Fail(err)
+	}
+	c.status.Start("Reconfiguring onos-config nodes")
+	if err := c.removeSimulatorFromConfig(name); err != nil {
+		return c.status.Fail(err)
+	}
+	return c.status.Succeed()
 }
 
 // teardownSimulator tears down a simulator by name

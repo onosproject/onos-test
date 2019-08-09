@@ -17,7 +17,8 @@ package cli
 import (
 	"errors"
 
-	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/k8s"
+
 	"github.com/spf13/cobra"
 )
 
@@ -52,7 +53,7 @@ func getRemoveNetworkCommand() *cobra.Command {
 			name := args[0]
 
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -101,7 +102,7 @@ func getRemoveSimulatorCommand() *cobra.Command {
 			name := args[0]
 
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
