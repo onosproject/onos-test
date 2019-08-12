@@ -15,9 +15,12 @@
 package onit
 
 import (
+	"bytes"
 	"fmt"
+	"gopkg.in/yaml.v1"
 	"io/ioutil"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"k8s.io/apimachinery/pkg/labels"
@@ -278,7 +281,6 @@ func (c *ClusterController) createOnosTopoProxyConfigMap() error {
 	if err != nil {
 		return err
 	}
-
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-topo-envoy",
@@ -414,6 +416,125 @@ func (c *ClusterController) awaitOnosTopoProxyDeploymentReady() error {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+// addSimulatorToTopo adds a simulator to onos-topo
+func (c *ClusterController) addSimulatorToTopo(name string) error {
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "topo"}}
+	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, pod := range pods.Items {
+		if err = c.addSimulatorToPod(name, pod); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// addNetworkToTopo adds a network to onos-topo
+func (c *ClusterController) addNetworkToTopo(name string, config *NetworkConfig) error {
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "topo"}}
+	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, pod := range pods.Items {
+		var port = 50001
+		for i := 0; i < config.NumDevices; i++ {
+			var buf bytes.Buffer
+			buf.WriteString(name)
+			buf.WriteString("-s")
+			buf.WriteString(strconv.Itoa(i))
+			deviceName := buf.String()
+			if err = c.addNetworkToPod(deviceName, port, pod); err != nil {
+				return err
+			}
+			port = port + 1
+		}
+	}
+	return nil
+}
+
+// addSimulatorToPod adds the given simulator to the given pod's configuration
+func (c *ClusterController) addSimulatorToPod(name string, pod corev1.Pod) error {
+	command := fmt.Sprintf("onos topo add device %s --address %s:10161 --version 1.0.0", name, name)
+	return c.execute(pod, []string{"/bin/bash", "-c", command})
+}
+
+// addNetworkToPod adds the given network to the given pod's configuration
+func (c *ClusterController) addNetworkToPod(name string, port int, pod corev1.Pod) error {
+	command := fmt.Sprintf("onos topo add device %s --address %s:%s --version 1.0.0", name, name, strconv.Itoa(port))
+	return c.execute(pod, []string{"/bin/bash", "-c", command})
+}
+
+// removeSimulatorFromConfig removes a simulator from the onos-config configuration
+func (c *ClusterController) removeSimulatorFromConfig(name string) error {
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
+	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, pod := range pods.Items {
+		if err = c.removeSimulatorFromPod(name, pod); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// removeNetworkFromConfig removes a network from the onos-config configuration
+func (c *ClusterController) removeNetworkFromConfig(name string, configMap *corev1.ConfigMapList) error {
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
+	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	})
+	if err != nil {
+		return err
+	}
+	dataMap := configMap.Items[0].BinaryData["config"]
+	m := make(map[string]interface{})
+	err = yaml.Unmarshal(dataMap, &m)
+	if err != nil {
+		return err
+	}
+	numDevices := m["numdevices"].(int)
+
+	for _, pod := range pods.Items {
+		for i := 0; i < numDevices; i++ {
+			var buf bytes.Buffer
+			buf.WriteString(name)
+			buf.WriteString("-s")
+			buf.WriteString(strconv.Itoa(i))
+			deviceName := buf.String()
+			if err = c.removeNetworkFromPod(deviceName, pod); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// removeSimulatorFromPod removes the given simulator from the given pod
+func (c *ClusterController) removeSimulatorFromPod(name string, pod corev1.Pod) error {
+	command := fmt.Sprintf("onos devices remove %s --address 127.0.0.1:5150 --keyPath /etc/onos-config/certs/client1.key --certPath /etc/onos-config/certs/client1.crt", name)
+	return c.execute(pod, []string{"/bin/bash", "-c", command})
+}
+
+// removeNetworkFromPod removes the given network from the given pod
+func (c *ClusterController) removeNetworkFromPod(name string, pod corev1.Pod) error {
+	command := fmt.Sprintf("onos devices remove %s --address 127.0.0.1:5150 --keyPath /etc/onos-config/certs/client1.key --certPath /etc/onos-config/certs/client1.crt", name)
+	return c.execute(pod, []string{"/bin/bash", "-c", command})
 }
 
 // GetOnosTopoNodes returns a list of all onos-topo nodes running in the cluster

@@ -253,8 +253,8 @@ func (c *ClusterController) AddSimulator(name string, config *SimulatorConfig) c
 	if err := c.setupSimulator(name, config); err != nil {
 		return c.status.Fail(err)
 	}
-	c.status.Start("Reconfiguring onos-config nodes")
-	if err := c.addSimulatorToConfig(name); err != nil {
+	c.status.Start("Adding simulator to topo")
+	if err := c.addSimulatorToTopo(name); err != nil {
 		return c.status.Fail(err)
 	}
 	return c.status.Succeed()
@@ -275,8 +275,8 @@ func (c *ClusterController) AddNetwork(name string, config *NetworkConfig) conso
 	if err := c.setupNetwork(name, config); err != nil {
 		return c.status.Fail(err)
 	}
-	c.status.Start("Reconfiguring onos-config nodes")
-	if err := c.addNetworkToConfig(name, config); err != nil {
+	c.status.Start("Adding network to topo")
+	if err := c.addNetworkToTopo(name, config); err != nil {
 		return c.status.Fail(err)
 	}
 	return c.status.Succeed()
