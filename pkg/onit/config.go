@@ -66,6 +66,10 @@ type SimulatorConfig struct {
 	Config string `yaml:"config" mapstructure:"config"`
 }
 
+// AppConfig provides the configuration for an app
+type AppConfig struct {
+}
+
 // NetworkConfig provides the configuration for a stratum network
 type NetworkConfig struct {
 	Config         string `yaml:"config" mapstructure:"config"`
@@ -90,4 +94,11 @@ func (c *SimulatorConfig) load() (map[string]interface{}, error) {
 	var jsonObj map[string]interface{}
 	err = json.Unmarshal(jsonBytes, &jsonObj)
 	return jsonObj, err
+}
+
+// load loads an app configuration
+func (c *AppConfig) load() (map[string]interface{}, error) {
+	//  noop for now
+	var jsonObj map[string]interface{}
+	return jsonObj, nil
 }

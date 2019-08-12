@@ -243,6 +243,15 @@ func (c *ClusterController) AddSimulator(name string, config *SimulatorConfig) c
 	return c.status.Succeed()
 }
 
+// AddApp adds a device simulator with the given configuration
+func (c *ClusterController) AddApp(name string, config *AppConfig) console.ErrorStatus {
+	c.status.Start("Setting up app")
+	if err := c.setupApp(name, config); err != nil {
+		return c.status.Fail(err)
+	}
+	return c.status.Succeed()
+}
+
 // AddNetwork adds a stratum network with the given configuration
 func (c *ClusterController) AddNetwork(name string, config *NetworkConfig) console.ErrorStatus {
 	c.status.Start("Setting up network")
@@ -470,6 +479,15 @@ func (c *ClusterController) RemoveNetwork(name string) console.ErrorStatus {
 	c.status.Start("Reconfiguring onos-config nodes")
 	if err := c.removeNetworkFromConfig(name, configMaps); err != nil {
 		return c.status.Fail(err)
+	}
+	return c.status.Succeed()
+}
+
+// RemoveApp removes an app with the given name
+func (c *ClusterController) RemoveApp(name string) console.ErrorStatus {
+	c.status.Start("Tearing down app")
+	if err := c.teardownApp(name); err != nil {
+		c.status.Fail(err)
 	}
 	return c.status.Succeed()
 }

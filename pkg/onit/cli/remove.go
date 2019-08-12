@@ -39,6 +39,7 @@ func getRemoveCommand() *cobra.Command {
 	}
 	cmd.AddCommand(getRemoveSimulatorCommand())
 	cmd.AddCommand(getRemoveNetworkCommand())
+	cmd.AddCommand(getRemoveAppCommand())
 	return cmd
 }
 
@@ -135,6 +136,56 @@ func getRemoveSimulatorCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to add the simulator")
+	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_clusters"},
+	}
+	return cmd
+}
+
+// getRemoveAppCommand returns a cobra command for tearing down an app
+func getRemoveAppCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "app <name>",
+		Short: "Remove an app from the cluster",
+		Args:  cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			name := args[0]
+
+			// Get the onit controller
+			controller, err := onit.NewController()
+			if err != nil {
+				exitError(err)
+			}
+
+			// Get the cluster ID
+			clusterID, err := cmd.Flags().GetString("cluster")
+			if err != nil {
+				exitError(err)
+			}
+
+			// Get the cluster controller
+			cluster, err := controller.GetCluster(clusterID)
+			if err != nil {
+				exitError(err)
+			}
+
+			apps, err := cluster.GetApps()
+			if err != nil {
+				exitError(err)
+			}
+
+			if !Contains(apps, name) {
+				exitError(errors.New("The given simulator name does not exist"))
+			}
+
+			// Remove the app from the cluster
+			if status := cluster.RemoveApp(name); status.Failed() {
+				exitStatus(status)
+			}
+		},
+	}
+
+	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to remove the app")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}

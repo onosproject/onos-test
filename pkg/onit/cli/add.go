@@ -16,7 +16,6 @@ package cli
 
 import (
 	"fmt"
-
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/spf13/cobra"
 )
@@ -39,6 +38,7 @@ func getAddCommand() *cobra.Command {
 	}
 	cmd.AddCommand(getAddSimulatorCommand())
 	cmd.AddCommand(getAddNetworkCommand())
+	cmd.AddCommand(getAddAppCommand())
 	return cmd
 }
 
@@ -166,5 +166,58 @@ func getAddSimulatorCommand() *cobra.Command {
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
 	cmd.Flags().StringP("preset", "p", "default", "simulator preset to apply")
+	return cmd
+}
+
+// getAddSimulatorCommand returns a cobra command for deploying a device simulator
+func getAddAppCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "app image-name [name]",
+		Short: "Add an app to the test cluster",
+		Args:  cobra.MaximumNArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			// If an app name was not provided, generate one from a UUID.
+			var name string
+
+			if len(args) > 1 {
+				name = args[1]
+			} else {
+				name = fmt.Sprintf("app-%d", newUUIDInt())
+			}
+
+			// Get the onit controller
+			controller, err := onit.NewController()
+			if err != nil {
+				exitError(err)
+			}
+
+			// Get the cluster ID
+			clusterID, err := cmd.Flags().GetString("cluster")
+			if err != nil {
+				exitError(err)
+			}
+
+			// Get the cluster controller
+			cluster, err := controller.GetCluster(clusterID)
+			if err != nil {
+				exitError(err)
+			}
+
+			// Create the simulator configuration
+			config := &onit.AppConfig{}
+
+			// Add the simulator to the cluster
+			if status := cluster.AddApp(name, config); status.Failed() {
+				exitStatus(status)
+			} else {
+				fmt.Println(name)
+			}
+		},
+	}
+
+	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to add the app")
+	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_clusters"},
+	}
 	return cmd
 }
