@@ -203,10 +203,10 @@ func getAddAppCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			// Create the simulator configuration
+			// Create the app configuration
 			config := &onit.AppConfig{}
 
-			// Add the simulator to the cluster
+			// Add the app to the cluster
 			if status := cluster.AddApp(name, config); status.Failed() {
 				exitStatus(status)
 			} else {

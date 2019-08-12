@@ -27,7 +27,10 @@ var (
 		onit remove simulator <simulator-name>
 
 		# Remove a network with a given name
-		onit remove network <network-name>`
+		onit remove network <network-name>
+	
+		# Remove an app
+		onit remove app <app-name>`
 )
 
 // getRemoveCommand returns a cobra "remove" command for removing resources from the cluster
@@ -175,7 +178,7 @@ func getRemoveAppCommand() *cobra.Command {
 			}
 
 			if !Contains(apps, name) {
-				exitError(errors.New("The given simulator name does not exist"))
+				exitError(errors.New("the given app name does not exist"))
 			}
 
 			// Remove the app from the cluster
