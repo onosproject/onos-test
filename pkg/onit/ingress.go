@@ -24,13 +24,11 @@ func (c *ClusterController) createGRPCIngress() error {
 			Name:      "onos-ingress",
 			Namespace: c.clusterID,
 			Annotations: map[string]string{
-				"kubernetes.io/ingress.class":                    "nginx",
-				// Force SSL redirect to require TLS for both HTTP and HTTP/2
-				"nginx.ingress.kubernetes.io/force-ssl-redirect": "true",
+				"kubernetes.io/ingress.class": "nginx",
 				// gRPC services that can be routed by path
-				"nginx.org/grpc-services":                        "onos-config,onos-topo",
+				"nginx.org/grpc-services": "onos-config,onos-topo",
 				// Insecure backend gRPC protocol
-				"nginx.ingress.kubernetes.io/backend-protocol":   "GRPC",
+				"nginx.ingress.kubernetes.io/backend-protocol": "GRPC",
 			},
 		},
 		Spec: extensionsv1beta1.IngressSpec{
@@ -100,8 +98,6 @@ func (c *ClusterController) createGUIIngress() error {
 			Namespace: c.clusterID,
 			Annotations: map[string]string{
 				"kubernetes.io/ingress.class": "nginx",
-				// Force SSL redirect to require TLS for both HTTP and HTTP/2
-				"nginx.ingress.kubernetes.io/force-ssl-redirect": "true",
 			},
 		},
 		Spec: extensionsv1beta1.IngressSpec{
@@ -112,44 +108,14 @@ func (c *ClusterController) createGUIIngress() error {
 			},
 			Rules: []extensionsv1beta1.IngressRule{
 				{
+					Host: "onos-gui",
 					IngressRuleValue: extensionsv1beta1.IngressRuleValue{
 						HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
 							Paths: []extensionsv1beta1.HTTPIngressPath{
 								{
-									Path: "/gui",
 									Backend: extensionsv1beta1.IngressBackend{
 										ServiceName: "onos-gui",
 										ServicePort: intstr.FromInt(80),
-									},
-								},
-							},
-						},
-					},
-				},
-				{
-					IngressRuleValue: extensionsv1beta1.IngressRuleValue{
-						HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
-							Paths: []extensionsv1beta1.HTTPIngressPath{
-								{
-									Path: "/config",
-									Backend: extensionsv1beta1.IngressBackend{
-										ServiceName: "onos-config-proxy",
-										ServicePort: intstr.FromInt(8080),
-									},
-								},
-							},
-						},
-					},
-				},
-				{
-					IngressRuleValue: extensionsv1beta1.IngressRuleValue{
-						HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
-							Paths: []extensionsv1beta1.HTTPIngressPath{
-								{
-									Path: "/topo",
-									Backend: extensionsv1beta1.IngressBackend{
-										ServiceName: "onos-topo-proxy",
-										ServicePort: intstr.FromInt(8080),
 									},
 								},
 							},
