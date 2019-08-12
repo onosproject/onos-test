@@ -98,7 +98,7 @@ func (c *ClusterController) createTestJob(testID string, args []string, timeout 
 						{
 							Name:            "test",
 							Image:           c.imageName("onosproject/onos-test-runner", c.config.ImageTags["test"]),
-							ImagePullPolicy: corev1.PullIfNotPresent,
+							ImagePullPolicy: c.config.PullPolicy,
 							Args:            args,
 							Env: []corev1.EnvVar{
 								{

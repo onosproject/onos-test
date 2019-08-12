@@ -50,7 +50,7 @@ func (c *ClusterController) createGUIDeployment() error {
 						{
 							Name:            "onos-gui",
 							Image:           c.imageName("onosproject/onos-gui","latest"),
-							ImagePullPolicy: corev1.PullIfNotPresent,
+							ImagePullPolicy: c.config.PullPolicy,
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "grpc",

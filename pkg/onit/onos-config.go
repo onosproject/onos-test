@@ -261,7 +261,7 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 						{
 							Name:            "onos-config",
 							Image:           c.imageName("onosproject/onos-config", c.config.ImageTags["config"]),
-							ImagePullPolicy: corev1.PullIfNotPresent,
+							ImagePullPolicy: c.config.PullPolicy,
 							Env: []corev1.EnvVar{
 								{
 									Name:  "ATOMIX_CONTROLLER",
@@ -485,7 +485,7 @@ func (c *ClusterController) createOnosConfigProxyDeployment() error {
 						{
 							Name:            "onos-config-envoy",
 							Image:           "envoyproxy/envoy-alpine:latest",
-							ImagePullPolicy: corev1.PullIfNotPresent,
+							ImagePullPolicy: c.config.PullPolicy,
 							Command: []string{
 								"/usr/local/bin/envoy",
 								"-c",

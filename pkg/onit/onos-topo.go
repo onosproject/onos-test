@@ -128,7 +128,7 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 						{
 							Name:            "onos-topo",
 							Image:           c.imageName("onosproject/onos-topo", c.config.ImageTags["topo"]),
-							ImagePullPolicy: corev1.PullIfNotPresent,
+							ImagePullPolicy: c.config.PullPolicy,
 							Env: []corev1.EnvVar{
 								{
 									Name:  "ATOMIX_CONTROLLER",
@@ -321,7 +321,7 @@ func (c *ClusterController) createOnosTopoProxyDeployment() error {
 						{
 							Name:            "onos-topo-envoy",
 							Image:           "envoyproxy/envoy-alpine:latest",
-							ImagePullPolicy: corev1.PullIfNotPresent,
+							ImagePullPolicy: c.config.PullPolicy,
 							Command: []string{
 								"/usr/local/bin/envoy",
 								"-c",

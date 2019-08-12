@@ -17,6 +17,7 @@ package onit
 import (
 	"encoding/json"
 	"io/ioutil"
+	"k8s.io/api/core/v1"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -35,6 +36,7 @@ type ClusterConfig struct {
 	Registry      string            `yaml:"registry" mapstructure:"registry"`
 	Preset        string            `yaml:"preset" mapstructure:"preset"`
 	ImageTags     map[string]string `yaml:"image-tags" mapstructure:"image-tags"`
+	PullPolicy    v1.PullPolicy     `yaml:"pull-policy" mapstructure:"pull-policy"`
 	ConfigNodes   int               `yaml:"configNodes" mapstructure:"topoNodes"`
 	TopoNodes     int               `yaml:"topoNodes" mapstructure:"topoNodes"`
 	Partitions    int               `yaml:"partitions" mapstructure:"partitions"`

@@ -101,11 +101,6 @@ func (c *ClusterController) createGUIIngress() error {
 			},
 		},
 		Spec: extensionsv1beta1.IngressSpec{
-			TLS: []extensionsv1beta1.IngressTLS{
-				{
-					SecretName: c.clusterID,
-				},
-			},
 			Rules: []extensionsv1beta1.IngressRule{
 				{
 					Host: "onos-gui",
