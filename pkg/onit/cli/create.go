@@ -15,7 +15,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 
@@ -95,7 +94,7 @@ func getCreateClusterCommand() *cobra.Command {
 			pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
 			if pullPolicy != corev1.PullAlways && pullPolicy != corev1.PullIfNotPresent && pullPolicy != corev1.PullNever {
-				exitError(errors.New(fmt.Sprintf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever)))
+				exitError(fmt.Errorf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever))
 			}
 
 			initImageTags(imageTags)
