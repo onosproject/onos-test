@@ -82,7 +82,7 @@ func (c *ClusterController) Setup() console.ErrorStatus {
 		return c.status.Fail(err)
 	}
 	c.status.Succeed()
-	c.status.Start("Creating secret for onos nodes")
+	c.status.Start("Adding secrets")
 	if err := c.createOnosSecret(); err != nil {
 		return c.status.Fail(err)
 	}
@@ -94,6 +94,16 @@ func (c *ClusterController) Setup() console.ErrorStatus {
 	c.status.Succeed()
 	c.status.Start("Bootstrapping onos-config cluster")
 	if err := c.setupOnosConfig(); err != nil {
+		return c.status.Fail(err)
+	}
+	c.status.Succeed()
+	c.status.Start("Setting up GUI")
+	if err := c.setupGUI(); err != nil {
+		return c.status.Fail(err)
+	}
+	c.status.Succeed()
+	c.status.Start("Creating ingress for services")
+	if err := c.setupIngress(); err != nil {
 		return c.status.Fail(err)
 	}
 	return c.status.Succeed()

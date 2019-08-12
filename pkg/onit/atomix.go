@@ -129,7 +129,7 @@ func (c *ClusterController) createAtomixDeployment() error {
 						{
 							Name:            "atomix-controller",
 							Image:           c.imageName("atomix/atomix-k8s-controller", c.config.ImageTags["atomix"]),
-							ImagePullPolicy: corev1.PullIfNotPresent,
+							ImagePullPolicy: c.config.PullPolicy,
 							Command:         []string{"atomix-controller"},
 							Env: []corev1.EnvVar{
 								{

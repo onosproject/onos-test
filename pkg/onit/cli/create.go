@@ -16,6 +16,7 @@ package cli
 
 import (
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/spf13/cobra"
@@ -89,6 +90,12 @@ func getCreateClusterCommand() *cobra.Command {
 			partitionSize, _ := cmd.Flags().GetInt("partition-size")
 			configName, _ := cmd.Flags().GetString("config")
 			imageTags, _ := cmd.Flags().GetStringToString("image-tags")
+			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
+			pullPolicy := corev1.PullPolicy(imagePullPolicy)
+
+			if pullPolicy != corev1.PullAlways && pullPolicy != corev1.PullIfNotPresent && pullPolicy != corev1.PullNever {
+				exitError(fmt.Errorf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever))
+			}
 
 			initImageTags(imageTags)
 
@@ -111,6 +118,7 @@ func getCreateClusterCommand() *cobra.Command {
 				Registry:      dockerRegistry,
 				Preset:        configName,
 				ImageTags:     imageTags,
+				PullPolicy:    pullPolicy,
 				ConfigNodes:   configNodes,
 				TopoNodes:     topoNodes,
 				Partitions:    partitions,
@@ -154,6 +162,7 @@ func getCreateClusterCommand() *cobra.Command {
 	cmd.Flags().IntP("partitions", "p", 1, "the number of Raft partitions to deploy")
 	cmd.Flags().IntP("partition-size", "s", 1, "the size of each Raft partition")
 	cmd.Flags().StringToString("image-tags", imageTags, "the image docker container tag for each node in the cluster")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 
 	return cmd
 }

@@ -16,6 +16,8 @@ package onit
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"time"
 
 	"k8s.io/apimachinery/pkg/labels"
@@ -32,24 +34,32 @@ func (c *ClusterController) setupOnosTopo() error {
 	if err := c.createOnosTopoConfigMap(); err != nil {
 		return err
 	}
-
 	if err := c.createOnosTopoService(); err != nil {
 		return err
 	}
-
 	if err := c.createOnosTopoDeployment(); err != nil {
+		return err
+	}
+	if err := c.createOnosTopoProxyConfigMap(); err != nil {
+		return err
+	}
+	if err := c.createOnosTopoProxyDeployment(); err != nil {
+		return err
+	}
+	if err := c.createOnosTopoProxyService(); err != nil {
 		return err
 	}
 	if err := c.awaitOnosTopoDeploymentReady(); err != nil {
 		return err
 	}
-
+	if err := c.awaitOnosTopoProxyDeploymentReady(); err != nil {
+		return err
+	}
 	return nil
 }
 
 // createOnosTopoConfigMap creates a ConfigMap for the onos-topo Deployment
 func (c *ClusterController) createOnosTopoConfigMap() error {
-
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-topo",
@@ -118,7 +128,7 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 						{
 							Name:            "onos-topo",
 							Image:           c.imageName("onosproject/onos-topo", c.config.ImageTags["topo"]),
-							ImagePullPolicy: corev1.PullIfNotPresent,
+							ImagePullPolicy: c.config.PullPolicy,
 							Env: []corev1.EnvVar{
 								{
 									Name:  "ATOMIX_CONTROLLER",
@@ -255,6 +265,151 @@ func (c *ClusterController) awaitOnosTopoDeploymentReady() error {
 
 		// Return once the all replicas in the deployment are ready
 		if int(dep.Status.ReadyReplicas) == c.config.TopoNodes {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// createOnosTopoProxyConfigMap creates a ConfigMap for the onos-topo-envoy Deployment
+func (c *ClusterController) createOnosTopoProxyConfigMap() error {
+	configPath := filepath.Join(filepath.Join(configsPath, "envoy"), "envoy-topo.yaml")
+	data, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		return err
+	}
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-topo-envoy",
+			Namespace: c.clusterID,
+		},
+		BinaryData: map[string][]byte{
+			"envoy-topo.yaml": data,
+		},
+	}
+	_, err = c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
+	return err
+}
+
+// createOnosTopoProxyDeployment creates an onos-topo Envoy proxy
+func (c *ClusterController) createOnosTopoProxyDeployment() error {
+	nodes := int32(1)
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-topo-envoy",
+			Namespace: c.clusterID,
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &nodes,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app":  "onos",
+					"type": "topo-envoy",
+				},
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"app":      "onos",
+						"type":     "topo-envoy",
+						"resource": "onos-topo",
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:            "onos-topo-envoy",
+							Image:           "envoyproxy/envoy-alpine:latest",
+							ImagePullPolicy: c.config.PullPolicy,
+							Command: []string{
+								"/usr/local/bin/envoy",
+								"-c",
+								"/etc/envoy-proxy/config/envoy-topo.yaml",
+							},
+							Ports: []corev1.ContainerPort{
+								{
+									Name:          "envoy",
+									ContainerPort: 8080,
+								},
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "config",
+									MountPath: "/etc/envoy-proxy/config",
+									ReadOnly:  true,
+								},
+								{
+									Name:      "secret",
+									MountPath: "/etc/envoy-proxy/certs",
+									ReadOnly:  true,
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "config",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: "onos-topo-envoy",
+									},
+								},
+							},
+						},
+						{
+							Name: "secret",
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: c.clusterID,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	_, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Create(deployment)
+	return err
+}
+
+// createOnosTopoProxyService creates an onos-topo Envoy proxy service
+func (c *ClusterController) createOnosTopoProxyService() error {
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-topo-envoy",
+			Namespace: c.clusterID,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"app":  "onos",
+				"type": "topo-envoy",
+			},
+			Ports: []corev1.ServicePort{
+				{
+					Name: "envoy",
+					Port: 8080,
+				},
+			},
+		},
+	}
+	_, err := c.kubeclient.CoreV1().Services(c.clusterID).Create(service)
+	return err
+}
+
+// awaitOnosTopoProxyDeploymentReady waits for the onos-topo proxy pods to complete startup
+func (c *ClusterController) awaitOnosTopoProxyDeploymentReady() error {
+	for {
+		// Get the onos-topo deployment
+		dep, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Get("onos-topo-envoy", metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+
+		// Return once the all replicas in the deployment are ready
+		if int(dep.Status.ReadyReplicas) == 1 {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
