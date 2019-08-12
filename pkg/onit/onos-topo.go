@@ -16,6 +16,8 @@ package onit
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"time"
 
 	"k8s.io/apimachinery/pkg/labels"
@@ -38,6 +40,9 @@ func (c *ClusterController) setupOnosTopo() error {
 	if err := c.createOnosTopoDeployment(); err != nil {
 		return err
 	}
+	if err := c.createOnosTopoProxyConfigMap(); err != nil {
+		return err
+	}
 	if err := c.createOnosTopoProxyDeployment(); err != nil {
 		return err
 	}
@@ -55,7 +60,6 @@ func (c *ClusterController) setupOnosTopo() error {
 
 // createOnosTopoConfigMap creates a ConfigMap for the onos-topo Deployment
 func (c *ClusterController) createOnosTopoConfigMap() error {
-
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-topo",
@@ -267,6 +271,27 @@ func (c *ClusterController) awaitOnosTopoDeploymentReady() error {
 	}
 }
 
+// createOnosTopoProxyConfigMap creates a ConfigMap for the onos-topo-envoy Deployment
+func (c *ClusterController) createOnosTopoProxyConfigMap() error {
+	configPath := filepath.Join(filepath.Join(configsPath, "envoy"), "envoy-topo.yaml")
+	data, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		return err
+	}
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-topo-envoy",
+			Namespace: c.clusterID,
+		},
+		BinaryData: map[string][]byte{
+			"envoy-topo.yaml": data,
+		},
+	}
+	_, err = c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
+	return err
+}
+
 // createOnosTopoProxyDeployment creates an onos-topo Envoy proxy
 func (c *ClusterController) createOnosTopoProxyDeployment() error {
 	nodes := int32(1)
@@ -295,12 +320,49 @@ func (c *ClusterController) createOnosTopoProxyDeployment() error {
 					Containers: []corev1.Container{
 						{
 							Name:            "onos-topo-envoy",
-							Image:           c.imageName("onosproject/onos-config-envoy:latest"),
+							Image:           "envoyproxy/envoy-alpine:latest",
 							ImagePullPolicy: corev1.PullIfNotPresent,
+							Command: []string{
+								"/usr/local/bin/envoy",
+								"-c",
+								"/etc/envoy-proxy/config/envoy-topo.yaml",
+							},
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "envoy",
 									ContainerPort: 8080,
+								},
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "config",
+									MountPath: "/etc/envoy-proxy/config",
+									ReadOnly:  true,
+								},
+								{
+									Name:      "secret",
+									MountPath: "/etc/envoy-proxy/certs",
+									ReadOnly:  true,
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "config",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: "onos-topo-envoy",
+									},
+								},
+							},
+						},
+						{
+							Name: "secret",
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: c.clusterID,
 								},
 							},
 						},

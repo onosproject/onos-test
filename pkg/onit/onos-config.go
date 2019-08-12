@@ -18,6 +18,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -39,6 +41,9 @@ func (c *ClusterController) setupOnosConfig() error {
 		return err
 	}
 	if err := c.createOnosConfigDeployment(); err != nil {
+		return err
+	}
+	if err := c.createOnosConfigProxyConfigMap(); err != nil {
 		return err
 	}
 	if err := c.createOnosConfigProxyDeployment(); err != nil {
@@ -430,6 +435,27 @@ func (c *ClusterController) awaitOnosConfigDeploymentReady() error {
 	}
 }
 
+// createOnosConfigProxyConfigMap creates a ConfigMap for the onos-config-envoy Deployment
+func (c *ClusterController) createOnosConfigProxyConfigMap() error {
+	configPath := filepath.Join(filepath.Join(configsPath, "envoy"), "envoy-config.yaml")
+	data, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		return err
+	}
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-config-envoy",
+			Namespace: c.clusterID,
+		},
+		BinaryData: map[string][]byte{
+			"envoy-config.yaml": data,
+		},
+	}
+	_, err = c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
+	return err
+}
+
 // createOnosConfigProxyDeployment creates an onos-config Envoy proxy
 func (c *ClusterController) createOnosConfigProxyDeployment() error {
 	nodes := int32(1)
@@ -458,12 +484,49 @@ func (c *ClusterController) createOnosConfigProxyDeployment() error {
 					Containers: []corev1.Container{
 						{
 							Name:            "onos-config-envoy",
-							Image:           c.imageName("onosproject/onos-config-envoy:latest"),
+							Image:           "envoyproxy/envoy-alpine:latest",
 							ImagePullPolicy: corev1.PullIfNotPresent,
+							Command: []string{
+								"/usr/local/bin/envoy",
+								"-c",
+								"/etc/envoy-proxy/config/envoy-config.yaml",
+							},
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "envoy",
 									ContainerPort: 8080,
+								},
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "config",
+									MountPath: "/etc/envoy-proxy/config",
+									ReadOnly:  true,
+								},
+								{
+									Name:      "secret",
+									MountPath: "/etc/envoy-proxy/certs",
+									ReadOnly:  true,
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "config",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: "onos-config-envoy",
+									},
+								},
+							},
+						},
+						{
+							Name: "secret",
+							VolumeSource: corev1.VolumeSource{
+								Secret: &corev1.SecretVolumeSource{
+									SecretName: c.clusterID,
 								},
 							},
 						},

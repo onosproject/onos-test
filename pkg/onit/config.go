@@ -25,6 +25,7 @@ import (
 var (
 	_, path, _, _     = runtime.Caller(0)
 	certsPath         = filepath.Join(filepath.Dir(filepath.Dir(path)), "certs")
+	configsPath       = filepath.Join(filepath.Dir(filepath.Dir(path)), "../configs")
 	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(path)), "../configs"), "device")
 	storeConfigsPath  = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(path)), "../configs"), "store")
 )
