@@ -16,6 +16,7 @@ package cli
 
 import (
 	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/onosproject/onos-test/pkg/onit"
@@ -57,6 +58,9 @@ func initImageTags(imageTags map[string]string) {
 	}
 	if imageTags["topo"] == "" {
 		imageTags["topo"] = string(onit.Debug)
+	}
+	if imageTags["gui"] == "" {
+		imageTags["gui"] = string(onit.Latest)
 	}
 	if imageTags["atomix"] == "" {
 		imageTags["atomix"] = string(onit.Latest)
@@ -154,6 +158,7 @@ func getCreateClusterCommand() *cobra.Command {
 	imageTags["test"] = string(onit.Latest)
 	imageTags["atomix"] = string(onit.Latest)
 	imageTags["raft"] = string(onit.Latest)
+	imageTags["gui"] = string(onit.Latest)
 
 	cmd.Flags().StringP("config", "c", "default", "test cluster configuration")
 	cmd.Flags().String("docker-registry", "", "an optional host:port for a private Docker registry")

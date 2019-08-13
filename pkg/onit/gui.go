@@ -63,7 +63,7 @@ func (c *ClusterController) createGUIDeployment() error {
 					Containers: []corev1.Container{
 						{
 							Name:            "onos-gui",
-							Image:           c.imageName("onosproject/onos-gui", "latest"),
+							Image:           c.imageName("onosproject/onos-gui", c.config.ImageTags["gui"]),
 							ImagePullPolicy: c.config.PullPolicy,
 							Ports: []corev1.ContainerPort{
 								{
