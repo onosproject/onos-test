@@ -204,8 +204,9 @@ func getAddAppCommand() *cobra.Command {
 			}
 
 			// Create the app configuration
+			imageName := args[0]
 			config := &onit.AppConfig{
-				Image: args[0],
+				Image: imageName,
 			}
 
 			// Add the app to the cluster

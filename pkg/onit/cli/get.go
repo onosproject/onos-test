@@ -68,7 +68,10 @@ var (
 		onit get logs <name of resource>
             
 		# Get the history of test runs
-		onit get history`
+		onit get history
+
+		# Get the list of installed apps
+		onit get apps`
 )
 
 // getGetCommand returns a cobra "get" command to read test configurations
@@ -93,6 +96,7 @@ func getGetCommand(registry *runner.TestRegistry) *cobra.Command {
 	cmd.AddCommand(getGetBenchmarkSuitesCommand(registry))
 	cmd.AddCommand(getGetHistoryCommand())
 	cmd.AddCommand(getGetLogsCommand())
+	cmd.AddCommand(getGetAppsCommand())
 	return cmd
 }
 
@@ -306,6 +310,50 @@ func printPartitions(partitions []onit.PartitionInfo) {
 	}
 	writer.Flush()
 }
+
+// getGetAppsCommand returns a cobra command to get the list of apps deployed in the current cluster context
+func getGetAppsCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "apps",
+		Short: "Get the currently configured cluster's apps",
+		Run: func(cmd *cobra.Command, args []string) {
+			// Get the onit controller
+			controller, err := onit.NewController()
+			if err != nil {
+				exitError(err)
+			}
+
+			// Get the cluster ID
+			clusterID, err := cmd.Flags().GetString("cluster")
+			if err != nil {
+				exitError(err)
+			}
+
+			// Get the cluster controller
+			cluster, err := controller.GetCluster(clusterID)
+			if err != nil {
+				exitError(err)
+			}
+
+			// Get the list of simulators and output
+			apps, err := cluster.GetApps()
+			if err != nil {
+				exitError(err)
+			} else {
+				for _, name := range apps {
+					fmt.Println(name)
+				}
+			}
+		},
+	}
+
+	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")
+	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_clusters"},
+	}
+	return cmd
+}
+
 
 // getGetPartitionCommand returns a cobra command to get the nodes in a partition
 func getGetPartitionCommand() *cobra.Command {

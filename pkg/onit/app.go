@@ -19,23 +19,23 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"time"
 )
 
 // GetSApps returns a list of apps deployed in the cluster
 func (c *ClusterController) GetApps() ([]string, error) {
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
-		LabelSelector: "type=app",
-	})
-
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "app"}}
+	appList, err := c.kubeclient.AppsV1().Deployments(c.clusterID).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
 	if err != nil {
 		return nil, err
 	}
 
-	apps := make([]string, len(pods.Items))
-	for i, pod := range pods.Items {
-		apps[i] = pod.Name
+	apps := make([]string, len(appList.Items))
+	for i, app := range appList.Items {
+		apps[i] = app.Name
 	}
 	return apps, nil
 }
@@ -72,12 +72,16 @@ func (c *ClusterController) createAppConfigMap(name string, config *AppConfig) e
 
 // createOnosAppDeployment creates an app Deployment
 func (c *ClusterController) createOnosAppDeployment(name string, image string) error {
-	nodes := int32(1) //int32(c.config.TopoNodes)
+	nodes := int32(1)
 	zero := int64(0)
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: c.clusterID,
+			Labels: map[string]string{
+				"app":  "onos",
+				"type": "app",
+			},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &nodes,
@@ -102,7 +106,7 @@ func (c *ClusterController) createOnosAppDeployment(name string, image string) e
 					Containers: []corev1.Container{
 						{
 							Name:            name,
-							Image:           c.imageName(image, "latest"),
+							Image:           image,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
 								{
