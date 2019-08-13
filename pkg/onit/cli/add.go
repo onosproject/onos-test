@@ -204,7 +204,9 @@ func getAddAppCommand() *cobra.Command {
 			}
 
 			// Create the app configuration
-			config := &onit.AppConfig{}
+			config := &onit.AppConfig{
+				Image: args[0],
+			}
 
 			// Add the app to the cluster
 			if status := cluster.AddApp(name, config); status.Failed() {

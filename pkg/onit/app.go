@@ -48,7 +48,7 @@ func (c *ClusterController) setupApp(name string, config *AppConfig) error {
 	if err := c.createAppService(name); err != nil {
 		return err
 	}
-	if err := c.createOnosAppDeployment(name); err != nil {
+	if err := c.createOnosAppDeployment(name, config.Image); err != nil {
 		return err
 	}
 	if err := c.awaitOnosAppDeploymentReady(name); err != nil {
@@ -71,7 +71,7 @@ func (c *ClusterController) createAppConfigMap(name string, config *AppConfig) e
 }
 
 // createOnosAppDeployment creates an app Deployment
-func (c *ClusterController) createOnosAppDeployment(name string) error {
+func (c *ClusterController) createOnosAppDeployment(name string, image string) error {
 	nodes := int32(1) //int32(c.config.TopoNodes)
 	zero := int64(0)
 	dep := &appsv1.Deployment{
@@ -102,7 +102,7 @@ func (c *ClusterController) createOnosAppDeployment(name string) error {
 					Containers: []corev1.Container{
 						{
 							Name:            name,
-							Image:           c.imageName("onosproject/onos-ztp", "latest"),
+							Image:           c.imageName(image, "latest"),
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Env: []corev1.EnvVar{
 								{
