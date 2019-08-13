@@ -457,6 +457,14 @@ func getGetNodesCommand() *cobra.Command {
 					printNodes(nodes, !noHeaders)
 				}
 
+			} else if strings.Compare(nodeType, string(onit.OnosCli)) == 0 {
+				nodes, err := cluster.GetOnosCliNodes()
+				if err != nil {
+					exitError(err)
+				} else {
+					noHeaders, _ := cmd.Flags().GetBool("no-headers")
+					printNodes(nodes, !noHeaders)
+				}
 			}
 		},
 	}

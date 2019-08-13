@@ -60,7 +60,7 @@ func Subset(first, second []string) bool {
 func GetOnitCommand(registry *runner.TestRegistry) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                    "onit",
-		Short:                  "Run onos-config integration tests on Kubernetes",
+		Short:                  "Run onos integration tests on Kubernetes",
 		BashCompletionFunction: bashCompletion,
 	}
 	cmd.AddCommand(getCreateCommand())
@@ -73,6 +73,8 @@ func GetOnitCommand(registry *runner.TestRegistry) *cobra.Command {
 	cmd.AddCommand(getDebugCommand())
 	cmd.AddCommand(getFetchCommand())
 	cmd.AddCommand(getCompletionCommand())
+	cmd.AddCommand(getSSHCommand())
+	cmd.AddCommand(getOnosCliCommand())
 
 	return cmd
 }
