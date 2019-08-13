@@ -62,6 +62,9 @@ func initImageTags(imageTags map[string]string) {
 	if imageTags["gui"] == "" {
 		imageTags["gui"] = string(onit.Latest)
 	}
+	if imageTags["cli"] == "" {
+		imageTags["cli"] = string(onit.Latest)
+	}
 	if imageTags["atomix"] == "" {
 		imageTags["atomix"] = string(onit.Latest)
 	}
@@ -159,6 +162,7 @@ func getCreateClusterCommand() *cobra.Command {
 	imageTags["atomix"] = string(onit.Latest)
 	imageTags["raft"] = string(onit.Latest)
 	imageTags["gui"] = string(onit.Latest)
+	imageTags["cli"] = string(onit.Latest)
 
 	cmd.Flags().StringP("config", "c", "default", "test cluster configuration")
 	cmd.Flags().String("docker-registry", "", "an optional host:port for a private Docker registry")
