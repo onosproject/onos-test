@@ -354,7 +354,6 @@ func getGetAppsCommand() *cobra.Command {
 	return cmd
 }
 
-
 // getGetPartitionCommand returns a cobra command to get the nodes in a partition
 func getGetPartitionCommand() *cobra.Command {
 	cmd := &cobra.Command{
