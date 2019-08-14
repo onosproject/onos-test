@@ -82,6 +82,39 @@ func TestAtomixMap(t *testing.T) {
 		i++
 	}
 	assert.Equal(t, 1, i)
+
+	allEvents := make(chan *atomixmap.MapEvent)
+	err = m.Watch(context.Background(), allEvents, atomixmap.WithReplay())
+	assert.NoError(t, err)
+
+	event := <-allEvents
+	assert.NotNil(t, event)
+	assert.Equal(t, "foo", event.Key)
+	assert.Equal(t, []byte("Hello world!"), event.Value)
+	assert.Equal(t, value.Version, event.Version)
+
+	futureEvents := make(chan *atomixmap.MapEvent)
+	err = m.Watch(context.Background(), futureEvents)
+	assert.NoError(t, err)
+
+	value, err = m.Put(context.Background(), "bar", []byte("Hello world!"))
+	assert.NoError(t, err)
+	assert.NotNil(t, value)
+	assert.Equal(t, "bar", value.Key)
+	assert.Equal(t, []byte("Hello world!"), value.Value)
+	assert.NotEqual(t, int64(0), value.Version)
+
+	event = <-allEvents
+	assert.NotNil(t, event)
+	assert.Equal(t, "bar", event.Key)
+	assert.Equal(t, []byte("Hello world!"), event.Value)
+	assert.Equal(t, value.Version, event.Version)
+
+	event = <-futureEvents
+	assert.NotNil(t, event)
+	assert.Equal(t, "bar", event.Key)
+	assert.Equal(t, []byte("Hello world!"), event.Value)
+	assert.Equal(t, value.Version, event.Version)
 }
 
 func init() {
