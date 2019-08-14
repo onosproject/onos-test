@@ -420,59 +420,30 @@ func (c *ClusterController) awaitOnosTopoProxyDeploymentReady() error {
 
 // addSimulatorToTopo adds a simulator to onos-topo
 func (c *ClusterController) addSimulatorToTopo(name string) error {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "topo"}}
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	})
-	if err != nil {
-		return err
-	}
-
-	var returnErr error
-	for _, pod := range pods.Items {
-		if err = c.addDeviceViaPod("devicesim", name, 10161, pod); err == nil {
-			return nil
-		} else {
-			returnErr = err
-		}
-	}
-	return returnErr
+	return c.addDevice("devicesim", name, 11161)
 }
 
 // addNetworkToTopo adds a network to onos-topo
 func (c *ClusterController) addNetworkToTopo(name string, config *NetworkConfig) error {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "topo"}}
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	})
-	if err != nil {
-		return err
-	}
-
-	var returnErr error
-	for _, pod := range pods.Items {
-		var port = 50001
-		for i := 0; i < config.NumDevices; i++ {
-			var buf bytes.Buffer
-			buf.WriteString(name)
-			buf.WriteString("-s")
-			buf.WriteString(strconv.Itoa(i))
-			deviceName := buf.String()
-			if err = c.addDeviceViaPod("stratum", deviceName, port, pod); err == nil {
-				return nil
-			} else {
-				returnErr = err
-			}
-			port = port + 1
+	var port = 50001
+	for i := 0; i < config.NumDevices; i++ {
+		var buf bytes.Buffer
+		buf.WriteString(name)
+		buf.WriteString("-s")
+		buf.WriteString(strconv.Itoa(i))
+		deviceName := buf.String()
+		if err := c.addDevice("stratum", deviceName, port); err != nil {
+			return err
 		}
+		port = port + 1
 	}
-	return returnErr
+	return nil
 }
 
-// addDeviceViaPod adds the given device via the given pod's CLI
-func (c *ClusterController) addDeviceViaPod(deviceType string, name string, port int, pod corev1.Pod) error {
+// addDevice adds the given device via the CLI
+func (c *ClusterController) addDevice(deviceType string, name string, port int) error {
 	command := fmt.Sprintf("onos topo add device %s --type %s --address %s:%d --version 1.0.0", deviceType, name, name, port)
-	return c.execute(pod, []string{"/bin/bash", "-c", command})
+	return c.executeCLI(command)
 }
 
 // removeSimulatorFromConfig removes a simulator from the onos-config configuration
