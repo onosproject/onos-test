@@ -100,11 +100,11 @@ func (c *ClusterController) createSimulatorPod(name string) error {
 					ImagePullPolicy: c.config.PullPolicy,
 					Env: []corev1.EnvVar{
 						{
-							Name: "GNMI_PORT",
+							Name:  "GNMI_PORT",
 							Value: "10161",
 						},
 						{
-							Name: "GNMI_INSECURE_PORT",
+							Name:  "GNMI_INSECURE_PORT",
 							Value: "11161",
 						},
 					},

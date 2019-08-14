@@ -475,7 +475,7 @@ func (c *ClusterController) RemoveSimulator(name string) console.ErrorStatus {
 	if err := c.teardownSimulator(name); err != nil {
 		c.status.Fail(err)
 	}
-	c.status.Start("Reconfiguring onos-config nodes")
+	c.status.Start("Reconfiguring topology")
 	if err := c.removeSimulatorFromConfig(name); err != nil {
 		return c.status.Fail(err)
 	}
@@ -493,7 +493,7 @@ func (c *ClusterController) RemoveNetwork(name string) console.ErrorStatus {
 	if err := c.teardownNetwork(name); err != nil {
 		c.status.Fail(err)
 	}
-	c.status.Start("Reconfiguring onos-config nodes")
+	c.status.Start("Reconfiguring topology")
 	if err := c.removeNetworkFromConfig(name, configMaps); err != nil {
 		return c.status.Fail(err)
 	}
