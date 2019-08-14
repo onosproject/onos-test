@@ -428,12 +428,15 @@ func (c *ClusterController) addSimulatorToTopo(name string) error {
 		return err
 	}
 
+	var returnErr error
 	for _, pod := range pods.Items {
-		if err = c.addSimulatorToPod(name, pod); err != nil {
-			return err
+		if err = c.addDeviceViaPod("devicesim", name, 10161, pod); err == nil {
+			return nil
+		} else {
+			returnErr = err
 		}
 	}
-	return nil
+	return returnErr
 }
 
 // addNetworkToTopo adds a network to onos-topo
@@ -446,6 +449,7 @@ func (c *ClusterController) addNetworkToTopo(name string, config *NetworkConfig)
 		return err
 	}
 
+	var returnErr error
 	for _, pod := range pods.Items {
 		var port = 50001
 		for i := 0; i < config.NumDevices; i++ {
@@ -454,24 +458,20 @@ func (c *ClusterController) addNetworkToTopo(name string, config *NetworkConfig)
 			buf.WriteString("-s")
 			buf.WriteString(strconv.Itoa(i))
 			deviceName := buf.String()
-			if err = c.addNetworkToPod(deviceName, port, pod); err != nil {
-				return err
+			if err = c.addDeviceViaPod("stratum", deviceName, port, pod); err == nil {
+				return nil
+			} else {
+				returnErr = err
 			}
 			port = port + 1
 		}
 	}
-	return nil
+	return returnErr
 }
 
-// addSimulatorToPod adds the given simulator to the given pod's configuration
-func (c *ClusterController) addSimulatorToPod(name string, pod corev1.Pod) error {
-	command := fmt.Sprintf("onos topo add device %s --address %s:10161 --version 1.0.0", name, name)
-	return c.execute(pod, []string{"/bin/bash", "-c", command})
-}
-
-// addNetworkToPod adds the given network to the given pod's configuration
-func (c *ClusterController) addNetworkToPod(name string, port int, pod corev1.Pod) error {
-	command := fmt.Sprintf("onos topo add device %s --address %s:%s --version 1.0.0", name, name, strconv.Itoa(port))
+// addDeviceViaPod adds the given device via the given pod's CLI
+func (c *ClusterController) addDeviceViaPod(deviceType string, name string, port int, pod corev1.Pod) error {
+	command := fmt.Sprintf("onos topo add device %s --type %s --address %s:%d --version 1.0.0", deviceType, name, name, port)
 	return c.execute(pod, []string{"/bin/bash", "-c", command})
 }
 
@@ -486,7 +486,7 @@ func (c *ClusterController) removeSimulatorFromConfig(name string) error {
 	}
 
 	for _, pod := range pods.Items {
-		if err = c.removeSimulatorFromPod(name, pod); err != nil {
+		if err = c.removeDeviceViaPod(name, pod); err != nil {
 			return err
 		}
 	}
@@ -517,7 +517,7 @@ func (c *ClusterController) removeNetworkFromConfig(name string, configMap *core
 			buf.WriteString("-s")
 			buf.WriteString(strconv.Itoa(i))
 			deviceName := buf.String()
-			if err = c.removeNetworkFromPod(deviceName, pod); err != nil {
+			if err = c.removeDeviceViaPod(deviceName, pod); err != nil {
 				return err
 			}
 		}
@@ -525,15 +525,9 @@ func (c *ClusterController) removeNetworkFromConfig(name string, configMap *core
 	return nil
 }
 
-// removeSimulatorFromPod removes the given simulator from the given pod
-func (c *ClusterController) removeSimulatorFromPod(name string, pod corev1.Pod) error {
-	command := fmt.Sprintf("onos devices remove %s --address 127.0.0.1:5150 --keyPath /etc/onos-config/certs/client1.key --certPath /etc/onos-config/certs/client1.crt", name)
-	return c.execute(pod, []string{"/bin/bash", "-c", command})
-}
-
-// removeNetworkFromPod removes the given network from the given pod
-func (c *ClusterController) removeNetworkFromPod(name string, pod corev1.Pod) error {
-	command := fmt.Sprintf("onos devices remove %s --address 127.0.0.1:5150 --keyPath /etc/onos-config/certs/client1.key --certPath /etc/onos-config/certs/client1.crt", name)
+// removeDeviceViaPod removes the given device via the given pod
+func (c *ClusterController) removeDeviceViaPod(name string, pod corev1.Pod) error {
+	command := fmt.Sprintf("onos topo remove device %s", name)
 	return c.execute(pod, []string{"/bin/bash", "-c", command})
 }
 

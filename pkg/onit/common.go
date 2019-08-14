@@ -17,6 +17,7 @@ package onit
 import (
 	"bytes"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/labels"
 	"os"
 	"path/filepath"
 
@@ -86,6 +87,18 @@ func (c *ClusterController) GetNodes() ([]NodeInfo, error) {
 	nodes = append(nodes, onosCliNodes...)
 
 	return nodes, nil
+}
+
+// executeCLI executes the given ONOS CLI command inside the cluster
+func (c *ClusterController) executeCLI(command string) error {
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "cli"}}
+	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	})
+	if err != nil {
+		return err
+	}
+	return c.execute(pods.Items[0], []string{"/bin/bash", "-c", command})
 }
 
 // execute executes a command in the given pod
