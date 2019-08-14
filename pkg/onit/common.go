@@ -47,6 +47,9 @@ const (
 	// OnosTopo type of node is topo
 	OnosTopo NodeType = "topo"
 
+	// OnosApp type of node is app
+	OnosApp NodeType = "app"
+
 	// OnosAll type of node is all
 	OnosAll NodeType = "all"
 )

@@ -69,6 +69,11 @@ type SimulatorConfig struct {
 	Config string `yaml:"config" mapstructure:"config"`
 }
 
+// AppConfig provides the configuration for an app
+type AppConfig struct {
+	Image string
+}
+
 // NetworkConfig provides the configuration for a stratum network
 type NetworkConfig struct {
 	Config         string `yaml:"config" mapstructure:"config"`
