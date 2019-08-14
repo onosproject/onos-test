@@ -12,7 +12,7 @@ a development/test environment and running integration tests with `onit`.
 
 # Additional Documents
 
-* [How to test](https://github.com/onosproject/onos-config/blob/master/docs/testing.md): onos-config integration tests with onit 
+* [How to run and test](https://github.com/onosproject/onos-test/blob/master/docs/testing.md): onos-config integration tests with onit 
 
 
 [Kubernetes]: https://kubernetes.io
