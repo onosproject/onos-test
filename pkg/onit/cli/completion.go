@@ -110,7 +110,7 @@ __onit_custom_func() {
             return
             ;;	
 			
-        onit_get_logs | onit_fetch_logs | onit_debug)
+        onit_get_logs | onit_fetch_logs | onit_debug | onit_ssh)
             if [[ ${#nouns[@]} -eq 0 ]]; then
                 __onit_get_nodes
             fi
