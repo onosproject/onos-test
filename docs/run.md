@@ -229,17 +229,16 @@ As with the `add` command, removing a network requires that the onos-config clus
 
 Applications from outside of `onit` can be added to an `onit` cluster using the `onit add app` command. This command takes as
 an argument the name of a docker image to load. For example, to load the `onos-ztp` application:
+```onit add app onosproject/onos-ztp:latest
+    ✓ Setting up app 
+   app-128922186
+```
 
+To give a name to an app, pass a name to `onit add app` command as follows
 ```bash
 > onit add app onosproject/onos-ztp:latest ztp
    ✓ Setting up app 
   ztp
-```
-
-To give a name to an app, pass a name to `onit add app` command as follows
-```onit add app onosproject/onos-ztp:latest
-    ✓ Setting up app 
-   app-128922186
 ```
 
 To get list of apps, run `onit get apps` as follows:
