@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"errors"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"path/filepath"
+
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
-// getRestConfig returns the Kubernetes REST API configuration
-func getRestConfig() (*rest.Config, error) {
+// GetRestConfig returns the Kubernetes REST API configuration
+func GetRestConfig() (*rest.Config, error) {
 	kubeconfig := os.Getenv("KUBECONFIG")
 	if kubeconfig == "" {
 		home := getHomeDir()

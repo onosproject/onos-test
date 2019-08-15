@@ -15,7 +15,7 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +47,7 @@ func getDeleteClusterCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Create the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -60,15 +60,9 @@ func getDeleteClusterCommand() *cobra.Command {
 				clusterID = getDefaultCluster()
 			}
 
-			// Delete the cluster
-			status := controller.DeleteCluster(clusterID)
-			err = setDefaultCluster("")
-			if err != nil {
-				exitError(err)
-			}
-			if status.Failed() {
-				exitStatus(status)
-			}
+			k8sCluster, _ := controller.GetCluster(clusterID)
+			k8sCluster.Teardown()
+
 		},
 	}
 	return cmd

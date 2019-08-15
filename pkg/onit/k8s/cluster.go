@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"bytes"
@@ -111,6 +111,17 @@ func (c *ClusterController) Setup() console.ErrorStatus {
 	c.status.Succeed()
 	c.status.Start("Creating ingress for services")
 	if err := c.setupIngress(); err != nil {
+		return c.status.Fail(err)
+	}
+	return c.status.Succeed()
+}
+
+func (c *ClusterController) Teardown() console.ErrorStatus {
+	c.status.Start("Deleting cluster namespace")
+	if err := c.kubeclient.RbacV1().ClusterRoleBindings().Delete(c.clusterID, &metav1.DeleteOptions{}); err != nil {
+		c.status.Fail(err)
+	}
+	if err := c.kubeclient.CoreV1().Namespaces().Delete(c.clusterID, &metav1.DeleteOptions{}); err != nil {
 		return c.status.Fail(err)
 	}
 	return c.status.Succeed()

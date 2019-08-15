@@ -79,7 +79,7 @@ func getStorePresets() []string {
 	return configs
 }
 
-// setDefaultCluster sets the default cluster
+// SetDefaultCluster sets the default cluster
 func setDefaultCluster(clusterID string) error {
 	if err := initConfig(); err != nil {
 		return err

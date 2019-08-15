@@ -12,143 +12,100 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"strings"
+	"strconv"
 	"time"
 
+	"gopkg.in/yaml.v1"
+
 	"k8s.io/apimachinery/pkg/labels"
+
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// setupOnosConfig sets up the onos-config Deployment
-func (c *ClusterController) setupOnosConfig() error {
-	if err := c.createOnosConfigConfigMap(); err != nil {
+// setupOnosTopo sets up the onos-topo Deployment
+func (c *ClusterController) setupOnosTopo() error {
+	if err := c.createOnosTopoConfigMap(); err != nil {
 		return err
 	}
-	if err := c.createOnosConfigService(); err != nil {
+	if err := c.createOnosTopoService(); err != nil {
 		return err
 	}
-	if err := c.createOnosConfigDeployment(); err != nil {
+	if err := c.createOnosTopoDeployment(); err != nil {
 		return err
 	}
-	if err := c.createOnosConfigProxyConfigMap(); err != nil {
+	if err := c.createOnosTopoProxyConfigMap(); err != nil {
 		return err
 	}
-	if err := c.createOnosConfigProxyDeployment(); err != nil {
+	if err := c.createOnosTopoProxyDeployment(); err != nil {
 		return err
 	}
-	if err := c.createOnosConfigProxyService(); err != nil {
+	if err := c.createOnosTopoProxyService(); err != nil {
 		return err
 	}
-	if err := c.awaitOnosConfigDeploymentReady(); err != nil {
+	if err := c.awaitOnosTopoDeploymentReady(); err != nil {
 		return err
 	}
-	if err := c.awaitOnosConfigProxyDeploymentReady(); err != nil {
+	if err := c.awaitOnosTopoProxyDeploymentReady(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// createOnosConfigConfigMap creates a ConfigMap for the onos-config Deployment
-func (c *ClusterController) createOnosConfigConfigMap() error {
-	config, err := c.config.load()
-	if err != nil {
-		return err
-	}
-
-	// Serialize the change store configuration
-	changeStore, err := json.Marshal(config["changeStore"])
-	if err != nil {
-		return err
-	}
-
-	// Serialize the network store configuration
-	networkStore, err := json.Marshal(config["networkStore"])
-	if err != nil {
-		return err
-	}
-
-	// Serialize the device store configuration
-	deviceStore, err := json.Marshal(config["deviceStore"])
-	if err != nil {
-		return err
-	}
-
-	// Serialize the config store configuration
-	configStore, err := json.Marshal(config["configStore"])
-	if err != nil {
-		return err
-	}
-
+// createOnosTopoConfigMap creates a ConfigMap for the onos-topo Deployment
+func (c *ClusterController) createOnosTopoConfigMap() error {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-config",
+			Name:      "onos-topo",
 			Namespace: c.clusterID,
 		},
-		Data: map[string]string{
-			"changeStore.json":  string(changeStore),
-			"configStore.json":  string(configStore),
-			"deviceStore.json":  string(deviceStore),
-			"networkStore.json": string(networkStore),
-		},
+		Data: map[string]string{},
 	}
-	_, err = c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
+	_, err := c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
 	return err
 }
 
-// createModelPluginString creates model plugin path based on a device type, version, and image tag
-func (c *ClusterController) createModelPluginString(deviceType string, version string, debug bool) string {
-	var sb strings.Builder
-	sb.WriteString("-modelPlugin=/usr/local/lib/")
-	sb.WriteString(deviceType)
-	if debug {
-		sb.WriteString("-debug.so.")
-		sb.WriteString(version)
-	} else {
-		sb.WriteString(".so.")
-		sb.WriteString(version)
+// createOnosTopoService creates a Service to expose the onos-topo Deployment to other pods
+func (c *ClusterController) createOnosTopoService() error {
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-topo",
+			Namespace: c.clusterID,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"app":  "onos",
+				"type": "topo",
+			},
+			Ports: []corev1.ServicePort{
+				{
+					Name: "grpc",
+					Port: 5150,
+				},
+			},
+		},
 	}
-
-	return sb.String()
+	_, err := c.kubeclient.CoreV1().Services(c.clusterID).Create(service)
+	return err
 }
 
-// createOnosConfigDeployment creates an onos-config Deployment
-func (c *ClusterController) createOnosConfigDeployment() error {
-	nodes := int32(c.config.ConfigNodes)
+// createOnosTopoDeployment creates an onos-topo Deployment
+func (c *ClusterController) createOnosTopoDeployment() error {
+	nodes := int32(c.config.TopoNodes)
 	zero := int64(0)
-
-	testDevModelPluginV1 := ""
-	testDevModelPluginV2 := ""
-	testDevSimModelPluginV1 := ""
-	testStratumModelPluginV2 := ""
-
-	if c.config.ImageTags["config"] == string(Debug) {
-		testDevModelPluginV1 = c.createModelPluginString("testdevice", "1.0.0", true)
-		testDevModelPluginV2 = c.createModelPluginString("testdevice", "2.0.0", true)
-		testDevSimModelPluginV1 = c.createModelPluginString("devicesim", "1.0.0", true)
-		testStratumModelPluginV2 = c.createModelPluginString("stratum", "1.0.0", true)
-
-	} else {
-		testDevModelPluginV1 = c.createModelPluginString("testdevice", "1.0.0", false)
-		testDevModelPluginV2 = c.createModelPluginString("testdevice", "2.0.0", false)
-		testDevSimModelPluginV1 = c.createModelPluginString("devicesim", "1.0.0", false)
-		testStratumModelPluginV2 = c.createModelPluginString("stratum", "1.0.0", false)
-
-	}
-
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-config",
+			Name:      "onos-topo",
 			Namespace: c.clusterID,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -156,15 +113,15 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app":  "onos",
-					"type": "config",
+					"type": "topo",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"app":      "onos",
-						"type":     "config",
-						"resource": "onos-config",
+						"type":     "topo",
+						"resource": "onos-topo",
 					},
 					Annotations: map[string]string{
 						"seccomp.security.alpha.kubernetes.io/pod": "unconfined",
@@ -173,8 +130,8 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:            "onos-config",
-							Image:           c.imageName("onosproject/onos-config", c.config.ImageTags["config"]),
+							Name:            "onos-topo",
+							Image:           c.imageName("onosproject/onos-topo", c.config.ImageTags["topo"]),
 							ImagePullPolicy: c.config.PullPolicy,
 							Env: []corev1.EnvVar{
 								{
@@ -195,16 +152,9 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 								},
 							},
 							Args: []string{
-								"-caPath=/etc/onos-config/certs/onf.cacrt",
-								"-keyPath=/etc/onos-config/certs/onos-config.key",
-								"-certPath=/etc/onos-config/certs/onos-config.crt",
-								"-configStore=/etc/onos-config/configs/configStore.json",
-								"-changeStore=/etc/onos-config/configs/changeStore.json",
-								"-networkStore=/etc/onos-config/configs/networkStore.json",
-								testDevModelPluginV1,
-								testDevModelPluginV2,
-								testDevSimModelPluginV1,
-								testStratumModelPluginV2,
+								"-caPath=/etc/onos-topo/certs/onf.cacrt",
+								"-keyPath=/etc/onos-topo/certs/onos-config.key",
+								"-certPath=/etc/onos-topo/certs/onos-config.crt",
 							},
 							Ports: []corev1.ContainerPort{
 								{
@@ -237,13 +187,13 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
-									Name:      "config",
-									MountPath: "/etc/onos-config/configs",
+									Name:      "topo",
+									MountPath: "/etc/onos-topo/configs",
 									ReadOnly:  true,
 								},
 								{
 									Name:      "secret",
-									MountPath: "/etc/onos-config/certs",
+									MountPath: "/etc/onos-topo/certs",
 									ReadOnly:  true,
 								},
 							},
@@ -261,11 +211,11 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 					},
 					Volumes: []corev1.Volume{
 						{
-							Name: "config",
+							Name: "topo",
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
-										Name: "onos-config",
+										Name: "onos-topo",
 									},
 								},
 							},
@@ -287,33 +237,9 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 	return err
 }
 
-// createOnosConfigService creates a Service to expose the onos-config Deployment to other pods
-func (c *ClusterController) createOnosConfigService() error {
-	service := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-config",
-			Namespace: c.clusterID,
-		},
-		Spec: corev1.ServiceSpec{
-			Selector: map[string]string{
-				"app":  "onos",
-				"type": "config",
-			},
-			Ports: []corev1.ServicePort{
-				{
-					Name: "grpc",
-					Port: 5150,
-				},
-			},
-		},
-	}
-	_, err := c.kubeclient.CoreV1().Services(c.clusterID).Create(service)
-	return err
-}
-
-// awaitOnosConfigDeploymentReady waits for the onos-config pods to complete startup
-func (c *ClusterController) awaitOnosConfigDeploymentReady() error {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
+// awaitOnosTopoDeploymentReady waits for the onos-topo pods to complete startup
+func (c *ClusterController) awaitOnosTopoDeploymentReady() error {
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "topo"}}
 	unblocked := make(map[string]bool)
 	for {
 		// Get a list of the pods that match the deployment
@@ -333,52 +259,50 @@ func (c *ClusterController) awaitOnosConfigDeploymentReady() error {
 						return err
 					}
 				}
-
 				unblocked[pod.Name] = true
 			}
 		}
 
-		// Get the onos-config deployment
-		dep, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Get("onos-config", metav1.GetOptions{})
+		// Get the onos-topo deployment
+		dep, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Get("onos-topo", metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
 
 		// Return once the all replicas in the deployment are ready
-		if int(dep.Status.ReadyReplicas) == c.config.ConfigNodes {
+		if int(dep.Status.ReadyReplicas) == c.config.TopoNodes {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
 }
 
-// createOnosConfigProxyConfigMap creates a ConfigMap for the onos-config-envoy Deployment
-func (c *ClusterController) createOnosConfigProxyConfigMap() error {
-	configPath := filepath.Join(filepath.Join(configsPath, "envoy"), "envoy-config.yaml")
+// createOnosTopoProxyConfigMap creates a ConfigMap for the onos-topo-envoy Deployment
+func (c *ClusterController) createOnosTopoProxyConfigMap() error {
+	configPath := filepath.Join(filepath.Join(configsPath, "envoy"), "envoy-topo.yaml")
 	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return err
 	}
-
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-config-envoy",
+			Name:      "onos-topo-envoy",
 			Namespace: c.clusterID,
 		},
 		BinaryData: map[string][]byte{
-			"envoy-config.yaml": data,
+			"envoy-topo.yaml": data,
 		},
 	}
 	_, err = c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
 	return err
 }
 
-// createOnosConfigProxyDeployment creates an onos-config Envoy proxy
-func (c *ClusterController) createOnosConfigProxyDeployment() error {
+// createOnosTopoProxyDeployment creates an onos-topo Envoy proxy
+func (c *ClusterController) createOnosTopoProxyDeployment() error {
 	nodes := int32(1)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-config-envoy",
+			Name:      "onos-topo-envoy",
 			Namespace: c.clusterID,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -386,27 +310,27 @@ func (c *ClusterController) createOnosConfigProxyDeployment() error {
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app":  "onos",
-					"type": "config-envoy",
+					"type": "topo-envoy",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"app":      "onos",
-						"type":     "config-envoy",
-						"resource": "onos-config",
+						"type":     "topo-envoy",
+						"resource": "onos-topo",
 					},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:            "onos-config-envoy",
+							Name:            "onos-topo-envoy",
 							Image:           "envoyproxy/envoy-alpine:latest",
 							ImagePullPolicy: c.config.PullPolicy,
 							Command: []string{
 								"/usr/local/bin/envoy",
 								"-c",
-								"/etc/envoy-proxy/config/envoy-config.yaml",
+								"/etc/envoy-proxy/config/envoy-topo.yaml",
 							},
 							Ports: []corev1.ContainerPort{
 								{
@@ -434,7 +358,7 @@ func (c *ClusterController) createOnosConfigProxyDeployment() error {
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
-										Name: "onos-config-envoy",
+										Name: "onos-topo-envoy",
 									},
 								},
 							},
@@ -456,17 +380,17 @@ func (c *ClusterController) createOnosConfigProxyDeployment() error {
 	return err
 }
 
-// createOnosConfigProxyService creates an onos-config Envoy proxy service
-func (c *ClusterController) createOnosConfigProxyService() error {
+// createOnosTopoProxyService creates an onos-topo Envoy proxy service
+func (c *ClusterController) createOnosTopoProxyService() error {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-config-envoy",
+			Name:      "onos-topo-envoy",
 			Namespace: c.clusterID,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
 				"app":  "onos",
-				"type": "config-envoy",
+				"type": "topo-envoy",
 			},
 			Ports: []corev1.ServicePort{
 				{
@@ -480,11 +404,11 @@ func (c *ClusterController) createOnosConfigProxyService() error {
 	return err
 }
 
-// awaitOnosConfigProxyDeploymentReady waits for the onos-config proxy pods to complete startup
-func (c *ClusterController) awaitOnosConfigProxyDeploymentReady() error {
+// awaitOnosTopoProxyDeploymentReady waits for the onos-topo proxy pods to complete startup
+func (c *ClusterController) awaitOnosTopoProxyDeploymentReady() error {
 	for {
-		// Get the onos-config deployment
-		dep, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Get("onos-config-envoy", metav1.GetOptions{})
+		// Get the onos-topo deployment
+		dep, err := c.kubeclient.AppsV1().Deployments(c.clusterID).Get("onos-topo-envoy", metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -497,18 +421,80 @@ func (c *ClusterController) awaitOnosConfigProxyDeploymentReady() error {
 	}
 }
 
-// GetOnosConfigNodes returns a list of all onos-config nodes running in the cluster
-func (c *ClusterController) GetOnosConfigNodes() ([]NodeInfo, error) {
-	configLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
+// addSimulatorToTopo adds a simulator to onos-topo
+func (c *ClusterController) addSimulatorToTopo(name string) error {
+	return c.addDevice("Devicesim", name, 11161)
+}
+
+// addNetworkToTopo adds a network to onos-topo
+func (c *ClusterController) addNetworkToTopo(name string, config *NetworkConfig) error {
+	var port = 50001
+	for i := 0; i < config.NumDevices; i++ {
+		var buf bytes.Buffer
+		buf.WriteString(name)
+		buf.WriteString("-s")
+		buf.WriteString(strconv.Itoa(i))
+		deviceName := buf.String()
+		if err := c.addDevice("Stratum", deviceName, port); err != nil {
+			return err
+		}
+		port = port + 1
+	}
+	return nil
+}
+
+// addDevice adds the given device via the CLI
+func (c *ClusterController) addDevice(deviceType string, name string, port int) error {
+	command := fmt.Sprintf("onos topo add device %s --type %s --address %s:%d --version 1.0.0 --plain --timeout 15s", name, deviceType, name, port)
+	return c.executeCLI(command)
+}
+
+// removeSimulatorFromConfig removes a simulator from the onos-config configuration
+func (c *ClusterController) removeSimulatorFromConfig(name string) error {
+	return c.removeDevice(name)
+}
+
+// removeNetworkFromConfig removes a network from the onos-config configuration
+func (c *ClusterController) removeNetworkFromConfig(name string, configMap *corev1.ConfigMapList) error {
+	dataMap := configMap.Items[0].BinaryData["config"]
+	m := make(map[string]interface{})
+	err := yaml.Unmarshal(dataMap, &m)
+	if err != nil {
+		return err
+	}
+	numDevices := m["numdevices"].(int)
+
+	for i := 0; i < numDevices; i++ {
+		var buf bytes.Buffer
+		buf.WriteString(name)
+		buf.WriteString("-s")
+		buf.WriteString(strconv.Itoa(i))
+		deviceName := buf.String()
+		if err = c.removeDevice(deviceName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// removeDevice removes the given device via the given pod
+func (c *ClusterController) removeDevice(name string) error {
+	command := fmt.Sprintf("onos topo remove device %s", name)
+	return c.executeCLI(command)
+}
+
+// GetOnosTopoNodes returns a list of all onos-topo nodes running in the cluster
+func (c *ClusterController) GetOnosTopoNodes() ([]NodeInfo, error) {
+	topoLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "topo"}}
 
 	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
-		LabelSelector: labels.Set(configLabelSelector.MatchLabels).String(),
+		LabelSelector: labels.Set(topoLabelSelector.MatchLabels).String(),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	onosConfigNodes := make([]NodeInfo, len(pods.Items))
+	onosTopoNodes := make([]NodeInfo, len(pods.Items))
 	for i, pod := range pods.Items {
 		var status NodeStatus
 		if pod.Status.Phase == corev1.PodRunning {
@@ -516,12 +502,12 @@ func (c *ClusterController) GetOnosConfigNodes() ([]NodeInfo, error) {
 		} else if pod.Status.Phase == corev1.PodFailed {
 			status = NodeFailed
 		}
-		onosConfigNodes[i] = NodeInfo{
+		onosTopoNodes[i] = NodeInfo{
 			ID:     pod.Name,
 			Status: status,
-			Type:   OnosConfig,
+			Type:   OnosTopo,
 		}
 	}
 
-	return onosConfigNodes, nil
+	return onosTopoNodes, nil
 }

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
 )
 
@@ -40,7 +40,7 @@ func getDebugCommand() *cobra.Command {
 		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -70,13 +70,13 @@ func getDebugCommand() *cobra.Command {
 				wg.Add(n)
 
 				asyncErrors := make(chan error, n)
-				freePorts, err := onit.GetFreePorts(n)
+				freePorts, err := k8s.GetFreePorts(n)
 				if err != nil {
 					exitError(err)
 				}
 
 				for index := range nodes {
-					go func(node onit.NodeInfo, port int) {
+					go func(node k8s.NodeInfo, port int) {
 						fmt.Println("Start Debugger for:", node.ID)
 						err = cluster.PortForward(node.ID, port, 40000)
 						asyncErrors <- err
@@ -110,6 +110,6 @@ func getDebugCommand() *cobra.Command {
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
-	cmd.Flags().IntP("port", "p", onit.DebugPort, "the local port to forward to the given resource")
+	cmd.Flags().IntP("port", "p", k8s.DebugPort, "the local port to forward to the given resource")
 	return cmd
 }

@@ -12,30 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package local
 
-import (
-	"net"
-	"strconv"
-)
+import "github.com/onosproject/onos-test/pkg/onit/console"
 
-// GetFreePort asks the kernel for free open ports that are ready to use.
-func GetFreePorts(count int) ([]int, error) {
-	var ports []int
-	debugPort := DebugPort
+// ClusterController manages a single local cluster
+type ClusterController struct {
+	//clusterID string
+	status *console.StatusWriter
+}
 
-	for i := 0; i < count; {
-		host := "localhost:" + strconv.Itoa(debugPort)
-		addr, err := net.ResolveTCPAddr("tcp", host)
-		if err != nil {
-			return nil, err
-		}
-		_, err = net.ListenTCP("tcp", addr)
-		if err == nil {
-			ports = append(ports, debugPort)
-			i++
-		}
-		debugPort++
-	}
-	return ports, nil
+func (c *ClusterController) Setup() console.ErrorStatus {
+	//TODO local cluster controller still needs to be implemented
+
+	return c.status.Succeed()
 }

@@ -17,9 +17,11 @@ package cli
 import (
 	"fmt"
 
+	interfaces "github.com/onosproject/onos-test/pkg/onit/controller"
+
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
 )
 
@@ -54,31 +56,31 @@ func getCreateCommand() *cobra.Command {
 
 func initImageTags(imageTags map[string]string) {
 	if imageTags["config"] == "" {
-		imageTags["config"] = string(onit.Debug)
+		imageTags["config"] = string(k8s.Debug)
 	}
 	if imageTags["topo"] == "" {
-		imageTags["topo"] = string(onit.Debug)
+		imageTags["topo"] = string(k8s.Debug)
 	}
 	if imageTags["gui"] == "" {
-		imageTags["gui"] = string(onit.Latest)
+		imageTags["gui"] = string(k8s.Latest)
 	}
 	if imageTags["cli"] == "" {
-		imageTags["cli"] = string(onit.Latest)
+		imageTags["cli"] = string(k8s.Latest)
 	}
 	if imageTags["atomix"] == "" {
-		imageTags["atomix"] = string(onit.Latest)
+		imageTags["atomix"] = string(k8s.Latest)
 	}
 	if imageTags["raft"] == "" {
-		imageTags["raft"] = string(onit.Latest)
+		imageTags["raft"] = string(k8s.Latest)
 	}
 	if imageTags["simulator"] == "" {
-		imageTags["simulator"] = string(onit.Latest)
+		imageTags["simulator"] = string(k8s.Latest)
 	}
 	if imageTags["stratum"] == "" {
-		imageTags["stratum"] = string(onit.Latest)
+		imageTags["stratum"] = string(k8s.Latest)
 	}
 	if imageTags["test"] == "" {
-		imageTags["test"] = string(onit.Latest)
+		imageTags["test"] = string(k8s.Latest)
 	}
 
 }
@@ -98,6 +100,7 @@ func getCreateClusterCommand() *cobra.Command {
 			configName, _ := cmd.Flags().GetString("config")
 			imageTags, _ := cmd.Flags().GetStringToString("image-tags")
 			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
+			clusterType, _ := cmd.Flags().GetString("cluster-type")
 			pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
 			if pullPolicy != corev1.PullAlways && pullPolicy != corev1.PullIfNotPresent && pullPolicy != corev1.PullNever {
@@ -106,10 +109,16 @@ func getCreateClusterCommand() *cobra.Command {
 
 			initImageTags(imageTags)
 
-			// Get the onit controller
-			controller, err := onit.NewController()
-			if err != nil {
-				exitError(err)
+			// Get the onit k8s controller
+
+			// TODO we need to handle different type of clusters properly
+			var controller interfaces.Controller
+			if clusterType == string(k8s.K8s) {
+				k8sController, err := k8s.NewController()
+				if err != nil {
+					exitError(err)
+				}
+				controller = k8sController
 			}
 
 			// Get or create a cluster ID
@@ -121,7 +130,7 @@ func getCreateClusterCommand() *cobra.Command {
 			}
 
 			// Create the cluster configuration
-			config := &onit.ClusterConfig{
+			config := &k8s.ClusterConfig{
 				Registry:      dockerRegistry,
 				Preset:        configName,
 				ImageTags:     imageTags,
@@ -139,13 +148,15 @@ func getCreateClusterCommand() *cobra.Command {
 			}
 
 			// Store the cluster before setting it up to ensure other shell sessions can debug setup
-			err = setDefaultCluster(clusterID)
+			err := setDefaultCluster(clusterID)
 			if err != nil {
 				exitError(err)
 			}
 
+			var k8sCluster interfaces.ClusterController = cluster
+
 			// Setup the cluster
-			if status := cluster.Setup(); status.Failed() {
+			if status := k8sCluster.Setup(); status.Failed() {
 				exitStatus(status)
 			} else {
 				fmt.Println(clusterID)
@@ -154,15 +165,15 @@ func getCreateClusterCommand() *cobra.Command {
 	}
 
 	imageTags := make(map[string]string)
-	imageTags["config"] = string(onit.Debug)
-	imageTags["topo"] = string(onit.Debug)
-	imageTags["simulator"] = string(onit.Latest)
-	imageTags["stratum"] = string(onit.Latest)
-	imageTags["test"] = string(onit.Latest)
-	imageTags["atomix"] = string(onit.Latest)
-	imageTags["raft"] = string(onit.Latest)
-	imageTags["gui"] = string(onit.Latest)
-	imageTags["cli"] = string(onit.Latest)
+	imageTags["config"] = string(k8s.Debug)
+	imageTags["topo"] = string(k8s.Debug)
+	imageTags["simulator"] = string(k8s.Latest)
+	imageTags["stratum"] = string(k8s.Latest)
+	imageTags["test"] = string(k8s.Latest)
+	imageTags["atomix"] = string(k8s.Latest)
+	imageTags["raft"] = string(k8s.Latest)
+	imageTags["gui"] = string(k8s.Latest)
+	imageTags["cli"] = string(k8s.Latest)
 
 	cmd.Flags().StringP("config", "c", "default", "test cluster configuration")
 	cmd.Flags().String("docker-registry", "", "an optional host:port for a private Docker registry")
@@ -172,6 +183,7 @@ func getCreateClusterCommand() *cobra.Command {
 	cmd.Flags().IntP("partition-size", "s", 1, "the size of each Raft partition")
 	cmd.Flags().StringToString("image-tags", imageTags, "the image docker container tag for each node in the cluster")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	cmd.Flags().String("cluster-type", "k8s", "type of cluster that should be created")
 
 	return cmd
 }

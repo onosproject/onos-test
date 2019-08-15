@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"os"
@@ -51,7 +51,7 @@ func (c *ClusterController) OpenShell(resourceID string) error {
 		TTY:       true,
 	}, scheme.ParameterCodec)
 
-	config, err := getRestConfig()
+	config, err := GetRestConfig()
 	if err != nil {
 		return err
 	}

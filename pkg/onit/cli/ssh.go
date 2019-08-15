@@ -15,7 +15,7 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +32,7 @@ func getOnosCliCommand() *cobra.Command {
 		Example: sshExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -78,7 +78,7 @@ func getSSHCommand() *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
