@@ -420,7 +420,7 @@ func (c *ClusterController) awaitOnosTopoProxyDeploymentReady() error {
 
 // addSimulatorToTopo adds a simulator to onos-topo
 func (c *ClusterController) addSimulatorToTopo(name string) error {
-	return c.addDevice("devicesim", name, 11161)
+	return c.addDevice("Devicesim", name, 11161)
 }
 
 // addNetworkToTopo adds a network to onos-topo
@@ -432,7 +432,7 @@ func (c *ClusterController) addNetworkToTopo(name string, config *NetworkConfig)
 		buf.WriteString("-s")
 		buf.WriteString(strconv.Itoa(i))
 		deviceName := buf.String()
-		if err := c.addDevice("stratum", deviceName, port); err != nil {
+		if err := c.addDevice("Stratum", deviceName, port); err != nil {
 			return err
 		}
 		port = port + 1
