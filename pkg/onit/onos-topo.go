@@ -442,64 +442,42 @@ func (c *ClusterController) addNetworkToTopo(name string, config *NetworkConfig)
 
 // addDevice adds the given device via the CLI
 func (c *ClusterController) addDevice(deviceType string, name string, port int) error {
-	command := fmt.Sprintf("onos topo add device %s --type %s --address %s:%d --version 1.0.0", deviceType, name, name, port)
+	command := fmt.Sprintf("onos topo add device %s --type %s --address %s:%d --version 1.0.0 --plain --timeout 15s", name, deviceType, name, port)
 	return c.executeCLI(command)
 }
 
 // removeSimulatorFromConfig removes a simulator from the onos-config configuration
 func (c *ClusterController) removeSimulatorFromConfig(name string) error {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	})
+	return c.removeDevice(name)
+}
+
+// removeNetworkFromConfig removes a network from the onos-config configuration
+func (c *ClusterController) removeNetworkFromConfig(name string, configMap *corev1.ConfigMapList) error {
+	dataMap := configMap.Items[0].BinaryData["config"]
+	m := make(map[string]interface{})
+	err := yaml.Unmarshal(dataMap, &m)
 	if err != nil {
 		return err
 	}
+	numDevices := m["numdevices"].(int)
 
-	for _, pod := range pods.Items {
-		if err = c.removeDeviceViaPod(name, pod); err != nil {
+	for i := 0; i < numDevices; i++ {
+		var buf bytes.Buffer
+		buf.WriteString(name)
+		buf.WriteString("-s")
+		buf.WriteString(strconv.Itoa(i))
+		deviceName := buf.String()
+		if err = c.removeDevice(deviceName); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// removeNetworkFromConfig removes a network from the onos-config configuration
-func (c *ClusterController) removeNetworkFromConfig(name string, configMap *corev1.ConfigMapList) error {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
-	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-	})
-	if err != nil {
-		return err
-	}
-	dataMap := configMap.Items[0].BinaryData["config"]
-	m := make(map[string]interface{})
-	err = yaml.Unmarshal(dataMap, &m)
-	if err != nil {
-		return err
-	}
-	numDevices := m["numdevices"].(int)
-
-	for _, pod := range pods.Items {
-		for i := 0; i < numDevices; i++ {
-			var buf bytes.Buffer
-			buf.WriteString(name)
-			buf.WriteString("-s")
-			buf.WriteString(strconv.Itoa(i))
-			deviceName := buf.String()
-			if err = c.removeDeviceViaPod(deviceName, pod); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-// removeDeviceViaPod removes the given device via the given pod
-func (c *ClusterController) removeDeviceViaPod(name string, pod corev1.Pod) error {
+// removeDevice removes the given device via the given pod
+func (c *ClusterController) removeDevice(name string) error {
 	command := fmt.Sprintf("onos topo remove device %s", name)
-	return c.execute(pod, []string{"/bin/bash", "-c", command})
+	return c.executeCLI(command)
 }
 
 // GetOnosTopoNodes returns a list of all onos-topo nodes running in the cluster
