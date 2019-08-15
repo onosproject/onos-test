@@ -291,6 +291,7 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 								"-modelPlugin=/usr/local/lib/testdevice-debug.so.1.0.0",
 								"-modelPlugin=/usr/local/lib/testdevice-debug.so.2.0.0",
 								"-modelPlugin=/usr/local/lib/devicesim-debug.so.1.0.0",
+								"-modelPlugin=/usr/local/lib/stratum-debug.so.1.0.0",
 							},
 							Ports: []corev1.ContainerPort{
 								{
