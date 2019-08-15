@@ -172,7 +172,11 @@ func NewGnmiClientForDevice(ctx context.Context, address string, target string) 
 	if err != nil {
 		return nil, err
 	}
-	return gnmi.New(ctx, dest)
+	insecureConnection, insecureConnectionError := getInsecureConn(address)
+	if insecureConnectionError != nil {
+		return nil, insecureConnectionError
+	}
+	return gnmi.NewFromConn(ctx, insecureConnection, dest)
 }
 
 // GetDevices returns a slice of device names for the test environment
@@ -201,9 +205,26 @@ func handleCertArgs() ([]grpc.DialOption, error) {
 	return opts, nil
 }
 
+func handleInsecureArgs() ([]grpc.DialOption, error) {
+	var opts = []grpc.DialOption{}
+
+	opts = append(opts, grpc.WithInsecure())
+
+	return opts, nil
+}
+
 // getConn gets a gRPC connection to the given address
 func getConn(address string) (*grpc.ClientConn, error) {
 	opts, err := handleCertArgs()
+	if err != nil {
+		return nil, err
+	}
+	return grpc.Dial(address, opts...)
+}
+
+// getInsecureConn gets a gRPC connection to the given address
+func getInsecureConn(address string) (*grpc.ClientConn, error) {
+	opts, err := handleInsecureArgs()
 	if err != nil {
 		return nil, err
 	}

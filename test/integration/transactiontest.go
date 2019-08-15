@@ -75,7 +75,7 @@ func checkDeviceValue(t *testing.T, deviceGnmiClient client.Impl, devicePaths []
 }
 
 func getDeviceGNMIClient(t *testing.T, device string) client.Impl {
-	deviceGnmiClient, deviceGnmiClientError := env.NewGnmiClientForDevice(MakeContext(), device+":10161", "gnmi")
+	deviceGnmiClient, deviceGnmiClientError := env.NewGnmiClientForDevice(MakeContext(), device+":11161", "gnmi")
 	assert.NoError(t, deviceGnmiClientError)
 	assert.True(t, deviceGnmiClient != nil, "Fetching device client returned nil")
 	return deviceGnmiClient
