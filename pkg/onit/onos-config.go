@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"k8s.io/apimachinery/pkg/labels"
@@ -105,10 +106,45 @@ func (c *ClusterController) createOnosConfigConfigMap() error {
 	return err
 }
 
+// createModelPluginString creates model plugin path based on a device type, version, and image tag
+func (c *ClusterController) createModelPluginString(deviceType string, version string, debug bool) string {
+	var sb strings.Builder
+	sb.WriteString("-modelPlugin=/usr/local/lib/")
+	sb.WriteString(deviceType)
+	if debug {
+		sb.WriteString("-debug.so.")
+		sb.WriteString(version)
+	} else {
+		sb.WriteString(".so.")
+		sb.WriteString(version)
+	}
+
+	return sb.String()
+}
+
 // createOnosConfigDeployment creates an onos-config Deployment
 func (c *ClusterController) createOnosConfigDeployment() error {
 	nodes := int32(c.config.ConfigNodes)
 	zero := int64(0)
+
+	testDevModelPluginV1 := ""
+	testDevModelPluginV2 := ""
+	testDevSimModelPluginV1 := ""
+	testStratumModelPluginV2 := ""
+
+	if c.config.ImageTags["config"] == string(Debug) {
+		testDevModelPluginV1 = c.createModelPluginString("testdevice", "1.0.0", true)
+		testDevModelPluginV2 = c.createModelPluginString("testdevice", "2.0.0", true)
+		testDevSimModelPluginV1 = c.createModelPluginString("devicesim", "1.0.0", true)
+		testStratumModelPluginV2 = c.createModelPluginString("stratum", "1.0.0", true)
+
+	} else {
+		testDevModelPluginV1 = c.createModelPluginString("testdevice", "1.0.0", false)
+		testDevModelPluginV2 = c.createModelPluginString("testdevice", "2.0.0", false)
+		testDevSimModelPluginV1 = c.createModelPluginString("devicesim", "1.0.0", false)
+		testStratumModelPluginV2 = c.createModelPluginString("stratum", "1.0.0", false)
+
+	}
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -164,12 +200,11 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 								"-certPath=/etc/onos-config/certs/onos-config.crt",
 								"-configStore=/etc/onos-config/configs/configStore.json",
 								"-changeStore=/etc/onos-config/configs/changeStore.json",
-								"-deviceStore=/etc/onos-config/configs/deviceStore.json",
 								"-networkStore=/etc/onos-config/configs/networkStore.json",
-								"-modelPlugin=/usr/local/lib/testdevice-debug.so.1.0.0",
-								"-modelPlugin=/usr/local/lib/testdevice-debug.so.2.0.0",
-								"-modelPlugin=/usr/local/lib/devicesim-debug.so.1.0.0",
-								"-modelPlugin=/usr/local/lib/stratum-debug.so.1.0.0",
+								testDevModelPluginV1,
+								testDevModelPluginV2,
+								testDevSimModelPluginV1,
+								testStratumModelPluginV2,
 							},
 							Ports: []corev1.ContainerPort{
 								{
