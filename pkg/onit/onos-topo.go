@@ -15,9 +15,12 @@
 package onit
 
 import (
+	"bytes"
 	"fmt"
+	"gopkg.in/yaml.v1"
 	"io/ioutil"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"k8s.io/apimachinery/pkg/labels"
@@ -278,7 +281,6 @@ func (c *ClusterController) createOnosTopoProxyConfigMap() error {
 	if err != nil {
 		return err
 	}
-
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-topo-envoy",
@@ -414,6 +416,68 @@ func (c *ClusterController) awaitOnosTopoProxyDeploymentReady() error {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+// addSimulatorToTopo adds a simulator to onos-topo
+func (c *ClusterController) addSimulatorToTopo(name string) error {
+	return c.addDevice("Devicesim", name, 11161)
+}
+
+// addNetworkToTopo adds a network to onos-topo
+func (c *ClusterController) addNetworkToTopo(name string, config *NetworkConfig) error {
+	var port = 50001
+	for i := 0; i < config.NumDevices; i++ {
+		var buf bytes.Buffer
+		buf.WriteString(name)
+		buf.WriteString("-s")
+		buf.WriteString(strconv.Itoa(i))
+		deviceName := buf.String()
+		if err := c.addDevice("Stratum", deviceName, port); err != nil {
+			return err
+		}
+		port = port + 1
+	}
+	return nil
+}
+
+// addDevice adds the given device via the CLI
+func (c *ClusterController) addDevice(deviceType string, name string, port int) error {
+	command := fmt.Sprintf("onos topo add device %s --type %s --address %s:%d --version 1.0.0 --plain --timeout 15s", name, deviceType, name, port)
+	return c.executeCLI(command)
+}
+
+// removeSimulatorFromConfig removes a simulator from the onos-config configuration
+func (c *ClusterController) removeSimulatorFromConfig(name string) error {
+	return c.removeDevice(name)
+}
+
+// removeNetworkFromConfig removes a network from the onos-config configuration
+func (c *ClusterController) removeNetworkFromConfig(name string, configMap *corev1.ConfigMapList) error {
+	dataMap := configMap.Items[0].BinaryData["config"]
+	m := make(map[string]interface{})
+	err := yaml.Unmarshal(dataMap, &m)
+	if err != nil {
+		return err
+	}
+	numDevices := m["numdevices"].(int)
+
+	for i := 0; i < numDevices; i++ {
+		var buf bytes.Buffer
+		buf.WriteString(name)
+		buf.WriteString("-s")
+		buf.WriteString(strconv.Itoa(i))
+		deviceName := buf.String()
+		if err = c.removeDevice(deviceName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// removeDevice removes the given device via the given pod
+func (c *ClusterController) removeDevice(name string) error {
+	command := fmt.Sprintf("onos topo remove device %s", name)
+	return c.executeCLI(command)
 }
 
 // GetOnosTopoNodes returns a list of all onos-topo nodes running in the cluster

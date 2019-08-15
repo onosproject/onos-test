@@ -98,16 +98,30 @@ func (c *ClusterController) createSimulatorPod(name string) error {
 					Name:            "onos-device-simulator",
 					Image:           c.imageName("onosproject/device-simulator", c.config.ImageTags["simulator"]),
 					ImagePullPolicy: c.config.PullPolicy,
+					Env: []corev1.EnvVar{
+						{
+							Name:  "GNMI_PORT",
+							Value: "10161",
+						},
+						{
+							Name:  "GNMI_INSECURE_PORT",
+							Value: "11161",
+						},
+					},
 					Ports: []corev1.ContainerPort{
 						{
-							Name:          "gnmi",
+							Name:          "secure",
 							ContainerPort: 10161,
+						},
+						{
+							Name:          "insecure",
+							ContainerPort: 11161,
 						},
 					},
 					ReadinessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
 							TCPSocket: &corev1.TCPSocketAction{
-								Port: intstr.FromInt(10161),
+								Port: intstr.FromInt(11161),
 							},
 						},
 						InitialDelaySeconds: 5,
@@ -116,7 +130,7 @@ func (c *ClusterController) createSimulatorPod(name string) error {
 					LivenessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
 							TCPSocket: &corev1.TCPSocketAction{
-								Port: intstr.FromInt(10161),
+								Port: intstr.FromInt(11161),
 							},
 						},
 						InitialDelaySeconds: 15,
@@ -164,8 +178,12 @@ func (c *ClusterController) createSimulatorService(name string) error {
 			},
 			Ports: []corev1.ServicePort{
 				{
-					Name: "gnmi",
+					Name: "secure",
 					Port: 10161,
+				},
+				{
+					Name: "insecure",
+					Port: 11161,
 				},
 			},
 		},

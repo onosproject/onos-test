@@ -82,7 +82,6 @@ func (c *ClusterController) OpenShell(resourceID string) error {
 
 // setupOnosCli sets up the onos-cli deployment
 func (c *ClusterController) setupOnosCli() error {
-
 	if err := c.createCliDeployment(); err != nil {
 		return err
 	}
