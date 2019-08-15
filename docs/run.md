@@ -2,7 +2,7 @@
 
 The primary interface for setting up test clusters and running tests is the `onit` command,
 which provides a suite of commands for setting up and tearing down test clusters, adding
-and removing [device simulators][simulators], adding and removing networks of [stratum] switches, running tests, and viewing test history. To see list of `onit commands` run `onit` from the shell as follows:
+and removing [device simulators][simulators], adding and removing networks of [stratum] switches, adding and removing applications, running tests, and viewing test history. To see list of `onit commands` run `onit` from the shell as follows:
 ```bash
 > onit 
 Run onos integration tests on Kubernetes
@@ -57,7 +57,7 @@ onit create cluster onit-1 --config-nodes 2 --topo-nodes 2
 ```
 
 To setup the cluster, onit creates a unique namespace within which to create test resources,
-deploys [Atomix] inside the test namespace, and configures and deploys onos-config nodes.
+deploys [Atomix][atomix] inside the test namespace, and configures and deploys onos-config nodes.
 Once the cluster is setup, the command will output the name of the test namespace. The namespace
 can be used to view test resources via `kubectl`:
 
@@ -225,6 +225,36 @@ As with the `add` command, removing a network requires that the onos-config clus
 * A *Single* node network topology
 * A *Linear* network topology
 
+## Adding Applications
+
+Applications from outside of `onit` can be added to an `onit` cluster using the `onit add app` command. This command takes as
+an argument the name of a docker image to load. For example, to load the `onos-ztp` application:
+```onit add app onosproject/onos-ztp:latest
+    ✓ Setting up app 
+   app-128922186
+```
+
+To give a name to an app, pass a name to `onit add app` command as follows
+```bash
+> onit add app onosproject/onos-ztp:latest ztp
+   ✓ Setting up app 
+  ztp
+```
+
+To get list of apps, run `onit get apps` as follows:
+
+```bash
+> onit get apps
+  app-128922186
+```
+Apps can be removed with the `remove app` command:
+
+```bash
+> onit remove app app-128922186
+   ✓ Tearing down app 
+```
+
+
 ## SSH Into A Cluster Node
 onit allows you to ssh into a node using the following command:
 ```bash
@@ -254,4 +284,6 @@ Use "onos [command] --help" for more information about a command.
 
 
 [onos-cli]: http://github.com/onosproject/onos-cli
+[simulators]: https://github.com/onosproject/simulators
+[atomix]: https://github.com/atomix/atomix
 
