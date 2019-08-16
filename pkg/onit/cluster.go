@@ -144,6 +144,8 @@ func (c *ClusterController) createClusterRole() error {
 				},
 				Resources: []string{
 					"pods",
+					"pods/log",
+					"pods/exec",
 					"services",
 					"endpoints",
 					"persistentvolumeclaims",
