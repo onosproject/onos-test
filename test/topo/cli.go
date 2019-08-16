@@ -29,9 +29,9 @@ func init() {
 
 const (
 	devicesHeader = "ID ADDRESS VERSION"
-	addedFoo = "Added device foo"
-	removedFoo = "Removed device foo"
-	devicesFoo = "foo foo:1234 1.0.0"
+	addedFoo      = "Added device foo"
+	removedFoo    = "Removed device foo"
+	devicesFoo    = "foo foo:1234 1.0.0"
 )
 
 // TestTopoDeviceCLI tests the topo service's device CLI commands

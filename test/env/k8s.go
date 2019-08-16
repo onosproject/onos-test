@@ -107,9 +107,8 @@ func ExecuteCommand(node string, command ...string) ([]string, int) {
 	if err != nil {
 		if execErr, ok := err.(executil.ExitError); ok && execErr.Exited() {
 			return []string{}, execErr.ExitStatus()
-		} else {
-			panic(err)
 		}
+		panic(err)
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -122,9 +121,8 @@ func ExecuteCommand(node string, command ...string) ([]string, int) {
 	if err != nil {
 		if execErr, ok := err.(executil.ExitError); ok && execErr.Exited() {
 			return []string{}, execErr.ExitStatus()
-		} else {
-			panic(err)
 		}
+		panic(err)
 	}
 
 	return strings.Split(strings.Trim(stdout.String(), "\n"), "\n"), 0
