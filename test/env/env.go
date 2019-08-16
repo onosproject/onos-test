@@ -27,12 +27,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"io/ioutil"
-	corev1 "k8s.io/api/core/v1"
-	k8slabels "k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
 	"os"
-	k8sclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"time"
 )
@@ -50,59 +45,10 @@ const (
 	topoAddress   = "onos-topo:5150"
 )
 
-// GetNamespace returns the namespace within which the test is running
-func GetNamespace() string {
-	return os.Getenv("TEST_NAMESPACE")
-}
-
-// GetConfigNodes returns a list of onos-config nodes
-func GetConfigNodes() []string {
-	return getNodes(map[string]string{
-		"app":  "onos",
-		"type": "config",
-	})
-}
-
-// GetTopoNodes returns a list of onos-topo nodes
-func GetTopoNodes() []string {
-	return getNodes(map[string]string{
-		"app":  "onos",
-		"type": "topo",
-	})
-}
-
-// getNodes returns a list of nodes with the given labels
-func getNodes(labels map[string]string) []string {
-	client := mustClient()
-	pods := &corev1.PodList{}
-	options := &k8sclient.ListOptions{
-		Namespace:     GetNamespace(),
-		LabelSelector: k8slabels.SelectorFromValidatedSet(labels),
-	}
-	err := client.List(context.TODO(), options, pods)
-	if err != nil {
-		panic(err)
-	}
-
-	nodeIDs := make([]string, len(pods.Items))
-	for i, pod := range pods.Items {
-		nodeIDs[i] = pod.Name
-	}
-	return nodeIDs
-}
-
-// KillNode kills the given node
-func KillNode(nodeID string) error {
-	client := mustClient()
-	pod := &corev1.Pod{}
-	name := types.NamespacedName{
-		Name:      nodeID,
-		Namespace: GetNamespace(),
-	}
-	if err := client.Get(context.TODO(), name, pod); err != nil {
-		return err
-	}
-	return client.Delete(context.TODO(), pod)
+// ExecuteCLI executes an onos CLI command and returns the output and exit code
+func ExecuteCLI(command ...string) ([]string, int) {
+	nodes := GetCLINodes()
+	return ExecuteCommand(nodes[0], command...)
 }
 
 // GetCredentials returns gNMI client credentials for the test environment
@@ -261,16 +207,4 @@ func NewAtomixClient(test string) (*atomixclient.Client, error) {
 		atomixclient.WithApplication(test),
 	}
 	return atomixclient.NewClient(os.Getenv("ATOMIX_CONTROLLER"), opts...)
-}
-
-func mustClient() k8sclient.Client {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err)
-	}
-	kubeclient, err := k8sclient.New(config, k8sclient.Options{})
-	if err != nil {
-		panic(err)
-	}
-	return kubeclient
 }
