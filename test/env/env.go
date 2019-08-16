@@ -48,7 +48,7 @@ const (
 // ExecuteCLI executes an onos CLI command and returns the output and exit code
 func ExecuteCLI(command ...string) ([]string, int) {
 	nodes := GetCLINodes()
-	return ExecuteCommand(nodes[0], command...)
+	return ExecuteCommand(nodes[0], append([]string{"/bin/bash", "-c"}, command...)...)
 }
 
 // GetCredentials returns gNMI client credentials for the test environment
