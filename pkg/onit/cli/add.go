@@ -15,7 +15,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
@@ -192,7 +191,7 @@ func getAddAppCommand() *cobra.Command {
 			// Get the application image name. The image is a required flag.
 			image, _ := cmd.Flags().GetString("image")
 			if image == "" {
-				exitError(errors.New("must specify an --image to deploy"))
+				exitHelp(cmd, "--image flag is required")
 			}
 
 			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
