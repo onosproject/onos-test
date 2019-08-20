@@ -177,7 +177,7 @@ func getAddAppCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app image-name [name]",
 		Short: "Add an app to the test cluster",
-		Args:  cobra.MaximumNArgs(2),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var name string
 			if len(args) == 1 {
