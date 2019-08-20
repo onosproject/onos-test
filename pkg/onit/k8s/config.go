@@ -72,7 +72,7 @@ type SimulatorConfig struct {
 
 // AppConfig provides the configuration for an app
 type AppConfig struct {
-	Image           string
+	Image      string
 	PullPolicy corev1.PullPolicy
 }
 
