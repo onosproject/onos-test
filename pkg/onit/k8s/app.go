@@ -215,7 +215,6 @@ func (c *ClusterController) createOnosAppDeployment(name string, image string, p
 
 // createAppService creates an app service
 func (c *ClusterController) createAppService(name string) error {
-
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -223,11 +222,13 @@ func (c *ClusterController) createAppService(name string) error {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app": name,
+				"app":      "onos",
+				"type":     "app",
+				"resource": name,
 			},
 			Ports: []corev1.ServicePort{
 				{
-					Name: "gnmi",
+					Name: "grpc",
 					Port: 5150,
 				},
 			},
