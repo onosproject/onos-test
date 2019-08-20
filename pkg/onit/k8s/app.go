@@ -49,7 +49,7 @@ func (c *ClusterController) setupApp(name string, config *AppConfig) error {
 	if err := c.createAppService(name); err != nil {
 		return err
 	}
-	if err := c.createOnosAppDeployment(name, config.Image); err != nil {
+	if err := c.createOnosAppDeployment(name, config.Image, config.PullPolicy); err != nil {
 		return err
 	}
 	if err := c.awaitOnosAppDeploymentReady(name); err != nil {
@@ -72,7 +72,7 @@ func (c *ClusterController) createAppConfigMap(name string, config *AppConfig) e
 }
 
 // createOnosAppDeployment creates an app Deployment
-func (c *ClusterController) createOnosAppDeployment(name string, image string) error {
+func (c *ClusterController) createOnosAppDeployment(name string, image string, pullPolicy corev1.PullPolicy) error {
 	nodes := int32(1)
 	zero := int64(0)
 	dep := &appsv1.Deployment{
@@ -108,7 +108,7 @@ func (c *ClusterController) createOnosAppDeployment(name string, image string) e
 						{
 							Name:            name,
 							Image:           image,
-							ImagePullPolicy: corev1.PullIfNotPresent,
+							ImagePullPolicy: pullPolicy,
 							Env: []corev1.EnvVar{
 								{
 									Name:  "ATOMIX_CONTROLLER",
