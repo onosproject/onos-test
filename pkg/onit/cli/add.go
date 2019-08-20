@@ -16,7 +16,8 @@ package cli
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/onit"
+
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
 )
 
@@ -61,7 +62,7 @@ func getAddNetworkCommand() *cobra.Command {
 			configName, _ := cmd.Flags().GetString("preset")
 
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -80,7 +81,7 @@ func getAddNetworkCommand() *cobra.Command {
 
 			// Create the network configuration
 
-			config := &onit.NetworkConfig{
+			config := &k8s.NetworkConfig{
 				Config: configName,
 			}
 			if len(args) > 1 {
@@ -88,7 +89,7 @@ func getAddNetworkCommand() *cobra.Command {
 			}
 
 			// Update number of devices in the network configuration
-			onit.ParseMininetOptions(config)
+			k8s.ParseMininetOptions(config)
 
 			if err != nil {
 				exitError(err)
@@ -130,7 +131,7 @@ func getAddSimulatorCommand() *cobra.Command {
 			configName, _ := cmd.Flags().GetString("preset")
 
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -148,7 +149,7 @@ func getAddSimulatorCommand() *cobra.Command {
 			}
 
 			// Create the simulator configuration
-			config := &onit.SimulatorConfig{
+			config := &k8s.SimulatorConfig{
 				Config: configName,
 			}
 
@@ -186,7 +187,7 @@ func getAddAppCommand() *cobra.Command {
 			}
 
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}
@@ -205,7 +206,7 @@ func getAddAppCommand() *cobra.Command {
 
 			// Create the app configuration
 			imageName := args[0]
-			config := &onit.AppConfig{
+			config := &k8s.AppConfig{
 				Image: imageName,
 			}
 

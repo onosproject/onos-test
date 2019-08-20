@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"

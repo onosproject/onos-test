@@ -17,7 +17,8 @@ package cli
 import (
 	"fmt"
 
-	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
+
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +49,7 @@ func getSetClusterCommand() *cobra.Command {
 			clusterID := args[0]
 
 			// Get the onit controller
-			controller, err := onit.NewController()
+			controller, err := k8s.NewController()
 			if err != nil {
 				exitError(err)
 			}

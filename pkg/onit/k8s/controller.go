@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	atomixk8s "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
@@ -27,7 +27,7 @@ import (
 
 // NewController creates a new onit controller
 func NewController() (*Controller, error) {
-	restconfig, err := getRestConfig()
+	restconfig, err := GetRestConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func NewController() (*Controller, error) {
 	}, nil
 }
 
-// OnitController manages clusters for onit
+// Controller is a k8s controller that manages clusters for onit
 type Controller struct {
 	restconfig       *rest.Config
 	kubeclient       *kubernetes.Clientset
@@ -91,6 +91,19 @@ func (c *Controller) GetClusters() (map[string]*ClusterConfig, error) {
 		}
 	}
 	return clusters, nil
+}
+
+// NewClusterController creates a new instance of ClusterController
+func (c *Controller) NewClusterController(clusterID string, config *ClusterConfig) *ClusterController {
+	return &ClusterController{
+		clusterID:        clusterID,
+		restconfig:       c.restconfig,
+		kubeclient:       c.kubeclient,
+		atomixclient:     c.atomixclient,
+		extensionsclient: c.extensionsclient,
+		config:           config,
+		status:           c.status,
+	}
 }
 
 // NewCluster creates a new cluster controller
@@ -128,15 +141,7 @@ func (c *Controller) NewCluster(clusterID string, config *ClusterConfig) (*Clust
 		return nil, c.status.Fail(err)
 	}
 
-	return &ClusterController{
-		clusterID:        clusterID,
-		restconfig:       c.restconfig,
-		kubeclient:       c.kubeclient,
-		atomixclient:     c.atomixclient,
-		extensionsclient: c.extensionsclient,
-		config:           config,
-		status:           c.status,
-	}, c.status.Succeed()
+	return c.NewClusterController(clusterID, config), c.status.Succeed()
 }
 
 // GetCluster returns a cluster controller
@@ -156,25 +161,6 @@ func (c *Controller) GetCluster(clusterID string) (*ClusterController, error) {
 		return nil, err
 	}
 
-	return &ClusterController{
-		clusterID:        clusterID,
-		restconfig:       c.restconfig,
-		kubeclient:       c.kubeclient,
-		atomixclient:     c.atomixclient,
-		extensionsclient: c.extensionsclient,
-		config:           config,
-		status:           c.status,
-	}, nil
-}
+	return c.NewClusterController(clusterID, config), nil
 
-// DeleteCluster deletes a cluster controller
-func (c *Controller) DeleteCluster(clusterID string) console.ErrorStatus {
-	c.status.Start("Deleting cluster namespace")
-	if err := c.kubeclient.RbacV1().ClusterRoleBindings().Delete(clusterID, &metav1.DeleteOptions{}); err != nil {
-		c.status.Fail(err)
-	}
-	if err := c.kubeclient.CoreV1().Namespaces().Delete(clusterID, &metav1.DeleteOptions{}); err != nil {
-		return c.status.Fail(err)
-	}
-	return c.status.Succeed()
 }

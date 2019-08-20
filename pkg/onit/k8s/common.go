@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package k8s
 
 import (
 	"bytes"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/labels"
 	"os"
 	"path/filepath"
+
+	"k8s.io/apimachinery/pkg/labels"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -68,6 +69,14 @@ const (
 
 const (
 	DebugPort int = 30000
+)
+
+type ClusterType string
+
+const (
+	K8s ClusterType = "k8s"
+
+	Local ClusterType = "local"
 )
 
 // NodeInfo contains information about a node
@@ -148,6 +157,11 @@ func (c *ClusterController) createOnosSecret() error {
 	}
 
 	err := filepath.Walk(certsPath, func(path string, info os.FileInfo, errArg error) error {
+
+		if info == nil {
+			return nil
+		}
+
 		if info.IsDir() {
 			return nil
 		}

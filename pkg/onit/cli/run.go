@@ -19,9 +19,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
+
 	"github.com/onosproject/onos-test/test"
 
-	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/spf13/cobra"
 )
@@ -165,7 +166,7 @@ func getRunBenchSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 
 func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests []string, count int) {
 	// Get the onit controller
-	controller, err := onit.NewController()
+	controller, err := k8s.NewController()
 	if err != nil {
 		exitError(err)
 	}
