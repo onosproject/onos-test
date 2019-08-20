@@ -15,6 +15,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
@@ -178,22 +179,20 @@ func getAddAppCommand() *cobra.Command {
 		Short: "Add an app to the test cluster",
 		Args:  cobra.MaximumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			var image string
 			var name string
-			if len(args) == 0 {
-				image, _ = cmd.Flags().GetString("image")
-				name, _ = cmd.Flags().GetString("name")
-			} else if len(args) == 1 {
-				image = args[0]
-				name, _ = cmd.Flags().GetString("name")
-			} else {
-				image = args[0]
-				name = args[1]
+			if len(args) == 1 {
+				name = args[0]
 			}
 
 			// If the name is not set, assign a generic UUID based name.
 			if name == "" {
 				name = fmt.Sprintf("app-%d", newUUIDInt())
+			}
+
+			// Get the application image name. The image is a required flag.
+			image, _ := cmd.Flags().GetString("image")
+			if image == "" {
+				exitError(errors.New("must specify an --image to deploy"))
 			}
 
 			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
@@ -236,7 +235,6 @@ func getAddAppCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("name", "n", "", "the application name")
 	cmd.Flags().StringP("image", "i", "", "the image name")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to add the app")
