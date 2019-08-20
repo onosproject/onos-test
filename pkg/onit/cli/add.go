@@ -19,6 +19,7 @@ import (
 
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
+	corev1 "k8s.io/api/core/v1"
 )
 
 var (
@@ -175,15 +176,29 @@ func getAddAppCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app image-name [name]",
 		Short: "Add an app to the test cluster",
-		Args:  cobra.MaximumNArgs(2),
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// If an app name was not provided, generate one from a UUID.
 			var name string
+			if len(args) == 1 {
+				name = args[0]
+			}
 
-			if len(args) > 1 {
-				name = args[1]
-			} else {
+			// If the name is not set, assign a generic UUID based name.
+			if name == "" {
 				name = fmt.Sprintf("app-%d", newUUIDInt())
+			}
+
+			// Get the application image name. The image is a required flag.
+			image, _ := cmd.Flags().GetString("image")
+			if image == "" {
+				exitHelp(cmd, "--image flag is required")
+			}
+
+			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
+			pullPolicy := corev1.PullPolicy(imagePullPolicy)
+
+			if pullPolicy != corev1.PullAlways && pullPolicy != corev1.PullIfNotPresent && pullPolicy != corev1.PullNever {
+				exitError(fmt.Errorf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever))
 			}
 
 			// Get the onit controller
@@ -205,9 +220,9 @@ func getAddAppCommand() *cobra.Command {
 			}
 
 			// Create the app configuration
-			imageName := args[0]
 			config := &k8s.AppConfig{
-				Image: imageName,
+				Image:      image,
+				PullPolicy: pullPolicy,
 			}
 
 			// Add the app to the cluster
@@ -219,6 +234,8 @@ func getAddAppCommand() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().StringP("image", "i", "", "the image name")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to add the app")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},

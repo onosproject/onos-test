@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 var (
@@ -37,7 +37,7 @@ type ClusterConfig struct {
 	Registry      string            `yaml:"registry" mapstructure:"registry"`
 	Preset        string            `yaml:"preset" mapstructure:"preset"`
 	ImageTags     map[string]string `yaml:"image-tags" mapstructure:"image-tags"`
-	PullPolicy    v1.PullPolicy     `yaml:"pull-policy" mapstructure:"pull-policy"`
+	PullPolicy    corev1.PullPolicy `yaml:"pull-policy" mapstructure:"pull-policy"`
 	ConfigNodes   int               `yaml:"configNodes" mapstructure:"topoNodes"`
 	TopoNodes     int               `yaml:"topoNodes" mapstructure:"topoNodes"`
 	Partitions    int               `yaml:"partitions" mapstructure:"partitions"`
@@ -72,7 +72,8 @@ type SimulatorConfig struct {
 
 // AppConfig provides the configuration for an app
 type AppConfig struct {
-	Image string
+	Image      string
+	PullPolicy corev1.PullPolicy
 }
 
 // NetworkConfig provides the configuration for a stratum network
