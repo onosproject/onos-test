@@ -15,6 +15,7 @@
 package k8s
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -82,7 +83,10 @@ func (c *ClusterController) OpenShell(resourceID string) error {
 
 // setupOnosCli sets up the onos-cli deployment
 func (c *ClusterController) setupOnosCli() error {
-	if err := c.createCliDeployment(); err != nil {
+	if err := c.createCLIConfigMap(); err != nil {
+		return err
+	}
+	if err := c.createCLIDeployment(); err != nil {
 		return err
 	}
 	if err := c.awaitCliDeploymentReady(); err != nil {
@@ -91,8 +95,30 @@ func (c *ClusterController) setupOnosCli() error {
 	return nil
 }
 
-// createCliDeployment creates an onos-cli deployment
-func (c *ClusterController) createCliDeployment() error {
+// createCLIConfigMap
+func (c *ClusterController) createCLIConfigMap() error {
+	config := fmt.Sprintf(`
+controller: atomix-controller.%s.svc.cluster.local:5679
+namespace: %s
+group: raft
+app: default
+`, c.clusterID, c.clusterID)
+
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-cli",
+			Namespace: c.clusterID,
+		},
+		Data: map[string]string{
+			"atomix.yaml": config,
+		},
+	}
+	_, err := c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
+	return err
+}
+
+// createCLIDeployment creates an onos-cli deployment
+func (c *ClusterController) createCLIDeployment() error {
 	nodes := int32(1)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -121,6 +147,26 @@ func (c *ClusterController) createCliDeployment() error {
 							Image:           c.imageName("onosproject/onos-cli", c.config.ImageTags["cli"]),
 							ImagePullPolicy: c.config.PullPolicy,
 							Stdin:           true,
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "config",
+									MountPath: "/home/onos/.atomix/config.yaml",
+									SubPath:   "atomix.yaml",
+									ReadOnly:  false,
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "config",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: "onos-cli",
+									},
+								},
+							},
 						},
 					},
 				},

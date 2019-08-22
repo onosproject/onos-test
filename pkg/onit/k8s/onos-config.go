@@ -183,7 +183,7 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 								},
 								{
 									Name:  "ATOMIX_APP",
-									Value: "test",
+									Value: "onos-config",
 								},
 								{
 									Name:  "ATOMIX_NAMESPACE",
