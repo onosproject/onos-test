@@ -47,7 +47,7 @@ func TestModels(t *testing.T) {
 		valueType     string
 		expectedError string
 	}{
-		{description: "Unknown path", path: unknownPath, valueType: StringVal, value: "123456", expectedError: "JSON contains unexpected field no-such-path"},
+		{description: "Unknown path", path: unknownPath, valueType: StringVal, value: "123456", expectedError: "no-such-path"},
 		{description: "Read only path", path: ntpPath, valueType: BoolVal, value: "false", expectedError: "read only"},
 		{description: "Wrong type", path: clockTimeZonePath, valueType: IntVal, value: "11111", expectedError: "expect string"},
 		{description: "Constraint violation", path: hostNamePath, valueType: StringVal, value: "not a host name", expectedError: "does not match regular expression pattern"},
