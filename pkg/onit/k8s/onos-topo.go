@@ -140,7 +140,7 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 								},
 								{
 									Name:  "ATOMIX_APP",
-									Value: "test",
+									Value: "onos-topo",
 								},
 								{
 									Name:  "ATOMIX_NAMESPACE",
