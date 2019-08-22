@@ -228,11 +228,12 @@ As with the `add` command, removing a network requires that the onos-config clus
 ## Adding Applications
 
 Applications from outside of `onit` can be added to an `onit` cluster using the `onit add app` command. This command takes as
-an argument the name of a docker image to load. For example, to load the `onos-ztp` application:
+the name of the app as an argument. It also has the `--image` flag that allows a user specify the image of 
+the application that should be  deployed. The user also can specify the pull policy for the image using `--image-pull-policy` flag. For example, to deploy the latest version of `onos-ztp`  application:
 ```bash
-> onit add app onosproject/onos-ztp:latest
-    ✓ Setting up app 
-   app-128922186
+> onit add app onos-ztp --image onosproject/onos-ztp:latest --image-pull-policy "Always" 
+ ✓ Setting up app
+ onos-ztp
 ```
 
 To give a name to an app, pass a name to `onit add app` command as follows
