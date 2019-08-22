@@ -28,7 +28,10 @@ var (
 		onit add simulator simulator-1
 
 		# Add a network of stratum switches that emulates a linear network topology with two nodes
-		onit add network stratum-linear -- --topo linear,2`
+		onit add network stratum-linear -- --topo linear,2
+	   
+		# Add latest version of an application 
+		onit add app onos-ztp --image onosproject/onos-ztp:latest --image-pull-policy "Always" `
 )
 
 // getAddCommand returns a cobra "add" command for adding resources to the cluster
