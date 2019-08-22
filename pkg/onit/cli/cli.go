@@ -110,11 +110,3 @@ func exitError(err error) {
 	fmt.Println(err)
 	os.Exit(1)
 }
-
-// exitHelp prints the given error message plus the command help
-func exitHelp(cmd *cobra.Command, message string) {
-	fmt.Println(message)
-	fmt.Println()
-	_ = cmd.Help()
-	os.Exit(1)
-}

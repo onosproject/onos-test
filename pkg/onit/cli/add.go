@@ -188,12 +188,7 @@ func getAddAppCommand() *cobra.Command {
 				name = fmt.Sprintf("app-%d", newUUIDInt())
 			}
 
-			// Get the application image name. The image is a required flag.
 			image, _ := cmd.Flags().GetString("image")
-			if image == "" {
-				exitHelp(cmd, "--image flag is required")
-			}
-
 			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 			pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
@@ -235,6 +230,7 @@ func getAddAppCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringP("image", "i", "", "the image name")
+	_ = cmd.MarkFlagRequired("image")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to add the app")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
