@@ -15,6 +15,8 @@
 package cli
 
 import (
+	"fmt"
+
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
 )
@@ -61,7 +63,17 @@ func getDeleteClusterCommand() *cobra.Command {
 			}
 
 			k8sCluster, _ := controller.GetCluster(clusterID)
-			k8sCluster.Teardown()
+			status := k8sCluster.Teardown()
+			if status.Failed() {
+				fmt.Println(status)
+			} else {
+				if err := setDefaultCluster(""); err != nil {
+					exitError(err)
+				} else {
+					fmt.Println(clusterID)
+				}
+
+			}
 
 		},
 	}
