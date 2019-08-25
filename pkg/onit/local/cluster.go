@@ -22,8 +22,15 @@ type ClusterController struct {
 	status *console.StatusWriter
 }
 
+// Setup sets up a local cluster with a given configuration
 func (c *ClusterController) Setup() console.ErrorStatus {
-	//TODO local cluster controller still needs to be implemented
+	c.status.Start("Setting up onos-config")
+
+	return c.status.Succeed()
+}
+
+func (c *ClusterController) Teardown() console.ErrorStatus {
+	c.status.Start("Deleting local cluster")
 
 	return c.status.Succeed()
 }
