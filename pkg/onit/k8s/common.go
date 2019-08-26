@@ -55,6 +55,9 @@ const (
 	//OnosCli type of node is cli
 	OnosCli NodeType = "cli"
 
+	//OnosGui type of node is gui
+	OnosGui NodeType = "gui"
+
 	// OnosAll type of node is all
 	OnosAll NodeType = "all"
 )
@@ -99,8 +102,10 @@ func (c *ClusterController) GetNodes() ([]NodeInfo, error) {
 	onosTopoNodes, _ := c.GetOnosTopoNodes()
 	onosConfigNodes, _ := c.GetOnosConfigNodes()
 	onosCliNodes, _ := c.GetOnosCliNodes()
+	onosGuiNodes, _ := c.GetOnosGuiNodes()
 	nodes := append(onosTopoNodes, onosConfigNodes...)
 	nodes = append(nodes, onosCliNodes...)
+	nodes = append(nodes, onosGuiNodes...)
 
 	return nodes, nil
 }

@@ -466,6 +466,15 @@ func getGetNodesCommand() *cobra.Command {
 					noHeaders, _ := cmd.Flags().GetBool("no-headers")
 					printNodes(nodes, !noHeaders)
 				}
+			} else if strings.Compare(nodeType, string(k8s.OnosGui)) == 0 {
+				nodes, err := cluster.GetOnosGuiNodes()
+				if err != nil {
+					exitError(err)
+				} else {
+					noHeaders, _ := cmd.Flags().GetBool("no-headers")
+					printNodes(nodes, !noHeaders)
+				}
+
 			}
 		},
 	}
