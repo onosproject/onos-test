@@ -17,6 +17,8 @@ package k8s
 import (
 	"time"
 
+	"k8s.io/apimachinery/pkg/labels"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -120,4 +122,33 @@ func (c *ClusterController) awaitGUIDeploymentReady() error {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+// GetOnosGuiNodes returns a list of all onos-gui nodes running in the cluster
+func (c *ClusterController) GetOnosGuiNodes() ([]NodeInfo, error) {
+	configLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "gui"}}
+
+	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+		LabelSelector: labels.Set(configLabelSelector.MatchLabels).String(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	onosGuiNodes := make([]NodeInfo, len(pods.Items))
+	for i, pod := range pods.Items {
+		var status NodeStatus
+		if pod.Status.Phase == corev1.PodRunning {
+			status = NodeRunning
+		} else if pod.Status.Phase == corev1.PodFailed {
+			status = NodeFailed
+		}
+		onosGuiNodes[i] = NodeInfo{
+			ID:     pod.Name,
+			Status: status,
+			Type:   OnosGui,
+		}
+	}
+
+	return onosGuiNodes, nil
 }
