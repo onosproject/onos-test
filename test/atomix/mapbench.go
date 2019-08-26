@@ -23,6 +23,7 @@ import (
 	"testing"
 )
 
+// BenchAtomixMap : benchmark
 func BenchAtomixMap(b *testing.B) {
 	client, err := env.NewAtomixClient("map")
 	assert.NoError(b, err)

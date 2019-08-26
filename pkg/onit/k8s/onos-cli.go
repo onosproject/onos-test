@@ -194,7 +194,7 @@ func (c *ClusterController) awaitCliDeploymentReady() error {
 	}
 }
 
-// GetOnosTopoNodes returns a list of all onos-topo nodes running in the cluster
+// GetOnosCliNodes returns a list of all onos-topo nodes running in the cluster
 func (c *ClusterController) GetOnosCliNodes() ([]NodeInfo, error) {
 	topoLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "cli"}}
 

@@ -20,6 +20,7 @@ import (
 )
 
 var (
+	// TopoTests suite
 	TopoTests = runner.NewTestSuite("topo")
 )
 

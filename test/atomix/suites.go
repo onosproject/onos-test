@@ -21,7 +21,8 @@ import (
 
 var (
 	// AtomixTests is the complete Atomix test suite
-	AtomixTests      = runner.NewTestSuite("atomix")
+	AtomixTests = runner.NewTestSuite("atomix")
+	// AtomixBenchmarks benchmark suite for Atomix
 	AtomixBenchmarks = runner.NewBenchSuite("atomix")
 )
 

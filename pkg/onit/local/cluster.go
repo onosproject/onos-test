@@ -22,6 +22,7 @@ type ClusterController struct {
 	status *console.StatusWriter
 }
 
+// Setup sets up the local cluster
 func (c *ClusterController) Setup() console.ErrorStatus {
 	//TODO local cluster controller still needs to be implemented
 

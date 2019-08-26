@@ -26,6 +26,7 @@ func init() {
 	test.Registry.RegisterTest("ha", TestHA, []*runner.TestSuite{})
 }
 
+// TestHA : integration test
 func TestHA(t *testing.T) {
 	configNodes := env.GetConfigNodes()
 	if len(configNodes) > 0 {

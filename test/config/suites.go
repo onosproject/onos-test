@@ -20,6 +20,7 @@ import (
 )
 
 var (
+	// ConfigTests :
 	ConfigTests = runner.NewTestSuite("config")
 )
 

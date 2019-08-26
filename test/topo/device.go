@@ -29,6 +29,7 @@ func init() {
 	test.Registry.RegisterTest("device-service", TestDeviceService, []*runner.TestSuite{TopoTests})
 }
 
+// TestDeviceService :
 func TestDeviceService(t *testing.T) {
 	conn, err := env.GetTopoConn()
 	assert.NoError(t, err)
