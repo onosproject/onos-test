@@ -68,7 +68,7 @@ func parseOpstateCommandOutput(t *testing.T, output []string) map[string]string 
 	return opState
 }
 
-//  TestConfigGetCLI tests the topo service's device CLI commands
+// TestConfigGetCLI tests the topo service's device CLI commands
 func TestConfigGetCLI(t *testing.T) {
 	device1 := env.GetDevices()[0]
 

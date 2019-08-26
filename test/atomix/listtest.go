@@ -25,6 +25,7 @@ import (
 	"time"
 )
 
+// TestAtomixList : integration test
 func TestAtomixList(t *testing.T) {
 	client, err := env.NewAtomixClient("list")
 	assert.NoError(t, err)

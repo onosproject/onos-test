@@ -35,7 +35,7 @@ func Contains(array []string, elem string) bool {
 	return false
 }
 
-// subset returns true if the first array is completely
+// Subset returns true if the first array is completely
 // contained in the second array.
 func Subset(first, second []string) bool {
 	set := make(map[string]int)

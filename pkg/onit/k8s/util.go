@@ -19,7 +19,7 @@ import (
 	"strconv"
 )
 
-// GetFreePort asks the kernel for free open ports that are ready to use.
+// GetFreePorts asks the kernel for free open ports that are ready to use.
 func GetFreePorts(count int) ([]int, error) {
 	var ports []int
 	debugPort := DebugPort

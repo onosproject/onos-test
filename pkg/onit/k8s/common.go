@@ -59,23 +59,30 @@ const (
 	OnosAll NodeType = "all"
 )
 
+// ImageTag describes the tag of a docker image
 type ImageTag string
 
 const (
+	// Debug : debug image tag
 	Debug ImageTag = "debug"
 
+	// Latest : latest image tag
 	Latest ImageTag = "latest"
 )
 
 const (
+	// DebugPort : debugger port
 	DebugPort int = 30000
 )
 
+// ClusterType : type of cluster
 type ClusterType string
 
 const (
+	// K8s : kubernetes cluster
 	K8s ClusterType = "k8s"
 
+	// Local : local cluster
 	Local ClusterType = "local"
 )
 

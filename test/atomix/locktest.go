@@ -27,6 +27,7 @@ import (
 	"time"
 )
 
+// TestAtomixLock : integration test
 func TestAtomixLock(t *testing.T) {
 	client, err := env.NewAtomixClient("lock")
 	assert.NoError(t, err)

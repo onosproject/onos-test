@@ -116,6 +116,7 @@ func (c *ClusterController) Setup() console.ErrorStatus {
 	return c.status.Succeed()
 }
 
+// Teardown tears down the cluster
 func (c *ClusterController) Teardown() console.ErrorStatus {
 	c.status.Start("Deleting cluster namespace")
 	if err := c.kubeclient.RbacV1().ClusterRoleBindings().Delete(c.clusterID, &metav1.DeleteOptions{}); err != nil {

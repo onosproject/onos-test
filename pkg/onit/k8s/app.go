@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// GetSApps returns a list of apps deployed in the cluster
+// GetApps returns a list of apps deployed in the cluster
 func (c *ClusterController) GetApps() ([]string, error) {
 	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "app"}}
 	appList, err := c.kubeclient.AppsV1().Deployments(c.clusterID).List(metav1.ListOptions{
