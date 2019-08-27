@@ -65,7 +65,7 @@ func parsePluginsCommandOutput(t *testing.T, output []string) map[string]map[str
 			pluginObject := tokens[3]
 			pluginKey = makeKey(pluginName, pluginVersion, pluginObject)
 		} else {
-			// This is a
+			// This is a YANG description
 			yangTokens := strings.Split(line, "	")
 			yangName := yangTokens[1]
 			yangVersion := yangTokens[2]
