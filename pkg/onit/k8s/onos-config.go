@@ -327,13 +327,6 @@ func (c *ClusterController) awaitOnosConfigDeploymentReady() error {
 		// Iterate through the pods in the deployment and unblock the debugger
 		for _, pod := range pods.Items {
 			if _, ok := unblocked[pod.Name]; !ok && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].State.Running != nil {
-				if c.config.ImageTags["config"] == string(Debug) {
-					err := c.execute(pod, []string{"/bin/bash", "-c", "dlv --init <(echo \"exit -c\") connect 127.0.0.1:40000"})
-					if err != nil {
-						return err
-					}
-				}
-
 				unblocked[pod.Name] = true
 			}
 		}
