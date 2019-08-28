@@ -129,8 +129,13 @@ cluster context:
 > onit set cluster onit-1
 onit-1
 ```
+This will run all future cluster operations on the configured cluster. Alternatively, most commands support a flag to override the default cluster.
 
-This will run all future cluster operations on the configured cluster. Alternatively, most commands support a flag to override the default cluster:
+You can also use `set` command to redeploy a deployment with a new container image. For example, to redeploy onos-config
+subsystem with a new debug image, you can run the following command:
+```bash
+onit set image onos-config --image onosproject/onos-config:debug
+```
 
 To delete a cluster, run `onit delete cluster`:
 ```bash
