@@ -20,16 +20,19 @@ import (
 )
 
 var (
+	cliExample = `
+	# open an ssh connection to onos-cli node in the cluster to execute remote commands
+	onit onos-cli [command args]...`
 	sshExample = `
-		# open a ssh connection to a node in the cluster to execute remote commands
-		onit ssh <name of a node>`
+	# open an ssh connection to the specified node in the cluster to execute remote commands
+	onit ssh <name of a node> [command args]...`
 )
 
 func getOnosCliCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "onos-cli",
 		Short:   "Open onos-cli shell for executing commands",
-		Example: sshExample,
+		Example: cliExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Get the onit controller
 			controller, err := k8s.NewController()
@@ -54,7 +57,7 @@ func getOnosCliCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			err = cluster.OpenShell(onosCliNodes[0].ID)
+			err = cluster.OpenShell(onosCliNodes[0].ID, args...)
 			if err != nil {
 				exitError(err)
 			}
@@ -95,7 +98,7 @@ func getSSHCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			err = cluster.OpenShell(args[0])
+			err = cluster.OpenShell(args[0], args[1:]...)
 			if err != nil {
 				exitError(err)
 			}

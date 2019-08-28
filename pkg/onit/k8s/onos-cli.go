@@ -31,10 +31,15 @@ import (
 )
 
 // OpenShell opens a shell session to the given resource
-func (c *ClusterController) OpenShell(resourceID string) error {
+func (c *ClusterController) OpenShell(resourceID string, shell ...string) error {
 	pod, err := c.kubeclient.CoreV1().Pods(c.clusterID).Get(resourceID, metav1.GetOptions{})
 	if err != nil {
 		return err
+	}
+
+	defaultArgs := []string{"/bin/sh"}
+	if len(shell) > 0 {
+		defaultArgs = shell
 	}
 
 	container := pod.Spec.Containers[0]
@@ -46,7 +51,7 @@ func (c *ClusterController) OpenShell(resourceID string) error {
 		Param("container", container.Name)
 	req.VersionedParams(&corev1.PodExecOptions{
 		Container: container.Name,
-		Command:   []string{"/bin/sh"},
+		Command:   defaultArgs,
 		Stdout:    true,
 		Stdin:     true,
 		TTY:       true,
