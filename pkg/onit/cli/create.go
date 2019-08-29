@@ -17,6 +17,8 @@ package cli
 import (
 	"fmt"
 
+	"github.com/onosproject/onos-test/pkg/onit/local"
+
 	interfaces "github.com/onosproject/onos-test/pkg/onit/controller"
 
 	corev1 "k8s.io/api/core/v1"
@@ -112,13 +114,22 @@ func getCreateClusterCommand() *cobra.Command {
 			// Get the onit k8s controller
 
 			// TODO we need to handle different type of clusters properly
-			var controller interfaces.Controller
+			var k8sController interfaces.Controller
+			var localController interfaces.LocalController
 			if clusterType == string(k8s.K8s) {
-				k8sController, err := k8s.NewController()
+				var err error
+				k8sController, err = k8s.NewController()
 				if err != nil {
 					exitError(err)
 				}
-				controller = k8sController
+
+			} else if clusterType == string(k8s.Local) {
+				var err error
+				localController, err = local.NewController()
+				if err != nil {
+					exitError(err)
+				}
+
 			}
 
 			// Get or create a cluster ID
@@ -130,7 +141,7 @@ func getCreateClusterCommand() *cobra.Command {
 			}
 
 			// Create the cluster configuration
-			config := &k8s.ClusterConfig{
+			k8sConfig := &k8s.ClusterConfig{
 				Registry:      dockerRegistry,
 				Preset:        configName,
 				ImageTags:     imageTags,
@@ -141,25 +152,51 @@ func getCreateClusterCommand() *cobra.Command {
 				PartitionSize: partitionSize,
 			}
 
-			// Create the cluster controller
-			cluster, status := controller.NewCluster(clusterID, config)
-			if status.Failed() {
-				exitStatus(status)
-			}
+			localConfig := &local.ClusterConfig{}
 
-			// Store the cluster before setting it up to ensure other shell sessions can debug setup
-			err := setDefaultCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			if clusterType == string(k8s.K8s) {
+				// Create the cluster controller
+				cluster, status := k8sController.NewCluster(clusterID, k8sConfig)
+				if status.Failed() {
+					exitStatus(status)
+				}
 
-			var k8sCluster interfaces.ClusterController = cluster
+				// Store the cluster before setting it up to ensure other shell sessions can debug setup
+				err := setDefaultCluster(clusterID)
+				if err != nil {
+					exitError(err)
+				}
 
-			// Setup the cluster
-			if status := k8sCluster.Setup(); status.Failed() {
-				exitStatus(status)
-			} else {
-				fmt.Println(clusterID)
+				var k8sCluster interfaces.ClusterController = cluster
+
+				// Setup the cluster
+				if status := k8sCluster.Setup(); status.Failed() {
+					exitStatus(status)
+				} else {
+					fmt.Println(clusterID)
+				}
+			} else if clusterType == string(k8s.Local) {
+				// Create the cluster controller
+				cluster, status := localController.NewCluster(clusterID, localConfig)
+				if status.Failed() {
+					exitStatus(status)
+				}
+
+				// Store the cluster before setting it up to ensure other shell sessions can debug setup
+				err := setDefaultCluster(clusterID)
+				if err != nil {
+					exitError(err)
+				}
+
+				var localCluster interfaces.ClusterController = cluster
+
+				// Setup the cluster
+				if status := localCluster.Setup(); status.Failed() {
+					exitStatus(status)
+				} else {
+					fmt.Println(clusterID)
+				}
+
 			}
 		},
 	}
