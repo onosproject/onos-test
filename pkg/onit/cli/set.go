@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/spf13/cobra"
 )
@@ -25,17 +26,21 @@ import (
 var (
 	setExample = ` 
 		# Change the currently configured cluster
-		onit set cluster <name of a cluster>`
+		onit set cluster <name of a cluster>
+		
+		# Update existing container image(s) of deployments.
+		onit set image onos-config --image onosproject/onos-config:debug`
 )
 
 // getSetCommand returns a cobra "set" command for setting configurations
 func getSetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "set {cluster} [args]",
+		Use:     "set {cluster,image} [args]",
 		Short:   "Set test configurations",
 		Example: setExample,
 	}
 	cmd.AddCommand(getSetClusterCommand())
+	cmd.AddCommand(getSetImageCommand())
 	return cmd
 }
 
@@ -68,4 +73,43 @@ func getSetClusterCommand() *cobra.Command {
 			}
 		},
 	}
+}
+
+// getSetImageCommand returns a cobra command for update existing container image(s) of resources.
+func getSetImageCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "image <deployment_name>",
+		Args:  cobra.ExactArgs(1),
+		Short: "Set image <deployment_name>",
+		Run: func(cmd *cobra.Command, args []string) {
+			nodeID := args[0]
+			image, _ := cmd.Flags().GetString("image")
+			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
+
+			clusterID, err := cmd.Flags().GetString("cluster")
+			if err != nil {
+				exitError(err)
+			}
+
+			// Get the onit controller
+			controller, err := k8s.NewController()
+			if err != nil {
+				exitError(err)
+			}
+
+			// Get the cluster controller
+			cluster, err := controller.GetCluster(clusterID)
+			if err != nil {
+				exitError(err)
+			}
+
+			cluster.SetImage(nodeID, image, imagePullPolicy)
+
+		},
+	}
+	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")
+	cmd.Flags().StringP("image", "i", "", "the image name")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	_ = cmd.MarkFlagRequired("image")
+	return cmd
 }
