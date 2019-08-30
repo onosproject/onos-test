@@ -60,11 +60,11 @@ func TestAtomixLock(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, isLocked)
 
-	isLocked, err = lock1.IsLocked(context.Background(), atomixlock.WithIsVersion(id))
+	isLocked, err = lock1.IsLocked(context.Background(), atomixlock.IfVersion(id))
 	assert.NoError(t, err)
 	assert.True(t, isLocked)
 
-	isLocked, err = lock1.IsLocked(context.Background(), atomixlock.WithIsVersion(id+1))
+	isLocked, err = lock1.IsLocked(context.Background(), atomixlock.IfVersion(id+1))
 	assert.NoError(t, err)
 	assert.False(t, isLocked)
 
@@ -81,7 +81,7 @@ func TestAtomixLock(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, isLocked)
 
-	unlocked, err = lock1.Unlock(context.Background(), atomixlock.WithVersion(id))
+	unlocked, err = lock1.Unlock(context.Background(), atomixlock.IfVersion(id))
 	assert.NoError(t, err)
 	assert.True(t, unlocked)
 

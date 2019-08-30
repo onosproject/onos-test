@@ -3,7 +3,7 @@ module github.com/onosproject/onos-test
 go 1.12
 
 require (
-	github.com/atomix/atomix-go-client v0.0.0-20190814013624-2b7049842ee1
+	github.com/atomix/atomix-go-client v0.0.0-20190830184106-6ca178a89ccc
 	github.com/atomix/atomix-k8s-controller v0.0.0-20190620084759-d5e65f7fbf68
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
@@ -11,12 +11,12 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onosproject/onos-config v0.0.0-20190731170328-b4ee3a917c9f
-	github.com/onosproject/onos-topo v0.0.0-20190814235916-567580ff7720
+	github.com/onosproject/onos-topo v0.0.0-20190830202023-54c5f0e99fb9
 	github.com/openconfig/gnmi v0.0.0-20180912164834-33a1865c3029
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.3.0
-	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
+	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	google.golang.org/grpc v1.22.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	k8s.io/api v0.0.0-20190620073856-dcce3486da33
@@ -26,3 +26,5 @@ require (
 	k8s.io/klog v0.3.3
 	sigs.k8s.io/controller-runtime v0.1.12
 )
+
+replace github.com/onosproject/onos-topo => ../onos-topo
