@@ -60,35 +60,37 @@ func TestDeviceService(t *testing.T) {
 
 		for {
 			response, err := list.Recv()
-			if err == io.EOF {
+			if err != nil {
 				break
 			}
-			assert.NoError(t, err)
 			events <- response
 		}
 	}()
 
 	addResponse, err := client.Add(context.Background(), &device.AddRequest{
 		Device: &device.Device{
-			ID:      "foo",
-			Address: "device-foo:5000",
+			ID:      "test1",
+			Type:    "Stratum",
+			Address: "device-test1:5000",
+			Target:  "device-test1",
+			Version: "1.0.0",
 		},
 	})
 	assert.NoError(t, err)
-	assert.Equal(t, device.ID("foo"), addResponse.Device.ID)
+	assert.Equal(t, device.ID("test1"), addResponse.Device.ID)
 	assert.NotEqual(t, device.Revision(0), addResponse.Device.Revision)
 
 	getResponse, err := client.Get(context.Background(), &device.GetRequest{
-		ID: "foo",
+		ID: "test1",
 	})
 	assert.NoError(t, err)
 
-	assert.Equal(t, device.ID("foo"), getResponse.Device.ID)
+	assert.Equal(t, device.ID("test1"), getResponse.Device.ID)
 	assert.Equal(t, addResponse.Device.Revision, getResponse.Device.Revision)
 
 	eventResponse := <-events
 	assert.Equal(t, device.ListResponse_ADDED, eventResponse.Type)
-	assert.Equal(t, device.ID("foo"), eventResponse.Device.ID)
+	assert.Equal(t, device.ID("test1"), eventResponse.Device.ID)
 	assert.Equal(t, addResponse.Device.Revision, eventResponse.Device.Revision)
 
 	list, err = client.List(context.Background(), &device.ListRequest{})
@@ -100,7 +102,7 @@ func TestDeviceService(t *testing.T) {
 		}
 		assert.NoError(t, err)
 		assert.Equal(t, device.ListResponse_NONE, response.Type)
-		assert.Equal(t, device.ID("foo"), response.Device.ID)
+		assert.Equal(t, device.ID("test1"), response.Device.ID)
 		assert.Equal(t, addResponse.Device.Revision, response.Device.Revision)
 		count++
 	}
@@ -114,6 +116,6 @@ func TestDeviceService(t *testing.T) {
 
 	eventResponse = <-events
 	assert.Equal(t, device.ListResponse_REMOVED, eventResponse.Type)
-	assert.Equal(t, device.ID("foo"), eventResponse.Device.ID)
+	assert.Equal(t, device.ID("test1"), eventResponse.Device.ID)
 	assert.Equal(t, addResponse.Device.Revision, eventResponse.Device.Revision)
 }
