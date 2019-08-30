@@ -37,14 +37,14 @@ func TestAtomixList(t *testing.T) {
 	list, err := group.GetList(context.Background(), "test", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
-	size, err := list.Size(context.Background())
+	size, err := list.Len(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 0, size)
 
 	err = list.Append(context.Background(), "Hello world!")
 	assert.NoError(t, err)
 
-	size, err = list.Size(context.Background())
+	size, err = list.Len(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 1, size)
 
@@ -56,7 +56,7 @@ func TestAtomixList(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "Hello world!", value)
 
-	size, err = list.Size(context.Background())
+	size, err = list.Len(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 0, size)
 

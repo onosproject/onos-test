@@ -17,7 +17,7 @@ package atomix
 import (
 	"bytes"
 	"context"
-	atomixmap "github.com/atomix/atomix-go-client/pkg/client/map_"
+	"github.com/atomix/atomix-go-client/pkg/client/map"
 	"github.com/atomix/atomix-go-client/pkg/client/session"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
@@ -39,14 +39,14 @@ func TestAtomixMap(t *testing.T) {
 	m, err := group.GetMap(context.Background(), "test", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
-	ch := make(chan *atomixmap.KeyValue)
+	ch := make(chan *_map.KeyValue)
 	err = m.Entries(context.Background(), ch)
 	assert.NoError(t, err)
 	for range ch {
 		assert.Fail(t, "entries found in map")
 	}
 
-	size, err := m.Size(context.Background())
+	size, err := m.Len(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 0, size)
 
@@ -69,11 +69,11 @@ func TestAtomixMap(t *testing.T) {
 	assert.True(t, bytes.Equal([]byte("Hello world!"), value.Value))
 	assert.Equal(t, version, value.Version)
 
-	size, err = m.Size(context.Background())
+	size, err = m.Len(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 1, size)
 
-	ch = make(chan *atomixmap.KeyValue)
+	ch = make(chan *_map.KeyValue)
 	err = m.Entries(context.Background(), ch)
 	assert.NoError(t, err)
 	i := 0
@@ -84,8 +84,8 @@ func TestAtomixMap(t *testing.T) {
 	}
 	assert.Equal(t, 1, i)
 
-	allEvents := make(chan *atomixmap.MapEvent)
-	err = m.Watch(context.Background(), allEvents, atomixmap.WithReplay())
+	allEvents := make(chan *_map.Event)
+	err = m.Watch(context.Background(), allEvents, _map.WithReplay())
 	assert.NoError(t, err)
 
 	event := <-allEvents
@@ -94,7 +94,7 @@ func TestAtomixMap(t *testing.T) {
 	assert.Equal(t, []byte("Hello world!"), event.Value)
 	assert.Equal(t, value.Version, event.Version)
 
-	futureEvents := make(chan *atomixmap.MapEvent)
+	futureEvents := make(chan *_map.Event)
 	err = m.Watch(context.Background(), futureEvents)
 	assert.NoError(t, err)
 
