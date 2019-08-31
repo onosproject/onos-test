@@ -193,7 +193,7 @@ func (s *StatusWriter) fail(err error) {
 	s.status = ""
 }
 
-// Flush flushes and closes the writer
+// FlushAndClose flushes and closes the writer
 func (s *StatusWriter) FlushAndClose() {
 	if !s.complete {
 		s.Close()

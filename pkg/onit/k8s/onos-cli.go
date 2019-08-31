@@ -134,16 +134,16 @@ func (c *ClusterController) createCLIDeployment() error {
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app":  "onos",
-					"type": "cli",
+					"app":      "onos",
+					"type":     "cli",
 					"resource": "onos-cli",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app":  "onos",
-						"type": "cli",
+						"app":      "onos",
+						"type":     "cli",
 						"resource": "onos-cli",
 					},
 				},

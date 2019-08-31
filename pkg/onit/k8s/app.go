@@ -80,8 +80,8 @@ func (c *ClusterController) createOnosAppDeployment(name string, image string, p
 			Name:      name,
 			Namespace: c.clusterID,
 			Labels: map[string]string{
-				"app":  "onos",
-				"type": "app",
+				"app":      "onos",
+				"type":     "app",
 				"resource": name,
 			},
 		},
@@ -89,8 +89,8 @@ func (c *ClusterController) createOnosAppDeployment(name string, image string, p
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app":  "onos",
-					"type": "app",
+					"app":      "onos",
+					"type":     "app",
 					"resource": name,
 				},
 			},

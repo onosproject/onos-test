@@ -84,8 +84,8 @@ func (c *ClusterController) createOnosTopoService() error {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app":  "onos",
-				"type": "topo",
+				"app":      "onos",
+				"type":     "topo",
 				"resource": "onos-topo",
 			},
 			Ports: []corev1.ServicePort{
@@ -113,8 +113,8 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app":  "onos",
-					"type": "topo",
+					"app":      "onos",
+					"type":     "topo",
 					"resource": "onos-topo",
 				},
 			},
@@ -385,8 +385,8 @@ func (c *ClusterController) createOnosTopoProxyService() error {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app":  "onos",
-				"type": "topo-envoy",
+				"app":      "onos",
+				"type":     "topo-envoy",
 				"resource": "onos-topo-envoy",
 			},
 			Ports: []corev1.ServicePort{

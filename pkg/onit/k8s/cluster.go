@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/client-go/util/retry"
 	"net/http"
 	"os"
@@ -543,95 +544,99 @@ func (c *ClusterController) SetImage(resourceID string, image string, pullPolicy
 
 	// If no deployment was found, assume this is a pod or another type of pod set
 	if err != nil && k8serrors.IsNotFound(err) {
-		// First, update all the pods
-		c.status.Start("Updating pods")
-		for _, pod := range pods.Items {
-			c.status.Progress(fmt.Sprintf("Updating %s", pod.Name))
-			err = c.updatePod(pod.Name, image, pullPolicy)
-			if err != nil {
-				return c.status.Fail(err)
-			}
-		}
-		c.status.Succeed()
+		return c.setPodsImage(pods, image, pullPolicy)
+	}
+	return c.setDeploymentImage(deployment, pods, image, pullPolicy)
+}
 
-		c.status.Start("Waiting for pods to become ready")
-		ready := make(map[string]bool)
-		total := len(pods.Items)
-		c.status.Progress(fmt.Sprintf("0/%d", total))
-
-		// Loop through the updated pods and check their statuses until all pods are ready
-		stateUpdated := false
-		state := ""
-		for len(ready) < total {
-			for _, pod := range pods.Items {
-				if _, ok := ready[pod.Name]; !ok {
-					if podReady, err := c.podReady(pod.Name); err == nil {
-						if podReady {
-							ready[pod.Name] = true
-							c.status.Progress(fmt.Sprintf("(%d/%d) %s", len(ready), total, state))
-						} else if !stateUpdated {
-							state = fmt.Sprintf("%s: %s", pod.Name, pod.Status.Phase)
-							c.status.Progress(fmt.Sprintf("(%d/%d) %s", len(ready), total, state))
-							stateUpdated = true
-						}
-					} else {
-						return c.status.Fail(err)
-					}
-				}
-			}
-			time.Sleep(50)
-		}
-		return c.status.Succeed()
-	} else {
-		// If this is a deployment, update the deployment
-		c.status.Start("Updating deployment")
-		if err = c.updateDeployment(deployment.Name, image, pullPolicy); err != nil {
+// setPodsImage updates the image for a set of pods
+func (c *ClusterController) setPodsImage(pods *corev1.PodList, image string, pullPolicy corev1.PullPolicy) console.ErrorStatus {
+	// First, update all the pods
+	c.status.Start("Updating pods")
+	for _, pod := range pods.Items {
+		c.status.Progress(fmt.Sprintf("Updating %s", pod.Name))
+		if err := c.updatePod(pod.Name, image, pullPolicy); err != nil {
 			return c.status.Fail(err)
 		}
-		c.status.Succeed()
+	}
+	c.status.Succeed()
 
-		// Once the deployment has been updated, loop and block until all the pods in the deployment have been updated
-		c.status.Start("Waiting for pods to become ready")
-		ready := make(map[string]bool)
-		total := int(*deployment.Spec.Replicas)
-		c.status.Progress(fmt.Sprintf("0/%d", total))
-		for len(ready) < total {
-			// Get the list of pods matching the deployment
-			updates, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
-				LabelSelector: fmt.Sprintf("app=onos,resource=%s", resourceID),
-			})
-			if err != nil {
-				return c.status.Fail(err)
-			}
+	c.status.Start("Waiting for pods to become ready")
+	ready := make(map[string]bool)
+	total := len(pods.Items)
+	c.status.Progress(fmt.Sprintf("0/%d", total))
 
-			stateUpdated := false
-			state := ""
-			for _, pod := range updates.Items {
-				// If the pod has not already been marked ready, check if all its containers are ready
-				if _, ok := ready[pod.Name]; !ok {
-					// If the pod is in the original pods list, ignore the pod.
-					if c.podListContains(pods, pod) {
-						continue
+	// Loop through the updated pods and check their statuses until all pods are ready
+	state := ""
+	for len(ready) < total {
+		stateUpdated := false
+		for _, pod := range pods.Items {
+			if _, ok := ready[pod.Name]; !ok {
+				if podReady, err := c.podReady(pod.Name); err == nil {
+					if podReady {
+						ready[pod.Name] = true
+						c.status.Progress(fmt.Sprintf("(%d/%d) %s", len(ready), total, state))
+					} else if !stateUpdated {
+						state = fmt.Sprintf("%s: %s", pod.Name, pod.Status.Phase)
+						c.status.Progress(fmt.Sprintf("(%d/%d) %s", len(ready), total, state))
+						stateUpdated = true
 					}
-
-					if podReady := c.containersReady(pod); err == nil {
-						if podReady {
-							ready[pod.Name] = true
-							c.status.Progress(fmt.Sprintf("(%d/%d) %s", len(ready), total, state))
-						} else if !stateUpdated {
-							state = fmt.Sprintf("%s: %s", pod.Name, pod.Status.Phase)
-							c.status.Progress(fmt.Sprintf("(%d/%d) %s", len(ready), total, state))
-							stateUpdated = true
-						}
-					} else {
-						return c.status.Fail(err)
-					}
+				} else {
+					return c.status.Fail(err)
 				}
 			}
-			time.Sleep(50)
 		}
-		return c.status.Succeed()
+		time.Sleep(50 * time.Millisecond)
 	}
+	return c.status.Succeed()
+}
+
+// setDeploymentImage updates the image for a deployment
+func (c *ClusterController) setDeploymentImage(deployment *appsv1.Deployment, pods *corev1.PodList, image string, pullPolicy corev1.PullPolicy) console.ErrorStatus {
+	// If this is a deployment, update the deployment
+	c.status.Start("Updating deployment")
+	if err := c.updateDeployment(deployment.Name, image, pullPolicy); err != nil {
+		return c.status.Fail(err)
+	}
+	c.status.Succeed()
+
+	// Once the deployment has been updated, loop and block until all the pods in the deployment have been updated
+	c.status.Start("Waiting for pods to become ready")
+	ready := make(map[string]bool)
+	total := int(*deployment.Spec.Replicas)
+	state := ""
+	c.status.Progress(fmt.Sprintf("0/%d", total))
+	for len(ready) < total {
+		// Get the list of pods matching the deployment
+		updates, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("app=onos,resource=%s", deployment.Name),
+		})
+		if err != nil {
+			return c.status.Fail(err)
+		}
+
+		stateUpdated := false
+		for _, pod := range updates.Items {
+			// If the pod has not already been marked ready, check if all its containers are ready
+			if _, ok := ready[pod.Name]; !ok {
+				// If the pod is in the original pods list, ignore the pod.
+				if c.podListContains(pods, pod) {
+					continue
+				}
+
+				if podReady := c.containersReady(pod); podReady {
+					ready[pod.Name] = true
+					c.status.Progress(fmt.Sprintf("(%d/%d) %s", len(ready), total, state))
+				} else if !stateUpdated {
+					state = fmt.Sprintf("%s: %s", pod.Name, pod.Status.Phase)
+					c.status.Progress(fmt.Sprintf("(%d/%d) %s", len(ready), total, state))
+					stateUpdated = true
+				}
+			}
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	return c.status.Succeed()
 }
 
 // updatePod updates the given pod

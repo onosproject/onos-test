@@ -155,8 +155,8 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app":  "onos",
-					"type": "config",
+					"app":      "onos",
+					"type":     "config",
 					"resource": "onos-config",
 				},
 			},
@@ -297,8 +297,8 @@ func (c *ClusterController) createOnosConfigService() error {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app":  "onos",
-				"type": "config",
+				"app":      "onos",
+				"type":     "config",
 				"resource": "onos-config",
 			},
 			Ports: []corev1.ServicePort{
@@ -460,8 +460,8 @@ func (c *ClusterController) createOnosConfigProxyService() error {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app":  "onos",
-				"type": "config-envoy",
+				"app":      "onos",
+				"type":     "config-envoy",
 				"resource": "onos-config-envoy",
 			},
 			Ports: []corev1.ServicePort{
