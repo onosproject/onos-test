@@ -82,14 +82,14 @@ func (c *ClusterController) createSimulatorConfigMap(name string, config *Simula
 
 // createSimulatorPod creates a simulator pod
 func (c *ClusterController) createSimulatorPod(name string) error {
-
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: c.clusterID,
 			Labels: map[string]string{
-				"type":      "simulator",
-				"simulator": name,
+				"app":      "onos",
+				"type":     "simulator",
+				"resource": name,
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -166,7 +166,6 @@ func (c *ClusterController) createSimulatorPod(name string) error {
 
 // createSimulatorService creates a simulator service
 func (c *ClusterController) createSimulatorService(name string) error {
-
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -174,7 +173,9 @@ func (c *ClusterController) createSimulatorService(name string) error {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"simulator": name,
+				"app":      "onos",
+				"type":     "simulator",
+				"resource": name,
 			},
 			Ports: []corev1.ServicePort{
 				{

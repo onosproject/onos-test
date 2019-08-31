@@ -94,7 +94,9 @@ func (c *ClusterController) createNetworkConfigMap(name string, config *NetworkC
 			Name:      name,
 			Namespace: c.clusterID,
 			Labels: map[string]string{
-				"network": name,
+				"app":      "onos",
+				"type":     "network",
+				"resource": name,
 			},
 		},
 
@@ -119,8 +121,9 @@ func (c *ClusterController) createNetworkPod(name string, config *NetworkConfig)
 			Name:      name,
 			Namespace: c.clusterID,
 			Labels: map[string]string{
-				"type":    "network",
-				"network": name,
+				"app":      "onos",
+				"type":     "network",
+				"resource": name,
 			},
 		},
 		Spec: corev1.PodSpec{
@@ -223,7 +226,6 @@ func ParseMininetOptions(config *NetworkConfig) {
 
 // createNetworkService creates a network service
 func (c *ClusterController) createNetworkService(name string, config *NetworkConfig) error {
-
 	var port int32 = 50001
 
 	for i := 0; i < config.NumDevices; i++ {
@@ -237,11 +239,17 @@ func (c *ClusterController) createNetworkService(name string, config *NetworkCon
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      serviceName,
 				Namespace: c.clusterID,
-				Labels:    map[string]string{"network": name},
+				Labels: map[string]string{
+					"app":      "onos",
+					"type":     "network",
+					"resource": name,
+				},
 			},
 			Spec: corev1.ServiceSpec{
 				Selector: map[string]string{
-					"network": name,
+					"app":      "onos",
+					"type":     "network",
+					"resource": name,
 				},
 				Ports: []corev1.ServicePort{
 					{
@@ -288,7 +296,7 @@ func (c *ClusterController) deleteNetworkPod(name string) error {
 
 // deleteNetworkService deletes all network Service by name
 func (c *ClusterController) deleteNetworkService(name string) error {
-	label := "network=" + name
+	label := "app=onos,type=network,resource=" + name
 	serviceList, _ := c.kubeclient.CoreV1().Services(c.clusterID).List(metav1.ListOptions{
 		LabelSelector: label,
 	})

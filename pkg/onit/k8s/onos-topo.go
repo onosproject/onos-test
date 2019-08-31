@@ -86,6 +86,7 @@ func (c *ClusterController) createOnosTopoService() error {
 			Selector: map[string]string{
 				"app":  "onos",
 				"type": "topo",
+				"resource": "onos-topo",
 			},
 			Ports: []corev1.ServicePort{
 				{
@@ -114,6 +115,7 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 				MatchLabels: map[string]string{
 					"app":  "onos",
 					"type": "topo",
+					"resource": "onos-topo",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
@@ -239,7 +241,7 @@ func (c *ClusterController) createOnosTopoDeployment() error {
 
 // awaitOnosTopoDeploymentReady waits for the onos-topo pods to complete startup
 func (c *ClusterController) awaitOnosTopoDeploymentReady() error {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "topo"}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "resource": "onos-topo"}}
 	unblocked := make(map[string]bool)
 	for {
 		// Get a list of the pods that match the deployment
@@ -312,7 +314,7 @@ func (c *ClusterController) createOnosTopoProxyDeployment() error {
 					Labels: map[string]string{
 						"app":      "onos",
 						"type":     "topo-envoy",
-						"resource": "onos-topo",
+						"resource": "onos-topo-envoy",
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -385,6 +387,7 @@ func (c *ClusterController) createOnosTopoProxyService() error {
 			Selector: map[string]string{
 				"app":  "onos",
 				"type": "topo-envoy",
+				"resource": "onos-topo-envoy",
 			},
 			Ports: []corev1.ServicePort{
 				{
@@ -479,7 +482,7 @@ func (c *ClusterController) removeDevice(name string) error {
 
 // GetOnosTopoNodes returns a list of all onos-topo nodes running in the cluster
 func (c *ClusterController) GetOnosTopoNodes() ([]NodeInfo, error) {
-	topoLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "topo"}}
+	topoLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "resource": "onos-topo"}}
 
 	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
 		LabelSelector: labels.Set(topoLabelSelector.MatchLabels).String(),

@@ -82,6 +82,7 @@ func (c *ClusterController) createOnosAppDeployment(name string, image string, p
 			Labels: map[string]string{
 				"app":  "onos",
 				"type": "app",
+				"resource": name,
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -90,6 +91,7 @@ func (c *ClusterController) createOnosAppDeployment(name string, image string, p
 				MatchLabels: map[string]string{
 					"app":  "onos",
 					"type": "app",
+					"resource": name,
 				},
 			},
 			Template: corev1.PodTemplateSpec{
