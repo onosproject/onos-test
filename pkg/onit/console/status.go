@@ -60,7 +60,7 @@ func NewStatusWriter() *StatusWriter {
 		updateCh:   make(chan statusUpdate, 10),
 		completeCh: make(chan bool, 1),
 	}
-	go s.process()
+	s.reset()
 	return s
 }
 
@@ -101,6 +101,14 @@ func (s *StatusWriter) process() {
 	s.completeCh <- true
 }
 
+// reset resets the state of the writer
+func (s *StatusWriter) reset() {
+	s.updateCh = make(chan statusUpdate)
+	s.completeCh = make(chan bool)
+	s.complete = false
+	go s.process()
+}
+
 // wait waits a brief period if necessary to ensure status updates are not coming too quickly
 func (s *StatusWriter) wait() {
 	t := time.Now()
@@ -112,6 +120,9 @@ func (s *StatusWriter) wait() {
 
 // Start starts a new status and begins a loading spinner
 func (s *StatusWriter) Start(status string) *StatusWriter {
+	if s.complete {
+		s.reset()
+	}
 	s.updateCh <- statusUpdate{
 		statusType: statusStart,
 		message:    status,
