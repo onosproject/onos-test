@@ -102,7 +102,7 @@ func (c *Controller) NewClusterController(clusterID string, config *ClusterConfi
 		atomixclient:     c.atomixclient,
 		extensionsclient: c.extensionsclient,
 		config:           config,
-		status:           c.status,
+		status:           console.NewStatusWriter(),
 	}
 }
 
