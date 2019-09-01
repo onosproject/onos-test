@@ -55,7 +55,7 @@ func (c *ClusterController) setPodsImage(pods *corev1.PodList, image string, pul
 	c.status.Start("Updating pods")
 	for _, pod := range pods.Items {
 		c.status.Progress(fmt.Sprintf("Updating %s", pod.Name))
-		if err := c.updatePod(pod.Name, image, pullPolicy); err != nil {
+		if err := c.updatePod(pod, image, pullPolicy); err != nil {
 			return c.status.Fail(err)
 		}
 	}
@@ -140,24 +140,24 @@ func (c *ClusterController) setDeploymentImage(deployment *appsv1.Deployment, po
 }
 
 // updatePod updates the given pod
-func (c *ClusterController) updatePod(name string, image string, pullPolicy corev1.PullPolicy) error {
-	// Update the pod image and modify the creation timestamp to ensure the update is applied regardless
-	// of whether the image name has changed
-	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		pod, err := c.kubeclient.CoreV1().Pods(c.clusterID).Get(name, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
+func (c *ClusterController) updatePod(pod corev1.Pod, image string, pullPolicy corev1.PullPolicy) error {
+	if err := c.kubeclient.CoreV1().Pods(c.clusterID).Delete(pod.Name, &metav1.DeleteOptions{}); err != nil {
+		return err
+	}
 
-		pod.Spec.Containers[0].Image = image
-		pod.Spec.Containers[0].ImagePullPolicy = corev1.PullPolicy(pullPolicy)
-
-		if strings.Compare(pod.Spec.Containers[0].Image, image) == 0 {
-			pod.CreationTimestamp = metav1.Now()
-		}
-		_, updateErr := c.kubeclient.CoreV1().Pods(c.clusterID).Update(pod)
-		return updateErr
-	})
+	update := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        pod.Name,
+			Namespace:   pod.Namespace,
+			Labels:      pod.Labels,
+			Annotations: pod.Annotations,
+		},
+		Spec: pod.Spec,
+	}
+	update.Spec.Containers[0].Image = image
+	update.Spec.Containers[0].ImagePullPolicy = pullPolicy
+	_, err := c.kubeclient.CoreV1().Pods(c.clusterID).Create(update)
+	return err
 }
 
 // podReady checks whether the pod of the given name is ready
