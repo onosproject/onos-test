@@ -79,6 +79,7 @@ func getAddNetworkCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
@@ -100,7 +101,7 @@ func getAddNetworkCommand() *cobra.Command {
 			}
 
 			// Add the network to the cluster
-			if status := cluster.AddNetwork(name, config); status.Failed() {
+			if status := k8sCluster.AddNetwork(name, config); status.Failed() {
 				exitStatus(status)
 			} else {
 				fmt.Println(name)
@@ -148,6 +149,7 @@ func getAddSimulatorCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
@@ -158,7 +160,7 @@ func getAddSimulatorCommand() *cobra.Command {
 			}
 
 			// Add the simulator to the cluster
-			if status := cluster.AddSimulator(name, config); status.Failed() {
+			if status := k8sCluster.AddSimulator(name, config); status.Failed() {
 				exitStatus(status)
 			} else {
 				fmt.Println(name)
@@ -213,6 +215,7 @@ func getAddAppCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
@@ -224,7 +227,7 @@ func getAddAppCommand() *cobra.Command {
 			}
 
 			// Add the app to the cluster
-			if status := cluster.AddApp(name, config); status.Failed() {
+			if status := k8sCluster.AddApp(name, config); status.Failed() {
 				exitStatus(status)
 			} else {
 				fmt.Println(name)

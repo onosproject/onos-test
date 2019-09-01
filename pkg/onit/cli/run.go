@@ -179,6 +179,7 @@ func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests
 
 	// Get the cluster controller
 	cluster, err := controller.GetCluster(clusterID)
+	k8sCluster := cluster.(*k8s.ClusterController)
 	if err != nil {
 		exitError(err)
 	}
@@ -188,7 +189,7 @@ func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests
 		tests = append(tests, fmt.Sprintf("-n=%d", count))
 	}
 
-	message, code, status := cluster.RunTests(testID, append([]string{commandType}, tests...), time.Duration(timeout)*time.Second)
+	message, code, status := k8sCluster.RunTests(testID, append([]string{commandType}, tests...), time.Duration(timeout)*time.Second)
 	if status.Failed() {
 		exitStatus(status)
 	} else {

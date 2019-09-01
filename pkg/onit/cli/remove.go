@@ -70,11 +70,12 @@ func getRemoveNetworkCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
-			networks, err := cluster.GetNetworks()
+			networks, err := k8sCluster.GetNetworks()
 			if err != nil {
 				exitError(err)
 			}
@@ -83,7 +84,7 @@ func getRemoveNetworkCommand() *cobra.Command {
 			}
 
 			// Remove the network from the cluster
-			if status := cluster.RemoveNetwork(name); status.Failed() {
+			if status := k8sCluster.RemoveNetwork(name); status.Failed() {
 				exitStatus(status)
 			}
 		},
@@ -119,11 +120,12 @@ func getRemoveSimulatorCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
-			simulators, err := cluster.GetSimulators()
+			simulators, err := k8sCluster.GetSimulators()
 			if err != nil {
 				exitError(err)
 			}
@@ -133,7 +135,7 @@ func getRemoveSimulatorCommand() *cobra.Command {
 			}
 
 			// Remove the simulator from the cluster
-			if status := cluster.RemoveSimulator(name); status.Failed() {
+			if status := k8sCluster.RemoveSimulator(name); status.Failed() {
 				exitStatus(status)
 			}
 		},
@@ -169,11 +171,12 @@ func getRemoveAppCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
-			apps, err := cluster.GetApps()
+			apps, err := k8sCluster.GetApps()
 			if err != nil {
 				exitError(err)
 			}
@@ -183,7 +186,7 @@ func getRemoveAppCommand() *cobra.Command {
 			}
 
 			// Remove the app from the cluster
-			if status := cluster.RemoveApp(name); status.Failed() {
+			if status := k8sCluster.RemoveApp(name); status.Failed() {
 				exitStatus(status)
 			}
 		},

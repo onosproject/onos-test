@@ -48,16 +48,17 @@ func getOnosCliCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
-			onosCliNodes, err := cluster.GetOnosCliNodes()
+			onosCliNodes, err := k8sCluster.GetOnosCliNodes()
 			if err != nil {
 				exitError(err)
 			}
 
-			err = cluster.OpenShell(onosCliNodes[0].ID, args...)
+			err = k8sCluster.OpenShell(onosCliNodes[0].ID, args...)
 			if err != nil {
 				exitError(err)
 			}
@@ -94,11 +95,12 @@ func getSSHCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
-			err = cluster.OpenShell(args[0], args[1:]...)
+			err = k8sCluster.OpenShell(args[0], args[1:]...)
 			if err != nil {
 				exitError(err)
 			}

@@ -66,7 +66,7 @@ type Controller struct {
 }
 
 // GetClusters returns a list of onit clusters
-func (c *Controller) GetClusters() (map[string]*ClusterConfig, error) {
+func (c *Controller) GetClusters() (map[string]interface{}, error) {
 	namespaces, err := c.kubeclient.CoreV1().Namespaces().List(metav1.ListOptions{
 		LabelSelector: "app=onit",
 	})
@@ -74,7 +74,7 @@ func (c *Controller) GetClusters() (map[string]*ClusterConfig, error) {
 		return nil, err
 	}
 
-	clusters := make(map[string]*ClusterConfig)
+	clusters := make(map[string]interface{})
 	for _, ns := range namespaces.Items {
 		if ns.Status.Phase == corev1.NamespaceActive {
 			name := ns.Name
@@ -94,20 +94,20 @@ func (c *Controller) GetClusters() (map[string]*ClusterConfig, error) {
 }
 
 // NewClusterController creates a new instance of ClusterController
-func (c *Controller) NewClusterController(clusterID string, config *ClusterConfig) *ClusterController {
+func (c *Controller) NewClusterController(clusterID string, config interface{}) interface{} {
 	return &ClusterController{
 		clusterID:        clusterID,
 		restconfig:       c.restconfig,
 		kubeclient:       c.kubeclient,
 		atomixclient:     c.atomixclient,
 		extensionsclient: c.extensionsclient,
-		config:           config,
+		config:           config.(*ClusterConfig),
 		status:           c.status,
 	}
 }
 
 // NewCluster creates a new cluster controller
-func (c *Controller) NewCluster(clusterID string, config *ClusterConfig) (*ClusterController, console.ErrorStatus) {
+func (c *Controller) NewCluster(clusterID string, config interface{}) (interface{}, console.ErrorStatus) {
 	c.status.Start("Creating cluster namespace")
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -145,7 +145,7 @@ func (c *Controller) NewCluster(clusterID string, config *ClusterConfig) (*Clust
 }
 
 // GetCluster returns a cluster controller
-func (c *Controller) GetCluster(clusterID string) (*ClusterController, error) {
+func (c *Controller) GetCluster(clusterID string) (interface{}, error) {
 	_, err := c.kubeclient.CoreV1().Namespaces().Get(clusterID, metav1.GetOptions{})
 	if err != nil {
 		return nil, err

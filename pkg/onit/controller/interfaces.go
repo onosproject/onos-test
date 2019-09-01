@@ -16,7 +16,6 @@ package interfaces
 
 import (
 	"github.com/onosproject/onos-test/pkg/onit/console"
-	"github.com/onosproject/onos-test/pkg/onit/k8s"
 )
 
 // ClusterController interface
@@ -27,8 +26,8 @@ type ClusterController interface {
 
 // Controller interface
 type Controller interface {
-	NewClusterController(clusterID string, config *k8s.ClusterConfig) *k8s.ClusterController
-	NewCluster(string, *k8s.ClusterConfig) (*k8s.ClusterController, console.ErrorStatus)
-	GetCluster(string) (*k8s.ClusterController, error)
-	GetClusters() (map[string]*k8s.ClusterConfig, error)
+	NewClusterController(clusterID string, config interface{}) interface{}
+	NewCluster(string, interface{}) (interface{}, console.ErrorStatus)
+	GetCluster(string) (interface{}, error)
+	GetClusters() (map[string]interface{}, error)
 }

@@ -53,11 +53,12 @@ func getDebugCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
-			nodes, err := cluster.GetNodes()
+			nodes, err := k8sCluster.GetNodes()
 			if err != nil {
 				exitError(err)
 			}
@@ -78,7 +79,7 @@ func getDebugCommand() *cobra.Command {
 				for index := range nodes {
 					go func(node k8s.NodeInfo, port int) {
 						fmt.Println("Start Debugger for:", node.ID)
-						err = cluster.PortForward(node.ID, port, 40000)
+						err = k8sCluster.PortForward(node.ID, port, 40000)
 						asyncErrors <- err
 						wg.Done()
 					}(nodes[index], freePorts[index])
@@ -97,7 +98,7 @@ func getDebugCommand() *cobra.Command {
 				}
 
 			} else {
-				if err := cluster.PortForward(args[0], port, 40000); err != nil {
+				if err := k8sCluster.PortForward(args[0], port, 40000); err != nil {
 					exitError(err)
 				} else {
 					fmt.Println(port)

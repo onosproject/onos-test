@@ -143,6 +143,7 @@ func getCreateClusterCommand() *cobra.Command {
 
 			// Create the cluster controller
 			cluster, status := controller.NewCluster(clusterID, config)
+
 			if status.Failed() {
 				exitStatus(status)
 			}
@@ -153,7 +154,7 @@ func getCreateClusterCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			var k8sCluster interfaces.ClusterController = cluster
+			var k8sCluster interfaces.ClusterController = cluster.(*k8s.ClusterController)
 
 			// Setup the cluster
 			if status := k8sCluster.Setup(); status.Failed() {

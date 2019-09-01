@@ -104,14 +104,16 @@ func getSetImageCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
-			status := cluster.SetImage(nodeID, image, pullPolicy)
+			status := k8sCluster.SetImage(nodeID, image, pullPolicy)
 			if status.Failed() {
 				exitStatus(status)
 			}
+
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")

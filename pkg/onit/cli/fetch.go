@@ -65,6 +65,7 @@ func getFetchLogsCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
@@ -74,7 +75,7 @@ func getFetchLogsCommand() *cobra.Command {
 			destination, _ := cmd.Flags().GetString("destination")
 			if len(args) > 0 {
 				resourceID := args[0]
-				resources, err := cluster.GetResources(resourceID)
+				resources, err := k8sCluster.GetResources(resourceID)
 				if err != nil {
 					exitError(err)
 				}
@@ -82,14 +83,14 @@ func getFetchLogsCommand() *cobra.Command {
 				var status console.ErrorStatus
 				for _, resource := range resources {
 					path := filepath.Join(destination, fmt.Sprintf("%s.log", resource))
-					status = cluster.DownloadLogs(resource, path, options)
+					status = k8sCluster.DownloadLogs(resource, path, options)
 				}
 
 				if status.Failed() {
 					exitStatus(status)
 				}
 			} else {
-				nodes, err := cluster.GetNodes()
+				nodes, err := k8sCluster.GetNodes()
 				if err != nil {
 					exitError(err)
 				}
@@ -97,7 +98,7 @@ func getFetchLogsCommand() *cobra.Command {
 				var status console.ErrorStatus
 				for _, node := range nodes {
 					path := filepath.Join(destination, fmt.Sprintf("%s.log", node.ID))
-					status = cluster.DownloadLogs(node.ID, path, options)
+					status = k8sCluster.DownloadLogs(node.ID, path, options)
 				}
 
 				if status.Failed() {

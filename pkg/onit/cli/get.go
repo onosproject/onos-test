@@ -132,12 +132,13 @@ func getGetNetworksCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
 			// Get the list of networks and output
-			networks, err := cluster.GetNetworks()
+			networks, err := k8sCluster.GetNetworks()
 			if err != nil {
 				exitError(err)
 			} else {
@@ -175,12 +176,13 @@ func getGetSimulatorsCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
 			// Get the list of simulators and output
-			simulators, err := cluster.GetSimulators()
+			simulators, err := k8sCluster.GetSimulators()
 			if err != nil {
 				exitError(err)
 			} else {
@@ -224,14 +226,15 @@ func getGetClustersCommand() *cobra.Command {
 	return cmd
 }
 
-func printClusters(clusters map[string]*k8s.ClusterConfig, includeHeaders bool) {
+func printClusters(clusters map[string]interface{}, includeHeaders bool) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	if includeHeaders {
 		fmt.Fprintln(writer, "ID\tSIZE\tPARTITIONS")
 	}
 	for id, config := range clusters {
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%d\t%d\t%d", id, config.ConfigNodes, config.TopoNodes, config.Partitions))
+		k8sClusterConfig := config.(*k8s.ClusterConfig)
+		fmt.Fprintln(writer, fmt.Sprintf("%s\t%d\t%d\t%d", id, k8sClusterConfig.ConfigNodes, k8sClusterConfig.TopoNodes, k8sClusterConfig.Partitions))
 	}
 	writer.Flush()
 }
@@ -282,12 +285,13 @@ func getGetPartitionsCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
 			// Get the list of partitions and output
-			partitions, err := cluster.GetPartitions()
+			partitions, err := k8sCluster.GetPartitions()
 			if err != nil {
 				exitError(err)
 			} else {
@@ -332,12 +336,13 @@ func getGetAppsCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
 			// Get the list of simulators and output
-			apps, err := cluster.GetApps()
+			apps, err := k8sCluster.GetApps()
 			if err != nil {
 				exitError(err)
 			} else {
@@ -376,6 +381,7 @@ func getGetPartitionCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
@@ -387,7 +393,7 @@ func getGetPartitionCommand() *cobra.Command {
 			}
 
 			// Get the list of nodes and output
-			nodes, err := cluster.GetPartitionNodes(int(partition))
+			nodes, err := k8sCluster.GetPartitionNodes(int(partition))
 			if err != nil {
 				exitError(err)
 			} else {
@@ -427,13 +433,14 @@ func getGetNodesCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
 			// Get the list of nodes and output
 			if strings.Compare(nodeType, string(k8s.OnosAll)) == 0 {
-				nodes, err := cluster.GetNodes()
+				nodes, err := k8sCluster.GetNodes()
 				if err != nil {
 					exitError(err)
 				} else {
@@ -441,7 +448,7 @@ func getGetNodesCommand() *cobra.Command {
 					printNodes(nodes, !noHeaders)
 				}
 			} else if strings.Compare(nodeType, string(k8s.OnosConfig)) == 0 {
-				nodes, err := cluster.GetOnosConfigNodes()
+				nodes, err := k8sCluster.GetOnosConfigNodes()
 				if err != nil {
 					exitError(err)
 				} else {
@@ -450,7 +457,7 @@ func getGetNodesCommand() *cobra.Command {
 				}
 
 			} else if strings.Compare(nodeType, string(k8s.OnosTopo)) == 0 {
-				nodes, err := cluster.GetOnosTopoNodes()
+				nodes, err := k8sCluster.GetOnosTopoNodes()
 				if err != nil {
 					exitError(err)
 				} else {
@@ -459,7 +466,7 @@ func getGetNodesCommand() *cobra.Command {
 				}
 
 			} else if strings.Compare(nodeType, string(k8s.OnosCli)) == 0 {
-				nodes, err := cluster.GetOnosCliNodes()
+				nodes, err := k8sCluster.GetOnosCliNodes()
 				if err != nil {
 					exitError(err)
 				} else {
@@ -467,7 +474,7 @@ func getGetNodesCommand() *cobra.Command {
 					printNodes(nodes, !noHeaders)
 				}
 			} else if strings.Compare(nodeType, string(k8s.OnosGui)) == 0 {
-				nodes, err := cluster.GetOnosGuiNodes()
+				nodes, err := k8sCluster.GetOnosGuiNodes()
 				if err != nil {
 					exitError(err)
 				} else {
@@ -604,12 +611,13 @@ func getGetHistoryCommand() *cobra.Command {
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
 			// Get the history of test runs for the cluster
-			records, err := cluster.GetHistory()
+			records, err := k8sCluster.GetHistory()
 			if err != nil {
 				exitError(err)
 			}
@@ -668,13 +676,14 @@ To output the logs from a test, get the test ID from the test run or from 'onit 
 
 			// Get the cluster controller
 			cluster, err := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			if err != nil {
 				exitError(err)
 			}
 
 			// If streaming is enabled, stream the logs to stdout. Otherwise, get the logs for all resources and print them.
 			if stream {
-				reader, err := cluster.StreamLogs(args[0])
+				reader, err := k8sCluster.StreamLogs(args[0])
 				if err != nil {
 					exitError(err)
 				}
@@ -683,7 +692,7 @@ To output the logs from a test, get the test ID from the test run or from 'onit 
 					exitError(err)
 				}
 			} else {
-				resources, err := cluster.GetResources(args[0])
+				resources, err := k8sCluster.GetResources(args[0])
 				if err != nil {
 					exitError(err)
 				}
@@ -698,7 +707,7 @@ To output the logs from a test, get the test ID from the test run or from 'onit 
 				options := parseLogOptions(cmd)
 
 				for i, resource := range resources {
-					logs, err := cluster.GetLogs(resource, options)
+					logs, err := k8sCluster.GetLogs(resource, options)
 					if err != nil {
 						exitError(err)
 					}

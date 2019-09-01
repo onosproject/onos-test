@@ -62,7 +62,8 @@ func getDeleteClusterCommand() *cobra.Command {
 				clusterID = getDefaultCluster()
 			}
 
-			k8sCluster, _ := controller.GetCluster(clusterID)
+			cluster, _ := controller.GetCluster(clusterID)
+			k8sCluster := cluster.(*k8s.ClusterController)
 			status := k8sCluster.Teardown()
 			if status.Failed() {
 				fmt.Println(status)
