@@ -156,8 +156,13 @@ func (c *ClusterController) updatePod(pod corev1.Pod, image string, pullPolicy c
 	}
 	update.Spec.Containers[0].Image = image
 	update.Spec.Containers[0].ImagePullPolicy = pullPolicy
-	_, err := c.kubeclient.CoreV1().Pods(c.clusterID).Create(update)
-	return err
+	for {
+		_, err := c.kubeclient.CoreV1().Pods(c.clusterID).Create(update)
+		if err == nil || !k8serrors.IsAlreadyExists(err) {
+			return err
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
 }
 
 // podReady checks whether the pod of the given name is ready
