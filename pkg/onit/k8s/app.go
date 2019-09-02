@@ -80,16 +80,18 @@ func (c *ClusterController) createOnosAppDeployment(name string, image string, p
 			Name:      name,
 			Namespace: c.clusterID,
 			Labels: map[string]string{
-				"app":  "onos",
-				"type": "app",
+				"app":      "onos",
+				"type":     "app",
+				"resource": name,
 			},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app":  "onos",
-					"type": "app",
+					"app":      "onos",
+					"type":     "app",
+					"resource": name,
 				},
 			},
 			Template: corev1.PodTemplateSpec{

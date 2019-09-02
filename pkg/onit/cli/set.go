@@ -85,6 +85,11 @@ func getSetImageCommand() *cobra.Command {
 			nodeID := args[0]
 			image, _ := cmd.Flags().GetString("image")
 			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
+			pullPolicy := corev1.PullPolicy(imagePullPolicy)
+
+			if pullPolicy != corev1.PullAlways && pullPolicy != corev1.PullIfNotPresent && pullPolicy != corev1.PullNever {
+				exitError(fmt.Errorf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever))
+			}
 
 			clusterID, err := cmd.Flags().GetString("cluster")
 			if err != nil {
@@ -103,8 +108,10 @@ func getSetImageCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			cluster.SetImage(nodeID, image, imagePullPolicy)
-
+			status := cluster.SetImage(nodeID, image, pullPolicy)
+			if status.Failed() {
+				exitStatus(status)
+			}
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")

@@ -134,15 +134,17 @@ func (c *ClusterController) createCLIDeployment() error {
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app":  "onos",
-					"type": "cli",
+					"app":      "onos",
+					"type":     "cli",
+					"resource": "onos-cli",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app":  "onos",
-						"type": "cli",
+						"app":      "onos",
+						"type":     "cli",
+						"resource": "onos-cli",
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -201,7 +203,7 @@ func (c *ClusterController) awaitCliDeploymentReady() error {
 
 // GetOnosCliNodes returns a list of all onos-topo nodes running in the cluster
 func (c *ClusterController) GetOnosCliNodes() ([]NodeInfo, error) {
-	topoLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "cli"}}
+	topoLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "resource": "onos-cli"}}
 
 	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
 		LabelSelector: labels.Set(topoLabelSelector.MatchLabels).String(),

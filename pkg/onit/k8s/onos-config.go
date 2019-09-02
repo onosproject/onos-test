@@ -155,8 +155,9 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app":  "onos",
-					"type": "config",
+					"app":      "onos",
+					"type":     "config",
+					"resource": "onos-config",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
@@ -296,8 +297,9 @@ func (c *ClusterController) createOnosConfigService() error {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app":  "onos",
-				"type": "config",
+				"app":      "onos",
+				"type":     "config",
+				"resource": "onos-config",
 			},
 			Ports: []corev1.ServicePort{
 				{
@@ -313,7 +315,7 @@ func (c *ClusterController) createOnosConfigService() error {
 
 // awaitOnosConfigDeploymentReady waits for the onos-config pods to complete startup
 func (c *ClusterController) awaitOnosConfigDeploymentReady() error {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "resource": "onos-config"}}
 	unblocked := make(map[string]bool)
 	for {
 		// Get a list of the pods that match the deployment
@@ -387,7 +389,7 @@ func (c *ClusterController) createOnosConfigProxyDeployment() error {
 					Labels: map[string]string{
 						"app":      "onos",
 						"type":     "config-envoy",
-						"resource": "onos-config",
+						"resource": "onos-config-envoy",
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -458,8 +460,9 @@ func (c *ClusterController) createOnosConfigProxyService() error {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app":  "onos",
-				"type": "config-envoy",
+				"app":      "onos",
+				"type":     "config-envoy",
+				"resource": "onos-config-envoy",
 			},
 			Ports: []corev1.ServicePort{
 				{
@@ -492,7 +495,7 @@ func (c *ClusterController) awaitOnosConfigProxyDeploymentReady() error {
 
 // GetOnosConfigNodes returns a list of all onos-config nodes running in the cluster
 func (c *ClusterController) GetOnosConfigNodes() ([]NodeInfo, error) {
-	configLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "config"}}
+	configLabelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "resource": "onos-config"}}
 
 	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
 		LabelSelector: labels.Set(configLabelSelector.MatchLabels).String(),
