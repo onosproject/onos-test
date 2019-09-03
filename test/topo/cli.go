@@ -29,9 +29,9 @@ func init() {
 
 const (
 	devicesHeader = "ID ADDRESS VERSION"
-	addedFoo      = "Added device foo"
-	removedFoo    = "Removed device foo"
-	devicesFoo    = "foo foo:1234 1.0.0"
+	addedTest     = "Added device test"
+	removedTest   = "Removed device test"
+	devicesTest   = "test test:1234 1.0.0"
 )
 
 // TestTopoDeviceCLI tests the topo service's device CLI commands
@@ -44,21 +44,21 @@ func TestTopoDeviceCLI(t *testing.T) {
 	assert.Len(t, output, 1)
 	assert.Equal(t, devicesHeader, stripSpaces(output[0]))
 
-	output, code = env.ExecuteCLI("onos topo add device foo --type Devicesim --address foo:1234 --version 1.0.0")
+	output, code = env.ExecuteCLI("onos topo add device test --type Devicesim --address test:1234 --version 1.0.0")
 	assert.Equal(t, 0, code)
 	assert.Len(t, output, 1)
-	assert.Equal(t, addedFoo, output[0])
+	assert.Equal(t, addedTest, output[0])
 
 	output, code = env.ExecuteCLI("onos topo get devices")
 	assert.Equal(t, 0, code)
 	assert.Len(t, output, 2)
 	assert.Equal(t, devicesHeader, stripSpaces(output[0]))
-	assert.Equal(t, devicesFoo, stripSpaces(output[1]))
+	assert.Equal(t, devicesTest, stripSpaces(output[1]))
 
-	output, code = env.ExecuteCLI("onos topo remove device foo")
+	output, code = env.ExecuteCLI("onos topo remove device test")
 	assert.Equal(t, 0, code)
 	assert.Len(t, output, 1)
-	assert.Equal(t, removedFoo, output[0])
+	assert.Equal(t, removedTest, output[0])
 
 	output, code = env.ExecuteCLI("onos topo get devices")
 	assert.Equal(t, 0, code)
