@@ -50,15 +50,17 @@ func (c *ClusterController) createGUIDeployment() error {
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app":  "onos",
-					"type": "gui",
+					"app":      "onos",
+					"type":     "gui",
+					"resource": "onos-gui",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app":  "onos",
-						"type": "gui",
+						"app":      "onos",
+						"type":     "gui",
+						"resource": "onos-gui",
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -92,8 +94,9 @@ func (c *ClusterController) createGUIService() error {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app":  "onos",
-				"type": "gui",
+				"app":      "onos",
+				"type":     "gui",
+				"resource": "onos-gui",
 			},
 			Ports: []corev1.ServicePort{
 				{
