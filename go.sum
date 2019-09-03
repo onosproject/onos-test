@@ -35,6 +35,8 @@ github.com/atomix/atomix-k8s-controller v0.0.0-20190620084759-d5e65f7fbf68 h1:PC
 github.com/atomix/atomix-k8s-controller v0.0.0-20190620084759-d5e65f7fbf68/go.mod h1:vdmRfGKhgD28STeLKeKoq3tMZOyTR0l3WSG9QCrZWs0=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
+github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
+github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=
@@ -196,6 +198,8 @@ github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn
 github.com/onosproject/onos-config v0.0.0-20190715180819-079d3a8dc433/go.mod h1:1G4gt12sBESqda8mrmAmOjqfV7PT0CLle9VVm8Qtfp8=
 github.com/onosproject/onos-config v0.0.0-20190731170328-b4ee3a917c9f h1:8tOMe8Do6JBjSUvTtlvIGKwrmrDc+Fd1TypWPXlQi2I=
 github.com/onosproject/onos-config v0.0.0-20190731170328-b4ee3a917c9f/go.mod h1:1G4gt12sBESqda8mrmAmOjqfV7PT0CLle9VVm8Qtfp8=
+github.com/onosproject/onos-config v0.0.0-20190829172900-8d24cb86fe8a h1:365+D6WGfoWRVSNxicRZZxiBRDzG1qRqkX0CyNhO6vc=
+github.com/onosproject/onos-config v0.0.0-20190829172900-8d24cb86fe8a/go.mod h1:JKVnd7F928dHJ2bzKxd4wAL4aBVTh7Q20jCyrjv6Mo0=
 github.com/onosproject/onos-control v0.0.0-20190715190020-706a2ee0d37b/go.mod h1:pHxuBLlYpyZbiaBDKFkO+O9RixBd/qMPR8t5mizwbQY=
 github.com/onosproject/onos-topo v0.0.0-20190807224236-53dad829743b h1:tOZDE6vOBlE8stBksUvPJr9Yrj1kQlIbHMkWSI26G+8=
 github.com/onosproject/onos-topo v0.0.0-20190807224236-53dad829743b/go.mod h1:S39GNVp4OOuS4Y+u1NKmZ1AG0Y+cZ2arEOyYpN97XiI=
