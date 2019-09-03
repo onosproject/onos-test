@@ -5,8 +5,8 @@
 [![GoDoc](https://godoc.org/github.com/onosproject/onos-test?status.svg)](https://godoc.org/github.com/onosproject/onos-test)
 
 
-The [onos project](onosproject) provides an 
-[integration testing framework](onos-test) for
+The [onos project] provides an 
+[integration testing framework] for
 running end-to-end tests on [Kubernetes]. This document describes the process for managing 
 a development/test environment and running integration tests with `onit`.
 
@@ -17,5 +17,5 @@ a development/test environment and running integration tests with `onit`.
 
 
 [Kubernetes]: https://kubernetes.io
-[onosproject]: https://github.com/onosproject
-[onos-test]: https://github.com/onosproject/onos-test
+[onos project]: https://github.com/onosproject
+[integration testing framework]: https://github.com/onosproject/onos-test
