@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	atomix "github.com/atomix/atomix-go-client/pkg/client"
-	"github.com/onosproject/onos-config/pkg/northbound/proto"
+	"github.com/onosproject/onos-config/pkg/northbound/admin"
 	"github.com/openconfig/gnmi/client"
 	gnmi "github.com/openconfig/gnmi/client/gnmi"
 	"google.golang.org/grpc"
@@ -188,7 +188,7 @@ func GetConfigConn() (*grpc.ClientConn, error) {
 }
 
 // GetAdminClient returns a client that can be used for the admin APIs
-func GetAdminClient() (*grpc.ClientConn, proto.ConfigAdminServiceClient) {
+func GetAdminClient() (*grpc.ClientConn, admin.ConfigAdminServiceClient) {
 	opts, err := handleCertArgs()
 	if err != nil {
 		fmt.Printf("Error loading cert %s", err)
@@ -197,7 +197,7 @@ func GetAdminClient() (*grpc.ClientConn, proto.ConfigAdminServiceClient) {
 	if err != nil {
 		panic(err)
 	}
-	return conn, proto.NewConfigAdminServiceClient(conn)
+	return conn, admin.NewConfigAdminServiceClient(conn)
 }
 
 // NewAtomixClient returns an Atomix client from the environment

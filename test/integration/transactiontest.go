@@ -20,7 +20,7 @@ import (
 	"github.com/onosproject/onos-test/test"
 	"testing"
 
-	admin "github.com/onosproject/onos-config/pkg/northbound/proto"
+	"github.com/onosproject/onos-config/pkg/northbound/admin"
 	"github.com/onosproject/onos-test/test/env"
 	"github.com/openconfig/gnmi/client"
 	"github.com/stretchr/testify/assert"

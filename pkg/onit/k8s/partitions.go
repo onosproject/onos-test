@@ -19,8 +19,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/atomix/atomix-api/proto/atomix/protocols/raft"
 	"github.com/atomix/atomix-k8s-controller/pkg/apis/k8s/v1alpha1"
-	raft "github.com/atomix/atomix-k8s-controller/proto/atomix/protocols/raft"
 	"github.com/ghodss/yaml"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
