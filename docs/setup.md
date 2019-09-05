@@ -3,7 +3,7 @@
 ## Setup
 The integration test framework is designed to operate on a Kubernetes cluster. It's recommended
 that users use a local Kubernetes cluster suitable for development, e.g. [Minikube], [kind],
-or [MicroK8s].
+or [MicroK8s]. To run `onit`, you need to install `go` tools on your machine as explained [here](https://golang.org/doc/install)
 
 ### Configuration
 
@@ -11,6 +11,7 @@ The test framework is controlled through the `onit` command. To install the `oni
 use `go get`:
 
 ```bash
+export $GO111MODULE=on
 > go get github.com/onosproject/onos-test/cmd/onit
 ```
 
