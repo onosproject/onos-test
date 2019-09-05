@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/atomix/atomix-api v0.0.0-20190826211343-dd8f4db3bf77
 	github.com/atomix/atomix-go-client v0.0.0-20190830184106-6ca178a89ccc
-	github.com/atomix/atomix-k8s-controller v0.0.0-20190620084759-d5e65f7fbf68
+	github.com/atomix/atomix-k8s-controller v0.0.0-20190905035228-0c2f92a4bc0e
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
