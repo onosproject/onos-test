@@ -268,6 +268,7 @@ onit allows you to ssh into a node using the following command:
 onit ssh <name of a node>
 ```
 
+## onos-cli in a cluster
 onit also provides a command that you can run [onos-cli](onos-cli) commands via onit as follows:
 ```bash
 onit onos-cli
@@ -289,8 +290,55 @@ Flags:
 Use "onos [command] --help" for more information about a command.
 ```
 
+### Onos-gui access inside Kubernetes
+The correct way to access a Gui inside a cluster node is to have a Kubernetes
+[ingress] configured on the cluster. This handles load balancing and failover
+of nodes in a production environment.
+
+The Demo cluster has an ingress configured for port 80 and is available on the
+cluster's IP address 10.128.100.91 at port 31214.
+
+To access the GUI however it must be accessed by hostname **onos-gui** and so can
+be accessed at
+http://onos-gui:31214
+
+#### Gui access for Development
+> This following procedure has only been proven only on Microk8s on Ubuntu.
+> Detailed instructions for other platforms will be added as it becomes available.
+
+Additionally for [GUI](https://github.com/onosproject/onos-gui) development
+(only) the browser running under Angular CLI will need to access
+http://onos-config-envoy:8080 and http://onos-topo-envoy:8080.
+On Microk8s to allow either of these it is necessary to further open the firewall
+(on Ubuntu) with
+```bash
+sudo iptables -P FORWARD ACCEPT
+```
+and also to add the ip addresses of these services running on Kubernetes to your
+local **/etc/hosts** file.
+
+```bash
+uonos@uonos-S210-X12RS-V2:~$ kubectl get svc -A
+onos-demo              onos-gui                    ClusterIP   10.103.230.163   <none>        80/TCP                       3d2h
+onos-demo              onos-config-envoy           ClusterIP   10.96.237.14     <none>        8080/TCP                     3d2h
+onos-demo              onos-topo-envoy             ClusterIP   10.97.188.229    <none>        8080/TCP                     3d2h
+uonos@uonos-S210-X12RS-V2:~$
+```
+
+These should be added to /etc/hosts like:
+```bash
+uonos@uonos-S210-X12RS-V2:~$ cat /etc/hosts | grep envoy
+10.103.230.163 onos-gui
+10.96.237.14   onos-config-envoy
+10.97.188.229  onos-topo-envoy
+uonos@uonos-S210-X12RS-V2:~$
+```
+
+Further information on running the GUI in development mode is at
+[onos-gui/run.md](https://github.com/onosproject/onos-gui/blob/master/docs/run.md)
 
 [onos-cli]: http://github.com/onosproject/onos-cli
 [simulators]: https://github.com/onosproject/simulators
 [atomix]: https://github.com/atomix/atomix
+[ingress]: https://kubernetes.io/docs/concepts/services-networking/ingress/
 

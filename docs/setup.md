@@ -117,3 +117,56 @@ time they're built. For this reason, we provide a convenience make target: `kind
 When the `kind` target is run, the `onos-config` and `onos-config-integration-tests` images will
 be built and loaded into the kind cluster, so no additional step is necessary.
 
+#### Building for MicroK8s
+[microk8s](https://microk8s.io/) is a Kubernetes cluster solution that runs on Ubuntu
+and other platforms. On Ubuntu is installed through the **snap** system on Ubuntu
+16 and above.
+
+After installing with:
+```bash
+snap install microk8s --classic
+```
+install kubectl. This can also be installed with snap:
+```bash
+sudo snap install kubectl --classic
+```
+
+For **onit** to work the **dns** service at least has to be installed. It is also
+convenient to also install the dashboard.
+```bash
+microk8s.enable dns,dashboard
+```
+
+Also when **onit** runs it needs inter pod communication. Depending on the
+installation of on Ubuntu the firewall may need to be disabled. On Ubuntu, the
+system must be rebooted first and the **cbr0** interface should be visible.
+
+Then run:
+```bash
+sudo ufw allow in on cbr0 && sudo ufw allow out on cbr0
+sudo ufw default allow routed
+```
+
+Running
+```bash
+microk8s.inspect
+```
+should show no warnings about firewall.
+
+After this **onit** can start the cluster. On Ubuntu running the debug versions
+of **onos-topo** and **onos-config** has a problem in starting because of the
+need for root permissions. For this reason **onit** __must__ be started as the 
+**latest** version with:
+```bash
+onit create cluster --image-tags="topo=latest,config=latest"
+```
+
+By default MicroK8s will pull docker images from docker hub, and not the local
+machine. To load a local image in to Microk8s:
+```bash
+docker save mynginx > myimage.tar
+microk8s.ctr -n k8s.io image import myimage.tar
+```
+(see https://microk8s.io/docs/working for more details).
+
+
