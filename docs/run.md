@@ -302,9 +302,8 @@ To access the GUI however it must be accessed by hostname **onos-gui** and so ca
 be accessed at
 http://onos-gui:31214
 
-#### Gui access for Development
+#### Gui access for Development - Microk8s
 > This following procedure has only been proven only on Microk8s on Ubuntu.
-> Detailed instructions for other platforms will be added as it becomes available.
 
 Additionally for [GUI](https://github.com/onosproject/onos-gui) development
 (only) the browser running under Angular CLI will need to access
@@ -332,6 +331,54 @@ uonos@uonos-S210-X12RS-V2:~$ cat /etc/hosts | grep envoy
 10.96.237.14   onos-config-envoy
 10.97.188.229  onos-topo-envoy
 uonos@uonos-S210-X12RS-V2:~$
+```
+
+#### Gui access for Development - KinD
+> The following procedure is for Kubernetes in Docker only.
+
+To access the GUI through KinD a port forwarding connection must be established:
+```bash
+kubectl -n <cluster-namespace> port-forward <onos-gui-pod-id> 8080:80
+```
+where the <cluster-namespace> and <onos-gui-pod-id> may be found with the command
+result (first 2 columns):
+```bash
+scondon@Z420:~/go/src/github.com/onosproject/onos-test$ kubectl get pods -A | grep onos-gui
+onit-1        onos-gui-67b867c7c7-cpm5w                    1/1     Running   0          35m
+```
+> This port forwarding arrangement must stay active as lone as the GUI is being
+> accessed.
+
+This makes the GUI available at ~~http://localhost:8080~~ but it will not connect
+properly to the gRPC services in the **onos-config-envoy** proxy unless the GUI
+is accessed with the hostname "onos-gui".
+
+To make this work add onos-gui to the line with localhost in your /etc/hosts file e.g.:
+```text
+127.0.0.1	localhost onos-gui
+```
+
+Then the GUI will then be available at http://onos-gui:8080
+
+
+
+
+If GUI development needs to be done on KinD an alternative arrangement where
+onos-config-envoy:8080 and onos-topo-envoy:8080 are exposed through port forwarding
+will have to be setup **instead**.
+> Note these are **only** for GUI development
+
+To do this use:
+```bash
+kubectl -n <cluster-namespace> port-forward <onos-config-envoy-pod-id> 8091:8080
+```
+and in another terminal (remembering to set KUBECONFIG)
+```bash
+kubectl -n <cluster-namespace> port-forward <onos-topo-envoy-pod-id> 8092:8080
+```
+Then run Angular CLI in development mode with:
+```bash
+ng serve --configuration=kind
 ```
 
 Further information on running the GUI in development mode is at

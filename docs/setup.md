@@ -11,7 +11,7 @@ The test framework is controlled through the `onit` command. To install the `oni
 use `go get`:
 
 ```bash
-export $GO111MODULE=on
+export GO111MODULE=on
 > go get github.com/onosproject/onos-test/cmd/onit
 ```
 
@@ -126,10 +126,16 @@ After installing with:
 ```bash
 snap install microk8s --classic
 ```
-install kubectl. This can also be installed with snap:
+install **kubectl**. This can also be installed with snap:
 ```bash
 sudo snap install kubectl --classic
 ```
+
+Add your user name to the microk8s group in Linux:
+```bash
+usermod -a -G microk8s $USER
+```
+It will be necessary to log out and back in again to enable this.
 
 For **onit** to work the **dns** service at least has to be installed. It is also
 convenient to also install the dashboard.
