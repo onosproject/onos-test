@@ -12,26 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package integration
+package env
 
-import (
-	"testing"
+import "k8s.io/client-go/rest"
 
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
-	"github.com/onosproject/onos-test/test/env"
-	"github.com/stretchr/testify/assert"
-)
-
-func init() {
-	test.Registry.RegisterTest("ha", TestHA, []*runner.TestSuite{})
-}
-
-// TestHA : integration test
-func TestHA(t *testing.T) {
-	configNodes := env.GetConfigNodes()
-	if len(configNodes) > 0 {
-		err := env.KillNode(configNodes[0])
-		assert.NoError(t, err)
-	}
+// TestSetup an interface for setting up the test infrastructure
+type TestSetup interface {
+	CreateCluster() error
+	GetRestConfig() (*rest.Config, error)
 }

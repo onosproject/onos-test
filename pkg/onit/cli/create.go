@@ -17,7 +17,7 @@ package cli
 import (
 	"fmt"
 
-	interfaces "github.com/onosproject/onos-test/pkg/onit/controller"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -54,37 +54,6 @@ func getCreateCommand() *cobra.Command {
 	return cmd
 }
 
-func initImageTags(imageTags map[string]string) {
-	if imageTags["config"] == "" {
-		imageTags["config"] = string(k8s.Debug)
-	}
-	if imageTags["topo"] == "" {
-		imageTags["topo"] = string(k8s.Debug)
-	}
-	if imageTags["gui"] == "" {
-		imageTags["gui"] = string(k8s.Latest)
-	}
-	if imageTags["cli"] == "" {
-		imageTags["cli"] = string(k8s.Latest)
-	}
-	if imageTags["atomix"] == "" {
-		imageTags["atomix"] = string(k8s.Latest)
-	}
-	if imageTags["raft"] == "" {
-		imageTags["raft"] = string(k8s.Latest)
-	}
-	if imageTags["simulator"] == "" {
-		imageTags["simulator"] = string(k8s.Latest)
-	}
-	if imageTags["stratum"] == "" {
-		imageTags["stratum"] = string(k8s.Latest)
-	}
-	if imageTags["test"] == "" {
-		imageTags["test"] = string(k8s.Latest)
-	}
-
-}
-
 // getCreateClusterCommand returns a cobra command for deploying a test cluster
 func getCreateClusterCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -101,66 +70,32 @@ func getCreateClusterCommand() *cobra.Command {
 			imageTags, _ := cmd.Flags().GetStringToString("image-tags")
 			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 			clusterType, _ := cmd.Flags().GetString("cluster-type")
-			pullPolicy := corev1.PullPolicy(imagePullPolicy)
-
-			if pullPolicy != corev1.PullAlways && pullPolicy != corev1.PullIfNotPresent && pullPolicy != corev1.PullNever {
-				exitError(fmt.Errorf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever))
-			}
-
-			initImageTags(imageTags)
-
-			// Get the onit k8s controller
-
-			// TODO we need to handle different type of clusters properly
-			var controller interfaces.Controller
-			if clusterType == string(k8s.K8s) {
-				k8sController, err := k8s.NewController()
-				if err != nil {
-					exitError(err)
-				}
-				controller = k8sController
-			}
 
 			// Get or create a cluster ID
 			var clusterID string
 			if len(args) > 0 {
 				clusterID = args[0]
 			} else {
-				clusterID = fmt.Sprintf("cluster-%s", newUUIDString())
+				clusterID = fmt.Sprintf("cluster-%s", setup.NewUUIDString())
 			}
 
-			// Create the cluster configuration
-			config := &k8s.ClusterConfig{
-				Registry:      dockerRegistry,
-				Preset:        configName,
-				ImageTags:     imageTags,
-				PullPolicy:    pullPolicy,
-				ConfigNodes:   configNodes,
-				TopoNodes:     topoNodes,
-				Partitions:    partitions,
-				PartitionSize: partitionSize,
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID).SetDockerRegistry(dockerRegistry)
+			testSetupBuilder.SetClusterType(clusterType).SetConfigNodes(configNodes)
+			testSetupBuilder.SetTopoNodes(topoNodes).SetPartitions(partitions)
+			testSetupBuilder.SetPartitionSize(partitionSize).SetConfigName(configName)
+			testSetupBuilder.SetImagePullPolicy(imagePullPolicy).SetImageTags(imageTags)
+			testSetup := testSetupBuilder.Build()
 
-			// Create the cluster controller
-			cluster, status := controller.NewCluster(clusterID, config)
-			if status.Failed() {
-				exitStatus(status)
+			err := setup.SetDefaultCluster(clusterID)
+			if err != nil {
+				exitError(err)
 			}
-
-			// Store the cluster before setting it up to ensure other shell sessions can debug setup
-			err := setDefaultCluster(clusterID)
+			err = testSetup.CreateCluster()
 			if err != nil {
 				exitError(err)
 			}
 
-			var k8sCluster interfaces.ClusterController = cluster
-
-			// Setup the cluster
-			if status := k8sCluster.Setup(); status.Failed() {
-				exitStatus(status)
-			} else {
-				fmt.Println(clusterID)
-			}
 		},
 	}
 

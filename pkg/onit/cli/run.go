@@ -166,6 +166,7 @@ func getRunBenchSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 
 func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests []string, count int) {
 	// Get the onit controller
+
 	controller, err := k8s.NewController()
 	if err != nil {
 		exitError(err)

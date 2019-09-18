@@ -79,15 +79,6 @@ func GetOnitCommand(registry *runner.TestRegistry) *cobra.Command {
 	return cmd
 }
 
-// newUUIDString returns a new string UUID
-func newUUIDString() string {
-	id, err := uuid.NewUUID()
-	if err != nil {
-		exitError(err)
-	}
-	return id.String()
-}
-
 // newUuidInt returns a numeric UUID
 func newUUIDInt() uint32 {
 	id, err := uuid.NewUUID()

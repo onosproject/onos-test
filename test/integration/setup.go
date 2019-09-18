@@ -17,21 +17,24 @@ package integration
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/onosproject/onos-test/pkg/onit/setup"
+
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
-	"github.com/onosproject/onos-test/test/env"
-	"github.com/stretchr/testify/assert"
+)
+
+var (
+	setupInterface setup.TestSetup
 )
 
 func init() {
-	test.Registry.RegisterTest("ha", TestHA, []*runner.TestSuite{})
+	test.Registry.RegisterTest("setup", TestSetup, []*runner.TestSuite{})
 }
 
-// TestHA : integration test
-func TestHA(t *testing.T) {
-	configNodes := env.GetConfigNodes()
-	if len(configNodes) > 0 {
-		err := env.KillNode(configNodes[0])
-		assert.NoError(t, err)
-	}
+// TestSetup tests k8s setup interface
+func TestSetup(t *testing.T) {
+	_, err := setupInterface.GetRestConfig()
+	assert.NoError(t, err)
 }
