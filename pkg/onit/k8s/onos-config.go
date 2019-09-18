@@ -146,6 +146,7 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 
 	}
 
+	privileged := c.config.ImageTags["config"] == "debug"
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-config",
@@ -249,6 +250,7 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 								},
 							},
 							SecurityContext: &corev1.SecurityContext{
+								Privileged: &privileged,
 								Capabilities: &corev1.Capabilities{
 									Add: []corev1.Capability{
 										"SYS_PTRACE",
