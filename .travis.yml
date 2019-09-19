@@ -51,3 +51,7 @@ jobs:
         - export KUBECONFIG="$(kind get kubeconfig-path)"
         - kind create cluster
         - make integration
+    - stage: docs build
+      if: type != pull_request
+      script:
+          - sh build/bin/trigger-docs-travis $TRAVIS_ACCESS_TOKEN
