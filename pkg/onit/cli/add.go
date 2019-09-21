@@ -17,6 +17,8 @@ package cli
 import (
 	"fmt"
 
+	"github.com/onosproject/onos-test/pkg/onit/setup"
+
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -131,38 +133,25 @@ func getAddSimulatorCommand() *cobra.Command {
 				name = fmt.Sprintf("device-%d", newUUIDInt())
 			}
 
+			testSetupBuilder := setup.New()
+
 			// Create the simulator configuration from the configured preset
 			configName, _ := cmd.Flags().GetString("preset")
-
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
 			if err != nil {
 				exitError(err)
 			}
-
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
+			testSetupBuilder.SetConfigName(configName)
+			testSetupBuilder.SetSimulatorName(name)
+			testSetupBuilder.SetClusterID(clusterID)
+			testSetup := testSetupBuilder.Build()
+			testSetup.AddSimulator()
 			if err != nil {
 				exitError(err)
 			}
 
-			// Create the simulator configuration
-			config := &k8s.SimulatorConfig{
-				Config: configName,
-			}
-
-			// Add the simulator to the cluster
-			if status := cluster.AddSimulator(name, config); status.Failed() {
-				exitStatus(status)
-			} else {
-				fmt.Println(name)
-			}
 		},
 	}
 

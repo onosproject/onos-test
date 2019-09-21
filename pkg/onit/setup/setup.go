@@ -67,6 +67,7 @@ type TestSetup struct {
 	imageTags       map[string]string
 	imagePullPolicy string
 	clusterType     string
+	simulatorName   string
 }
 
 // TestSetupBuilder test setup builder interface
@@ -81,6 +82,7 @@ type TestSetupBuilder interface {
 	SetImageTags(map[string]string) TestSetupBuilder
 	SetImagePullPolicy(string) TestSetupBuilder
 	SetClusterType(string) TestSetupBuilder
+	SetSimulatorName(string) TestSetupBuilder
 	Build() TestSetup
 }
 
@@ -154,6 +156,12 @@ func (t *TestSetup) SetPartitionSize(partitionSize int) TestSetupBuilder {
 	return t
 }
 
+// SetSimulatorName set the name of the simulator
+func (t *TestSetup) SetSimulatorName(name string) TestSetupBuilder {
+	t.simulatorName = name
+	return t
+}
+
 // New creates an instance of TestSetupBuilder with default values
 func New() TestSetupBuilder {
 	imageTags := make(map[string]string)
@@ -186,6 +194,7 @@ func (t *TestSetup) Build() TestSetup {
 		imagePullPolicy: t.imagePullPolicy,
 		clusterType:     t.clusterType,
 		imageTags:       t.imageTags,
+		simulatorName:   t.simulatorName,
 	}
 }
 
@@ -234,6 +243,68 @@ func (t *TestSetup) CreateCluster() error {
 	}
 
 	return nil
+}
+
+// GetClusters returns the list of current clusters in the system
+func (t *TestSetup) GetClusters() (map[string]*k8s.ClusterConfig, error) {
+	var controller interfaces.Controller
+	if t.clusterType == string(k8s.K8s) {
+		k8sController, err := k8s.NewController()
+		if err != nil {
+			exitError(err)
+		}
+		controller = k8sController
+	}
+	return controller.GetClusters()
+}
+
+// AddSimulator add a simulator to the cluster
+func (t *TestSetup) AddSimulator() {
+	var controller interfaces.Controller
+	if t.clusterType == string(k8s.K8s) {
+		k8sController, err := k8s.NewController()
+		if err != nil {
+			exitError(err)
+		}
+		controller = k8sController
+	}
+
+	// Get the cluster controller
+	cluster, err := controller.GetCluster(t.clusterID)
+	if err != nil {
+		exitError(err)
+	}
+
+	// Create the simulator configuration
+	config := &k8s.SimulatorConfig{
+		Config: t.configName,
+	}
+
+	// Add the simulator to the cluster
+	if status := cluster.AddSimulator(t.simulatorName, config); status.Failed() {
+		exitStatus(status)
+	} else {
+		fmt.Println(t.simulatorName)
+	}
+}
+
+// GetSimulators get list of simulators in the current cluster
+func (t *TestSetup) GetSimulators() ([]string, error) {
+	var controller interfaces.Controller
+	if t.clusterType == string(k8s.K8s) {
+		k8sController, err := k8s.NewController()
+		if err != nil {
+			exitError(err)
+		}
+		controller = k8sController
+	}
+	// Get the cluster controller
+	cluster, err := controller.GetCluster(t.clusterID)
+	if err != nil {
+		exitError(err)
+	}
+	// Get the list of simulators and output
+	return cluster.GetSimulators()
 }
 
 // GetRestConfig returns the k8s config

@@ -23,6 +23,8 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/onosproject/onos-test/pkg/onit/setup"
+
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
 
 	"github.com/onosproject/onos-test/pkg/runner"
@@ -161,26 +163,18 @@ func getGetSimulatorsCommand() *cobra.Command {
 		Use:   "simulators",
 		Short: "Get the currently configured cluster's simulators",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
-
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
 			if err != nil {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID)
+			testSetup := testSetupBuilder.Build()
 
 			// Get the list of simulators and output
-			simulators, err := cluster.GetSimulators()
+			simulators, err := testSetup.GetSimulators()
 			if err != nil {
 				exitError(err)
 			} else {
@@ -204,14 +198,10 @@ func getGetClustersCommand() *cobra.Command {
 		Use:   "clusters",
 		Short: "Get a list of all deployed clusters",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
-			// Get the list of clusters and output
-			clusters, err := controller.GetClusters()
+			testSetupBuilder := setup.New()
+			testSetup := testSetupBuilder.Build()
+			clusters, err := testSetup.GetClusters()
 			if err != nil {
 				exitError(err)
 			} else {
