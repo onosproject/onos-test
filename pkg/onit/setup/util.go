@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
+
 	"github.com/google/uuid"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
@@ -86,4 +88,36 @@ func NewUUIDString() string {
 		exitError(err)
 	}
 	return id.String()
+}
+
+// InitImageTags initialize the default values of image tags
+func InitImageTags(imageTags map[string]string) {
+	if imageTags["config"] == "" {
+		imageTags["config"] = string(k8s.Debug)
+	}
+	if imageTags["topo"] == "" {
+		imageTags["topo"] = string(k8s.Debug)
+	}
+	if imageTags["gui"] == "" {
+		imageTags["gui"] = string(k8s.Latest)
+	}
+	if imageTags["cli"] == "" {
+		imageTags["cli"] = string(k8s.Latest)
+	}
+	if imageTags["atomix"] == "" {
+		imageTags["atomix"] = string(k8s.Latest)
+	}
+	if imageTags["raft"] == "" {
+		imageTags["raft"] = string(k8s.Latest)
+	}
+	if imageTags["simulator"] == "" {
+		imageTags["simulator"] = string(k8s.Latest)
+	}
+	if imageTags["stratum"] == "" {
+		imageTags["stratum"] = string(k8s.Latest)
+	}
+	if imageTags["test"] == "" {
+		imageTags["test"] = string(k8s.Latest)
+	}
+
 }

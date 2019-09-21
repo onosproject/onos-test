@@ -19,41 +19,8 @@ import (
 
 	interfaces "github.com/onosproject/onos-test/pkg/onit/controller"
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 )
-
-// InitImageTags initialize the default values of image tags
-func InitImageTags(imageTags map[string]string) {
-	if imageTags["config"] == "" {
-		imageTags["config"] = string(k8s.Debug)
-	}
-	if imageTags["topo"] == "" {
-		imageTags["topo"] = string(k8s.Debug)
-	}
-	if imageTags["gui"] == "" {
-		imageTags["gui"] = string(k8s.Latest)
-	}
-	if imageTags["cli"] == "" {
-		imageTags["cli"] = string(k8s.Latest)
-	}
-	if imageTags["atomix"] == "" {
-		imageTags["atomix"] = string(k8s.Latest)
-	}
-	if imageTags["raft"] == "" {
-		imageTags["raft"] = string(k8s.Latest)
-	}
-	if imageTags["simulator"] == "" {
-		imageTags["simulator"] = string(k8s.Latest)
-	}
-	if imageTags["stratum"] == "" {
-		imageTags["stratum"] = string(k8s.Latest)
-	}
-	if imageTags["test"] == "" {
-		imageTags["test"] = string(k8s.Latest)
-	}
-
-}
 
 // TestSetup a struct to store test setup info
 type TestSetup struct {
@@ -174,7 +141,7 @@ func New() TestSetupBuilder {
 		topoNodes:       1,
 		partitions:      1,
 		partitionSize:   1,
-		configName:      "config",
+		configName:      "default",
 		imagePullPolicy: "IfNotPresent",
 		clusterType:     "k8s",
 		imageTags:       imageTags,
@@ -198,8 +165,8 @@ func (t *TestSetup) Build() TestSetup {
 	}
 }
 
-// CreateCluster creates a k8s cluster
-func (t *TestSetup) CreateCluster() error {
+// initController creates an instance of controller interface and initialize it
+func (t *TestSetup) initController() interfaces.Controller {
 	var controller interfaces.Controller
 	if t.clusterType == string(k8s.K8s) {
 		k8sController, err := k8s.NewController()
@@ -208,103 +175,7 @@ func (t *TestSetup) CreateCluster() error {
 		}
 		controller = k8sController
 	}
-
-	pullPolicy := corev1.PullPolicy(t.imagePullPolicy)
-
-	if pullPolicy != corev1.PullAlways && pullPolicy != corev1.PullIfNotPresent && pullPolicy != corev1.PullNever {
-		exitError(fmt.Errorf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever))
-	}
-
-	// Create the cluster configuration
-	config := &k8s.ClusterConfig{
-		Registry:      t.dockerRegistry,
-		Preset:        t.configName,
-		ImageTags:     t.imageTags,
-		PullPolicy:    pullPolicy,
-		ConfigNodes:   t.configNodes,
-		TopoNodes:     t.topoNodes,
-		Partitions:    t.partitions,
-		PartitionSize: t.partitionSize,
-	}
-
-	// Create the cluster controller
-	cluster, status := controller.NewCluster(t.clusterID, config)
-	if status.Failed() {
-		exitStatus(status)
-	}
-
-	var k8sCluster interfaces.ClusterController = cluster
-
-	// Setup the cluster
-	if status := k8sCluster.Setup(); status.Failed() {
-		exitStatus(status)
-	} else {
-		fmt.Println(t.clusterID)
-	}
-
-	return nil
-}
-
-// GetClusters returns the list of current clusters in the system
-func (t *TestSetup) GetClusters() (map[string]*k8s.ClusterConfig, error) {
-	var controller interfaces.Controller
-	if t.clusterType == string(k8s.K8s) {
-		k8sController, err := k8s.NewController()
-		if err != nil {
-			exitError(err)
-		}
-		controller = k8sController
-	}
-	return controller.GetClusters()
-}
-
-// AddSimulator add a simulator to the cluster
-func (t *TestSetup) AddSimulator() {
-	var controller interfaces.Controller
-	if t.clusterType == string(k8s.K8s) {
-		k8sController, err := k8s.NewController()
-		if err != nil {
-			exitError(err)
-		}
-		controller = k8sController
-	}
-
-	// Get the cluster controller
-	cluster, err := controller.GetCluster(t.clusterID)
-	if err != nil {
-		exitError(err)
-	}
-
-	// Create the simulator configuration
-	config := &k8s.SimulatorConfig{
-		Config: t.configName,
-	}
-
-	// Add the simulator to the cluster
-	if status := cluster.AddSimulator(t.simulatorName, config); status.Failed() {
-		exitStatus(status)
-	} else {
-		fmt.Println(t.simulatorName)
-	}
-}
-
-// GetSimulators get list of simulators in the current cluster
-func (t *TestSetup) GetSimulators() ([]string, error) {
-	var controller interfaces.Controller
-	if t.clusterType == string(k8s.K8s) {
-		k8sController, err := k8s.NewController()
-		if err != nil {
-			exitError(err)
-		}
-		controller = k8sController
-	}
-	// Get the cluster controller
-	cluster, err := controller.GetCluster(t.clusterID)
-	if err != nil {
-		exitError(err)
-	}
-	// Get the list of simulators and output
-	return cluster.GetSimulators()
+	return controller
 }
 
 // GetRestConfig returns the k8s config

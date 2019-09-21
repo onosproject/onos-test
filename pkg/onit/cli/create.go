@@ -87,11 +87,7 @@ func getCreateClusterCommand() *cobra.Command {
 			testSetupBuilder.SetImagePullPolicy(imagePullPolicy).SetImageTags(imageTags)
 			testSetup := testSetupBuilder.Build()
 
-			err := setup.SetDefaultCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
-			err = testSetup.CreateCluster()
+			err := testSetup.CreateCluster()
 			if err != nil {
 				exitError(err)
 			}

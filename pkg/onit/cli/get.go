@@ -109,7 +109,7 @@ func getGetClusterCommand() *cobra.Command {
 		Use:   "cluster",
 		Short: "Get the currently configured cluster",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(getDefaultCluster())
+			fmt.Println(setup.GetDefaultCluster())
 		},
 	}
 }

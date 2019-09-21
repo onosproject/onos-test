@@ -1,0 +1,78 @@
+// Copyright 2019-present Open Networking Foundation.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package setup
+
+import (
+	"fmt"
+
+	interfaces "github.com/onosproject/onos-test/pkg/onit/controller"
+	"github.com/onosproject/onos-test/pkg/onit/k8s"
+	corev1 "k8s.io/api/core/v1"
+)
+
+// CreateCluster creates a k8s cluster
+func (t *TestSetup) CreateCluster() error {
+	controller := t.initController()
+	pullPolicy := corev1.PullPolicy(t.imagePullPolicy)
+
+	if pullPolicy != corev1.PullAlways && pullPolicy != corev1.PullIfNotPresent && pullPolicy != corev1.PullNever {
+		exitError(fmt.Errorf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever))
+	}
+
+	// Create the cluster configuration
+	config := &k8s.ClusterConfig{
+		Registry:      t.dockerRegistry,
+		Preset:        t.configName,
+		ImageTags:     t.imageTags,
+		PullPolicy:    pullPolicy,
+		ConfigNodes:   t.configNodes,
+		TopoNodes:     t.topoNodes,
+		Partitions:    t.partitions,
+		PartitionSize: t.partitionSize,
+	}
+
+	// Create the cluster controller
+	cluster, status := controller.NewCluster(t.clusterID, config)
+	if status.Failed() {
+		exitStatus(status)
+	}
+
+	var k8sCluster interfaces.ClusterController = cluster
+	err := SetDefaultCluster(t.clusterID)
+	if err != nil {
+		exitError(err)
+	}
+
+	// Setup the cluster
+	if status := k8sCluster.Setup(); status.Failed() {
+		exitStatus(status)
+	} else {
+		fmt.Println(t.clusterID)
+	}
+
+	return nil
+}
+
+// GetClusters returns the list of current clusters in the system
+func (t *TestSetup) GetClusters() (map[string]*k8s.ClusterConfig, error) {
+	controller := t.initController()
+	return controller.GetClusters()
+}
+
+// GetCluster returns the current active cluster in the system
+func (t *TestSetup) GetCluster() (*k8s.ClusterController, error) {
+	controller := t.initController()
+	return controller.GetCluster(t.clusterID)
+}
