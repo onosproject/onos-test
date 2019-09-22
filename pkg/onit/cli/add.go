@@ -19,7 +19,6 @@ import (
 
 	"github.com/onosproject/onos-test/pkg/onit/setup"
 
-	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -67,50 +66,25 @@ func getAddNetworkCommand() *cobra.Command {
 			// Create the simulator configuration from the configured preset
 			configName, _ := cmd.Flags().GetString("preset")
 
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
-
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
 			if err != nil {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID).SetConfigName(configName).SetNetworkName(name)
 
-			// Create the network configuration
-
-			config := &k8s.NetworkConfig{
-				Config: configName,
-			}
 			if len(args) > 1 {
-				config.MininetOptions = args[1:]
+				testSetupBuilder.SetMininetOptions(args[1:])
 			}
+			testSetup := testSetupBuilder.Build()
+			testSetup.AddNetwork()
 
-			// Update number of devices in the network configuration
-			k8s.ParseMininetOptions(config)
-
-			if err != nil {
-				exitError(err)
-			}
-
-			// Add the network to the cluster
-			if status := cluster.AddNetwork(name, config); status.Failed() {
-				exitStatus(status)
-			} else {
-				fmt.Println(name)
-			}
 		},
 	}
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to add the simulator")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -155,7 +129,7 @@ func getAddSimulatorCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to add the simulator")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -182,17 +156,6 @@ func getAddAppCommand() *cobra.Command {
 
 			image, _ := cmd.Flags().GetString("image")
 			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
-			pullPolicy := corev1.PullPolicy(imagePullPolicy)
-
-			if pullPolicy != corev1.PullAlways && pullPolicy != corev1.PullIfNotPresent && pullPolicy != corev1.PullNever {
-				exitError(fmt.Errorf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever))
-			}
-
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
@@ -200,31 +163,19 @@ func getAddAppCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID).SetImageName(image).SetImagePullPolicy(imagePullPolicy)
+			testSetupBuilder.SetAppName(name)
 
-			// Create the app configuration
-			config := &k8s.AppConfig{
-				Image:      image,
-				PullPolicy: pullPolicy,
-			}
-
-			// Add the app to the cluster
-			if status := cluster.AddApp(name, config); status.Failed() {
-				exitStatus(status)
-			} else {
-				fmt.Println(name)
-			}
+			testSetup := testSetupBuilder.Build()
+			testSetup.AddApp()
 		},
 	}
 
 	cmd.Flags().StringP("image", "i", "", "the image name")
 	_ = cmd.MarkFlagRequired("image")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to add the app")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the app")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}

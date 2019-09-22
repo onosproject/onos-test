@@ -121,3 +121,13 @@ func InitImageTags(imageTags map[string]string) {
 	}
 
 }
+
+// Contains tells whether array contains x.
+func Contains(array []string, elem string) bool {
+	for _, n := range array {
+		if elem == n {
+			return true
+		}
+	}
+	return false
+}

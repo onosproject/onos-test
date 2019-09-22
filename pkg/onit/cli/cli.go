@@ -25,16 +25,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Contains tells whether array contains x.
-func Contains(array []string, elem string) bool {
-	for _, n := range array {
-		if elem == n {
-			return true
-		}
-	}
-	return false
-}
-
 // Subset returns true if the first array is completely
 // contained in the second array.
 func Subset(first, second []string) bool {

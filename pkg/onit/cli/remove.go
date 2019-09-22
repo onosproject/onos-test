@@ -15,9 +15,7 @@
 package cli
 
 import (
-	"errors"
-
-	"github.com/onosproject/onos-test/pkg/onit/k8s"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 
 	"github.com/spf13/cobra"
 )
@@ -56,40 +54,21 @@ func getRemoveNetworkCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
 
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
-
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
 			if err != nil {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID).SetNetworkName(name)
+			testSetup := testSetupBuilder.Build()
+			testSetup.RemoveNetwork()
 
-			networks, err := cluster.GetNetworks()
-			if err != nil {
-				exitError(err)
-			}
-			if !Contains(networks, name) {
-				exitError(errors.New("The given network name does not exist"))
-			}
-
-			// Remove the network from the cluster
-			if status := cluster.RemoveNetwork(name); status.Failed() {
-				exitStatus(status)
-			}
 		},
 	}
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to add the network")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the network")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -105,41 +84,21 @@ func getRemoveSimulatorCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
 
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
-
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
 			if err != nil {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID).SetSimulatorName(name)
+			testSetup := testSetupBuilder.Build()
+			testSetup.RemoveSimulator()
 
-			simulators, err := cluster.GetSimulators()
-			if err != nil {
-				exitError(err)
-			}
-
-			if !Contains(simulators, name) {
-				exitError(errors.New("The given simulator name does not exist"))
-			}
-
-			// Remove the simulator from the cluster
-			if status := cluster.RemoveSimulator(name); status.Failed() {
-				exitStatus(status)
-			}
 		},
 	}
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to add the simulator")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -155,41 +114,21 @@ func getRemoveAppCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			name := args[0]
 
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
-
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
 			if err != nil {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID).SetAppName(name)
+			testSetup := testSetupBuilder.Build()
+			testSetup.RemoveApp()
 
-			apps, err := cluster.GetApps()
-			if err != nil {
-				exitError(err)
-			}
-
-			if !Contains(apps, name) {
-				exitError(errors.New("the given app name does not exist"))
-			}
-
-			// Remove the app from the cluster
-			if status := cluster.RemoveApp(name); status.Failed() {
-				exitStatus(status)
-			}
 		},
 	}
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to which to remove the app")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to remove the app")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}

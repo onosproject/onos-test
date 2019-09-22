@@ -21,20 +21,9 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
 )
 
-// GetSimulators get list of simulators in the current cluster
-func (t *TestSetup) GetSimulators() ([]string, error) {
-	controller := t.initController()
-	// Get the cluster controller
-	cluster, err := controller.GetCluster(t.clusterID)
-	if err != nil {
-		exitError(err)
-	}
-	// Get the list of simulators and output
-	return cluster.GetSimulators()
-}
+// AddNetwork add a stratum network to the cluster
+func (t *TestSetup) AddNetwork() {
 
-// AddSimulator add a simulator to the cluster
-func (t *TestSetup) AddSimulator() {
 	controller := t.initController()
 	// Get the cluster controller
 	cluster, err := controller.GetCluster(t.clusterID)
@@ -42,21 +31,29 @@ func (t *TestSetup) AddSimulator() {
 		exitError(err)
 	}
 
-	// Create the simulator configuration
-	config := &k8s.SimulatorConfig{
+	// Create the network configuration
+	config := &k8s.NetworkConfig{
 		Config: t.configName,
 	}
 
-	// Add the simulator to the cluster
-	if status := cluster.AddSimulator(t.simulatorName, config); status.Failed() {
+	// Update number of devices in the network configuration
+	k8s.ParseMininetOptions(config)
+
+	if err != nil {
+		exitError(err)
+	}
+
+	// Add the network to the cluster
+	if status := cluster.AddNetwork(t.networkName, config); status.Failed() {
 		exitStatus(status)
 	} else {
-		fmt.Println(t.simulatorName)
+		fmt.Println(t.networkName)
 	}
+
 }
 
-// RemoveSimulator remove a simulator based on its given name
-func (t *TestSetup) RemoveSimulator() {
+// RemoveNetwork remove a network from the cluster
+func (t *TestSetup) RemoveNetwork() {
 	controller := t.initController()
 	// Get the cluster controller
 	cluster, err := controller.GetCluster(t.clusterID)
@@ -64,17 +61,27 @@ func (t *TestSetup) RemoveSimulator() {
 		exitError(err)
 	}
 
-	simulators, err := cluster.GetSimulators()
+	networks, err := cluster.GetNetworks()
 	if err != nil {
 		exitError(err)
 	}
-
-	if !Contains(simulators, t.simulatorName) {
-		exitError(errors.New("The given simulator name does not exist"))
+	if !Contains(networks, t.networkName) {
+		exitError(errors.New("The given network name does not exist"))
 	}
 
-	// Remove the simulator from the cluster
-	if status := cluster.RemoveSimulator(t.simulatorName); status.Failed() {
+	// Remove the network from the cluster
+	if status := cluster.RemoveNetwork(t.networkName); status.Failed() {
 		exitStatus(status)
 	}
+}
+
+// GetNetworks returns the list of networks in the cluster
+func (t *TestSetup) GetNetworks() ([]string, error) {
+	controller := t.initController()
+	// Get the cluster controller
+	cluster, err := controller.GetCluster(t.clusterID)
+	if err != nil {
+		exitError(err)
+	}
+	return cluster.GetNetworks()
 }

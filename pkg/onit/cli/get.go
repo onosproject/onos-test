@@ -120,11 +120,6 @@ func getGetNetworksCommand() *cobra.Command {
 		Use:   "networks",
 		Short: "Get the currently configured cluster's networks",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
@@ -132,14 +127,12 @@ func getGetNetworksCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID)
+			testSetup := testSetupBuilder.Build()
 
 			// Get the list of networks and output
-			networks, err := cluster.GetNetworks()
+			networks, err := testSetup.GetNetworks()
 			if err != nil {
 				exitError(err)
 			} else {
@@ -150,7 +143,7 @@ func getGetNetworksCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to query")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -185,7 +178,7 @@ func getGetSimulatorsCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to query")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -285,7 +278,7 @@ func getGetPartitionsCommand() *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to query")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -308,11 +301,6 @@ func getGetAppsCommand() *cobra.Command {
 		Use:   "apps",
 		Short: "Get the currently configured cluster's apps",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
@@ -320,14 +308,12 @@ func getGetAppsCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID)
+			testSetup := testSetupBuilder.Build()
 
 			// Get the list of simulators and output
-			apps, err := cluster.GetApps()
+			apps, err := testSetup.GetApps()
 			if err != nil {
 				exitError(err)
 			} else {
@@ -338,7 +324,7 @@ func getGetAppsCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to query")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -385,7 +371,7 @@ func getGetPartitionCommand() *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to query")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -468,7 +454,7 @@ func getGetNodesCommand() *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to query")
 	cmd.Flags().StringP("type", "t", "all", "To get list of nodes based on their types")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
@@ -608,7 +594,7 @@ func getGetHistoryCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster for which to load the history")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster for which to load the history")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -707,7 +693,7 @@ To output the logs from a test, get the test ID from the test run or from 'onit 
 		"server before terminating the log output. This may not display a complete final line of logging, and may return "+
 		"slightly more or slightly less than the specified limit.")
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster for which to load the history")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster for which to load the history")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}

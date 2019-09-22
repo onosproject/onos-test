@@ -35,6 +35,10 @@ type TestSetup struct {
 	imagePullPolicy string
 	clusterType     string
 	simulatorName   string
+	appName         string
+	imageName       string
+	mininetOptions  []string
+	networkName     string
 }
 
 // TestSetupBuilder test setup builder interface
@@ -50,6 +54,10 @@ type TestSetupBuilder interface {
 	SetImagePullPolicy(string) TestSetupBuilder
 	SetClusterType(string) TestSetupBuilder
 	SetSimulatorName(string) TestSetupBuilder
+	SetAppName(string) TestSetupBuilder
+	SetImageName(string) TestSetupBuilder
+	SetMininetOptions([]string) TestSetupBuilder
+	SetNetworkName(string) TestSetupBuilder
 	Build() TestSetup
 }
 
@@ -129,6 +137,31 @@ func (t *TestSetup) SetSimulatorName(name string) TestSetupBuilder {
 	return t
 }
 
+// SetAppName set an application name
+func (t *TestSetup) SetAppName(appName string) TestSetupBuilder {
+	t.appName = appName
+	return t
+
+}
+
+// SetImageName set the name of app image
+func (t *TestSetup) SetImageName(imageName string) TestSetupBuilder {
+	t.imageName = imageName
+	return t
+}
+
+// SetMininetOptions set mininet options for a stratum network
+func (t *TestSetup) SetMininetOptions(mininetOptions []string) TestSetupBuilder {
+	t.mininetOptions = mininetOptions
+	return t
+}
+
+// SetNetworkName set a name for a stratum network
+func (t *TestSetup) SetNetworkName(networkName string) TestSetupBuilder {
+	t.networkName = networkName
+	return t
+}
+
 // New creates an instance of TestSetupBuilder with default values
 func New() TestSetupBuilder {
 	imageTags := make(map[string]string)
@@ -162,6 +195,10 @@ func (t *TestSetup) Build() TestSetup {
 		clusterType:     t.clusterType,
 		imageTags:       t.imageTags,
 		simulatorName:   t.simulatorName,
+		imageName:       t.imageName,
+		networkName:     t.networkName,
+		appName:         t.appName,
+		mininetOptions:  t.mininetOptions,
 	}
 }
 
