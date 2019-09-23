@@ -269,7 +269,7 @@ onit ssh <name of a node>
 ```
 
 ## onos-cli in a cluster
-onit also provides a command that you can run [onos-cli](onos-cli) commands via onit as follows:
+onit also provides a command that you can run [onos-cli](../../onos-cli/docs/setup.md) commands via onit as follows:
 ```bash
 onit onos-cli
 ~ $ onos
@@ -305,7 +305,7 @@ http://onos-gui:31214
 #### Gui access for Development - Microk8s
 > This following procedure has only been proven only on Microk8s on Ubuntu.
 
-Additionally for [GUI](https://github.com/onosproject/onos-gui) development
+Additionally for [GUI](../../onos-gui/docs/README.md) development
 (only) the browser running under Angular CLI will need to access
 http://onos-config-envoy:8080 and http://onos-topo-envoy:8080.
 On Microk8s to allow either of these it is necessary to further open the firewall
@@ -382,7 +382,7 @@ ng serve --configuration=kind
 ```
 
 Further information on running the GUI in development mode is at
-[onos-gui/run.md](https://github.com/onosproject/onos-gui/blob/master/docs/run.md)
+[onos-gui/run.md](../../onos-gui/docs/run.md)
 
 [onos-cli]: http://github.com/onosproject/onos-cli
 [simulators]: https://github.com/onosproject/simulators
