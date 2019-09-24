@@ -16,6 +16,7 @@ package setup
 
 import (
 	"fmt"
+	"strings"
 
 	interfaces "github.com/onosproject/onos-test/pkg/onit/controller"
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
@@ -118,4 +119,35 @@ func (t *TestSetup) SetCluster() {
 	} else {
 		fmt.Println(t.clusterID)
 	}
+}
+
+// GetNodes return the list of nodes in a cluster
+func (t *TestSetup) GetNodes() ([]k8s.NodeInfo, error) {
+
+	controller := t.initController()
+	// Get the cluster controller
+	cluster, err := controller.GetCluster(t.clusterID)
+	if err != nil {
+		exitError(err)
+	}
+
+	// Get the list of nodes based on given type
+	if strings.Compare(t.nodeType, string(k8s.OnosAll)) == 0 {
+		return cluster.GetNodes()
+
+	} else if strings.Compare(t.nodeType, string(k8s.OnosConfig)) == 0 {
+		return cluster.GetOnosConfigNodes()
+
+	} else if strings.Compare(t.nodeType, string(k8s.OnosTopo)) == 0 {
+		return cluster.GetOnosTopoNodes()
+
+	} else if strings.Compare(t.nodeType, string(k8s.OnosCli)) == 0 {
+		return cluster.GetOnosCliNodes()
+
+	} else if strings.Compare(t.nodeType, string(k8s.OnosGui)) == 0 {
+		return cluster.GetOnosGuiNodes()
+	}
+
+	return nil, nil
+
 }

@@ -378,11 +378,6 @@ func getGetNodesCommand() *cobra.Command {
 		Use:   "nodes",
 		Short: "Get a list of nodes in the cluster",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
@@ -395,56 +390,17 @@ func getGetNodesCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID).SetNodeType(nodeType)
+			testSetup := testSetupBuilder.Build()
+
+			nodes, err := testSetup.GetNodes()
+
 			if err != nil {
 				exitError(err)
-			}
-
-			// Get the list of nodes and output
-			if strings.Compare(nodeType, string(k8s.OnosAll)) == 0 {
-				nodes, err := cluster.GetNodes()
-				if err != nil {
-					exitError(err)
-				} else {
-					noHeaders, _ := cmd.Flags().GetBool("no-headers")
-					printNodes(nodes, !noHeaders)
-				}
-			} else if strings.Compare(nodeType, string(k8s.OnosConfig)) == 0 {
-				nodes, err := cluster.GetOnosConfigNodes()
-				if err != nil {
-					exitError(err)
-				} else {
-					noHeaders, _ := cmd.Flags().GetBool("no-headers")
-					printNodes(nodes, !noHeaders)
-				}
-
-			} else if strings.Compare(nodeType, string(k8s.OnosTopo)) == 0 {
-				nodes, err := cluster.GetOnosTopoNodes()
-				if err != nil {
-					exitError(err)
-				} else {
-					noHeaders, _ := cmd.Flags().GetBool("no-headers")
-					printNodes(nodes, !noHeaders)
-				}
-
-			} else if strings.Compare(nodeType, string(k8s.OnosCli)) == 0 {
-				nodes, err := cluster.GetOnosCliNodes()
-				if err != nil {
-					exitError(err)
-				} else {
-					noHeaders, _ := cmd.Flags().GetBool("no-headers")
-					printNodes(nodes, !noHeaders)
-				}
-			} else if strings.Compare(nodeType, string(k8s.OnosGui)) == 0 {
-				nodes, err := cluster.GetOnosGuiNodes()
-				if err != nil {
-					exitError(err)
-				} else {
-					noHeaders, _ := cmd.Flags().GetBool("no-headers")
-					printNodes(nodes, !noHeaders)
-				}
-
+			} else {
+				noHeaders, _ := cmd.Flags().GetBool("no-headers")
+				printNodes(nodes, !noHeaders)
 			}
 		},
 	}

@@ -40,6 +40,7 @@ type TestSetup struct {
 	mininetOptions  []string
 	networkName     string
 	nodeID          string
+	nodeType        string
 }
 
 // TestSetupBuilder test setup builder interface
@@ -60,6 +61,7 @@ type TestSetupBuilder interface {
 	SetMininetOptions([]string) TestSetupBuilder
 	SetNetworkName(string) TestSetupBuilder
 	SetNodeID(string) TestSetupBuilder
+	SetNodeType(string) TestSetupBuilder
 	Build() TestSetup
 }
 
@@ -164,9 +166,15 @@ func (t *TestSetup) SetNetworkName(networkName string) TestSetupBuilder {
 	return t
 }
 
-// SetNodeID set the node ID
+// SetNodeID set the node ID in the cluster
 func (t *TestSetup) SetNodeID(nodeID string) TestSetupBuilder {
 	t.nodeID = nodeID
+	return t
+}
+
+// SetNodeType set the type a node in the cluster
+func (t *TestSetup) SetNodeType(nodeType string) TestSetupBuilder {
+	t.nodeType = nodeType
 	return t
 }
 
@@ -208,6 +216,7 @@ func (t *TestSetup) Build() TestSetup {
 		appName:         t.appName,
 		mininetOptions:  t.mininetOptions,
 		nodeID:          t.nodeID,
+		nodeType:        t.nodeType,
 	}
 }
 
