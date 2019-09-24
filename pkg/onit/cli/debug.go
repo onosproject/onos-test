@@ -15,8 +15,7 @@
 package cli
 
 import (
-	"fmt"
-	"sync"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
@@ -39,11 +38,6 @@ func getDebugCommand() *cobra.Command {
 		Example: debugExample,
 		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
@@ -51,62 +45,19 @@ func getDebugCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
-
-			nodes, err := cluster.GetNodes()
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID)
+			testSetup := testSetupBuilder.Build()
 
 			port, _ := cmd.Flags().GetInt("port")
+			testSetupBuilder.SetArgs(args)
+			testSetupBuilder.SetDebugPort(port)
+			testSetup = testSetupBuilder.Build()
+			testSetup.OpenDebug()
 
-			if len(args) == 0 {
-				var wg sync.WaitGroup
-				n := len(nodes)
-				wg.Add(n)
-
-				asyncErrors := make(chan error, n)
-				freePorts, err := k8s.GetFreePorts(n)
-				if err != nil {
-					exitError(err)
-				}
-
-				for index := range nodes {
-					go func(node k8s.NodeInfo, port int) {
-						fmt.Println("Start Debugger for:", node.ID)
-						err = cluster.PortForward(node.ID, port, 40000)
-						asyncErrors <- err
-						wg.Done()
-					}(nodes[index], freePorts[index])
-
-				}
-
-				go func() {
-					wg.Wait()
-					close(asyncErrors)
-				}()
-
-				for err = range asyncErrors {
-					if err != nil {
-						exitError(err)
-					}
-				}
-
-			} else {
-				if err := cluster.PortForward(args[0], port, 40000); err != nil {
-					exitError(err)
-				} else {
-					fmt.Println(port)
-				}
-
-			}
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster for which to debug nodes")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster for which to debug nodes")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}

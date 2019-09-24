@@ -17,6 +17,7 @@ package setup
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	interfaces "github.com/onosproject/onos-test/pkg/onit/controller"
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
@@ -175,4 +176,57 @@ func (t *TestSetup) OpenSSH() {
 	if err != nil {
 		exitError(err)
 	}
+}
+
+// OpenDebug open a debug session for a given node
+func (t *TestSetup) OpenDebug() {
+	controller := t.initController()
+	// Get the cluster controller
+	cluster, err := controller.GetCluster(t.clusterID)
+	if err != nil {
+		exitError(err)
+	}
+
+	if len(t.args) == 0 {
+		var wg sync.WaitGroup
+		nodes, _ := t.GetNodes()
+		n := len(nodes)
+		wg.Add(n)
+
+		asyncErrors := make(chan error, n)
+		freePorts, err := k8s.GetFreePorts(n)
+		if err != nil {
+			exitError(err)
+		}
+
+		for index := range nodes {
+			go func(node k8s.NodeInfo, port int) {
+				fmt.Println("Start Debugger for:", node.ID)
+				err = cluster.PortForward(node.ID, port, 40000)
+				asyncErrors <- err
+				wg.Done()
+			}(nodes[index], freePorts[index])
+
+		}
+
+		go func() {
+			wg.Wait()
+			close(asyncErrors)
+		}()
+
+		for err = range asyncErrors {
+			if err != nil {
+				exitError(err)
+			}
+		}
+
+	} else {
+		if err := cluster.PortForward(t.args[0], t.debugPort, 40000); err != nil {
+			exitError(err)
+		} else {
+			fmt.Println(t.debugPort)
+		}
+
+	}
+
 }

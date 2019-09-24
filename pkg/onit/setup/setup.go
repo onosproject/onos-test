@@ -42,6 +42,7 @@ type TestSetup struct {
 	nodeID          string
 	nodeType        string
 	args            []string
+	debugPort       int
 }
 
 // TestSetupBuilder test setup builder interface
@@ -64,6 +65,7 @@ type TestSetupBuilder interface {
 	SetNodeID(string) TestSetupBuilder
 	SetNodeType(string) TestSetupBuilder
 	SetArgs([]string) TestSetupBuilder
+	SetDebugPort(int) TestSetupBuilder
 	Build() TestSetup
 }
 
@@ -186,6 +188,12 @@ func (t *TestSetup) SetArgs(args []string) TestSetupBuilder {
 	return t
 }
 
+// SetDebugPort set the debug port to open a debug session
+func (t *TestSetup) SetDebugPort(port int) TestSetupBuilder {
+	t.debugPort = port
+	return t
+}
+
 // New creates an instance of TestSetupBuilder with default values
 func New() TestSetupBuilder {
 	imageTags := make(map[string]string)
@@ -226,6 +234,7 @@ func (t *TestSetup) Build() TestSetup {
 		nodeID:          t.nodeID,
 		nodeType:        t.nodeType,
 		args:            t.args,
+		debugPort:       t.debugPort,
 	}
 }
 
