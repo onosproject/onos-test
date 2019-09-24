@@ -31,6 +31,8 @@ func (t *TestSetup) CreateCluster() error {
 		exitError(fmt.Errorf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever))
 	}
 
+	InitImageTags(t.imageTags)
+
 	// Create the cluster configuration
 	config := &k8s.ClusterConfig{
 		Registry:      t.dockerRegistry,
@@ -82,14 +84,13 @@ func (t *TestSetup) DeleteCluster() {
 
 	controller := t.initController()
 	// Get the cluster controller
-
-	k8sCluster, err := controller.GetCluster(t.clusterID)
+	cluster, err := controller.GetCluster(t.clusterID)
 
 	if err != nil {
 		exitError(err)
 	}
 
-	status := k8sCluster.Teardown()
+	status := cluster.Teardown()
 	if status.Failed() {
 		fmt.Println(status)
 	} else {
@@ -99,5 +100,22 @@ func (t *TestSetup) DeleteCluster() {
 			fmt.Println(t.clusterID)
 		}
 
+	}
+}
+
+// SetCluster set the current clusterID to the given clusterID
+func (t *TestSetup) SetCluster() {
+	controller := t.initController()
+	// Get the cluster controller
+	_, err := controller.GetCluster(t.clusterID)
+	if err != nil {
+		exitError(err)
+	}
+
+	// If we've made it this far, update the default cluster
+	if err := SetDefaultCluster(t.clusterID); err != nil {
+		exitError(err)
+	} else {
+		fmt.Println(t.clusterID)
 	}
 }

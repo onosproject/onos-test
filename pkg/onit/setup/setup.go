@@ -39,6 +39,7 @@ type TestSetup struct {
 	imageName       string
 	mininetOptions  []string
 	networkName     string
+	nodeID          string
 }
 
 // TestSetupBuilder test setup builder interface
@@ -58,6 +59,7 @@ type TestSetupBuilder interface {
 	SetImageName(string) TestSetupBuilder
 	SetMininetOptions([]string) TestSetupBuilder
 	SetNetworkName(string) TestSetupBuilder
+	SetNodeID(string) TestSetupBuilder
 	Build() TestSetup
 }
 
@@ -162,6 +164,12 @@ func (t *TestSetup) SetNetworkName(networkName string) TestSetupBuilder {
 	return t
 }
 
+// SetNodeId set the node ID
+func (t *TestSetup) SetNodeID(nodeID string) TestSetupBuilder {
+	t.nodeID = nodeID
+	return t
+}
+
 // New creates an instance of TestSetupBuilder with default values
 func New() TestSetupBuilder {
 	imageTags := make(map[string]string)
@@ -199,6 +207,7 @@ func (t *TestSetup) Build() TestSetup {
 		networkName:     t.networkName,
 		appName:         t.appName,
 		mininetOptions:  t.mininetOptions,
+		nodeID:          t.nodeID,
 	}
 }
 

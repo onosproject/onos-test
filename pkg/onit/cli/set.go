@@ -15,9 +15,8 @@
 package cli
 
 import (
-	"fmt"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 
-	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/spf13/cobra"
@@ -52,25 +51,11 @@ func getSetClusterCommand() *cobra.Command {
 		Short: "Set cluster context",
 		Run: func(cmd *cobra.Command, args []string) {
 			clusterID := args[0]
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID)
+			testSetup := testSetupBuilder.Build()
+			testSetup.SetCluster()
 
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
-
-			// Get the cluster controller
-			_, err = controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
-
-			// If we've made it this far, update the default cluster
-			if err := setDefaultCluster(clusterID); err != nil {
-				exitError(err)
-			} else {
-				fmt.Println(clusterID)
-			}
 		},
 	}
 }
@@ -85,33 +70,18 @@ func getSetImageCommand() *cobra.Command {
 			nodeID := args[0]
 			image, _ := cmd.Flags().GetString("image")
 			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
-			pullPolicy := corev1.PullPolicy(imagePullPolicy)
-
-			if pullPolicy != corev1.PullAlways && pullPolicy != corev1.PullIfNotPresent && pullPolicy != corev1.PullNever {
-				exitError(fmt.Errorf("invalid pull policy; must of one of %s, %s or %s", corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever))
-			}
 
 			clusterID, err := cmd.Flags().GetString("cluster")
 			if err != nil {
 				exitError(err)
 			}
 
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID).SetImagePullPolicy(imagePullPolicy)
+			testSetupBuilder.SetImageName(image).SetNodeID(nodeID)
+			testSetup := testSetupBuilder.Build()
+			testSetup.SetImage()
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
-
-			status := cluster.SetImage(nodeID, image, pullPolicy)
-			if status.Failed() {
-				exitStatus(status)
-			}
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")
