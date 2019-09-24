@@ -251,11 +251,6 @@ func getGetPartitionsCommand() *cobra.Command {
 		Use:   "partitions",
 		Short: "Get a list of partitions in the cluster",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
@@ -263,19 +258,18 @@ func getGetPartitionsCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID)
+			testSetup := testSetupBuilder.Build()
 
-			// Get the list of partitions and output
-			partitions, err := cluster.GetPartitions()
+			partitions, err := testSetup.GetPartitions()
+
 			if err != nil {
 				exitError(err)
 			} else {
 				printPartitions(partitions)
 			}
+
 		},
 	}
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to query")

@@ -164,7 +164,7 @@ func (t *TestSetup) SetNetworkName(networkName string) TestSetupBuilder {
 	return t
 }
 
-// SetNodeId set the node ID
+// SetNodeID set the node ID
 func (t *TestSetup) SetNodeID(nodeID string) TestSetupBuilder {
 	t.nodeID = nodeID
 	return t
