@@ -151,3 +151,28 @@ func (t *TestSetup) GetNodes() ([]k8s.NodeInfo, error) {
 	return nil, nil
 
 }
+
+// GetHistory return a test history
+func (t *TestSetup) GetHistory() ([]k8s.TestRecord, error) {
+	controller := t.initController()
+	// Get the cluster controller
+	cluster, err := controller.GetCluster(t.clusterID)
+	if err != nil {
+		exitError(err)
+	}
+	return cluster.GetHistory()
+}
+
+// OpenSSH open a ssh session to a node for executing the remote commands
+func (t *TestSetup) OpenSSH() {
+	controller := t.initController()
+	// Get the cluster controller
+	cluster, err := controller.GetCluster(t.clusterID)
+	if err != nil {
+		exitError(err)
+	}
+	err = cluster.OpenShell(t.args[0], t.args[1:]...)
+	if err != nil {
+		exitError(err)
+	}
+}

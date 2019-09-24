@@ -15,7 +15,7 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/onit/k8s"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"github.com/spf13/cobra"
 )
 
@@ -34,33 +34,24 @@ func getOnosCliCommand() *cobra.Command {
 		Short:   "Open onos-cli shell for executing commands",
 		Example: cliExample,
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
-
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
 			if err != nil {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID).SetNodeType("cli")
+			testSetup := testSetupBuilder.Build()
+			onosCliNodes, err := testSetup.GetNodes()
+			arguments := []string{onosCliNodes[0].ID}
+			testSetupBuilder.SetArgs(arguments)
 			if err != nil {
 				exitError(err)
 			}
+			testSetup = testSetupBuilder.Build()
 
-			onosCliNodes, err := cluster.GetOnosCliNodes()
-			if err != nil {
-				exitError(err)
-			}
-
-			err = cluster.OpenShell(onosCliNodes[0].ID, args...)
-			if err != nil {
-				exitError(err)
-			}
+			testSetup.OpenSSH()
 
 		},
 	}
@@ -80,11 +71,6 @@ func getSSHCommand() *cobra.Command {
 		Example: sshExample,
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
@@ -92,16 +78,10 @@ func getSSHCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
-
-			err = cluster.OpenShell(args[0], args[1:]...)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID).SetArgs(args)
+			testSetup := testSetupBuilder.Build()
+			testSetup.OpenSSH()
 
 		},
 	}

@@ -516,11 +516,6 @@ func getGetHistoryCommand() *cobra.Command {
 		Use:   "history",
 		Short: "Get the history of test runs",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
@@ -528,14 +523,12 @@ func getGetHistoryCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID)
+			testSetup := testSetupBuilder.Build()
 
 			// Get the history of test runs for the cluster
-			records, err := cluster.GetHistory()
+			records, err := testSetup.GetHistory()
 			if err != nil {
 				exitError(err)
 			}

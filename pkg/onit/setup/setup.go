@@ -41,6 +41,7 @@ type TestSetup struct {
 	networkName     string
 	nodeID          string
 	nodeType        string
+	args            []string
 }
 
 // TestSetupBuilder test setup builder interface
@@ -62,6 +63,7 @@ type TestSetupBuilder interface {
 	SetNetworkName(string) TestSetupBuilder
 	SetNodeID(string) TestSetupBuilder
 	SetNodeType(string) TestSetupBuilder
+	SetArgs([]string) TestSetupBuilder
 	Build() TestSetup
 }
 
@@ -178,6 +180,12 @@ func (t *TestSetup) SetNodeType(nodeType string) TestSetupBuilder {
 	return t
 }
 
+// SetArgs set the cobra command line arguments
+func (t *TestSetup) SetArgs(args []string) TestSetupBuilder {
+	t.args = args
+	return t
+}
+
 // New creates an instance of TestSetupBuilder with default values
 func New() TestSetupBuilder {
 	imageTags := make(map[string]string)
@@ -217,6 +225,7 @@ func (t *TestSetup) Build() TestSetup {
 		mininetOptions:  t.mininetOptions,
 		nodeID:          t.nodeID,
 		nodeType:        t.nodeType,
+		args:            t.args,
 	}
 }
 
