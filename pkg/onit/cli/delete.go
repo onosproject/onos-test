@@ -15,9 +15,7 @@
 package cli
 
 import (
-	"fmt"
-
-	"github.com/onosproject/onos-test/pkg/onit/k8s"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"github.com/spf13/cobra"
 )
 
@@ -48,32 +46,19 @@ func getDeleteClusterCommand() *cobra.Command {
 		Short: "Delete a test cluster on Kubernetes",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Create the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			var clusterID string
 			if len(args) > 0 {
 				clusterID = args[0]
 			} else {
-				clusterID = getDefaultCluster()
+				clusterID = setup.GetDefaultCluster()
 			}
 
-			k8sCluster, _ := controller.GetCluster(clusterID)
-			status := k8sCluster.Teardown()
-			if status.Failed() {
-				fmt.Println(status)
-			} else {
-				if err := setDefaultCluster(""); err != nil {
-					exitError(err)
-				} else {
-					fmt.Println(clusterID)
-				}
-
-			}
+			testSetupBuilder := setup.New()
+			testSetupBuilder.SetClusterID(clusterID)
+			testSetup := testSetupBuilder.Build()
+			testSetup.DeleteCluster()
 
 		},
 	}

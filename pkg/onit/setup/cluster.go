@@ -76,3 +76,27 @@ func (t *TestSetup) GetCluster() (*k8s.ClusterController, error) {
 	controller := t.initController()
 	return controller.GetCluster(t.clusterID)
 }
+
+func (t *TestSetup) DeleteCluster() {
+
+	controller := t.initController()
+	// Get the cluster controller
+
+	k8sCluster, err := controller.GetCluster(t.clusterID)
+
+	if err != nil {
+		exitError(err)
+	}
+
+	status := k8sCluster.Teardown()
+	if status.Failed() {
+		fmt.Println(status)
+	} else {
+		if err := SetDefaultCluster(""); err != nil {
+			exitError(err)
+		} else {
+			fmt.Println(t.clusterID)
+		}
+
+	}
+}
