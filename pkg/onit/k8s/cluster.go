@@ -23,6 +23,8 @@ import (
 	"os"
 	"time"
 
+	"k8s.io/apimachinery/pkg/labels"
+
 	atomixk8s "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/onit/console"
 	corev1 "k8s.io/api/core/v1"
@@ -499,9 +501,9 @@ func (c *ClusterController) RemoveSimulator(name string) console.ErrorStatus {
 // RemoveNetwork removes a stratum network with the given name
 func (c *ClusterController) RemoveNetwork(name string) console.ErrorStatus {
 	c.status.Start("Tearing down network")
-	label := "network=" + name
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"type": "network", "resource": name}}
 	configMaps, _ := c.kubeclient.CoreV1().ConfigMaps(c.clusterID).List(metav1.ListOptions{
-		LabelSelector: label,
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	})
 
 	if err := c.teardownNetwork(name); err != nil {
