@@ -77,6 +77,7 @@ func (t *TestSetup) GetCluster() (*k8s.ClusterController, error) {
 	return controller.GetCluster(t.clusterID)
 }
 
+// DeleteCluster delete the current cluster
 func (t *TestSetup) DeleteCluster() {
 
 	controller := t.initController()
