@@ -16,13 +16,15 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
 	_ "github.com/onosproject/onos-test/test/atomix"
 	_ "github.com/onosproject/onos-test/test/config"
 	_ "github.com/onosproject/onos-test/test/integration"
+	_ "github.com/onosproject/onos-test/test/testapi"
 	_ "github.com/onosproject/onos-test/test/topo"
-	"os"
 )
 
 func main() {

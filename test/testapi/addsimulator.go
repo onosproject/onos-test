@@ -12,29 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package integration
+package testapi
 
 import (
+	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/onosproject/onos-test/pkg/onit/setup"
+	"gotest.tools/assert"
 
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
 )
 
-var (
-	setupInterface setup.TestSetup
-)
-
 func init() {
-	test.Registry.RegisterTest("setup", TestSetup, []*runner.TestSuite{})
+	test.Registry.RegisterTest("add-simulator", addSimulator, []*runner.TestSuite{})
 }
 
 // TestSetup tests k8s setup interface
-func TestSetup(t *testing.T) {
-	_, err := setupInterface.GetRestConfig()
-	assert.NoError(t, err)
+func addSimulator(t *testing.T) {
+	testSetupBuilder := setup.New()
+	clusterID := os.Getenv("TEST_NAMESPACE")
+	testSetupBuilder.SetClusterID(clusterID)
+	testSetupBuilder.SetSimulatorName("simulator-1")
+	testSetup := testSetupBuilder.Build()
+	testSetup.AddSimulator()
+	simulators, _ := testSetup.GetSimulators()
+	assert.Equal(t, len(simulators), 1)
+	testSetup.RemoveSimulator()
 }
