@@ -26,18 +26,20 @@ import (
 )
 
 func init() {
-	test.Registry.RegisterTest("add-simulator", AddSimulator, []*runner.TestSuite{})
+	test.Registry.RegisterTest("add-app", AddApp, []*runner.TestSuite{})
 }
 
-// AddSimulator test adding a simulator to the cluster
-func AddSimulator(t *testing.T) {
+// AddApp test adding an application to the cluster
+func AddApp(t *testing.T) {
 	testSetupBuilder := setup.New()
 	clusterID := os.Getenv("TEST_NAMESPACE")
 	testSetupBuilder.SetClusterID(clusterID)
-	testSetupBuilder.SetSimulatorName("simulator-1")
+	testSetupBuilder.SetAppName("onos-ztp")
+	testSetupBuilder.SetImageName("onosproject/onos-ztp:latest")
+	testSetupBuilder.SetImagePullPolicy("Always")
 	testSetup := testSetupBuilder.Build()
-	testSetup.AddSimulator()
-	simulators, _ := testSetup.GetSimulators()
-	assert.Equal(t, len(simulators), 1)
-	testSetup.RemoveSimulator()
+	testSetup.AddApp()
+	apps, _ := testSetup.GetApps()
+	assert.Equal(t, len(apps), 1)
+	testSetup.RemoveApp()
 }

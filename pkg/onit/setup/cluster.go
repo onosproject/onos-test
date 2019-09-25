@@ -235,7 +235,6 @@ func (t *TestSetup) OpenDebug() {
 
 // FetchLogs fetch logs for a given resourceID and writes them to a log file
 func (t *TestSetup) FetchLogs() {
-
 	controller := t.initController()
 	// Get the cluster controller
 	cluster, err := controller.GetCluster(t.clusterID)
