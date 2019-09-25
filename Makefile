@@ -57,7 +57,7 @@ images: onos-test-runner-docker
 
 kind: # @HELP build Docker images and add them to the currently configured kind cluster
 kind: images
-	@if [ `kind get clusters` = '' ]; then echo "no kind cluster found" && exit 1; fi
+	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
 	kind load docker-image onosproject/onos-test-runner:${ONOS_TEST_VERSION}
 
 
