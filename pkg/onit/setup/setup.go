@@ -19,6 +19,7 @@ import (
 
 	interfaces "github.com/onosproject/onos-test/pkg/onit/controller"
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -43,6 +44,9 @@ type TestSetup struct {
 	nodeType        string
 	args            []string
 	debugPort       int
+	resourceID      string
+	logOptions      corev1.PodLogOptions
+	logDestination  string
 }
 
 // TestSetupBuilder test setup builder interface
@@ -66,6 +70,9 @@ type TestSetupBuilder interface {
 	SetNodeType(string) TestSetupBuilder
 	SetArgs([]string) TestSetupBuilder
 	SetDebugPort(int) TestSetupBuilder
+	SetResourceID(string) TestSetupBuilder
+	SetLogOptions(corev1.PodLogOptions) TestSetupBuilder
+	SetLogDestination(string) TestSetupBuilder
 	Build() TestSetup
 }
 
@@ -194,6 +201,24 @@ func (t *TestSetup) SetDebugPort(port int) TestSetupBuilder {
 	return t
 }
 
+// SetResourceID set the resource ID
+func (t *TestSetup) SetResourceID(resourceID string) TestSetupBuilder {
+	t.resourceID = resourceID
+	return t
+}
+
+// SetLogOptions set log options
+func (t *TestSetup) SetLogOptions(options corev1.PodLogOptions) TestSetupBuilder {
+	t.logOptions = options
+	return t
+}
+
+// SetLogDestination set the destination to which to write the logs
+func (t *TestSetup) SetLogDestination(destination string) TestSetupBuilder {
+	t.logDestination = destination
+	return t
+}
+
 // New creates an instance of TestSetupBuilder with default values
 func New() TestSetupBuilder {
 	imageTags := make(map[string]string)
@@ -235,6 +260,9 @@ func (t *TestSetup) Build() TestSetup {
 		nodeType:        t.nodeType,
 		args:            t.args,
 		debugPort:       t.debugPort,
+		resourceID:      t.resourceID,
+		logDestination:  t.logDestination,
+		logOptions:      t.logOptions,
 	}
 }
 

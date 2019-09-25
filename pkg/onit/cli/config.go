@@ -79,11 +79,6 @@ func getStorePresets() []string {
 	return configs
 }
 
-// getDefaultCluster returns the default cluster
-func getDefaultCluster() string {
-	return viper.GetString("cluster")
-}
-
 func init() {
 	home, err := homedir.Dir()
 	if err != nil {

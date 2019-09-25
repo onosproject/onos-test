@@ -55,7 +55,7 @@ func getOnosCliCommand() *cobra.Command {
 
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster for which to run onos-cli")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster for which to run onos-cli")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -85,7 +85,7 @@ func getSSHCommand() *cobra.Command {
 
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster for which to ssh into nodes")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster for which to ssh into nodes")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}

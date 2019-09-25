@@ -84,7 +84,7 @@ func getSetImageCommand() *cobra.Command {
 
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster to query")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to query")
 	cmd.Flags().StringP("image", "i", "", "the image name")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	_ = cmd.MarkFlagRequired("image")

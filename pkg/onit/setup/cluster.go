@@ -16,8 +16,11 @@ package setup
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/onosproject/onos-test/pkg/onit/console"
 
 	interfaces "github.com/onosproject/onos-test/pkg/onit/controller"
 	"github.com/onosproject/onos-test/pkg/onit/k8s"
@@ -227,6 +230,50 @@ func (t *TestSetup) OpenDebug() {
 			fmt.Println(t.debugPort)
 		}
 
+	}
+}
+
+// FetchLogs fetch logs for a given resourceID and writes them to a log file
+func (t *TestSetup) FetchLogs() {
+
+	controller := t.initController()
+	// Get the cluster controller
+	cluster, err := controller.GetCluster(t.clusterID)
+	if err != nil {
+		exitError(err)
+	}
+
+	if len(t.args) > 0 {
+		resourceID := t.args[0]
+		resources, err := cluster.GetResources(resourceID)
+		if err != nil {
+			exitError(err)
+		}
+
+		var status console.ErrorStatus
+		for _, resource := range resources {
+			path := filepath.Join(t.logDestination, fmt.Sprintf("%s.log", resource))
+			status = cluster.DownloadLogs(resource, path, t.logOptions)
+		}
+
+		if status.Failed() {
+			exitStatus(status)
+		}
+	} else {
+		nodes, err := cluster.GetNodes()
+		if err != nil {
+			exitError(err)
+		}
+
+		var status console.ErrorStatus
+		for _, node := range nodes {
+			path := filepath.Join(t.logDestination, fmt.Sprintf("%s.log", node.ID))
+			status = cluster.DownloadLogs(node.ID, path, t.logOptions)
+		}
+
+		if status.Failed() {
+			exitStatus(status)
+		}
 	}
 
 }
