@@ -17,6 +17,7 @@ package env
 import (
 	"bytes"
 	"context"
+	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -29,6 +30,7 @@ import (
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
+	"time"
 )
 
 // GetNamespace returns the namespace within which the test is running
@@ -60,6 +62,25 @@ func GetCLINodes() []string {
 	})
 }
 
+// GetRaftNodes returns a list of Raft nodes
+func GetRaftNodes() [][]string {
+	allNodes := make([][]string, 0)
+	partition := 1
+	for {
+		nodes := getNodes(map[string]string{
+			"app":       "atomix",
+			"group":     "raft",
+			"partition": fmt.Sprintf("%d", partition),
+		})
+		if len(nodes) == 0 {
+			return allNodes
+
+		}
+		allNodes = append(allNodes, nodes)
+		partition++
+	}
+}
+
 // getNodes returns a list of nodes with the given labels
 func getNodes(podLabels map[string]string) []string {
 	kube := mustKubeClient()
@@ -78,6 +99,35 @@ func getNodes(podLabels map[string]string) []string {
 		nodeIDs[i] = pod.Name
 	}
 	return nodeIDs
+}
+
+// AwaitReady waits until the given node is ready
+func AwaitReady(node string) {
+	kube := mustKubeClient()
+	name := types.NamespacedName{
+		Namespace: GetNamespace(),
+		Name:      node,
+	}
+
+	for {
+		pod := &corev1.Pod{}
+		if err := kube.Get(context.Background(), name, pod); err != nil {
+			panic(err)
+		}
+
+		ready := true
+		for _, status := range pod.Status.ContainerStatuses {
+			if !status.Ready {
+				ready = false
+				break
+			}
+		}
+
+		if ready {
+			return
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 }
 
 // ExecuteCommand executes the given command on the given node (pod)

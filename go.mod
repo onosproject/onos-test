@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/atomix/atomix-api v0.0.0-20190826211343-dd8f4db3bf77
-	github.com/atomix/atomix-go-client v0.0.0-20190830184106-6ca178a89ccc
+	github.com/atomix/atomix-go-client v0.0.0-20190927194441-c6eb7ea90412
 	github.com/atomix/atomix-k8s-controller v0.0.0-20190905035228-0c2f92a4bc0e
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
@@ -28,10 +28,10 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.4.0
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.4.0
 	github.com/yookoala/realpath v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	google.golang.org/grpc v1.22.1
+	google.golang.org/grpc v1.23.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	k8s.io/api v0.0.0-20190620073856-dcce3486da33
 	k8s.io/apiextensions-apiserver v0.0.0-20190325193600-475668423e9f
