@@ -60,9 +60,10 @@ func getRemoveNetworkCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID).SetNetworkName(name)
-			testSetup := testSetupBuilder.Build()
+			testSetup := setup.New().
+				SetClusterID(clusterID).
+				SetNetworkName(name).
+				Build()
 			testSetup.RemoveNetwork()
 
 		},

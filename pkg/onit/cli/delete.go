@@ -55,9 +55,9 @@ func getDeleteClusterCommand() *cobra.Command {
 				clusterID = setup.GetDefaultCluster()
 			}
 
-			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID)
-			testSetup := testSetupBuilder.Build()
+			testSetup := setup.New().
+				SetClusterID(clusterID).
+				Build()
 			testSetup.DeleteCluster()
 
 		},

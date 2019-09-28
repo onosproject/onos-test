@@ -54,16 +54,15 @@ func getFetchLogsCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID)
-			testSetupBuilder.SetArgs(args)
-
 			options := parseLogOptions(cmd)
-			testSetupBuilder.SetLogOptions(options)
-
 			destination, _ := cmd.Flags().GetString("destination")
-			testSetupBuilder.SetLogDestination(destination)
-			testSetup := testSetupBuilder.Build()
+
+			testSetup := setup.New().
+				SetClusterID(clusterID).
+				SetArgs(args).
+				SetLogOptions(options).
+				SetLogDestination(destination).
+				Build()
 			testSetup.FetchLogs()
 
 		},

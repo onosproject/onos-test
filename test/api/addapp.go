@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testapi
+package api
 
 import (
 	"os"
@@ -31,13 +31,13 @@ func init() {
 
 // AddApp test adding an application to the cluster
 func AddApp(t *testing.T) {
-	testSetupBuilder := setup.New()
 	clusterID := os.Getenv("TEST_NAMESPACE")
-	testSetupBuilder.SetClusterID(clusterID)
-	testSetupBuilder.SetAppName("onos-ztp")
-	testSetupBuilder.SetImageName("onosproject/onos-ztp:latest")
-	testSetupBuilder.SetImagePullPolicy("Always")
-	testSetup := testSetupBuilder.Build()
+	testSetup := setup.New().
+		SetClusterID(clusterID).
+		SetAppName("onos-ztp").
+		SetImageName("onosproject/onos-ztp:latest").
+		SetImagePullPolicy("Always").
+		Build()
 	testSetup.AddApp()
 	apps, _ := testSetup.GetApps()
 	assert.Equal(t, len(apps), 1)

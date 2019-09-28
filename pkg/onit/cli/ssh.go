@@ -78,9 +78,10 @@ func getSSHCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID).SetArgs(args)
-			testSetup := testSetupBuilder.Build()
+			testSetup := setup.New().
+				SetClusterID(clusterID).
+				SetArgs(args).
+				Build()
 			testSetup.OpenSSH()
 
 		},

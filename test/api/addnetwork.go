@@ -12,32 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testapi
+package api
 
 import (
 	"os"
 	"testing"
 
 	"github.com/onosproject/onos-test/pkg/onit/setup"
-	"gotest.tools/assert"
-
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
+	"gotest.tools/assert"
 )
 
 func init() {
-	test.Registry.RegisterTest("add-simulator", AddSimulator, []*runner.TestSuite{})
+	test.Registry.RegisterTest("add-network", AddNetwork, []*runner.TestSuite{})
 }
 
-// AddSimulator test adding a simulator to the cluster
-func AddSimulator(t *testing.T) {
-	testSetupBuilder := setup.New()
+// AddNetwork test adding a stratum network to the cluster
+func AddNetwork(t *testing.T) {
 	clusterID := os.Getenv("TEST_NAMESPACE")
-	testSetupBuilder.SetClusterID(clusterID)
-	testSetupBuilder.SetSimulatorName("simulator-1")
-	testSetup := testSetupBuilder.Build()
-	testSetup.AddSimulator()
-	simulators, _ := testSetup.GetSimulators()
-	assert.Equal(t, len(simulators), 1)
-	testSetup.RemoveSimulator()
+	testSetup := setup.New().
+		SetClusterID(clusterID).
+		SetNetworkName("stratum-1").
+		Build()
+	testSetup.AddNetwork()
+	networks, _ := testSetup.GetNetworks()
+	assert.Equal(t, len(networks), 1)
+	testSetup.RemoveNetwork()
 }

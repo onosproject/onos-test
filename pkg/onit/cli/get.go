@@ -523,9 +523,9 @@ func getGetHistoryCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID)
-			testSetup := testSetupBuilder.Build()
+			testSetup := setup.New().
+				SetClusterID(clusterID).
+				Build()
 
 			// Get the history of test runs for the cluster
 			records, err := testSetup.GetHistory()

@@ -45,14 +45,12 @@ func getDebugCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID)
-			testSetup := testSetupBuilder.Build()
-
 			port, _ := cmd.Flags().GetInt("port")
-			testSetupBuilder.SetArgs(args)
-			testSetupBuilder.SetDebugPort(port)
-			testSetup = testSetupBuilder.Build()
+			testSetup := setup.New().
+				SetClusterID(clusterID).
+				SetArgs(args).
+				SetDebugPort(port).
+				Build()
 			testSetup.OpenDebug()
 
 		},

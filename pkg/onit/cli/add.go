@@ -73,7 +73,10 @@ func getAddNetworkCommand() *cobra.Command {
 			}
 
 			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID).SetConfigName(configName).SetNetworkName(name)
+			testSetupBuilder.
+				SetClusterID(clusterID).
+				SetConfigName(configName).
+				SetNetworkName(name)
 
 			if len(args) > 1 {
 				testSetupBuilder.SetMininetOptions(args[1:])

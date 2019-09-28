@@ -76,10 +76,12 @@ func getSetImageCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID).SetImagePullPolicy(imagePullPolicy)
-			testSetupBuilder.SetImageName(image).SetNodeID(nodeID)
-			testSetup := testSetupBuilder.Build()
+			testSetup := setup.New().
+				SetClusterID(clusterID).
+				SetImagePullPolicy(imagePullPolicy).
+				SetImageName(image).
+				SetNodeID(nodeID).
+				Build()
 			testSetup.SetImage()
 
 		},

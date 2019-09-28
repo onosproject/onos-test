@@ -79,13 +79,18 @@ func getCreateClusterCommand() *cobra.Command {
 				clusterID = fmt.Sprintf("cluster-%s", setup.NewUUIDString())
 			}
 
-			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID).SetDockerRegistry(dockerRegistry)
-			testSetupBuilder.SetClusterType(clusterType).SetConfigNodes(configNodes)
-			testSetupBuilder.SetTopoNodes(topoNodes).SetPartitions(partitions)
-			testSetupBuilder.SetPartitionSize(partitionSize).SetConfigName(configName)
-			testSetupBuilder.SetImagePullPolicy(imagePullPolicy).SetImageTags(imageTags)
-			testSetup := testSetupBuilder.Build()
+			testSetup := setup.New().
+				SetClusterID(clusterID).
+				SetDockerRegistry(dockerRegistry).
+				SetClusterType(clusterType).
+				SetConfigNodes(configNodes).
+				SetTopoNodes(topoNodes).
+				SetPartitions(partitions).
+				SetPartitionSize(partitionSize).
+				SetConfigName(configName).
+				SetImagePullPolicy(imagePullPolicy).
+				SetImageTags(imageTags).
+				Build()
 
 			err := testSetup.CreateCluster()
 			if err != nil {
