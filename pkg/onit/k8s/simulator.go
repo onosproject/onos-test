@@ -16,6 +16,7 @@ package k8s
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -210,7 +211,21 @@ func (c *ClusterController) awaitSimulatorReady(name string) error {
 
 // teardownSimulator tears down a simulator by name
 func (c *ClusterController) teardownSimulator(name string) error {
-	var err error
+
+	c.status.Start("Tearing Down the Simulator")
+	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("app=onos,resource=%s", name),
+	})
+	if err != nil {
+		return err
+	} else if len(pods.Items) == 0 {
+		return fmt.Errorf("no resources matching '%s' found", name)
+	}
+	c.status.Succeed()
+	c.status.Start(fmt.Sprintf("Waiting for %s to be completely removed", name))
+	total := len(pods.Items)
+	c.status.Progress(fmt.Sprintf("Removing simulator %s", name))
+
 	if e := c.deleteSimulatorPod(name); e != nil {
 		err = e
 	}
@@ -220,6 +235,22 @@ func (c *ClusterController) teardownSimulator(name string) error {
 	if e := c.deleteSimulatorConfigMap(name); e != nil {
 		err = e
 	}
+
+	for total > 0 {
+		time.Sleep(50 * time.Millisecond)
+		pods, err = c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("app=onos,resource=%s", name),
+		})
+		if err != nil {
+			return err
+		}
+
+		total = len(pods.Items)
+
+	}
+	c.status.Progress(fmt.Sprintf("simulator %s is removed", name))
+	c.status.Succeed()
+
 	return err
 }
 
