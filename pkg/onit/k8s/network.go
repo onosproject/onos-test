@@ -16,6 +16,7 @@ package k8s
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -271,7 +272,19 @@ func (c *ClusterController) createNetworkService(name string, config *NetworkCon
 
 // teardownNetwork tears down a network by name
 func (c *ClusterController) teardownNetwork(name string) error {
-	var err error
+	c.status.Start("Tearing Down the Network")
+	pods, err := c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("app=onos,resource=%s", name),
+	})
+	if err != nil {
+		return err
+	} else if len(pods.Items) == 0 {
+		return fmt.Errorf("no resources matching '%s' found", name)
+	}
+	c.status.Succeed()
+	c.status.Start(fmt.Sprintf("Waiting for %s to be completely removed", name))
+	total := len(pods.Items)
+	c.status.Progress(fmt.Sprintf("Removing Network %s", name))
 	if e := c.deleteNetworkPod(name); e != nil {
 		err = e
 	}
@@ -281,6 +294,22 @@ func (c *ClusterController) teardownNetwork(name string) error {
 	if e := c.deleteNetworkConfigMap(name); e != nil {
 		err = e
 	}
+
+	for total > 0 {
+		time.Sleep(50 * time.Millisecond)
+		pods, err = c.kubeclient.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+			LabelSelector: fmt.Sprintf("app=onos,resource=%s", name),
+		})
+		if err != nil {
+			return err
+		}
+
+		total = len(pods.Items)
+
+	}
+	c.status.Progress(fmt.Sprintf("Network %s is removed", name))
+	c.status.Succeed()
+
 	return err
 }
 
