@@ -195,6 +195,15 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 									Name:  "ATOMIX_RAFT_GROUP",
 									Value: "raft",
 								},
+								{
+									Name: "NODE_ID",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											APIVersion: "v1",
+											FieldPath:  "metadata.name",
+										},
+									},
+								},
 							},
 							Args: []string{
 								"-caPath=/etc/onos-config/certs/onf.cacrt",
