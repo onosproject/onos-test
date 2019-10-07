@@ -60,6 +60,10 @@ kind: images
 	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
 	kind load docker-image onosproject/onos-test-runner:${ONOS_TEST_VERSION}
 
+k3d: # @HELP build Docker images and add them to the currently configured k3d cluster
+k3d: images
+	@if [ "`k3d list`" = '' ]; then echo "no k3d cluster found" && exit 1; fi
+	k3d import-images onosproject/onos-test-runner:${ONOS_TEST_VERSION}
 
 all: build images
 
