@@ -3,8 +3,8 @@ module github.com/onosproject/onos-test
 go 1.12
 
 require (
-	github.com/atomix/atomix-api v0.0.0-20191002225141-1ee9c98c7dfd
-	github.com/atomix/atomix-go-client v0.0.0-20191003001725-858dcf9a0ea0
+	github.com/atomix/atomix-api v0.0.0-20191005223910-aa620357faa0
+	github.com/atomix/atomix-go-client v0.0.0-20191007173732-5328130c1310
 	github.com/atomix/atomix-k8s-controller v0.0.0-20190905035228-0c2f92a4bc0e
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
