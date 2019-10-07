@@ -3,8 +3,8 @@ module github.com/onosproject/onos-test
 go 1.12
 
 require (
-	github.com/atomix/atomix-api v0.0.0-20190826211343-dd8f4db3bf77
-	github.com/atomix/atomix-go-client v0.0.0-20190927194441-c6eb7ea90412
+	github.com/atomix/atomix-api v0.0.0-20191002225141-1ee9c98c7dfd
+	github.com/atomix/atomix-go-client v0.0.0-20191003001725-858dcf9a0ea0
 	github.com/atomix/atomix-k8s-controller v0.0.0-20190905035228-0c2f92a4bc0e
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
@@ -16,17 +16,13 @@ require (
 	github.com/googleapis/gnostic v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
-	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/goveralls v0.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onosproject/onos-config v0.0.0-20190829172900-8d24cb86fe8a
 	github.com/onosproject/onos-topo v0.0.0-20190830202023-54c5f0e99fb9
 	github.com/openconfig/gnmi v0.0.0-20180912164834-33a1865c3029
-	github.com/pelletier/go-toml v1.4.0 // indirect
-	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v0.0.5
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.4.0
 	github.com/yookoala/realpath v1.0.0 // indirect
