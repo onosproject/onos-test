@@ -55,9 +55,9 @@ func TestRaftHA(t *testing.T) {
 
 	event := <-ch
 	assert.Equal(t, _map.EventInserted, event.Type)
-	assert.Equal(t, key, event.Key)
-	assert.Equal(t, "foo", string(event.Value))
-	assert.Equal(t, version, event.Version)
+	assert.Equal(t, key, event.Entry.Key)
+	assert.Equal(t, "foo", string(event.Entry.Value))
+	assert.Equal(t, version, event.Entry.Version)
 
 	entry, err = m.Get(context.Background(), key)
 	assert.NoError(t, err)
@@ -73,8 +73,8 @@ func TestRaftHA(t *testing.T) {
 
 	event = <-ch
 	assert.Equal(t, _map.EventInserted, event.Type)
-	assert.Equal(t, key, event.Key)
-	assert.Equal(t, "bar", string(event.Value))
+	assert.Equal(t, key, event.Entry.Key)
+	assert.Equal(t, "bar", string(event.Entry.Value))
 
 	key = uuid.New().String()
 	entry, err = m.Put(context.Background(), key, []byte("baz"))
@@ -83,8 +83,8 @@ func TestRaftHA(t *testing.T) {
 
 	event = <-ch
 	assert.Equal(t, _map.EventInserted, event.Type)
-	assert.Equal(t, key, event.Key)
-	assert.Equal(t, "baz", string(event.Value))
+	assert.Equal(t, key, event.Entry.Key)
+	assert.Equal(t, "baz", string(event.Entry.Value))
 
 	i := 0
 	for {
@@ -103,7 +103,7 @@ func TestRaftHA(t *testing.T) {
 			assert.NoError(t, err)
 
 			event = <-ch
-			assert.Equal(t, key, event.Key)
+			assert.Equal(t, key, event.Entry.Key)
 
 			entry, err = m.Get(context.Background(), key)
 			assert.NoError(t, err)
@@ -120,7 +120,7 @@ func TestRaftHA(t *testing.T) {
 			assert.Equal(t, key, entry.Key)
 
 			event = <-ch
-			assert.Equal(t, key, event.Key)
+			assert.Equal(t, key, event.Entry.Key)
 
 			entry, err = m.Get(context.Background(), key)
 			assert.NoError(t, err)

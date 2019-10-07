@@ -39,7 +39,7 @@ func TestAtomixMap(t *testing.T) {
 	m, err := group.GetMap(context.Background(), "test", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
-	ch := make(chan *_map.KeyValue)
+	ch := make(chan *_map.Entry)
 	err = m.Entries(context.Background(), ch)
 	assert.NoError(t, err)
 	for range ch {
@@ -73,7 +73,7 @@ func TestAtomixMap(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, size)
 
-	ch = make(chan *_map.KeyValue)
+	ch = make(chan *_map.Entry)
 	err = m.Entries(context.Background(), ch)
 	assert.NoError(t, err)
 	i := 0
@@ -90,9 +90,9 @@ func TestAtomixMap(t *testing.T) {
 
 	event := <-allEvents
 	assert.NotNil(t, event)
-	assert.Equal(t, "foo", event.Key)
-	assert.Equal(t, []byte("Hello world!"), event.Value)
-	assert.Equal(t, value.Version, event.Version)
+	assert.Equal(t, "foo", event.Entry.Key)
+	assert.Equal(t, []byte("Hello world!"), event.Entry.Value)
+	assert.Equal(t, value.Version, event.Entry.Version)
 
 	futureEvents := make(chan *_map.Event)
 	err = m.Watch(context.Background(), futureEvents)
@@ -107,15 +107,15 @@ func TestAtomixMap(t *testing.T) {
 
 	event = <-allEvents
 	assert.NotNil(t, event)
-	assert.Equal(t, "bar", event.Key)
-	assert.Equal(t, []byte("Hello world!"), event.Value)
-	assert.Equal(t, value.Version, event.Version)
+	assert.Equal(t, "bar", event.Entry.Key)
+	assert.Equal(t, []byte("Hello world!"), event.Entry.Value)
+	assert.Equal(t, value.Version, event.Entry.Version)
 
 	event = <-futureEvents
 	assert.NotNil(t, event)
-	assert.Equal(t, "bar", event.Key)
-	assert.Equal(t, []byte("Hello world!"), event.Value)
-	assert.Equal(t, value.Version, event.Version)
+	assert.Equal(t, "bar", event.Entry.Key)
+	assert.Equal(t, []byte("Hello world!"), event.Entry.Value)
+	assert.Equal(t, value.Version, event.Entry.Version)
 }
 
 func init() {
