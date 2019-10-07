@@ -20,7 +20,7 @@ require (
 	github.com/mattn/goveralls v0.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onosproject/onos-config v0.0.0-20190829172900-8d24cb86fe8a
-	github.com/onosproject/onos-topo v0.0.0-20190830202023-54c5f0e99fb9
+	github.com/onosproject/onos-topo v0.0.0-20191007162302-b2f95b144981
 	github.com/openconfig/gnmi v0.0.0-20180912164834-33a1865c3029
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
@@ -36,3 +36,5 @@ require (
 	k8s.io/klog v0.3.3
 	sigs.k8s.io/controller-runtime v0.1.12
 )
+
+replace github.com/onosproject/onos-topo => ../onos-topo
