@@ -36,5 +36,3 @@ require (
 	k8s.io/klog v0.3.3
 	sigs.k8s.io/controller-runtime v0.1.12
 )
-
-replace github.com/onosproject/onos-topo => ../onos-topo
