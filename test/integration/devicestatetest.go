@@ -40,7 +40,7 @@ func TestDeviceState(t *testing.T) {
 	})
 	assert.NoError(t, errGet)
 	responseDevice := response.Device
-	assert.Equal(t, responseDevice.ID, envDevice, "Wrong Device")
+	assert.Equal(t, responseDevice.ID, device.ID(envDevice), "Wrong Device")
 	assert.Equal(t, responseDevice.Protocols[0].Protocol, device.Protocol_GNMI)
 	assert.Equal(t, responseDevice.Protocols[0].ConnectivityState, device.ConnectivityState_REACHABLE)
 	assert.Equal(t, responseDevice.Protocols[0].ChannelState, device.ChannelState_CONNECTED)
