@@ -18,13 +18,12 @@ import (
 	"context"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
+	"github.com/onosproject/onos-test/test/env"
+	"github.com/onosproject/onos-topo/pkg/northbound/device"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
-	"github.com/onosproject/onos-topo/pkg/northbound/device"
-	"github.com/onosproject/onos-test/test/env"
-	"github.com/stretchr/testify/assert"
 )
-
 
 // TestDeviceState tests that a device is connected and available.
 func TestDeviceState(t *testing.T) {
