@@ -2,7 +2,7 @@
 
 ## Setup
 The integration test framework is designed to operate on a Kubernetes cluster. It's recommended
-that users use a local Kubernetes cluster suitable for development, e.g. [Minikube], [kind],
+that users use a local Kubernetes cluster suitable for development, e.g. [k3d], [Minikube], [kind],
 or [MicroK8s]. To run `onit`, you need to install `go` tools on your machine as explained [here](https://golang.org/doc/install)
 
 ### Configuration
@@ -69,6 +69,11 @@ change is made to either the core or integration tests, Docker images must be re
 available within the Kubernetes cluster in which tests are being run. The precise process for building
 Docker images and adding them to a local Kubernetes cluster is different for each setup.
 
+
+
+### Build Using K8S Local Cluster Tools
+
+
 #### Building for Minikube
 
 [Minikube] runs a VM with its own Docker daemon running inside it. To build the Docker images
@@ -89,7 +94,7 @@ or integration tests.
 
 #### Building for Kind
 
-[Kind][kind] provides an alternative to [Minikube] which runs Kubernetes in a Docker container.
+[Kind] provides an alternative to [Minikube] which runs Kubernetes in a Docker container.
 
 Assuming you have dowloaded kind as per [instructions][kind-install], the first time you boot the kind cluster 
 or if you have rebooted your docker deamon you need to issue:
@@ -114,8 +119,13 @@ time they're built. For this reason, we provide a convenience make target: `kind
 > make kind
 ```
 
-When the `kind` target is run, the `onos-config` and `onos-config-integration-tests` images will
-be built and loaded into the kind cluster, so no additional step is necessary.
+if you run the above command from the root of onos-test,  
+the `onos-test-runner` image will
+be built and loaded into the kind cluster. 
+
+**Note:** The same make target (i.e. make kind) is provided
+in other onos subsystems Makefiles such as [onos-config], [onos-topo], etc that allows you to
+build and load other onos subsystem docker images into the kind cluster.
 
 #### Building for MicroK8s
 [microk8s](https://microk8s.io/) is a Kubernetes cluster solution that runs on Ubuntu
@@ -175,4 +185,13 @@ microk8s.ctr -n k8s.io image import myimage.tar
 ```
 (see https://microk8s.io/docs/working for more details).
 
-
+[Kubernetes]: https://kubernetes.io
+[Minikube]: https://kubernetes.io/docs/setup/learning-environment/minikube/
+[kind]: https://github.com/kubernetes-sigs/kind
+[kind-install]: https://github.com/kubernetes-sigs/kind#installation-and-usage
+[MicroK8s]: https://microk8s.io/
+[k3d]: https://github.com/rancher/k3d
+[kind-install]: https://github.com/kubernetes-sigs/kind#installation-and-usage
+[onos-test]: https://github.com/onosproject/onos-test
+[onos-config]: https://github.com/onosproject/onos-config
+[onos-topo]: https://github.com/onosproject/onos-topo

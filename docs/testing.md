@@ -192,14 +192,8 @@ the environment:
 devices := env.GetDevices()
 ```
 
-[Kubernetes]: https://kubernetes.io
-[Minikube]: https://kubernetes.io/docs/setup/learning-environment/minikube/
-[kind]: https://github.com/kubernetes-sigs/kind
-[kind-install]: https://github.com/kubernetes-sigs/kind#installation-and-usage
-[MicroK8s]: https://microk8s.io/
+
 [Docker]: https://www.docker.com/
 [Atomix]: https://atomix.io
-[simulators]: https://github.com/onosproject/simulators
 [stratum]: https://www.opennetworking.org/stratum/
-[onos](https://github.com/onosproject)
-[onos-test](https://github.com/onosproject/onos-test)
+
