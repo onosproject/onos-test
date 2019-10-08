@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	stateValueRegexp = `192\.[0-9]+\.[0-9]+\.[0-9]+`
+	stateValueRegexp     = `192\.[0-9]+\.[0-9]+\.[0-9]+`
 	stateControllersPath = "/system/openflow/controllers/controller[name=main]/connections/connection[aux-id=0]/state/address"
 )
 
