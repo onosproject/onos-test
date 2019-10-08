@@ -17,6 +17,7 @@ package integration
 import (
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
+	"regexp"
 	"testing"
 
 	"github.com/onosproject/onos-test/test/env"
@@ -24,7 +25,7 @@ import (
 )
 
 const (
-	stateValue           = "192.0.2.10"
+	stateValueRegexp = `192\.[0-9]+\.[0-9]+\.[0-9]+`
 	stateControllersPath = "/system/openflow/controllers/controller[name=main]/connections/connection[aux-id=0]/state/address"
 )
 
@@ -42,7 +43,9 @@ func TestSingleState(t *testing.T) {
 	valueAfter, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(device, stateControllersPath))
 	assert.NoError(t, errorAfter)
 	assert.NotEqual(t, "", valueAfter, "Query after state returned an error: %s\n", errorAfter)
-	assert.Equal(t, stateValue, valueAfter[0].pathDataValue, "Query for state returned the wrong value: %s\n", valueAfter)
+	re := regexp.MustCompile(stateValueRegexp)
+	match := re.MatchString(valueAfter[0].pathDataValue)
+	assert.Equal(t, match, true, "Query for state returned the wrong value: %s\n", valueAfter)
 }
 
 func init() {
