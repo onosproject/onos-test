@@ -61,6 +61,10 @@ func parsePluginsCommandOutput(t *testing.T, output []string) map[string]map[str
 			// This is a new plugin
 			pluginName := line[:strings.Index(line, ":")]
 			tokens := strings.Split(line, " ")
+			if len(tokens) < 4 {
+				//  This is not a plugin description; ignore it
+				continue
+			}
 			pluginVersion := tokens[1]
 			pluginObject := tokens[3]
 			pluginKey = makeKey(pluginName, pluginVersion, pluginObject)
