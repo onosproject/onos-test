@@ -17,6 +17,7 @@ package integration
 import (
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
+	"strconv"
 	"testing"
 
 	"github.com/onosproject/onos-test/test/env"
@@ -74,7 +75,9 @@ func TestTreePath(t *testing.T) {
 	// Remove the root path we added
 	extensions, errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, newRootPath))
 	assert.NoError(t, errorDelete)
-	assert.Equal(t, 0, len(extensions))
+	assert.Equal(t, 1, len(extensions))
+	extension := extensions[0].GetRegisteredExt()
+	assert.Equal(t, extension.Id.String(), strconv.Itoa(100))
 
 	//  Make sure child got removed
 	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, newRootConfigNamePath))

@@ -66,7 +66,9 @@ func TestSinglePath(t *testing.T) {
 	// Remove the path we added
 	extensions, errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, tzPath))
 	assert.NoError(t, errorDelete)
-	assert.Equal(t, 0, len(extensions))
+	assert.Equal(t, 1, len(extensions))
+	extension = extensions[0].GetRegisteredExt()
+	assert.Equal(t, extension.Id.String(), strconv.Itoa(100))
 
 	//  Make sure it got removed
 	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, tzPath))

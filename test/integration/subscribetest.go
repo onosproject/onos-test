@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
+	"strconv"
 	"testing"
 	"time"
 
@@ -133,7 +134,9 @@ func TestSubscribe(t *testing.T) {
 	// Remove the path we added
 	extensions, errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, subPath))
 	assert.NoError(t, errorDelete)
-	assert.Equal(t, 0, len(extensions))
+	assert.Equal(t, 1, len(extensions))
+	extension := extensions[0].GetRegisteredExt()
+	assert.Equal(t, extension.Id.String(), strconv.Itoa(100))
 
 	// Wait for the Update response with delete
 	select {

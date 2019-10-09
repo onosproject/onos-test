@@ -35,7 +35,7 @@ type DevicePath struct {
 	pathDataValue string
 }
 
-func convertGetResults(response *gpb.GetResponse) ([]DevicePath, error) {
+func convertGetResults(response *gpb.GetResponse) ([]DevicePath, []*gnmi_ext.Extension, error) {
 	entryCount := len(response.Notification)
 	result := make([]DevicePath, entryCount)
 
@@ -58,7 +58,7 @@ func convertGetResults(response *gpb.GetResponse) ([]DevicePath, error) {
 		}
 	}
 
-	return result, nil
+	return result, response.Extension, nil
 }
 
 func extractSetTransactionID(response *gpb.SetResponse) string {
@@ -82,8 +82,7 @@ func GNMIGet(ctx context.Context, c client.Impl, paths []DevicePath) ([]DevicePa
 	if err != nil || response == nil {
 		return nil, nil, err
 	}
-	pathsResp, errResp := convertGetResults(response)
-	return pathsResp, getTZRequest.Extension, errResp
+	return convertGetResults(response)
 }
 
 // GNMISet generates a SET request on the given client for a path on a device
@@ -117,8 +116,8 @@ func GNMIDelete(ctx context.Context, c client.Impl, devicePaths []DevicePath) ([
 		return nil, err
 	}
 
-	_, err := c.(*gclient.Client).Set(ctx, setTZRequest)
-	return setTZRequest.Extension, err
+	response, err := c.(*gclient.Client).Set(ctx, setTZRequest)
+	return response.Extension, err
 }
 
 // MakeContext returns a new context for use in GNMI requests
