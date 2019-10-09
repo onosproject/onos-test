@@ -17,6 +17,7 @@ package integration
 import (
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
+	"strconv"
 	"testing"
 
 	"github.com/onosproject/onos-test/test/env"
@@ -51,24 +52,26 @@ func TestSinglePath(t *testing.T) {
 	setPath[0].pathDataType = StringVal
 	_, extensions, errorSet := GNMISet(MakeContext(), c, setPath)
 	assert.NoError(t, errorSet)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 1, len(extensions))
+	extension := extensions[0].GetRegisteredExt()
+	assert.Equal(t, extension.Id.String(), strconv.Itoa(100))
 
 	// Check that the value was set correctly
 	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(device, tzPath))
 	assert.NoError(t, errorAfter)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 	assert.NotEqual(t, "", valueAfter, "Query after set returned an error: %s\n", errorAfter)
 	assert.Equal(t, tzValue, valueAfter[0].pathDataValue, "Query after set returned the wrong value: %s\n", valueAfter)
 
 	// Remove the path we added
 	extensions, errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, tzPath))
 	assert.NoError(t, errorDelete)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 
 	//  Make sure it got removed
 	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, tzPath))
 	assert.NoError(t, errorAfterDelete)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 	assert.Equal(t, valueAfterDelete[0].pathDataValue, "",
 		"incorrect value found for path /system/clock/config/timezone-name after delete")
 }

@@ -125,7 +125,7 @@ func TestSubscribe(t *testing.T) {
 	// Check that the value was set correctly
 	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(device, subPath))
 	assert.NoError(t, errorAfter)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 	assert.NotEqual(t, "", valueAfter, "Query after set returned an error: %s\n", errorAfter)
 	assert.Equal(t, subValue, valueAfter[0].pathDataValue,
 		"Query after set returned the wrong value: %s\n", valueAfter)
@@ -133,7 +133,7 @@ func TestSubscribe(t *testing.T) {
 	// Remove the path we added
 	extensions, errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, subPath))
 	assert.NoError(t, errorDelete)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 
 	// Wait for the Update response with delete
 	select {
@@ -154,7 +154,7 @@ func TestSubscribe(t *testing.T) {
 	//  Make sure it got removed
 	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, subPath))
 	assert.NoError(t, errorAfterDelete)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 	assert.Equal(t, valueAfterDelete[0].pathDataValue, "",
 		"incorrect value found for path /system/clock/config/timezone-name after delete")
 }
@@ -186,7 +186,7 @@ func buildRequest(path *gnmi.Path, mode gnmi.SubscriptionList_Mode) (*gnmi.Subsc
 
 func validateResponse(t *testing.T, resp *gnmi.SubscribeResponse, device string, delete bool) {
 	//No extension should be provided since the device should be connected.
-	assert.Equal(t, len(resp.Extension), 0)
+	assert.Equal(t, 0, len(resp.Extension))
 
 	switch v := resp.Response.(type) {
 	default:

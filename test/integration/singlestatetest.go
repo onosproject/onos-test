@@ -46,7 +46,7 @@ func TestSingleState(t *testing.T) {
 	re := regexp.MustCompile(stateValueRegexp)
 	match := re.MatchString(valueAfter[0].pathDataValue)
 	assert.Equal(t, match, true, "Query for state returned the wrong value: %s\n", valueAfter)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 }
 
 func init() {

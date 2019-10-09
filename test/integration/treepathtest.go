@@ -60,7 +60,7 @@ func TestTreePath(t *testing.T) {
 	// Check that the name value was set correctly
 	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, setNamePath)
 	assert.NoError(t, errorAfter)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 	assert.NotEqual(t, "", valueAfter, "Query name after set returned an error: %s\n", errorAfter)
 	assert.Equal(t, newRootName, valueAfter[0].pathDataValue, "Query name after set returned the wrong value: %s\n", valueAfter)
 
@@ -69,25 +69,25 @@ func TestTreePath(t *testing.T) {
 	assert.NoError(t, errorAfter)
 	assert.NotEqual(t, "", valueAfter, "Query enabled after set returned an error: %s\n", errorAfter)
 	assert.Equal(t, "false", valueAfter[0].pathDataValue, "Query enabled after set returned the wrong value: %s\n", valueAfter)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 
 	// Remove the root path we added
 	extensions, errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, newRootPath))
 	assert.NoError(t, errorDelete)
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 
 	//  Make sure child got removed
 	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, newRootConfigNamePath))
 	assert.NoError(t, errorAfterDelete)
 	assert.Equal(t, valueAfterDelete[0].pathDataValue, "", "New child was not removed")
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 
 	//  Make sure new root got removed
 	valueAfterRootDelete, extensions, errorAfterRootDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, newRootPath))
 	assert.NoError(t, errorAfterRootDelete)
 	assert.Equal(t, valueAfterRootDelete[0].pathDataValue, "",
 		"New root was not removed")
-	assert.Equal(t, len(extensions), 0)
+	assert.Equal(t, 0, len(extensions))
 }
 
 func init() {
