@@ -69,9 +69,10 @@ func getDevicePathsWithValues(devices []string, paths []string, values []string)
 }
 
 func checkDeviceValue(t *testing.T, deviceGnmiClient client.Impl, devicePaths []DevicePath, expectedValue string) {
-	deviceValues, deviceValuesError := GNMIGet(MakeContext(), deviceGnmiClient, devicePaths)
+	deviceValues, extensions, deviceValuesError := GNMIGet(MakeContext(), deviceGnmiClient, devicePaths)
 	assert.NoError(t, deviceValuesError, "GNMI get operation to device returned an error")
 	assert.Equal(t, expectedValue, deviceValues[0].pathDataValue, "Query after set returned the wrong value: %s\n", expectedValue)
+	assert.Equal(t, len(extensions), 0)
 }
 
 func getDeviceGNMIClient(t *testing.T, device string) client.Impl {
@@ -97,17 +98,19 @@ func TestTransaction(t *testing.T) {
 
 	// Set values
 	var devicePathsForSet = getDevicePathsWithValues(devices, paths, values)
-	changeID, errorSet := GNMISet(MakeContext(), gnmiClient, devicePathsForSet)
+	changeID, extensions, errorSet := GNMISet(MakeContext(), gnmiClient, devicePathsForSet)
 	assert.NoError(t, errorSet)
 	assert.True(t, changeID != "")
+	assert.Equal(t, len(extensions), 0)
 
 	// Check that the values were set correctly
 	var devicePathsForGet = getDevicePaths(devices, paths)
-	getValuesAfterSet, getValueAfterSetError := GNMIGet(MakeContext(), gnmiClient, devicePathsForGet)
+	getValuesAfterSet, extensions, getValueAfterSetError := GNMIGet(MakeContext(), gnmiClient, devicePathsForGet)
 	assert.NoError(t, getValueAfterSetError, "GNMI get operation returned an error")
 	assert.NotEqual(t, "", getValuesAfterSet, "Query after set returned an error: %s\n", getValueAfterSetError)
 	assert.Equal(t, value1, getValuesAfterSet[0].pathDataValue, "Query after set returned the wrong value: %s\n", getValuesAfterSet)
 	assert.Equal(t, value2, getValuesAfterSet[1].pathDataValue, "Query after set 2 returned the wrong value: %s\n", getValuesAfterSet)
+	assert.Equal(t, len(extensions), 0)
 
 	// Check that the values are set on the devices
 	device1GnmiClient := getDeviceGNMIClient(t, device1)
@@ -128,9 +131,10 @@ func TestTransaction(t *testing.T) {
 	assert.Contains(t, rollbackResponse.Message, changeID, "rollbackResponse message does not contain change ID")
 
 	// Check that the values were really rolled back
-	getValuesAfterRollback, errorGetAfterRollback := GNMIGet(MakeContext(), gnmiClient, devicePathsForGet)
+	getValuesAfterRollback, extensions, errorGetAfterRollback := GNMIGet(MakeContext(), gnmiClient, devicePathsForGet)
 	assert.NoError(t, errorGetAfterRollback, "Get after rollback returned an error")
 	assert.NotNil(t, rollbackResponse, "Response for get after rollback is nil")
 	assert.Equal(t, "", getValuesAfterRollback[0].pathDataValue, "Query after rollback returned the wrong value: %s\n", getValuesAfterRollback)
 	assert.Equal(t, "", getValuesAfterRollback[1].pathDataValue, "Query after rollback returned the wrong value: %s\n", getValuesAfterRollback)
+	assert.Equal(t, len(extensions), 0)
 }

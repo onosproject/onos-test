@@ -102,7 +102,7 @@ func TestSubscribe(t *testing.T) {
 	setPath := makeDevicePath(device, subPath)
 	setPath[0].pathDataValue = subValue
 	setPath[0].pathDataType = StringVal
-	_, errorSet := GNMISet(MakeContext(), c, setPath)
+	_, _, errorSet := GNMISet(MakeContext(), c, setPath)
 	assert.NoError(t, errorSet)
 	var response *gnmi.SubscribeResponse
 
@@ -123,15 +123,17 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	// Check that the value was set correctly
-	valueAfter, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(device, subPath))
+	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(device, subPath))
 	assert.NoError(t, errorAfter)
+	assert.Equal(t, len(extensions), 0)
 	assert.NotEqual(t, "", valueAfter, "Query after set returned an error: %s\n", errorAfter)
 	assert.Equal(t, subValue, valueAfter[0].pathDataValue,
 		"Query after set returned the wrong value: %s\n", valueAfter)
 
 	// Remove the path we added
-	errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, subPath))
+	extensions, errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, subPath))
 	assert.NoError(t, errorDelete)
+	assert.Equal(t, len(extensions), 0)
 
 	// Wait for the Update response with delete
 	select {
@@ -150,8 +152,9 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	//  Make sure it got removed
-	valueAfterDelete, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, subPath))
+	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, subPath))
 	assert.NoError(t, errorAfterDelete)
+	assert.Equal(t, len(extensions), 0)
 	assert.Equal(t, valueAfterDelete[0].pathDataValue, "",
 		"incorrect value found for path /system/clock/config/timezone-name after delete")
 }
@@ -182,6 +185,9 @@ func buildRequest(path *gnmi.Path, mode gnmi.SubscriptionList_Mode) (*gnmi.Subsc
 }
 
 func validateResponse(t *testing.T, resp *gnmi.SubscribeResponse, device string, delete bool) {
+	//No extension should be provided since the device should be connected.
+	assert.Equal(t, len(resp.Extension), 0)
+
 	switch v := resp.Response.(type) {
 	default:
 		assert.Fail(t, "Unknown type", v)
@@ -212,6 +218,7 @@ func assertUpdateResponse(t *testing.T, response *gnmi.SubscribeResponse_Update,
 	assert.Equal(t, pathResponse.Elem[1].Name, "clock")
 	assert.Equal(t, pathResponse.Elem[2].Name, "config")
 	assert.Equal(t, pathResponse.Elem[3].Name, "timezone-name")
+	assert.Equal(t, response.Update.GetUpdate()[0].Val.GetStringVal(), subValue)
 	assert.Equal(t, response.Update.GetUpdate()[0].Val.GetStringVal(), subValue)
 }
 

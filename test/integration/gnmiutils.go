@@ -22,6 +22,7 @@ import (
 	"github.com/openconfig/gnmi/client"
 	gclient "github.com/openconfig/gnmi/client/gnmi"
 	gpb "github.com/openconfig/gnmi/proto/gnmi"
+	"github.com/openconfig/gnmi/proto/gnmi_ext"
 	"strings"
 )
 
@@ -65,7 +66,7 @@ func extractSetTransactionID(response *gpb.SetResponse) string {
 }
 
 // GNMIGet generates a GET request on the given client for a path on a device
-func GNMIGet(ctx context.Context, c client.Impl, paths []DevicePath) ([]DevicePath, error) {
+func GNMIGet(ctx context.Context, c client.Impl, paths []DevicePath) ([]DevicePath, []*gnmi_ext.Extension, error) {
 	protoString := ""
 	for _, devicePath := range paths {
 		protoString = protoString + MakeProtoPath(devicePath.deviceName, devicePath.path)
@@ -74,19 +75,19 @@ func GNMIGet(ctx context.Context, c client.Impl, paths []DevicePath) ([]DevicePa
 	getTZRequest := &gpb.GetRequest{}
 	if err := proto.UnmarshalText(protoString, getTZRequest); err != nil {
 		fmt.Printf("unable to parse gnmi.GetRequest from %q : %v", protoString, err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	response, err := c.(*gclient.Client).Get(ctx, getTZRequest)
 	if err != nil || response == nil {
-		return nil, err
+		return nil, nil, err
 	}
-
-	return convertGetResults(response)
+	pathsResp, errResp := convertGetResults(response)
+	return pathsResp, getTZRequest.Extension, errResp
 }
 
 // GNMISet generates a SET request on the given client for a path on a device
-func GNMISet(ctx context.Context, c client.Impl, devicePaths []DevicePath) (string, error) {
+func GNMISet(ctx context.Context, c client.Impl, devicePaths []DevicePath) (string, []*gnmi_ext.Extension, error) {
 	var protoBuilder strings.Builder
 	for _, devicePath := range devicePaths {
 		protoBuilder.WriteString(MakeProtoUpdatePath(devicePath))
@@ -94,18 +95,18 @@ func GNMISet(ctx context.Context, c client.Impl, devicePaths []DevicePath) (stri
 
 	setTZRequest := &gpb.SetRequest{}
 	if err := proto.UnmarshalText(protoBuilder.String(), setTZRequest); err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	setResult, setError := c.(*gclient.Client).Set(ctx, setTZRequest)
 	if setError != nil {
-		return "", setError
+		return "", nil, setError
 	}
-	return extractSetTransactionID(setResult), nil
+	return extractSetTransactionID(setResult), setResult.Extension, nil
 }
 
 // GNMIDelete generates a SET request on the given client to delete a path for a device
-func GNMIDelete(ctx context.Context, c client.Impl, devicePaths []DevicePath) error {
+func GNMIDelete(ctx context.Context, c client.Impl, devicePaths []DevicePath) ([]*gnmi_ext.Extension, error) {
 	var protoBuilder strings.Builder
 	for _, devicePath := range devicePaths {
 		protoBuilder.WriteString(MakeProtoDeletePath(devicePath.deviceName, devicePath.path))
@@ -113,11 +114,11 @@ func GNMIDelete(ctx context.Context, c client.Impl, devicePaths []DevicePath) er
 
 	setTZRequest := &gpb.SetRequest{}
 	if err := proto.UnmarshalText(protoBuilder.String(), setTZRequest); err != nil {
-		return err
+		return nil, err
 	}
 
 	_, err := c.(*gclient.Client).Set(ctx, setTZRequest)
-	return err
+	return setTZRequest.Extension, err
 }
 
 // MakeContext returns a new context for use in GNMI requests
