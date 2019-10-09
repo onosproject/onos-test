@@ -40,12 +40,13 @@ func TestSingleState(t *testing.T) {
 	assert.True(t, c != nil, "Fetching client returned nil")
 
 	// Check that the value was correctly retrieved from the device and store in the state cache
-	valueAfter, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(device, stateControllersPath))
+	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(device, stateControllersPath))
 	assert.NoError(t, errorAfter)
 	assert.NotEqual(t, "", valueAfter, "Query after state returned an error: %s\n", errorAfter)
 	re := regexp.MustCompile(stateValueRegexp)
 	match := re.MatchString(valueAfter[0].pathDataValue)
 	assert.Equal(t, match, true, "Query for state returned the wrong value: %s\n", valueAfter)
+	assert.Equal(t, 0, len(extensions))
 }
 
 func init() {

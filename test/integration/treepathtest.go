@@ -17,6 +17,7 @@ package integration
 import (
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
+	"strconv"
 	"testing"
 
 	"github.com/onosproject/onos-test/test/env"
@@ -46,7 +47,7 @@ func TestTreePath(t *testing.T) {
 	setNamePath := []DevicePath{
 		{deviceName: device, path: newRootConfigNamePath, pathDataValue: newRootName, pathDataType: StringVal},
 	}
-	_, errorSet := GNMISet(MakeContext(), c, setNamePath)
+	_, _, errorSet := GNMISet(MakeContext(), c, setNamePath)
 	assert.NoError(t, errorSet)
 
 	// Set values using gNMI client
@@ -54,36 +55,42 @@ func TestTreePath(t *testing.T) {
 		{deviceName: device, path: newRootDescriptionPath, pathDataValue: newDescription, pathDataType: StringVal},
 		{deviceName: device, path: newRootEnabledPath, pathDataValue: "false", pathDataType: BoolVal},
 	}
-	_, errorSet = GNMISet(MakeContext(), c, setPath)
+	_, _, errorSet = GNMISet(MakeContext(), c, setPath)
 	assert.NoError(t, errorSet)
 
 	// Check that the name value was set correctly
-	valueAfter, errorAfter := GNMIGet(MakeContext(), c, setNamePath)
+	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, setNamePath)
 	assert.NoError(t, errorAfter)
+	assert.Equal(t, 0, len(extensions))
 	assert.NotEqual(t, "", valueAfter, "Query name after set returned an error: %s\n", errorAfter)
 	assert.Equal(t, newRootName, valueAfter[0].pathDataValue, "Query name after set returned the wrong value: %s\n", valueAfter)
 
 	// Check that the enabled value was set correctly
-	valueAfter, errorAfter = GNMIGet(MakeContext(), c, makeDevicePath(device, newRootEnabledPath))
+	valueAfter, extensions, errorAfter = GNMIGet(MakeContext(), c, makeDevicePath(device, newRootEnabledPath))
 	assert.NoError(t, errorAfter)
 	assert.NotEqual(t, "", valueAfter, "Query enabled after set returned an error: %s\n", errorAfter)
 	assert.Equal(t, "false", valueAfter[0].pathDataValue, "Query enabled after set returned the wrong value: %s\n", valueAfter)
+	assert.Equal(t, 0, len(extensions))
 
 	// Remove the root path we added
-	errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, newRootPath))
+	extensions, errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, newRootPath))
 	assert.NoError(t, errorDelete)
+	assert.Equal(t, 1, len(extensions))
+	extension := extensions[0].GetRegisteredExt()
+	assert.Equal(t, extension.Id.String(), strconv.Itoa(100))
 
 	//  Make sure child got removed
-	valueAfterDelete, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, newRootConfigNamePath))
+	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, newRootConfigNamePath))
 	assert.NoError(t, errorAfterDelete)
-	assert.Equal(t, valueAfterDelete[0].pathDataValue, "",
-		"New child was not removed")
+	assert.Equal(t, valueAfterDelete[0].pathDataValue, "", "New child was not removed")
+	assert.Equal(t, 0, len(extensions))
 
 	//  Make sure new root got removed
-	valueAfterRootDelete, errorAfterRootDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, newRootPath))
+	valueAfterRootDelete, extensions, errorAfterRootDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, newRootPath))
 	assert.NoError(t, errorAfterRootDelete)
 	assert.Equal(t, valueAfterRootDelete[0].pathDataValue, "",
 		"New root was not removed")
+	assert.Equal(t, 0, len(extensions))
 }
 
 func init() {
