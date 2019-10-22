@@ -3,8 +3,8 @@ module github.com/onosproject/onos-test
 go 1.12
 
 require (
-	github.com/atomix/atomix-api v0.0.0-20191005223910-aa620357faa0
-	github.com/atomix/atomix-go-client v0.0.0-20191007173732-5328130c1310
+	github.com/atomix/atomix-api v0.0.0-20191017192115-4d6a4f8e87a3
+	github.com/atomix/atomix-go-client v0.0.0-20191017214255-835d39bd51ae
 	github.com/atomix/atomix-k8s-controller v0.0.0-20190905035228-0c2f92a4bc0e
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
@@ -15,12 +15,11 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
-	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/goveralls v0.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/onosproject/onos-config v0.0.0-20190829172900-8d24cb86fe8a
-	github.com/onosproject/onos-topo v0.0.0-20191007162302-b2f95b144981
+	github.com/onosproject/onos-config v0.0.0-20191021200741-e74483537b8a
+	github.com/onosproject/onos-topo v0.0.0-20191009212759-73d0cb9dfc91
 	github.com/openconfig/gnmi v0.0.0-20180912164834-33a1865c3029
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
