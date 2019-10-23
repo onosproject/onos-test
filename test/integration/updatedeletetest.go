@@ -46,35 +46,38 @@ func TestUpdateDelete(t *testing.T) {
 	setNamePath := []DevicePath{
 		{deviceName: device, path: udtestNamePath, pathDataValue: udtestNameValue, pathDataType: StringVal},
 	}
-	_, _, errorSet := GNMIUpdateAndDelete(MakeContext(), c, setNamePath, nil)
+
+	noPaths := make([]DevicePath, 0)
+
+	_, _, errorSet := GNMIUpdateAndDelete(MakeContext(), c, setNamePath, noPaths)
 	assert.NoError(t, errorSet)
 
-	// Set first path using gNMI client
-	setEnabledPath := []DevicePath{
+	// Set initial values for Enabled and Description using gNMI client
+	setInitialValuesPath := []DevicePath{
 		{deviceName: device, path: udtestEnabledPath, pathDataValue: "true", pathDataType: BoolVal},
 		{deviceName: device, path: udtestDescriptionPath, pathDataValue: udtestDescriptionValue, pathDataType: StringVal},
 	}
-	_, _, errorSet = GNMIUpdateAndDelete(MakeContext(), c, setEnabledPath, nil)
+	_, _, errorSet = GNMIUpdateAndDelete(MakeContext(), c, setInitialValuesPath, noPaths)
 	assert.NoError(t, errorSet)
 
-	// Set path2, delete path 1 using gNMI client
-	updatePath := []DevicePath{
+	// Update Enabled, delete Description using gNMI client
+	updateEnabledPath := []DevicePath{
 		{deviceName: device, path: udtestEnabledPath, pathDataValue: "false", pathDataType: BoolVal},
 	}
-	deletePath := []DevicePath{
+	deleteDescriptionPath := []DevicePath{
 		{deviceName: device, path: udtestDescriptionPath},
 	}
-	_, _, errorSet = GNMIUpdateAndDelete(MakeContext(), c, updatePath, deletePath)
+	_, _, errorSet = GNMIUpdateAndDelete(MakeContext(), c, updateEnabledPath, deleteDescriptionPath)
 	assert.NoError(t, errorSet)
 
-	// Check that the name value is still set correctly
-	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, updatePath)
+	// Check that the Enabled value is set correctly
+	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, updateEnabledPath)
 	assert.NoError(t, errorAfter)
 	assert.Equal(t, 0, len(extensions))
 	assert.NotEqual(t, "", valueAfter, "Query name after set returned an error: %s\n", errorAfter)
 	assert.Equal(t, "false", valueAfter[0].pathDataValue, "Query name after set returned the wrong value: %s\n", valueAfter)
 
-	//  Make sure deleted value got removed
+	//  Make sure Description got removed
 	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, udtestDescriptionPath))
 	assert.NoError(t, errorAfterDelete)
 	assert.Equal(t, valueAfterDelete[0].pathDataValue, "", "New child was not removed")
