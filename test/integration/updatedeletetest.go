@@ -42,13 +42,11 @@ func TestUpdateDelete(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, c != nil, "Fetching client returned nil")
 
-	noPaths := make([]DevicePath, 0)
-
 	// Create interface tree using gNMI client
 	setNamePath := []DevicePath{
 		{deviceName: device, path: udtestNamePath, pathDataValue: udtestNameValue, pathDataType: StringVal},
 	}
-	_, _, errorSet := GNMIUpdateAndDelete(MakeContext(), c, setNamePath, noPaths)
+	_, _, errorSet := GNMISet(MakeContext(), c, setNamePath, noPaths)
 	assert.NoError(t, errorSet)
 
 	// Set initial values for Enabled and Description using gNMI client
@@ -56,7 +54,7 @@ func TestUpdateDelete(t *testing.T) {
 		{deviceName: device, path: udtestEnabledPath, pathDataValue: "true", pathDataType: BoolVal},
 		{deviceName: device, path: udtestDescriptionPath, pathDataValue: udtestDescriptionValue, pathDataType: StringVal},
 	}
-	_, _, errorSet = GNMIUpdateAndDelete(MakeContext(), c, setInitialValuesPath, noPaths)
+	_, _, errorSet = GNMISet(MakeContext(), c, setInitialValuesPath, noPaths)
 	assert.NoError(t, errorSet)
 
 	// Update Enabled, delete Description using gNMI client
@@ -66,7 +64,7 @@ func TestUpdateDelete(t *testing.T) {
 	deleteDescriptionPath := []DevicePath{
 		{deviceName: device, path: udtestDescriptionPath},
 	}
-	_, _, errorSet = GNMIUpdateAndDelete(MakeContext(), c, updateEnabledPath, deleteDescriptionPath)
+	_, _, errorSet = GNMISet(MakeContext(), c, updateEnabledPath, deleteDescriptionPath)
 	assert.NoError(t, errorSet)
 
 	// Check that the Enabled value is set correctly

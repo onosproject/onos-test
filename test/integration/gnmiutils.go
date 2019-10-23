@@ -35,6 +35,8 @@ type DevicePath struct {
 	pathDataValue string
 }
 
+var noPaths = make([]DevicePath, 0)
+
 func convertGetResults(response *gpb.GetResponse) ([]DevicePath, []*gnmi_ext.Extension, error) {
 	entryCount := len(response.Notification)
 	result := make([]DevicePath, entryCount)
@@ -85,43 +87,8 @@ func GNMIGet(ctx context.Context, c client.Impl, paths []DevicePath) ([]DevicePa
 	return convertGetResults(response)
 }
 
-// GNMISet generates a SET request on the given client for a path on a device
-func GNMISet(ctx context.Context, c client.Impl, devicePaths []DevicePath) (string, []*gnmi_ext.Extension, error) {
-	var protoBuilder strings.Builder
-	for _, devicePath := range devicePaths {
-		protoBuilder.WriteString(MakeProtoUpdatePath(devicePath))
-	}
-
-	setTZRequest := &gpb.SetRequest{}
-	if err := proto.UnmarshalText(protoBuilder.String(), setTZRequest); err != nil {
-		return "", nil, err
-	}
-
-	setResult, setError := c.(*gclient.Client).Set(ctx, setTZRequest)
-	if setError != nil {
-		return "", nil, setError
-	}
-	return extractSetTransactionID(setResult), setResult.Extension, nil
-}
-
-// GNMIDelete generates a SET request on the given client to delete a path for a device
-func GNMIDelete(ctx context.Context, c client.Impl, devicePaths []DevicePath) ([]*gnmi_ext.Extension, error) {
-	var protoBuilder strings.Builder
-	for _, devicePath := range devicePaths {
-		protoBuilder.WriteString(MakeProtoDeletePath(devicePath.deviceName, devicePath.path))
-	}
-
-	setTZRequest := &gpb.SetRequest{}
-	if err := proto.UnmarshalText(protoBuilder.String(), setTZRequest); err != nil {
-		return nil, err
-	}
-
-	response, err := c.(*gclient.Client).Set(ctx, setTZRequest)
-	return response.Extension, err
-}
-
-// GNMIUpdateAndDelete generates a SET request on the given client for a path on a device
-func GNMIUpdateAndDelete(ctx context.Context, c client.Impl, updatePaths []DevicePath, deletePaths []DevicePath) (string, []*gnmi_ext.Extension, error) {
+// GNMISet generates a SET request on the given client for update and delete paths on a device
+func GNMISet(ctx context.Context, c client.Impl, updatePaths []DevicePath, deletePaths []DevicePath) (string, []*gnmi_ext.Extension, error) {
 	var protoBuilder strings.Builder
 	for _, updatePath := range updatePaths {
 		protoBuilder.WriteString(MakeProtoUpdatePath(updatePath))
