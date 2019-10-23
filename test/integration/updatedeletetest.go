@@ -32,7 +32,7 @@ const (
 	udtestDescriptionValue = "description"
 )
 
-// TestUpdateDelete tests create/set/delete of a tree of GNMI paths to a single device
+// TestUpdateDelete tests update and delete paths in a single GNMI request
 func TestUpdateDelete(t *testing.T) {
 	// Get the first configured device from the environment.
 	device := env.GetDevices()[0]
@@ -46,7 +46,7 @@ func TestUpdateDelete(t *testing.T) {
 	setNamePath := []DevicePath{
 		{deviceName: device, path: udtestNamePath, pathDataValue: udtestNameValue, pathDataType: StringVal},
 	}
-	_, _, errorSet := GNMISet(MakeContext(), c, setNamePath)
+	_, _, errorSet := GNMIUpdateAndDelete(MakeContext(), c, setNamePath, nil)
 	assert.NoError(t, errorSet)
 
 	// Set first path using gNMI client
@@ -54,7 +54,7 @@ func TestUpdateDelete(t *testing.T) {
 		{deviceName: device, path: udtestEnabledPath, pathDataValue: "true", pathDataType: BoolVal},
 		{deviceName: device, path: udtestDescriptionPath, pathDataValue: udtestDescriptionValue, pathDataType: StringVal},
 	}
-	_, _, errorSet = GNMISet(MakeContext(), c, setEnabledPath)
+	_, _, errorSet = GNMIUpdateAndDelete(MakeContext(), c, setEnabledPath, nil)
 	assert.NoError(t, errorSet)
 
 	// Set path2, delete path 1 using gNMI client
