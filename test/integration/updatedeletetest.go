@@ -24,15 +24,15 @@ import (
 )
 
 const (
-	udtestRootPath  = "/interfaces/interface[name=test]"
-	udtestNamePath     = udtestRootPath + "/config/name"
-	udtestEnabledPath = udtestRootPath + "/config/enabled"
-	udtestDescriptionPath = udtestRootPath + "/config/description"
-	udtestNameValue    = "test"
+	udtestRootPath         = "/interfaces/interface[name=test]"
+	udtestNamePath         = udtestRootPath + "/config/name"
+	udtestEnabledPath      = udtestRootPath + "/config/enabled"
+	udtestDescriptionPath  = udtestRootPath + "/config/description"
+	udtestNameValue        = "test"
 	udtestDescriptionValue = "description"
 )
 
-// TestTreePath tests create/set/delete of a tree of GNMI paths to a single device
+// TestUpdateDelete tests create/set/delete of a tree of GNMI paths to a single device
 func TestUpdateDelete(t *testing.T) {
 	// Get the first configured device from the environment.
 	device := env.GetDevices()[0]

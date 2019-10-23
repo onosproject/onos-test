@@ -120,7 +120,7 @@ func GNMIDelete(ctx context.Context, c client.Impl, devicePaths []DevicePath) ([
 	return response.Extension, err
 }
 
-// GNMISet generates a SET request on the given client for a path on a device
+// GNMIUpdateAndDelete generates a SET request on the given client for a path on a device
 func GNMIUpdateAndDelete(ctx context.Context, c client.Impl, updatePaths []DevicePath, deletePaths []DevicePath) (string, []*gnmi_ext.Extension, error) {
 	var protoBuilder strings.Builder
 	for _, updatePath := range updatePaths {
@@ -129,7 +129,7 @@ func GNMIUpdateAndDelete(ctx context.Context, c client.Impl, updatePaths []Devic
 	for _, deletePath := range deletePaths {
 		protoBuilder.WriteString(MakeProtoDeletePath(deletePath.deviceName, deletePath.path))
 	}
-	
+
 	setTZRequest := &gpb.SetRequest{}
 	if err := proto.UnmarshalText(protoBuilder.String(), setTZRequest); err != nil {
 		return "", nil, err
