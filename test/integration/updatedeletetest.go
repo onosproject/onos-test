@@ -42,13 +42,12 @@ func TestUpdateDelete(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, c != nil, "Fetching client returned nil")
 
+	noPaths := make([]DevicePath, 0)
+
 	// Create interface tree using gNMI client
 	setNamePath := []DevicePath{
 		{deviceName: device, path: udtestNamePath, pathDataValue: udtestNameValue, pathDataType: StringVal},
 	}
-
-	noPaths := make([]DevicePath, 0)
-
 	_, _, errorSet := GNMIUpdateAndDelete(MakeContext(), c, setNamePath, noPaths)
 	assert.NoError(t, errorSet)
 
