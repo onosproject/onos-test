@@ -50,7 +50,7 @@ func TestSinglePath(t *testing.T) {
 	setPath := makeDevicePath(device, tzPath)
 	setPath[0].pathDataValue = tzValue
 	setPath[0].pathDataType = StringVal
-	_, extensions, errorSet := GNMISet(MakeContext(), c, setPath)
+	_, extensions, errorSet := GNMISet(MakeContext(), c, setPath, noPaths)
 	assert.NoError(t, errorSet)
 	assert.Equal(t, 1, len(extensions))
 	extension := extensions[0].GetRegisteredExt()
@@ -64,7 +64,7 @@ func TestSinglePath(t *testing.T) {
 	assert.Equal(t, tzValue, valueAfter[0].pathDataValue, "Query after set returned the wrong value: %s\n", valueAfter)
 
 	// Remove the path we added
-	extensions, errorDelete := GNMIDelete(MakeContext(), c, makeDevicePath(device, tzPath))
+	_, extensions, errorDelete := GNMISet(MakeContext(), c, noPaths, makeDevicePath(device, tzPath))
 	assert.NoError(t, errorDelete)
 	assert.Equal(t, 1, len(extensions))
 	extension = extensions[0].GetRegisteredExt()
