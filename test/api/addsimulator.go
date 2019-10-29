@@ -12,25 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package api
 
 import (
-	"fmt"
 	"os"
+	"testing"
+
+	"github.com/onosproject/onos-test/pkg/onit/setup"
+	"gotest.tools/assert"
 
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
-	_ "github.com/onosproject/onos-test/test/api"
-	_ "github.com/onosproject/onos-test/test/atomix"
-	_ "github.com/onosproject/onos-test/test/config"
-	_ "github.com/onosproject/onos-test/test/integration"
-	_ "github.com/onosproject/onos-test/test/topo"
 )
 
-func main() {
-	cmd := runner.GetOnosTestRunnerCommand(test.Registry)
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+func init() {
+	test.Registry.RegisterTest("add-simulator", AddSimulator, []*runner.TestSuite{})
+}
+
+// AddSimulator test adding a simulator to the cluster
+func AddSimulator(t *testing.T) {
+	clusterID := os.Getenv("TEST_NAMESPACE")
+	testSetup := setup.New().
+		SetClusterID(clusterID).
+		SetSimulatorName("simulator-1").
+		Build()
+	testSetup.AddSimulator()
+	simulators, _ := testSetup.GetSimulators()
+	assert.Equal(t, len(simulators), 1)
+	testSetup.RemoveSimulator()
 }

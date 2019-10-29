@@ -79,46 +79,6 @@ func getStorePresets() []string {
 	return configs
 }
 
-// SetDefaultCluster sets the default cluster
-func setDefaultCluster(clusterID string) error {
-	if err := initConfig(); err != nil {
-		return err
-	}
-	viper.Set("cluster", clusterID)
-	return viper.WriteConfig()
-}
-
-// getDefaultCluster returns the default cluster
-func getDefaultCluster() string {
-	return viper.GetString("cluster")
-}
-
-func initConfig() error {
-	// If the configuration file is not found, initialize a configuration in the home dir.
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(*viper.ConfigFileNotFoundError); !ok {
-			home, err := homedir.Dir()
-			if err != nil {
-				return err
-			}
-
-			err = os.MkdirAll(home+"/.onos", 0777)
-			if err != nil {
-				return err
-			}
-
-			f, err := os.Create(home + "/.onos/onit.yaml")
-			if err != nil {
-				return err
-			}
-			f.Close()
-		} else {
-			return err
-		}
-	}
-	return nil
-}
-
 func init() {
 	home, err := homedir.Dir()
 	if err != nil {

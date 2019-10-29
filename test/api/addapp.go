@@ -12,25 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package api
 
 import (
-	"fmt"
 	"os"
+	"testing"
+
+	"github.com/onosproject/onos-test/pkg/onit/setup"
+	"gotest.tools/assert"
 
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
-	_ "github.com/onosproject/onos-test/test/api"
-	_ "github.com/onosproject/onos-test/test/atomix"
-	_ "github.com/onosproject/onos-test/test/config"
-	_ "github.com/onosproject/onos-test/test/integration"
-	_ "github.com/onosproject/onos-test/test/topo"
 )
 
-func main() {
-	cmd := runner.GetOnosTestRunnerCommand(test.Registry)
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+func init() {
+	test.Registry.RegisterTest("add-app", AddApp, []*runner.TestSuite{})
+}
+
+// AddApp test adding an application to the cluster
+func AddApp(t *testing.T) {
+	clusterID := os.Getenv("TEST_NAMESPACE")
+	testSetup := setup.New().
+		SetClusterID(clusterID).
+		SetAppName("onos-ztp").
+		SetImageName("onosproject/onos-ztp:latest").
+		SetImagePullPolicy("Always").
+		Build()
+	testSetup.AddApp()
+	apps, _ := testSetup.GetApps()
+	assert.Equal(t, len(apps), 1)
+	testSetup.RemoveApp()
 }

@@ -19,7 +19,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/onosproject/onos-test/pkg/onit/k8s"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 
 	"github.com/onosproject/onos-test/test"
 
@@ -65,6 +65,7 @@ func getRunTestCommand() *cobra.Command {
 			testNames := test.Registry.GetTestNames()
 			testID := fmt.Sprintf("test-%d", newUUIDInt())
 			testName := args
+
 			if Subset(testName, testNames) {
 				runTestsRemote(cmd, testID, "test", args, count)
 			} else {
@@ -73,7 +74,7 @@ func getRunTestCommand() *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster on which to run the test")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -100,7 +101,7 @@ func getRunTestSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster on which to run the test")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -128,7 +129,7 @@ func getRunBenchCommand() *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster on which to run the test")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -155,7 +156,7 @@ func getRunBenchSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 			}
 		},
 	}
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster on which to run the test")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster on which to run the test")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
@@ -165,11 +166,6 @@ func getRunBenchSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
 }
 
 func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests []string, count int) {
-	// Get the onit controller
-	controller, err := k8s.NewController()
-	if err != nil {
-		exitError(err)
-	}
 
 	// Get the cluster ID
 	clusterID, err := cmd.Flags().GetString("cluster")
@@ -177,8 +173,19 @@ func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests
 		exitError(err)
 	}
 
-	// Get the cluster controller
-	cluster, err := controller.GetCluster(clusterID)
+	testSetupBuilder := setup.New()
+	if clusterID != "" {
+		testSetupBuilder.SetClusterID(clusterID)
+		fmt.Println("The test will be executed on cluster ", clusterID)
+	} else {
+		testSetup := testSetupBuilder.Build()
+		err := testSetup.CreateCluster()
+		if err != nil {
+			exitError(err)
+		}
+	}
+	testSetup := testSetupBuilder.Build()
+	cluster, err := testSetup.GetCluster()
 	if err != nil {
 		exitError(err)
 	}

@@ -28,6 +28,7 @@ require (
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	google.golang.org/grpc v1.23.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
+	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.0.0-20190620073856-dcce3486da33
 	k8s.io/apiextensions-apiserver v0.0.0-20190325193600-475668423e9f
 	k8s.io/apimachinery v0.0.0-20190802060556-6fa4771c83b3

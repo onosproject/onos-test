@@ -12,25 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package api
 
 import (
-	"fmt"
 	"os"
+	"testing"
 
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
-	_ "github.com/onosproject/onos-test/test/api"
-	_ "github.com/onosproject/onos-test/test/atomix"
-	_ "github.com/onosproject/onos-test/test/config"
-	_ "github.com/onosproject/onos-test/test/integration"
-	_ "github.com/onosproject/onos-test/test/topo"
+	"gotest.tools/assert"
 )
 
-func main() {
-	cmd := runner.GetOnosTestRunnerCommand(test.Registry)
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+func init() {
+	test.Registry.RegisterTest("add-network", AddNetwork, []*runner.TestSuite{})
+}
+
+// AddNetwork test adding a stratum network to the cluster
+func AddNetwork(t *testing.T) {
+	clusterID := os.Getenv("TEST_NAMESPACE")
+	testSetup := setup.New().
+		SetClusterID(clusterID).
+		SetNetworkName("stratum-1").
+		Build()
+	testSetup.AddNetwork()
+	networks, _ := testSetup.GetNetworks()
+	assert.Equal(t, len(networks), 1)
+	testSetup.RemoveNetwork()
 }

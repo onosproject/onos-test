@@ -25,16 +25,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Contains tells whether array contains x.
-func Contains(array []string, elem string) bool {
-	for _, n := range array {
-		if elem == n {
-			return true
-		}
-	}
-	return false
-}
-
 // Subset returns true if the first array is completely
 // contained in the second array.
 func Subset(first, second []string) bool {
@@ -77,15 +67,6 @@ func GetOnitCommand(registry *runner.TestRegistry) *cobra.Command {
 	cmd.AddCommand(getOnosCliCommand())
 
 	return cmd
-}
-
-// newUUIDString returns a new string UUID
-func newUUIDString() string {
-	id, err := uuid.NewUUID()
-	if err != nil {
-		exitError(err)
-	}
-	return id.String()
 }
 
 // newUuidInt returns a numeric UUID

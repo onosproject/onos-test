@@ -15,12 +15,8 @@
 package cli
 
 import (
-	"fmt"
-	"path/filepath"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 
-	"github.com/onosproject/onos-test/pkg/onit/k8s"
-
-	"github.com/onosproject/onos-test/pkg/onit/console"
 	"github.com/spf13/cobra"
 )
 
@@ -51,11 +47,6 @@ func getFetchLogsCommand() *cobra.Command {
 		Short: "Download logs from a node",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Get the onit controller
-			controller, err := k8s.NewController()
-			if err != nil {
-				exitError(err)
-			}
 
 			// Get the cluster ID
 			clusterID, err := cmd.Flags().GetString("cluster")
@@ -63,47 +54,17 @@ func getFetchLogsCommand() *cobra.Command {
 				exitError(err)
 			}
 
-			// Get the cluster controller
-			cluster, err := controller.GetCluster(clusterID)
-			if err != nil {
-				exitError(err)
-			}
-
 			options := parseLogOptions(cmd)
-
 			destination, _ := cmd.Flags().GetString("destination")
-			if len(args) > 0 {
-				resourceID := args[0]
-				resources, err := cluster.GetResources(resourceID)
-				if err != nil {
-					exitError(err)
-				}
 
-				var status console.ErrorStatus
-				for _, resource := range resources {
-					path := filepath.Join(destination, fmt.Sprintf("%s.log", resource))
-					status = cluster.DownloadLogs(resource, path, options)
-				}
+			testSetup := setup.New().
+				SetClusterID(clusterID).
+				SetArgs(args).
+				SetLogOptions(options).
+				SetLogDestination(destination).
+				Build()
+			testSetup.FetchLogs()
 
-				if status.Failed() {
-					exitStatus(status)
-				}
-			} else {
-				nodes, err := cluster.GetNodes()
-				if err != nil {
-					exitError(err)
-				}
-
-				var status console.ErrorStatus
-				for _, node := range nodes {
-					path := filepath.Join(destination, fmt.Sprintf("%s.log", node.ID))
-					status = cluster.DownloadLogs(node.ID, path, options)
-				}
-
-				if status.Failed() {
-					exitStatus(status)
-				}
-			}
 		},
 	}
 
@@ -113,7 +74,7 @@ func getFetchLogsCommand() *cobra.Command {
 		"server before terminating the log output. This may not display a complete final line of logging, and may return "+
 		"slightly more or slightly less than the specified limit.")
 
-	cmd.Flags().StringP("cluster", "c", getDefaultCluster(), "the cluster for which to load the history")
+	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster for which to load the history")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}

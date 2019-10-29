@@ -25,6 +25,11 @@ import (
 
 // GetRestConfig returns the Kubernetes REST API configuration
 func GetRestConfig() (*rest.Config, error) {
+
+	restconfig, err := rest.InClusterConfig()
+	if err == nil {
+		return restconfig, nil
+	}
 	kubeconfig := os.Getenv("KUBECONFIG")
 	if kubeconfig == "" {
 		home := getHomeDir()

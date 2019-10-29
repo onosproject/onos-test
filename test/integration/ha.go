@@ -15,11 +15,12 @@
 package integration
 
 import (
+	"testing"
+
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
 	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func init() {

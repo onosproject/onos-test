@@ -10,6 +10,7 @@ RUN apk add libc6-compat
 
 USER nobody
 
+COPY configs /go/src/github.com/onosproject/onos-test/configs
 COPY --from=build /go/src/github.com/onosproject/onos-test/build/_output/onos-test-runner /usr/local/bin/onos-test-runner
 
 ENTRYPOINT ["onos-test-runner"]
