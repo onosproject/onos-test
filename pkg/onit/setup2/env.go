@@ -39,6 +39,7 @@ type TestEnv interface {
 type appOptions struct {
 	name  string
 	nodes int
+	image string
 }
 
 type AppOption interface {
@@ -60,6 +61,21 @@ func WithAppName(name string) AppOption {
 	}
 }
 
+type appImageOption struct {
+	image string
+}
+
+func (o appImageOption) apply(opts *appOptions) {
+	opts.image = o.image
+}
+
+// WithAppImage sets the app image name
+func WithAppImage(image string) AppOption {
+	return appImageOption{
+		image: image,
+	}
+}
+
 type appNodesOption struct {
 	nodes int
 }
@@ -76,7 +92,8 @@ func WithAppNodes(nodes int) AppOption {
 }
 
 type simulatorOptions struct {
-	name string
+	name  string
+	image string
 }
 
 type SimulatorOption interface {
@@ -95,5 +112,20 @@ func (o simulatorNameOption) apply(opts *simulatorOptions) {
 func WithSimulatorName(name string) SimulatorOption {
 	return simulatorNameOption{
 		name: name,
+	}
+}
+
+type simulatorImageOption struct {
+	image string
+}
+
+func (o simulatorImageOption) apply(opts *simulatorOptions) {
+	opts.image = o.image
+}
+
+// WithSimulatorImage sets the simulator image name
+func WithSimulatorImage(image string) SimulatorOption {
+	return simulatorImageOption{
+		image: image,
 	}
 }
