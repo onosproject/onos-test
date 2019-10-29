@@ -25,12 +25,18 @@ type ClusterSetup interface {
 
 	// SetPartitionSize sets the partition size
 	SetPartitionSize(partitionSize int) ClusterSetup
+
+	// SetPartitionImage sets the partition image name
+	SetPartitionImage(image string) ClusterSetup
 }
 
 // TopoSetup configures the topology service
 type TopoSetup interface {
 	// SetNodes sets the number of topo nodes
 	SetNodes(nodes int) TopoSetup
+
+	// SetImage sets the topo service image
+	SetImage(image string) TopoSetup
 }
 
 // ConfigSetup configures the config service
@@ -39,4 +45,7 @@ type ConfigSetup interface {
 
 	// SetNodes sets the number of config nodes
 	SetNodes(nodes int) ConfigSetup
+
+	// SetImage sets the config service image
+	SetImage(image string) ConfigSetup
 }
