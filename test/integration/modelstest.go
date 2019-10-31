@@ -17,6 +17,7 @@ package integration
 import (
 	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/onosproject/onos-test/test"
+	"google.golang.org/grpc/status"
 	"testing"
 
 	"github.com/onosproject/onos-test/test/env"
@@ -74,11 +75,10 @@ func TestModels(t *testing.T) {
 				setResult := makeDevicePath(device, path)
 				setResult[0].pathDataValue = value
 				setResult[0].pathDataType = valueType
-				_, _, errorSet := GNMISet(MakeContext(), gnmiClient, setResult, noPaths)
+				msg, _, errorSet := GNMISet(MakeContext(), gnmiClient, setResult, noPaths)
 				assert.NotNil(t, errorSet, "Set operation for %s does not generate an error", description)
-				assert.Contains(t, errorSet.Error(),
-					expectedError,
-					"set operation for %s generates wrong error", description)
+				assert.Contains(t, status.Convert(errorSet).Message(), expectedError,
+					"set operation for %s generates wrong error %s", description, msg)
 			})
 	}
 }
