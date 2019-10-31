@@ -48,7 +48,14 @@ func getTestContext() TestContext {
 
 // runCoordinator runs a test image in the coordinator context
 func runCoordinator(test *TestConfig) error {
-	coordinator, err := newTestCoordinator(test)
+	var coordinator Coordinator
+	var err error
+	switch test.Type {
+	case TestTypeTest:
+		coordinator, err = newTestCoordinator(test)
+	case TestTypeBenchmark:
+		coordinator, err = newBenchmarkCoordinator(test)
+	}
 	if err != nil {
 		return err
 	}
@@ -57,7 +64,14 @@ func runCoordinator(test *TestConfig) error {
 
 // runWorker runs a test image in the worker context
 func runWorker(test *TestConfig) error {
-	worker, err := newTestWorker(test)
+	var worker Worker
+	var err error
+	switch test.Type {
+	case TestTypeTest:
+		worker, err = newTestWorker(test)
+	case TestTypeBenchmark:
+		worker, err = newBenchmarkWorker(test)
+	}
 	if err != nil {
 		return err
 	}

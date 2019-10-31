@@ -67,7 +67,7 @@ func (r *TestRunner) Run() error {
 		return err
 	}
 
-	pod, err := r.startTest()
+	err := r.startTest()
 	if err != nil {
 		return err
 	}

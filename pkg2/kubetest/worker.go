@@ -8,7 +8,7 @@ import (
 )
 
 // newTestWorker returns a new test worker
-func newTestWorker(test *TestConfig) (*TestWorker, error) {
+func newTestWorker(test *TestConfig) (Worker, error) {
 	client, err := k8s.GetClient()
 	if err != nil {
 		return nil, err
@@ -19,6 +19,24 @@ func newTestWorker(test *TestConfig) (*TestWorker, error) {
 	}, nil
 }
 
+// newBenchmarkWorker returns a new test worker
+func newBenchmarkWorker(test *TestConfig) (Worker, error) {
+	client, err := k8s.GetClient()
+	if err != nil {
+		return nil, err
+	}
+	return &BenchmarkWorker{
+		client: client,
+		test:   test,
+	}, nil
+}
+
+// Worker runs a single test suite
+type Worker interface {
+	// Run runs a test suite
+	Run() error
+}
+
 // TestWorker runs a test job
 type TestWorker struct {
 	client client.Client
@@ -27,17 +45,6 @@ type TestWorker struct {
 
 // Run runs a test
 func (w *TestWorker) Run() error {
-	switch w.test.Type {
-	case TestTypeTest:
-		return w.runTest()
-	case TestTypeBenchmark:
-		return w.runBenchmark()
-	}
-	return nil
-}
-
-// runTest runs a test
-func (w *TestWorker) runTest() error {
 	test := Registry.tests[w.test.Suite]
 	if test == nil {
 		return fmt.Errorf("unknown test suite %s", w.test.Suite)
@@ -56,8 +63,14 @@ func (w *TestWorker) runTest() error {
 	return nil
 }
 
-// runBenchmark runs a benchmark
-func (w *TestWorker) runBenchmark() error {
+// BenchmarkWorker runs a benchmark job
+type BenchmarkWorker struct {
+	client client.Client
+	test   *TestConfig
+}
+
+// Run runs a benchmark
+func (w *BenchmarkWorker) Run() error {
 	benchmark := Registry.benchmarks[w.test.Suite]
 	if benchmark == nil {
 		return fmt.Errorf("unknown benchmark suite %s", w.test.Suite)
