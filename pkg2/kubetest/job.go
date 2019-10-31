@@ -11,6 +11,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
@@ -356,4 +357,19 @@ func (j *TestJob) getPod() (corev1.Pod, error) {
 		}
 	}
 	return corev1.Pod{}, fmt.Errorf("cannot locate test pod for test %s", j.test.TestID)
+}
+
+// TearDown tears down the job
+func (j *TestJob) TearDown() error {
+	ns := &corev1.Namespace{}
+	name := types.NamespacedName{
+		Name: j.test.TestID,
+	}
+	if err := j.client.Get(context.Background(), name, ns); err != nil {
+		return err
+	}
+	if err := j.client.Delete(context.Background(), ns); err != nil {
+		return nil
+	}
+	return nil
 }

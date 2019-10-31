@@ -149,6 +149,10 @@ func runJobs(jobs []*TestJob) error {
 			exitCode = code
 		}
 	}
+
+	for _, job := range jobs {
+		_ = job.TearDown()
+	}
 	os.Exit(exitCode)
 	return nil
 }
