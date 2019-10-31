@@ -1,6 +1,7 @@
 package kubetest
 
 import (
+	"errors"
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/onosproject/onos-test/pkg2/util/k8s"
@@ -76,6 +77,12 @@ func (r *TestRunner) Run() error {
 
 	// Get the stream of logs for the pod
 	pod, err := r.getPod()
+	if err != nil {
+		return err
+	} else if pod == nil {
+		return errors.New("cannot locate test pod")
+	}
+
 	req := r.client.CoreV1().Pods(namespace).GetLogs(pod.Name, &corev1.PodLogOptions{
 		Follow: true,
 	})
@@ -278,11 +285,19 @@ func (r *TestRunner) createTestConfig() error {
 		}
 		cm = &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      r.test.TestID,
+				Name:      configName,
 				Namespace: namespace,
 			},
 			Data: map[string]string{},
 		}
+		cm, err = r.client.CoreV1().ConfigMaps(namespace).Create(cm)
+		if err != nil {
+			return err
+		}
+	}
+
+	if cm.Data == nil {
+		cm.Data = make(map[string]string)
 	}
 	cm.Data[r.test.TestID] = string(data)
 
@@ -366,11 +381,11 @@ func (r *TestRunner) createTestJob() error {
 // awaitTestJobRunning blocks until the test job creates a pod in the RUNNING state
 func (r *TestRunner) awaitTestJobRunning() error {
 	for {
-		_, err := r.getPod()
+		pod, err := r.getPod()
 		if err == nil {
 			return nil
-		} else if !k8serrors.IsNotFound(err) {
-			return err
+		} else if pod != nil {
+			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
@@ -382,6 +397,8 @@ func (r *TestRunner) getStatus() (string, int, error) {
 		pod, err := r.getPod()
 		if err != nil {
 			return "", 0, err
+		} else if pod == nil {
+			return "", 0, errors.New("cannot locate test pod")
 		}
 		state := pod.Status.ContainerStatuses[0].State
 		if state.Terminated != nil {
@@ -392,25 +409,25 @@ func (r *TestRunner) getStatus() (string, int, error) {
 }
 
 // getPod finds the Pod for the given test
-func (r *TestRunner) getPod() (corev1.Pod, error) {
+func (r *TestRunner) getPod() (*corev1.Pod, error) {
 	pods, err := r.client.CoreV1().Pods(namespace).List(metav1.ListOptions{
 		LabelSelector: "test=" + r.test.TestID,
 	})
 	if err != nil {
-		return corev1.Pod{}, err
+		return nil, err
 	} else if len(pods.Items) > 0 {
 		for _, pod := range pods.Items {
 			if pod.Status.Phase == corev1.PodRunning && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].Ready {
-				return pod, nil
+				return &pod, nil
 			}
 		}
 		for _, pod := range pods.Items {
 			if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
-				return pod, nil
+				return &pod, nil
 			}
 		}
 	}
-	return corev1.Pod{}, fmt.Errorf("cannot locate test pod for test %s", r.test.TestID)
+	return nil, nil
 }
 
 // GetHistory returns the history of test runs on the cluster

@@ -3,7 +3,6 @@ package kubetest
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/ghodss/yaml"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -295,11 +294,11 @@ func (j *TestJob) createTestJob() error {
 // awaitTestJobRunning blocks until the test job creates a pod in the RUNNING state
 func (j *TestJob) awaitTestJobRunning() error {
 	for {
-		_, err := j.getPod()
+		pod, err := j.getPod()
 		if err == nil {
 			return nil
-		} else if !k8serrors.IsNotFound(err) {
-			return err
+		} else if pod != nil {
+			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
@@ -311,6 +310,8 @@ func (j *TestJob) awaitTestJobComplete() error {
 		pod, err := j.getPod()
 		if err != nil {
 			return err
+		} else if pod == nil {
+			return errors.New("cannot locate test pod")
 		}
 		state := pod.Status.ContainerStatuses[0].State
 		if state.Terminated != nil {
@@ -325,6 +326,8 @@ func (j *TestJob) getStatus() (string, int, error) {
 	pod, err := j.getPod()
 	if err != nil {
 		return "", 0, err
+	} else if pod == nil {
+		return "", 0, errors.New("cannot locate test pod")
 	}
 	state := pod.Status.ContainerStatuses[0].State
 	if state.Terminated != nil {
@@ -334,7 +337,7 @@ func (j *TestJob) getStatus() (string, int, error) {
 }
 
 // getPod finds the Pod for the given test
-func (j *TestJob) getPod() (corev1.Pod, error) {
+func (j *TestJob) getPod() (*corev1.Pod, error) {
 	pods := &corev1.PodList{}
 	opts := &client.ListOptions{
 		Namespace: j.test.TestID,
@@ -343,20 +346,20 @@ func (j *TestJob) getPod() (corev1.Pod, error) {
 		}),
 	}
 	if err := j.client.List(context.Background(), opts, pods); err != nil {
-		return corev1.Pod{}, err
+		return nil, err
 	} else if len(pods.Items) > 0 {
 		for _, pod := range pods.Items {
 			if pod.Status.Phase == corev1.PodRunning && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].Ready {
-				return pod, nil
+				return &pod, nil
 			}
 		}
 		for _, pod := range pods.Items {
 			if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
-				return pod, nil
+				return &pod, nil
 			}
 		}
 	}
-	return corev1.Pod{}, fmt.Errorf("cannot locate test pod for test %s", j.test.TestID)
+	return nil, nil
 }
 
 // TearDown tears down the job

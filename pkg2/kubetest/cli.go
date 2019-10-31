@@ -5,6 +5,8 @@ import (
 	"github.com/dustinkirkland/golang-petname"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
+	"math/rand"
+	"time"
 )
 
 // GetCommand returns the kubetest command
@@ -28,7 +30,7 @@ func getTestCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("image", "i", "", "the test image to run")
 	cmd.Flags().StringP("suite", "s", "", "the name of a suite to run")
-	cmd.Flags().String("image-pull-policy", string(corev1.PullAlways), "the image pull policy to use")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the image pull policy to use")
 	cmd.Flags().Duration("timeout", 0, "the test timeout")
 	return cmd
 }
@@ -65,7 +67,7 @@ func getBenchCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("image", "i", "", "the test image to run")
 	cmd.Flags().StringP("suite", "s", "", "the name of a suite to run")
-	cmd.Flags().String("image-pull-policy", string(corev1.PullAlways), "the image pull policy to use")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the image pull policy to use")
 	cmd.Flags().Duration("timeout", 0, "the test timeout")
 	return cmd
 }
@@ -103,7 +105,7 @@ func getRunCommand() *cobra.Command {
 	cmd.Flags().StringP("type", "t", "", "the type of test to run")
 	cmd.Flags().StringP("image", "i", "", "the test image to run")
 	cmd.Flags().StringP("suite", "s", "", "the name of a suite to run")
-	cmd.Flags().String("image-pull-policy", string(corev1.PullAlways), "the image pull policy to use")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the image pull policy to use")
 	cmd.Flags().Duration("timeout", 0, "the test timeout")
 	return cmd
 }
@@ -119,6 +121,10 @@ func runRunCommand(cmd *cobra.Command, args []string) error {
 	default:
 		return fmt.Errorf("unknown test type %s", typeName)
 	}
+}
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 // newTestID returns a new test ID
