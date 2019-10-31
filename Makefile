@@ -8,13 +8,19 @@ ONOS_TEST_DEBUG_VERSION := debug
 ONOS_BUILD_VERSION := stable
 
 build: # @HELP build the Go binaries and run all validations (default)
-build: build-onit
+build: build-kubetest build-onit
+
+build-kubetest:
+	go build -o build/_output/kubetest ./cmd/kubetest
 
 build-onit:
 	go build -o build/_output/onit ./cmd/onit
 
-build-tests:
+build-test-runner:
 	go build -o build/_output/onos-test-runner ./cmd/onos-test-runner
+
+build-onos-tests:
+	go build -o build/_output/onos-tests ./cmd/onos-tests
 
 test: # @HELP run the unit tests and source code validation
 test: build deps linters
@@ -44,6 +50,13 @@ integration: kind
 	onit add simulator
 	onit add simulator
 	onit run suite integration-tests
+
+onos-tests-docker: # @HELP build onos-tests Docker image
+	@go mod vendor
+	docker build . -f build/onos-tests/Dockerfile \
+		--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
+		-t onosproject/onos-tests:${ONOS_TEST_VERSION}
+	@rm -rf vendor
 
 onos-test-runner-docker: # @HELP build onos-test-runner Docker image
 	@go mod vendor
