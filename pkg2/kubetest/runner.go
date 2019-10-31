@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/onosproject/onos-test/pkg2/util/k8s"
+	"io"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -71,6 +73,39 @@ func (r *TestRunner) Run() error {
 	if err != nil {
 		return err
 	}
+
+	// Get the stream of logs for the pod
+	pod, err := r.getPod()
+	req := r.client.CoreV1().Pods(namespace).GetLogs(pod.Name, &corev1.PodLogOptions{
+		Follow: true,
+	})
+	reader, err := req.Stream()
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	// Stream the logs to stdout
+	buf := make([]byte, 1024)
+	for {
+		n, err := reader.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		fmt.Print(string(buf[:n]))
+	}
+
+	// Get the exit message and code
+	message, status, err := r.getStatus()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(message)
+	os.Exit(status)
 	return nil
 }
 

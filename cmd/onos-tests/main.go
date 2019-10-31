@@ -25,8 +25,9 @@ import (
 )
 
 func main() {
-	kubetest.Register("suite-one", &test2.SuiteOne{})
-	kubetest.Register("suite-two", &test2.SuiteTwo{})
-	kubetest.Register("suite-three", &test2.SuiteThree{})
+	kubetest.RegisterTests("suite-one", &test2.TestsOne{})
+	kubetest.RegisterTests("suite-two", &test2.TestsTwo{})
+	kubetest.RegisterTests("suite-three", &test2.TestsThree{})
+	kubetest.RegisterBenchmarks("benchmarks-one", &test2.BenchmarksOne{})
 	kubetest.Main()
 }

@@ -1,42 +1,21 @@
 package test2
 
 import (
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"testing"
+	"github.com/onosproject/onos-test/pkg2/kubetest"
 )
 
-type SuiteOne struct {
-
+type TestsOne struct {
+	*kubetest.Tests
 }
 
-func (s *SuiteOne) SetUp(client client.Client) {
-	panic("implement me")
+type TestsTwo struct {
+	*kubetest.Tests
 }
 
-func (s *SuiteOne) Run(t *testing.T) {
-	panic("implement me")
+type TestsThree struct {
+	*kubetest.Tests
 }
 
-type SuiteTwo struct {
-
-}
-
-func (s *SuiteTwo) SetUp(client client.Client) {
-	panic("implement me")
-}
-
-func (s *SuiteTwo) Run(t *testing.T) {
-	panic("implement me")
-}
-
-type SuiteThree struct {
-
-}
-
-func (s *SuiteThree) SetUp(client client.Client) {
-	panic("implement me")
-}
-
-func (s *SuiteThree) Run(t *testing.T) {
-	panic("implement me")
+type BenchmarksOne struct {
+	*kubetest.Benchmarks
 }
