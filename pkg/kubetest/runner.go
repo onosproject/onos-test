@@ -90,6 +90,7 @@ func (r *TestRunner) Run() error {
 	}
 
 	// Get the stream of logs for the pod
+	LogMessage("Joining test...")
 	pod, err := r.getPod()
 	if err != nil {
 		return err
@@ -300,6 +301,7 @@ func (r *TestRunner) createServiceAccount() error {
 
 // startTests starts running a test job
 func (r *TestRunner) startTest() error {
+	LogMessage("Starting test %s", r.test.TestID)
 	if err := r.createTestConfig(); err != nil {
 		return err
 	}
@@ -345,6 +347,8 @@ func (r *TestRunner) createTestConfig() error {
 
 // createTestJob creates the job to run tests
 func (r *TestRunner) createTestJob() error {
+	LogMessage("Deploying test coordinator...")
+
 	zero := int32(0)
 	one := int32(1)
 	job := &batchv1.Job{
@@ -414,16 +418,24 @@ func (r *TestRunner) createTestJob() error {
 	}
 
 	_, err := r.client.BatchV1().Jobs(namespace).Create(job)
+	if err == nil {
+		LogSuccess("Test coordinator deployment complete")
+	} else {
+		LogFailure("Failed to deploy test coordinator: %v", err)
+	}
 	return err
 }
 
 // awaitTestJobRunning blocks until the test job creates a pod in the RUNNING state
 func (r *TestRunner) awaitTestJobRunning() error {
+	LogMessage("Waiting for test job to start...")
 	for {
 		pod, err := r.getPod()
 		if err != nil {
+			LogFailure("Test coordinator startup failed: %v", err)
 			return err
 		} else if pod != nil {
+			LogSuccess("Test coordinator is running")
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
