@@ -223,6 +223,7 @@ func (j *TestJob) createTestConfig() error {
 
 // createTestJob creates the job to run tests
 func (j *TestJob) createTestJob() error {
+	zero := int32(0)
 	one := int32(1)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -236,7 +237,7 @@ func (j *TestJob) createTestJob() error {
 		Spec: batchv1.JobSpec{
 			Parallelism:  &one,
 			Completions:  &one,
-			BackoffLimit: &one,
+			BackoffLimit: &zero,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
@@ -255,7 +256,7 @@ func (j *TestJob) createTestJob() error {
 							Env: []corev1.EnvVar{
 								{
 									Name:  testContextEnv,
-									Value: string(TestContextCoordinator),
+									Value: string(TestContextWorker),
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{

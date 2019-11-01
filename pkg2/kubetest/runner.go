@@ -167,6 +167,7 @@ func (r *TestRunner) createClusterRole() error {
 					"events",
 					"configmaps",
 					"secrets",
+					"serviceaccounts",
 				},
 				Verbs: []string{
 					"*",
@@ -192,6 +193,29 @@ func (r *TestRunner) createClusterRole() error {
 				},
 				Resources: []string{
 					"poddisruptionbudgets",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"batch",
+				},
+				Resources: []string{
+					"jobs",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"rbac.authorization.k8s.io",
+				},
+				Resources: []string{
+					"clusterroles",
+					"clusterrolebindings",
 				},
 				Verbs: []string{
 					"*",
@@ -307,6 +331,7 @@ func (r *TestRunner) createTestConfig() error {
 
 // createTestJob creates the job to run tests
 func (r *TestRunner) createTestJob() error {
+	zero := int32(0)
 	one := int32(1)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -320,7 +345,7 @@ func (r *TestRunner) createTestJob() error {
 		Spec: batchv1.JobSpec{
 			Parallelism:  &one,
 			Completions:  &one,
-			BackoffLimit: &one,
+			BackoffLimit: &zero,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{

@@ -21,9 +21,11 @@ const (
 func Main() {
 	config, err := loadTestConfig()
 	if err != nil {
+		println("Failed to load configuration")
 		os.Exit(1)
 	}
 	if err := Run(config); err != nil {
+		println("Test run failed " + err.Error())
 		os.Exit(1)
 	}
 	os.Exit(0)
