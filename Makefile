@@ -69,9 +69,16 @@ images: # @HELP build all Docker images
 images: onos-test-runner-docker onos-tests-docker
 
 kind: # @HELP build Docker images and add them to the currently configured kind cluster
-kind: images
+kind: onos-test-runner-kind onos-tests-kind
+
+onos-test-runner-kind: # @HELP build the onos-test-runner Docker image and load it into a kind cluster
+onos-test-runner-kind: onos-test-runner-docker
 	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
 	kind load docker-image onosproject/onos-test-runner:${ONOS_TEST_VERSION}
+
+onos-tests-kind: # @HELP build the onos-tests Docker image and load it into a kind cluster
+onos-tests-kind: onos-tests-docker
+	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
 	kind load docker-image onosproject/onos-tests:${ONOS_TEST_VERSION}
 
 k3d: # @HELP build Docker images and add them to the currently configured k3d cluster

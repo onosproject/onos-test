@@ -310,8 +310,8 @@ func (j *TestJob) createTestJob() error {
 func (j *TestJob) awaitTestJobRunning() error {
 	for {
 		pod, err := j.getPod()
-		if err == nil {
-			return nil
+		if err != nil {
+			return err
 		} else if pod != nil {
 			return nil
 		}

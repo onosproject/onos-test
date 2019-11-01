@@ -421,8 +421,8 @@ func (r *TestRunner) createTestJob() error {
 func (r *TestRunner) awaitTestJobRunning() error {
 	for {
 		pod, err := r.getPod()
-		if err == nil {
-			return nil
+		if err != nil {
+			return err
 		} else if pod != nil {
 			return nil
 		}
