@@ -15,11 +15,10 @@
 package kubetest
 
 import (
+	"bufio"
 	"errors"
-	"fmt"
 	"github.com/ghodss/yaml"
 	"github.com/onosproject/onos-test/pkg/util/k8s"
-	"io"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -89,10 +88,13 @@ func (r *TestRunner) Run() error {
 		return err
 	}
 
+	step := NewStep(r.test.TestID, "Run test")
+	step.Start()
+
 	// Get the stream of logs for the pod
-	LogMessage("Joining test...")
 	pod, err := r.getPod()
 	if err != nil {
+		step.Fail(err)
 		return err
 	} else if pod == nil {
 		return errors.New("cannot locate test pod")
@@ -103,30 +105,25 @@ func (r *TestRunner) Run() error {
 	})
 	reader, err := req.Stream()
 	if err != nil {
+		step.Fail(err)
 		return err
 	}
 	defer reader.Close()
 
 	// Stream the logs to stdout
-	buf := make([]byte, 1024)
-	for {
-		n, err := reader.Read(buf)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return err
-		}
-		fmt.Print(string(buf[:n]))
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		printLog(scanner.Text())
 	}
 
 	// Get the exit message and code
-	message, status, err := r.getStatus()
+	_, status, err := r.getStatus()
 	if err != nil {
+		step.Fail(err)
 		return err
 	}
 
-	fmt.Println(message)
+	step.Complete()
 	os.Exit(status)
 	return nil
 }
@@ -301,14 +298,22 @@ func (r *TestRunner) createServiceAccount() error {
 
 // startTests starts running a test job
 func (r *TestRunner) startTest() error {
-	LogMessage("Starting test %s", r.test.TestID)
+	step := NewStep(r.test.TestID, "Starting test")
+	step.Start()
 	if err := r.createTestConfig(); err != nil {
+		step.Fail(err)
 		return err
 	}
 	if err := r.createTestJob(); err != nil {
+		step.Fail(err)
 		return err
 	}
-	return r.awaitTestJobRunning()
+	if err := r.awaitTestJobRunning(); err != nil {
+		step.Fail(err)
+		return err
+	}
+	step.Complete()
+	return nil
 }
 
 // createTestConfig creates a ConfigMap for the test configuration
@@ -347,7 +352,8 @@ func (r *TestRunner) createTestConfig() error {
 
 // createTestJob creates the job to run tests
 func (r *TestRunner) createTestJob() error {
-	LogMessage("Deploying test coordinator...")
+	step := NewStep(r.test.TestID, "Deploy test coordinator")
+	step.Start()
 
 	zero := int32(0)
 	one := int32(1)
@@ -418,24 +424,21 @@ func (r *TestRunner) createTestJob() error {
 	}
 
 	_, err := r.client.BatchV1().Jobs(namespace).Create(job)
-	if err == nil {
-		LogSuccess("Test coordinator deployment complete")
-	} else {
-		LogFailure("Failed to deploy test coordinator: %v", err)
+	if err != nil {
+		step.Fail(err)
+		return err
 	}
-	return err
+	step.Complete()
+	return nil
 }
 
 // awaitTestJobRunning blocks until the test job creates a pod in the RUNNING state
 func (r *TestRunner) awaitTestJobRunning() error {
-	LogMessage("Waiting for test job to start...")
 	for {
 		pod, err := r.getPod()
 		if err != nil {
-			LogFailure("Test coordinator startup failed: %v", err)
 			return err
 		} else if pod != nil {
-			LogSuccess("Test coordinator is running")
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)

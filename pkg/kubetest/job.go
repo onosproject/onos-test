@@ -37,15 +37,30 @@ type TestJob struct {
 
 // Start starts the test job
 func (j *TestJob) Start() error {
-	if err := j.ensureNamespace(); err != nil {
+	step := NewStep(j.test.TestID, "Start test worker")
+	step.Start()
+	if err := j.setupNamespace(); err != nil {
+		step.Fail(err)
 		return err
 	}
-	return j.startTests()
+	if err := j.startTests(); err != nil {
+		step.Fail(err)
+		return err
+	}
+	step.Complete()
+	return nil
 }
 
 // WaitForComplete waits for the test job to finish running
 func (j *TestJob) WaitForComplete() error {
-	return j.awaitTestJobComplete()
+	step := NewStep(j.test.TestID, "Run test worker")
+	step.Start()
+	if err := j.awaitTestJobComplete(); err != nil {
+		step.Fail(err)
+		return err
+	}
+	step.Complete()
+	return nil
 }
 
 // GetResult gets the job result
@@ -53,30 +68,40 @@ func (j *TestJob) GetResult() (string, int, error) {
 	return j.getStatus()
 }
 
-// ensureNamespace sets up the test namespace
-func (j *TestJob) ensureNamespace() error {
+// setupNamespace sets up the test namespace
+func (j *TestJob) setupNamespace() error {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: j.test.TestID,
 		},
 	}
+	step := NewStep(j.test.TestID, "Create worker namespace")
+	step.Start()
 	if err := j.client.Create(context.Background(), ns); err != nil && !k8serrors.IsAlreadyExists(err) {
+		step.Fail(err)
 		return err
 	}
+	step.Complete()
 	return j.setupRBAC()
 }
 
 // setupRBAC sets up role based access controls for the cluster
 func (j *TestJob) setupRBAC() error {
+	step := NewStep(j.test.TestID, "Set up RBAC")
+	step.Start()
 	if err := j.createClusterRole(); err != nil {
+		step.Fail(err)
 		return err
 	}
 	if err := j.createClusterRoleBinding(); err != nil {
+		step.Fail(err)
 		return err
 	}
 	if err := j.createServiceAccount(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Complete()
 	return nil
 }
 
