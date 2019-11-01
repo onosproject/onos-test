@@ -20,8 +20,8 @@ import (
 	_ "github.com/onosproject/onos-test/test/atomix"
 	_ "github.com/onosproject/onos-test/test/config"
 	_ "github.com/onosproject/onos-test/test/integration"
-	_ "github.com/onosproject/onos-test/test/topo"
 	test "github.com/onosproject/onos-test/test/kubetest"
+	_ "github.com/onosproject/onos-test/test/topo"
 )
 
 func main() {

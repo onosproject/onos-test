@@ -30,7 +30,9 @@ const configFile = "config.yaml"
 type TestType string
 
 const (
-	TestTypeTest      TestType = "test"
+	// TestTypeTest is a type indicating a test
+	TestTypeTest TestType = "test"
+	// TestTypeBenchmark is a type indicating a benchmark
 	TestTypeBenchmark TestType = "benchmark"
 )
 

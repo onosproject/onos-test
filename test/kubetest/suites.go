@@ -17,24 +17,40 @@ package kubetest
 import (
 	"github.com/atomix/atomix-go-client/pkg/client"
 	"github.com/onosproject/onos-test/pkg/kubetest"
+	"testing"
 )
 
+// TestsOne is a test
 type TestsOne struct {
 	*kubetest.Tests
 }
 
-func (t *TestsOne) SetupTestSuite(client client.Client) {
+// SetupTestSuite sets up the TestOne test suite
+func (s *TestsOne) SetupTestSuite(client client.Client) {
 
 }
 
+// TestFoo is an example test case
+func (s *TestsOne) TestFoo(t *testing.T) {
+
+}
+
+// TestsTwo is a test suite
 type TestsTwo struct {
 	*kubetest.Tests
 }
 
+// TestBar is an example test case
+func (s *TestsTwo) TestBar(t *testing.T) {
+
+}
+
+// TestsThree is an example test
 type TestsThree struct {
 	*kubetest.Tests
 }
 
+// BenchmarksOne is an example benchmark
 type BenchmarksOne struct {
 	*kubetest.Benchmarks
 }

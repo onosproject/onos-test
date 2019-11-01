@@ -36,12 +36,12 @@ type TestRegistry struct {
 	benchmarks map[string]BenchmarkSuite
 }
 
-// Register registers a test suite
+// RegisterTests registers a test suite
 func (s *TestRegistry) RegisterTests(name string, suite TestSuite) {
 	s.tests[name] = suite
 }
 
-// Register registers a benchmark suite
+// RegisterBenchmarks registers a benchmark suite
 func (s *TestRegistry) RegisterBenchmarks(name string, suite BenchmarkSuite) {
 	s.benchmarks[name] = suite
 }

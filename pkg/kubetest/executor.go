@@ -27,8 +27,10 @@ type TestContext string
 const (
 	testContextEnv = "TEST_CONTEXT"
 
+	// TestContextCoordinator is a coordinator test context
 	TestContextCoordinator TestContext = "coordinator"
-	TestContextWorker      TestContext = "worker"
+	// TestContextWorker is a worker test context
+	TestContextWorker TestContext = "worker"
 )
 
 // Main runs a test

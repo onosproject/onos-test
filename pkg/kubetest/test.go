@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/util/k8s"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"os"
 	"reflect"
 	"regexp"
@@ -32,7 +31,6 @@ var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 // Tests is a suite of tests run on a single cluster
 type Tests struct {
 	*assert.Assertions
-	require *require.Assertions
 }
 
 // Run runs the tests
