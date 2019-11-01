@@ -15,19 +15,19 @@
 package main
 
 import (
-	"github.com/onosproject/onos-test/pkg2/kubetest"
+	"github.com/onosproject/onos-test/pkg/kubetest"
 	_ "github.com/onosproject/onos-test/test/api"
 	_ "github.com/onosproject/onos-test/test/atomix"
 	_ "github.com/onosproject/onos-test/test/config"
 	_ "github.com/onosproject/onos-test/test/integration"
 	_ "github.com/onosproject/onos-test/test/topo"
-	"github.com/onosproject/onos-test/test2"
+	test "github.com/onosproject/onos-test/test/kubetest"
 )
 
 func main() {
-	kubetest.RegisterTests("suite-one", &test2.TestsOne{})
-	kubetest.RegisterTests("suite-two", &test2.TestsTwo{})
-	kubetest.RegisterTests("suite-three", &test2.TestsThree{})
-	kubetest.RegisterBenchmarks("benchmarks-one", &test2.BenchmarksOne{})
+	kubetest.RegisterTests("suite-one", &test.TestsOne{})
+	kubetest.RegisterTests("suite-two", &test.TestsTwo{})
+	kubetest.RegisterTests("suite-three", &test.TestsThree{})
+	kubetest.RegisterBenchmarks("benchmarks-one", &test.BenchmarksOne{})
 	kubetest.Main()
 }

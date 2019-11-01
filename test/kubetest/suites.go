@@ -12,18 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package kubetest
 
 import (
-	"fmt"
+	"github.com/atomix/atomix-go-client/pkg/client"
 	"github.com/onosproject/onos-test/pkg/kubetest"
-	"os"
 )
 
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+type TestsOne struct {
+	*kubetest.Tests
+}
+
+func (t *TestsOne) SetupTestSuite(client client.Client) {
+
+}
+
+type TestsTwo struct {
+	*kubetest.Tests
+}
+
+type TestsThree struct {
+	*kubetest.Tests
+}
+
+type BenchmarksOne struct {
+	*kubetest.Benchmarks
 }
