@@ -45,6 +45,8 @@ func (s *Tests) Run(t *testing.T) {
 
 // TestSuite is an identifier interface for test suites
 type TestSuite interface {
+	KubeAPIProvider
+
 	// Run runs the test suite
 	Run(t *testing.T)
 }
