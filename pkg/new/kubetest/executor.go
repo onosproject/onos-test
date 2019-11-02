@@ -25,7 +25,8 @@ import (
 type TestContext string
 
 const (
-	testContextEnv = "TEST_CONTEXT"
+	testNamespaceEnv = "TEST_NAMESPACE"
+	testContextEnv   = "TEST_CONTEXT"
 
 	// TestContextCoordinator is a coordinator test context
 	TestContextCoordinator TestContext = "coordinator"

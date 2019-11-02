@@ -3,11 +3,13 @@ package kubetest
 import (
 	"github.com/onosproject/onos-test/pkg/new/util/k8s"
 	"k8s.io/client-go/rest"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // getKubeAPI returns the Kubernetes API for the current environment
 func getKubeAPI() KubeAPI {
+	namespace := os.Getenv(testNamespaceEnv)
 	config, err := k8s.GetRestConfig()
 	if err != nil {
 		panic(err)
@@ -17,8 +19,9 @@ func getKubeAPI() KubeAPI {
 		panic(err)
 	}
 	return &kubeAPI{
-		config: config,
-		client: client,
+		namespace: namespace,
+		config:    config,
+		client:    client,
 	}
 }
 
@@ -30,6 +33,9 @@ type KubeAPIProvider interface {
 
 // KubeAPI exposes the Kubernetes API to tests
 type KubeAPI interface {
+	// Namespace returns the Kubernetes namespace
+	Namespace() string
+
 	// Config returns the Kubernetes REST configuration
 	Config() *rest.Config
 
@@ -39,8 +45,13 @@ type KubeAPI interface {
 
 // kubeAPI provides the Kubernetes API
 type kubeAPI struct {
-	config *rest.Config
-	client client.Client
+	namespace string
+	config    *rest.Config
+	client    client.Client
+}
+
+func (k *kubeAPI) Namespace() string {
+	return k.namespace
 }
 
 func (k *kubeAPI) Config() *rest.Config {

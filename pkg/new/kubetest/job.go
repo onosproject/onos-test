@@ -298,6 +298,10 @@ func (j *TestJob) createTestJob() error {
 									Name:  testContextEnv,
 									Value: string(TestContextWorker),
 								},
+								{
+									Name:  testNamespaceEnv,
+									Value: j.test.TestID,
+								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
