@@ -16,14 +16,11 @@ package kubetest
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/util/k8s"
 	"github.com/stretchr/testify/assert"
-	"k8s.io/client-go/rest"
 	"os"
 	"reflect"
 	"regexp"
 	"runtime/debug"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 )
 
@@ -32,29 +29,24 @@ var allBenchmarksFilter = func(_, _ string) (bool, error) { return true, nil }
 // Benchmarks is a suite of benchmarks run on a single cluster
 type Benchmarks struct {
 	*assert.Assertions
-	Config *rest.Config
-	Client client.Client
+	kube KubeAPI
+}
+
+// KubeAPI returns the Kubernetes API
+func (s *Benchmarks) KubeAPI() KubeAPI {
+	return s.kube
 }
 
 // Run runs the benchmarks
 func (s *Benchmarks) Run(b *testing.B) {
-	config, err := k8s.GetRestConfig()
-	if err != nil {
-		panic(err)
-	}
-	client, err := client.New(config, client.Options{})
-	if err != nil {
-		panic(err)
-	}
-
-	s.Config = config
-	s.Client = client
-
+	s.kube = getKubeAPI()
 	RunBenchmarks(b, s)
 }
 
 // BenchmarkSuite is an identifier interface for benchmark suites
 type BenchmarkSuite interface {
+	KubeAPIProvider
+
 	// Run runs the benchmark suite
 	Run(b *testing.B)
 }
