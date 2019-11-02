@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"github.com/ghodss/yaml"
+	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -37,7 +38,7 @@ type TestJob struct {
 
 // Start starts the test job
 func (j *TestJob) Start() error {
-	step := NewStep(j.test.TestID, "Start test worker")
+	step := logging.NewStep(j.test.TestID, "Start test worker")
 	step.Start()
 	if err := j.setupNamespace(); err != nil {
 		step.Fail(err)
@@ -53,7 +54,7 @@ func (j *TestJob) Start() error {
 
 // WaitForComplete waits for the test job to finish running
 func (j *TestJob) WaitForComplete() error {
-	step := NewStep(j.test.TestID, "Run test worker")
+	step := logging.NewStep(j.test.TestID, "Run test worker")
 	step.Start()
 	if err := j.awaitTestJobComplete(); err != nil {
 		step.Fail(err)
@@ -75,7 +76,7 @@ func (j *TestJob) setupNamespace() error {
 			Name: j.test.TestID,
 		},
 	}
-	step := NewStep(j.test.TestID, "Create worker namespace")
+	step := logging.NewStep(j.test.TestID, "Create worker namespace")
 	step.Start()
 	if err := j.client.Create(context.Background(), ns); err != nil && !k8serrors.IsAlreadyExists(err) {
 		step.Fail(err)
@@ -87,7 +88,7 @@ func (j *TestJob) setupNamespace() error {
 
 // setupRBAC sets up role based access controls for the cluster
 func (j *TestJob) setupRBAC() error {
-	step := NewStep(j.test.TestID, "Set up RBAC")
+	step := logging.NewStep(j.test.TestID, "Set up RBAC")
 	step.Start()
 	if err := j.createClusterRole(); err != nil {
 		step.Fail(err)

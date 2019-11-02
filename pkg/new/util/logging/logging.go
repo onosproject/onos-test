@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubetest
+package logging
 
 import (
 	"fmt"
@@ -56,8 +56,8 @@ func (s *Step) Fail(err error) {
 	fmt.Fprintln(writer, color.RedString(fmt.Sprintf("%s %s %s %s", failure, time.Now().Format(time.RFC3339), s.test, s.name)))
 }
 
-// printLog prints the given log line
-func printLog(line string) {
+// Print prints the given log line
+func Print(line string) {
 	if line[0] == success[0] {
 		fmt.Fprintln(writer, color.GreenString(line))
 	} else if line[0] == failure[0] {
