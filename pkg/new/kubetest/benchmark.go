@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/util/k8s"
 	"github.com/stretchr/testify/assert"
+	"k8s.io/client-go/rest"
 	"os"
 	"reflect"
 	"regexp"
@@ -31,10 +32,24 @@ var allBenchmarksFilter = func(_, _ string) (bool, error) { return true, nil }
 // Benchmarks is a suite of benchmarks run on a single cluster
 type Benchmarks struct {
 	*assert.Assertions
+	Config *rest.Config
+	Client client.Client
 }
 
 // Run runs the benchmarks
 func (s *Benchmarks) Run(b *testing.B) {
+	config, err := k8s.GetRestConfig()
+	if err != nil {
+		panic(err)
+	}
+	client, err := client.New(config, client.Options{})
+	if err != nil {
+		panic(err)
+	}
+
+	s.Config = config
+	s.Client = client
+
 	RunBenchmarks(b, s)
 }
 
@@ -46,22 +61,22 @@ type BenchmarkSuite interface {
 
 // SetupBenchmarkSuite is an interface for setting up a suite of benchmarks
 type SetupBenchmarkSuite interface {
-	SetupBenchmarkSuite(client.Client)
+	SetupBenchmarkSuite()
 }
 
 // SetupBenchmark is an interface for setting up individual benchmarks
 type SetupBenchmark interface {
-	SetupBenchmark(client.Client)
+	SetupBenchmark()
 }
 
 // TearDownBenchmarkSuite is an interface for tearing down a suite of benchmarks
 type TearDownBenchmarkSuite interface {
-	TearDownBenchmarkSuite(client.Client)
+	TearDownBenchmarkSuite()
 }
 
 // TearDownBenchmark is an interface for tearing down individual benchmarks
 type TearDownBenchmark interface {
-	TearDownBenchmark(client.Client)
+	TearDownBenchmark()
 }
 
 // BeforeBenchmark is an interface for executing code before every benchmark
@@ -86,11 +101,6 @@ func failBenchmarkOnPanic(b *testing.B) {
 func RunBenchmarks(b *testing.B, suite BenchmarkSuite) {
 	defer failBenchmarkOnPanic(b)
 
-	client, err := k8s.GetClient()
-	if err != nil {
-		panic(err)
-	}
-
 	suiteSetupDone := false
 
 	methodFinder := reflect.TypeOf(suite)
@@ -107,11 +117,11 @@ func RunBenchmarks(b *testing.B, suite BenchmarkSuite) {
 		}
 		if !suiteSetupDone {
 			if setupBenchmarkSuite, ok := suite.(SetupBenchmarkSuite); ok {
-				setupBenchmarkSuite.SetupBenchmarkSuite(client)
+				setupBenchmarkSuite.SetupBenchmarkSuite()
 			}
 			defer func() {
 				if tearDownBenchmarkSuite, ok := suite.(TearDownBenchmarkSuite); ok {
-					tearDownBenchmarkSuite.TearDownBenchmarkSuite(client)
+					tearDownBenchmarkSuite.TearDownBenchmarkSuite()
 				}
 			}()
 			suiteSetupDone = true
@@ -122,7 +132,7 @@ func RunBenchmarks(b *testing.B, suite BenchmarkSuite) {
 				defer failBenchmarkOnPanic(b)
 
 				if setupBenchmarkSuite, ok := suite.(SetupBenchmark); ok {
-					setupBenchmarkSuite.SetupBenchmark(client)
+					setupBenchmarkSuite.SetupBenchmark()
 				}
 				if beforeBenchmarkSuite, ok := suite.(BeforeBenchmark); ok {
 					beforeBenchmarkSuite.BeforeBenchmark(method.Name)
@@ -132,7 +142,7 @@ func RunBenchmarks(b *testing.B, suite BenchmarkSuite) {
 						afterBenchmarkSuite.AfterBenchmark(method.Name)
 					}
 					if tearDownBenchmarkSuite, ok := suite.(TearDownBenchmark); ok {
-						tearDownBenchmarkSuite.TearDownBenchmark(client)
+						tearDownBenchmarkSuite.TearDownBenchmark()
 					}
 				}()
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(b)})

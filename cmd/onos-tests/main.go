@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/onosproject/onos-test/pkg/kubetest"
+	"github.com/onosproject/onos-test/pkg/new/kubetest"
 	_ "github.com/onosproject/onos-test/test/api"
 	_ "github.com/onosproject/onos-test/test/atomix"
 	_ "github.com/onosproject/onos-test/test/config"

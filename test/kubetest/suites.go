@@ -15,8 +15,7 @@
 package kubetest
 
 import (
-	"github.com/atomix/atomix-go-client/pkg/client"
-	"github.com/onosproject/onos-test/pkg/kubetest"
+	"github.com/onosproject/onos-test/pkg/new/kubetest"
 	"testing"
 )
 
@@ -26,7 +25,7 @@ type TestsOne struct {
 }
 
 // SetupTestSuite sets up the TestOne test suite
-func (s *TestsOne) SetupTestSuite(client client.Client) {
+func (s *TestsOne) SetupTestSuite() {
 
 }
 
