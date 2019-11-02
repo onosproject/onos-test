@@ -23,7 +23,7 @@ build-onos-tests:
 	go build -o build/_output/onos-tests ./cmd/onos-tests
 
 test: # @HELP run the unit tests and source code validation
-test: build deps linters
+test: license_check build deps linters
 	go test github.com/onosproject/onos-test/pkg/...
 	go test github.com/onosproject/onos-test/cmd/...
 
