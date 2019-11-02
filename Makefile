@@ -8,16 +8,22 @@ ONOS_TEST_DEBUG_VERSION := debug
 ONOS_BUILD_VERSION := stable
 
 build: # @HELP build the Go binaries and run all validations (default)
-build: build-onit
+build: build-kubetest build-onit
+
+build-kubetest:
+	go build -o build/_output/kubetest ./cmd/kubetest
 
 build-onit:
 	go build -o build/_output/onit ./cmd/onit
 
-build-tests:
+build-test-runner:
 	go build -o build/_output/onos-test-runner ./cmd/onos-test-runner
 
+build-onos-tests:
+	go build -o build/_output/onos-tests ./cmd/onos-tests
+
 test: # @HELP run the unit tests and source code validation
-test: build deps linters
+test: license_check build deps linters
 	go test github.com/onosproject/onos-test/pkg/...
 	go test github.com/onosproject/onos-test/cmd/...
 
@@ -45,6 +51,13 @@ integration: kind
 	onit add simulator
 	onit run suite integration-tests
 
+onos-tests-docker: # @HELP build onos-tests Docker image
+	@go mod vendor
+	docker build . -f build/onos-tests/Dockerfile \
+		--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
+		-t onosproject/onos-tests:${ONOS_TEST_VERSION}
+	@rm -rf vendor
+
 onos-test-runner-docker: # @HELP build onos-test-runner Docker image
 	@go mod vendor
 	docker build . -f build/onos-test-runner/Dockerfile \
@@ -53,17 +66,26 @@ onos-test-runner-docker: # @HELP build onos-test-runner Docker image
 	@rm -rf vendor
 
 images: # @HELP build all Docker images
-images: onos-test-runner-docker
+images: onos-test-runner-docker onos-tests-docker
 
 kind: # @HELP build Docker images and add them to the currently configured kind cluster
-kind: images
+kind: onos-test-runner-kind onos-tests-kind
+
+onos-test-runner-kind: # @HELP build the onos-test-runner Docker image and load it into a kind cluster
+onos-test-runner-kind: onos-test-runner-docker
 	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
 	kind load docker-image onosproject/onos-test-runner:${ONOS_TEST_VERSION}
+
+onos-tests-kind: # @HELP build the onos-tests Docker image and load it into a kind cluster
+onos-tests-kind: onos-tests-docker
+	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
+	kind load docker-image onosproject/onos-tests:${ONOS_TEST_VERSION}
 
 k3d: # @HELP build Docker images and add them to the currently configured k3d cluster
 k3d: images
 	@if [ "`k3d list`" = '' ]; then echo "no k3d cluster found" && exit 1; fi
 	k3d import-images onosproject/onos-test-runner:${ONOS_TEST_VERSION}
+	k3d import-images onosproject/onos-tests:${ONOS_TEST_VERSION}
 
 all: build images
 

@@ -6,6 +6,7 @@ require (
 	github.com/atomix/atomix-api v0.0.0-20191017192115-4d6a4f8e87a3
 	github.com/atomix/atomix-go-client v0.0.0-20191017214255-835d39bd51ae
 	github.com/atomix/atomix-k8s-controller v0.0.0-20190905035228-0c2f92a4bc0e
+	github.com/dustinkirkland/golang-petname v0.0.0-20190613200456-11339a705ed2
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logfmt/logfmt v0.4.0 // indirect

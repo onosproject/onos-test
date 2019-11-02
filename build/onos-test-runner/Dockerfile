@@ -3,7 +3,7 @@ ARG ONOS_BUILD_VERSION=stable
 FROM onosproject/golang-build:$ONOS_BUILD_VERSION AS build
 ENV GO111MODULE=on
 COPY . /go/src/github.com/onosproject/onos-test
-RUN cd /go/src/github.com/onosproject/onos-test && GOFLAGS=-mod=vendor make build-tests
+RUN cd /go/src/github.com/onosproject/onos-test && GOFLAGS=-mod=vendor make build-test-runner
 
 FROM alpine:3.9
 RUN apk add libc6-compat
