@@ -15,17 +15,17 @@
 package kubetest
 
 import (
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
+	"github.com/onosproject/onos-test/pkg/new/onit"
 	"testing"
 )
 
 // TestsOne is a test
 type TestsOne struct {
-	*kubetest.Tests
+	*onit.Tests
 }
 
-// SetupTestSuite sets up the TestOne test suite
-func (s *TestsOne) SetupTestSuite() {
+// SetupONOSTestSuite sets up the TestOne test suite
+func (s *TestsOne) SetupONOSTestSuite(setup onit.Setup) {
 
 }
 
@@ -36,7 +36,7 @@ func (s *TestsOne) TestFoo(t *testing.T) {
 
 // TestsTwo is a test suite
 type TestsTwo struct {
-	*kubetest.Tests
+	*onit.Tests
 }
 
 // TestBar is an example test case
@@ -46,10 +46,10 @@ func (s *TestsTwo) TestBar(t *testing.T) {
 
 // TestsThree is an example test
 type TestsThree struct {
-	*kubetest.Tests
+	*onit.Tests
 }
 
 // BenchmarksOne is an example benchmark
 type BenchmarksOne struct {
-	*kubetest.Benchmarks
+	*onit.Benchmarks
 }

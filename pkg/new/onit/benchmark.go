@@ -17,14 +17,14 @@ type BenchmarkSuite interface {
 	kubetest.BenchmarkSuite
 }
 
-// SetupONOSBenchmark is an interface for setting up an ONOS benchmark
-type SetupONOSBenchmark interface {
-	SetupONOSBenchmark(setup Setup)
+// SetupONOSBenchmarkSuite is an interface for setting up an ONOS benchmark
+type SetupONOSBenchmarkSuite interface {
+	SetupONOSBenchmarkSuite(setup Setup)
 }
 
 // setupONOSBenchmark sets up the ONOS cluster for the given benchmark suite
 func setupONOSBenchmark(b BenchmarkSuite) {
-	if setupONOS, ok := b.(SetupONOSBenchmark); ok {
-		setupONOS.SetupONOSBenchmark(NewSetup(b.KubeAPI().Config()))
+	if setupONOS, ok := b.(SetupONOSBenchmarkSuite); ok {
+		setupONOS.SetupONOSBenchmarkSuite(NewSetup(b.KubeAPI().Config()))
 	}
 }

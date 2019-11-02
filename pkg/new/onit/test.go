@@ -17,14 +17,14 @@ type TestSuite interface {
 	kubetest.TestSuite
 }
 
-// SetupONOSTest is an interface for setting up an ONOS test
-type SetupONOSTest interface {
-	SetupONOSTest(setup Setup)
+// SetupONOSTestSuite is an interface for setting up an ONOS test
+type SetupONOSTestSuite interface {
+	SetupONOSTestSuite(setup Setup)
 }
 
 // setupONOSTest sets up the ONOS cluster for the given benchmark suite
 func setupONOSTest(t TestSuite) {
-	if setupONOS, ok := t.(SetupONOSTest); ok {
-		setupONOS.SetupONOSTest(NewSetup(t.KubeAPI().Config()))
+	if setupONOS, ok := t.(SetupONOSTestSuite); ok {
+		setupONOS.SetupONOSTestSuite(NewSetup(t.KubeAPI().Config()))
 	}
 }
