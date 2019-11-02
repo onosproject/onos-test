@@ -69,6 +69,18 @@ type ConfigSetup interface {
 	Nodes(nodes int) ConfigSetup
 }
 
+// SimulatorSetup is an interface for setting up a simulator
+type SimulatorSetup interface {
+	Image(image string) SimulatorSetup
+	PullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup
+}
+
+// NetworkSetup is an interface for setting up a network
+type NetworkSetup interface {
+	Image(image string) NetworkSetup
+	PullPolicy(pullPolicy corev1.PullPolicy) NetworkSetup
+}
+
 // testSetup is an implementation of the Setup interface
 type testSetup struct {
 	namespace    string
@@ -201,3 +213,41 @@ func (s *configSetup) Nodes(nodes int) ConfigSetup {
 }
 
 var _ ConfigSetup = &configSetup{}
+
+// simulatorSetup is an implementation of the SimulatorSetup interface
+type simulatorSetup struct {
+	*testEnv
+	image      string
+	pullPolicy corev1.PullPolicy
+}
+
+func (s *simulatorSetup) Image(image string) SimulatorSetup {
+	s.image = image
+	return s
+}
+
+func (s *simulatorSetup) PullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup {
+	s.pullPolicy = pullPolicy
+	return s
+}
+
+var _ SimulatorSetup = &simulatorSetup{}
+
+// networkSetup is an implementation of the NetworkSetup interface
+type networkSetup struct {
+	*testEnv
+	image      string
+	pullPolicy corev1.PullPolicy
+}
+
+func (s *networkSetup) Image(image string) NetworkSetup {
+	s.image = image
+	return s
+}
+
+func (s *networkSetup) PullPolicy(pullPolicy corev1.PullPolicy) NetworkSetup {
+	s.pullPolicy = pullPolicy
+	return s
+}
+
+var _ NetworkSetup = &networkSetup{}

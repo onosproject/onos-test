@@ -25,6 +25,6 @@ type SetupONOSBenchmarkSuite interface {
 // setupONOSBenchmark sets up the ONOS cluster for the given benchmark suite
 func setupONOSBenchmark(b BenchmarkSuite) {
 	if setupONOS, ok := b.(SetupONOSBenchmarkSuite); ok {
-		setupONOS.SetupONOSBenchmarkSuite(NewSetup(b.KubeAPI().Config()))
+		setupONOS.SetupONOSBenchmarkSuite(NewSetup(b.KubeAPI()))
 	}
 }

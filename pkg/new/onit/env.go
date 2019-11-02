@@ -100,11 +100,27 @@ type ConfigEnv interface {
 // SimulatorsEnv provides the simulators environment
 type SimulatorsEnv interface {
 	ServiceEnv
+	Simulator(name string) SimulatorEnv
+	Add() SimulatorSetup
+}
+
+// SimulatorEnv provides the environment for a single simulator
+type SimulatorEnv interface {
+	Kill()
+	Remove()
 }
 
 // NetworksEnv provides the networks environment
 type NetworksEnv interface {
 	ServiceEnv
+	Network(name string) NetworkEnv
+	Add() NetworkSetup
+}
+
+// NetworkEnv provides the environment for a network node
+type NetworkEnv interface {
+	Kill()
+	Remove()
 }
 
 // testEnv is an implementation of the Env interface
@@ -204,11 +220,69 @@ type simulatorsEnv struct {
 	*serviceEnv
 }
 
+func (e *simulatorsEnv) Simulator(name string) SimulatorEnv {
+	return &simulatorEnv{
+		name:    name,
+		testEnv: e.testEnv,
+	}
+}
+
+func (e *simulatorsEnv) Add() SimulatorSetup {
+	return &simulatorSetup{
+		testEnv: e.testEnv,
+	}
+}
+
 var _ SimulatorsEnv = &simulatorsEnv{}
+
+// simulatorEnv is an implementation of the SimulatorEnv interface
+type simulatorEnv struct {
+	*testEnv
+	name string
+}
+
+func (e *simulatorEnv) Kill() {
+
+}
+
+func (e *simulatorEnv) Remove() {
+
+}
+
+var _ SimulatorEnv = &simulatorEnv{}
 
 // networksEnv is an implementation of the NetworksEnv interface
 type networksEnv struct {
 	*serviceEnv
 }
 
+func (e *networksEnv) Network(name string) NetworkEnv {
+	return &networkEnv{
+		name:    name,
+		testEnv: e.testEnv,
+	}
+}
+
+func (e *networksEnv) Add() NetworkSetup {
+	return &networkSetup{
+		testEnv: e.testEnv,
+	}
+}
+
 var _ NetworksEnv = &networksEnv{}
+
+// networkEnv is an implementation of the NetworkEnv interface
+type networkEnv struct {
+	*testEnv
+	name string
+}
+
+func (e *networkEnv) Kill() {
+
+}
+
+func (e *networkEnv) Remove() {
+
+}
+
+var _ NetworkEnv = &networkEnv{}
