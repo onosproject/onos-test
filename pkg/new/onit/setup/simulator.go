@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package setup
 
-import "github.com/onosproject/onos-test/pkg/new/kubetest"
+import (
+	corev1 "k8s.io/api/core/v1"
+)
 
-// RegisterTests registers a test suite
-func RegisterTests(name string, suite TestSuite) {
-	kubetest.RegisterTests(name, suite)
-}
-
-// RegisterBenchmarks registers a benchmark suite
-func RegisterBenchmarks(name string, suite BenchmarkSuite) {
-	kubetest.RegisterBenchmarks(name, suite)
+// SimulatorSetup is an interface for setting up a simulator
+type SimulatorSetup interface {
+	Setup
+	Name(name string) SimulatorSetup
+	Image(image string) SimulatorSetup
+	PullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup
 }

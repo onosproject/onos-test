@@ -12,16 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package env
 
-import "github.com/onosproject/onos-test/pkg/new/kubetest"
+import "github.com/onosproject/onos-test/pkg/new/onit/setup"
 
-// RegisterTests registers a test suite
-func RegisterTests(name string, suite TestSuite) {
-	kubetest.RegisterTests(name, suite)
+// AppsEnv provides the environment for applications
+type AppsEnv interface {
+	App(name string) AppEnv
 }
 
-// RegisterBenchmarks registers a benchmark suite
-func RegisterBenchmarks(name string, suite BenchmarkSuite) {
-	kubetest.RegisterBenchmarks(name, suite)
+var _ AppsEnv = &appsEnv{}
+
+// appsEnv is an implementation of the AppsEnv interface
+type appsEnv struct {
+	*testEnv
+}
+
+func (e *appsEnv) App(name string) AppEnv {
+	return &appEnv{
+		serviceEnv: &serviceEnv{
+			testEnv: e.testEnv,
+			name:    name,
+		},
+	}
+}
+
+func (e *appsEnv) Add() setup.AppSetup {
+	return &appSetup{
+		testEnv: e.testEnv,
+	}
 }

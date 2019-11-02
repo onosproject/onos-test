@@ -12,16 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package env
 
-import "github.com/onosproject/onos-test/pkg/new/kubetest"
+import "github.com/onosproject/onos-test/pkg/new/onit/setup"
 
-// RegisterTests registers a test suite
-func RegisterTests(name string, suite TestSuite) {
-	kubetest.RegisterTests(name, suite)
+// NetworksEnv provides the networks environment
+type NetworksEnv interface {
+	Network(name string) NetworkEnv
+	Add() setup.NetworkSetup
 }
 
-// RegisterBenchmarks registers a benchmark suite
-func RegisterBenchmarks(name string, suite BenchmarkSuite) {
-	kubetest.RegisterBenchmarks(name, suite)
+var _ NetworksEnv = &networksEnv{}
+
+// networksEnv is an implementation of the NetworksEnv interface
+type networksEnv struct {
+	*testEnv
+}
+
+func (e *networksEnv) Network(name string) NetworkEnv {
+	return &networkEnv{
+		serviceEnv: &serviceEnv{
+			testEnv: e.testEnv,
+			name:    name,
+		},
+	}
+}
+
+func (e *networksEnv) Add() setup.NetworkSetup {
+	return &networkSetup{
+		testEnv: e.testEnv,
+	}
 }

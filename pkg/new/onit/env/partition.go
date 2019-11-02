@@ -12,16 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package env
 
-import "github.com/onosproject/onos-test/pkg/new/kubetest"
-
-// RegisterTests registers a test suite
-func RegisterTests(name string, suite TestSuite) {
-	kubetest.RegisterTests(name, suite)
+// PartitionEnv provides the environment for a partition
+type PartitionEnv interface {
+	ServiceEnv
+	ID() int
 }
 
-// RegisterBenchmarks registers a benchmark suite
-func RegisterBenchmarks(name string, suite BenchmarkSuite) {
-	kubetest.RegisterBenchmarks(name, suite)
+// partitionEnv is an implementation of the PartitionEnv interface
+type partitionEnv struct {
+	*serviceEnv
+	id int
+}
+
+func (e *partitionEnv) ID() int {
+	return e.id
 }

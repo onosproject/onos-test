@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package env
 
-import "github.com/onosproject/onos-test/pkg/new/kubetest"
-
-// RegisterTests registers a test suite
-func RegisterTests(name string, suite TestSuite) {
-	kubetest.RegisterTests(name, suite)
+// TopoEnv provides the topo environment
+type TopoEnv interface {
+	ServiceEnv
 }
 
-// RegisterBenchmarks registers a benchmark suite
-func RegisterBenchmarks(name string, suite BenchmarkSuite) {
-	kubetest.RegisterBenchmarks(name, suite)
+var _ TopoEnv = &topoEnv{}
+
+// topoEnv is an implementation of the TopoEnv interface
+type topoEnv struct {
+	*serviceEnv
 }
