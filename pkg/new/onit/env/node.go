@@ -14,22 +14,25 @@
 
 package env
 
-// NodeEnv provides the environment for a single node
-type NodeEnv interface {
+// Node provides the environment for a single node
+type Node interface {
+	// Name returns the name of the node
 	Name() string
+
+	// Kill kills the node
 	Kill()
 }
 
-// nodeEnv is an implementation of the NodeEnv interface
-type nodeEnv struct {
+// node is an implementation of the Node interface
+type node struct {
 	*testEnv
 	name string
 }
 
-func (e *nodeEnv) Name() string {
+func (e *node) Name() string {
 	return e.name
 }
 
-func (e *nodeEnv) Kill() {
+func (e *node) Kill() {
 	panic("implement me")
 }

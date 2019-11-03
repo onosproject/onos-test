@@ -14,14 +14,8 @@
 
 package setup
 
-import (
-	corev1 "k8s.io/api/core/v1"
-)
-
 // NetworkSetup is an interface for setting up a network
 type NetworkSetup interface {
 	Setup
-	Name(name string) NetworkSetup
-	Image(image string) NetworkSetup
-	PullPolicy(pullPolicy corev1.PullPolicy) NetworkSetup
+	ServiceTypeSetup
 }

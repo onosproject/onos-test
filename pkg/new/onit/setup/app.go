@@ -14,14 +14,8 @@
 
 package setup
 
-import (
-	corev1 "k8s.io/api/core/v1"
-)
-
 // AppSetup is an interface for setting up an application
 type AppSetup interface {
 	Setup
-	Name(name string) AppSetup
-	Image(image string) AppSetup
-	PullPolicy(pullPolicy corev1.PullPolicy) AppSetup
+	ServiceTypeSetup
 }

@@ -16,13 +16,12 @@ package env
 
 // AtomixEnv provides the Atomix environment
 type AtomixEnv interface {
-	// Nodes returns the Atomix controller nodes
-	Nodes() []NodeEnv
+	Service
 }
 
 var _ AtomixEnv = &atomixEnv{}
 
 // atomixEnv is an implementation of the AtomixEnv interface
 type atomixEnv struct {
-	*serviceEnv
+	*service
 }

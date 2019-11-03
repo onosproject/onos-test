@@ -30,27 +30,27 @@ func New(kube kubetest.KubeAPI) Env {
 		extensionsclient: apiextension.NewForConfigOrDie(kube.Config()),
 	}
 	env.atomix = &atomixEnv{
-		serviceEnv: &serviceEnv{
+		service: &service{
 			testEnv: env,
 		},
 	}
-	env.database = &databaseEnv{
+	env.database = &database{
 		testEnv: env,
 	}
-	env.topo = &topoEnv{
-		serviceEnv: &serviceEnv{
+	env.topo = &topo{
+		service: &service{
 			testEnv: env,
 		},
 	}
-	env.config = &configEnv{
-		serviceEnv: &serviceEnv{
+	env.config = &config{
+		service: &service{
 			testEnv: env,
 		},
 	}
-	env.simulators = &simulatorsEnv{
+	env.simulators = &simulators{
 		testEnv: env,
 	}
-	env.networks = &networksEnv{
+	env.networks = &networks{
 		testEnv: env,
 	}
 	return env
@@ -62,22 +62,31 @@ type Env interface {
 	Atomix() AtomixEnv
 
 	// Database returns the database environment
-	Database() DatabaseEnv
+	Database() Database
 
 	// Topo returns the topo environment
-	Topo() TopoEnv
+	Topo() Topo
 
 	// Config returns the config environment
-	Config() ConfigEnv
+	Config() Config
 
 	// Simulators returns the simulators environment
-	Simulators() SimulatorsEnv
+	Simulators() Simulators
+
+	// Simulator returns the environment for a simulator by name
+	Simulator(name string) Simulator
 
 	// Networks returns the networks environment
-	Networks() NetworksEnv
+	Networks() Networks
+
+	// Network returns the environment for a network by name
+	Network(name string) Network
 
 	// Apps returns the applications environment
-	Apps() AppsEnv
+	Apps() Apps
+
+	// App returns the environment for an app by name
+	App(name string) App
 }
 
 // testEnv is an implementation of the Env interface
@@ -87,38 +96,50 @@ type testEnv struct {
 	atomixClient     *atomixcontroller.Clientset
 	extensionsclient *apiextension.Clientset
 	atomix           *atomixEnv
-	database         *databaseEnv
-	topo             *topoEnv
-	config           *configEnv
-	simulators       *simulatorsEnv
-	networks         *networksEnv
-	apps             *appsEnv
+	database         *database
+	topo             *topo
+	config           *config
+	simulators       *simulators
+	networks         *networks
+	apps             *apps
 }
 
 func (e *testEnv) Atomix() AtomixEnv {
 	return e.atomix
 }
 
-func (e *testEnv) Database() DatabaseEnv {
+func (e *testEnv) Database() Database {
 	return e.database
 }
 
-func (e *testEnv) Topo() TopoEnv {
+func (e *testEnv) Topo() Topo {
 	return e.topo
 }
 
-func (e *testEnv) Config() ConfigEnv {
+func (e *testEnv) Config() Config {
 	return e.config
 }
 
-func (e *testEnv) Simulators() SimulatorsEnv {
+func (e *testEnv) Simulators() Simulators {
 	return e.simulators
 }
 
-func (e *testEnv) Networks() NetworksEnv {
+func (e *testEnv) Simulator(name string) Simulator {
+	return e.Simulators().Get(name)
+}
+
+func (e *testEnv) Networks() Networks {
 	return e.networks
 }
 
-func (e *testEnv) Apps() AppsEnv {
+func (e *testEnv) Network(name string) Network {
+	return e.Networks().Get(name)
+}
+
+func (e *testEnv) Apps() Apps {
 	return e.apps
+}
+
+func (e *testEnv) App(name string) App {
+	return e.Apps().Get(name)
 }

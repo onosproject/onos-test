@@ -16,29 +16,44 @@ package env
 
 import "github.com/onosproject/onos-test/pkg/new/onit/setup"
 
-// SimulatorsEnv provides the simulators environment
-type SimulatorsEnv interface {
-	Simulator(name string) SimulatorEnv
-	Add() setup.SimulatorSetup
+// Simulators provides the simulators environment
+type Simulators interface {
+	// Simulators returns a list of simulators in the environment
+	Simulators() []Simulator
+
+	// Get returns the environment for a simulator service by name
+	Get(name string) Simulator
+
+	// Add adds a new simulator to the environment
+	Add(name string) setup.SimulatorSetup
 }
 
-var _ SimulatorsEnv = &simulatorsEnv{}
+var _ Simulators = &simulators{}
 
-// simulatorsEnv is an implementation of the SimulatorsEnv interface
-type simulatorsEnv struct {
+// simulators is an implementation of the Simulators interface
+type simulators struct {
 	*testEnv
 }
 
-func (e *simulatorsEnv) Simulator(name string) SimulatorEnv {
-	return &simulatorEnv{
-		serviceEnv: &serviceEnv{
+func (e *simulators) Simulators() []Simulator {
+	panic("implement me")
+}
+
+func (e *simulators) Get(name string) Simulator {
+	return &simulator{
+		service: &service{
 			testEnv: e.testEnv,
 		},
 	}
 }
 
-func (e *simulatorsEnv) Add() setup.SimulatorSetup {
+func (e *simulators) Add(name string) setup.SimulatorSetup {
 	return &simulatorSetup{
-		testEnv: e.testEnv,
+		name: name,
+		serviceTypeSetup: &serviceTypeSetup{
+			serviceSetup: &serviceSetup{
+				testEnv: e.testEnv,
+			},
+		},
 	}
 }

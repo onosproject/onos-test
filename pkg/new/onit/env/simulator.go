@@ -16,44 +16,26 @@ package env
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
-	corev1 "k8s.io/api/core/v1"
 )
 
-// SimulatorEnv provides the environment for a single simulator
-type SimulatorEnv interface {
-	ServiceEnv
+// Simulator provides the environment for a single simulator
+type Simulator interface {
+	Service
 }
 
-var _ SimulatorEnv = &simulatorEnv{}
+var _ Simulator = &simulator{}
 
-// simulatorEnv is an implementation of the SimulatorEnv interface
-type simulatorEnv struct {
-	*serviceEnv
+// simulator is an implementation of the Simulator interface
+type simulator struct {
+	*service
 }
 
 var _ setup.SimulatorSetup = &simulatorSetup{}
 
 // simulatorSetup is an implementation of the SimulatorSetup interface
 type simulatorSetup struct {
-	*testEnv
-	name       string
-	image      string
-	pullPolicy corev1.PullPolicy
-}
-
-func (s *simulatorSetup) Name(name string) setup.SimulatorSetup {
-	s.name = name
-	return s
-}
-
-func (s *simulatorSetup) Image(image string) setup.SimulatorSetup {
-	s.image = image
-	return s
-}
-
-func (s *simulatorSetup) PullPolicy(pullPolicy corev1.PullPolicy) setup.SimulatorSetup {
-	s.pullPolicy = pullPolicy
-	return s
+	*serviceTypeSetup
+	name string
 }
 
 func (s *simulatorSetup) Setup() error {

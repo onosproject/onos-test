@@ -29,17 +29,33 @@ func New(kube kubetest.KubeAPI) TestSetup {
 		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
 		extensionsclient: apiextension.NewForConfigOrDie(kube.Config()),
 	}
-	setup.atomix = &atomixSetup{
-		testSetup: setup,
+	setup.atomix = &atomix{
+		serviceType: &serviceType{
+			service: &service{
+				testSetup: setup,
+			},
+		},
 	}
-	setup.database = &databaseSetup{
-		testSetup: setup,
+	setup.database = &database{
+		serviceType: &serviceType{
+			service: &service{
+				testSetup: setup,
+			},
+		},
 	}
-	setup.topo = &topoSetup{
-		testSetup: setup,
+	setup.topo = &topo{
+		serviceType: &serviceType{
+			service: &service{
+				testSetup: setup,
+			},
+		},
 	}
-	setup.config = &configSetup{
-		testSetup: setup,
+	setup.config = &config{
+		serviceType: &serviceType{
+			service: &service{
+				testSetup: setup,
+			},
+		},
 	}
 	return setup
 }
@@ -52,10 +68,10 @@ type Setup interface {
 // TestSetup is an interface for setting up ONOS clusters
 type TestSetup interface {
 	Setup
-	Atomix() AtomixSetup
-	Database() DatabaseSetup
-	Topo() TopoSetup
-	Config() ConfigSetup
+	Atomix() Atomix
+	Database() Database
+	Topo() Topo
+	Config() Config
 }
 
 // sequentialSetup is a setup step that must run sequentially
@@ -75,25 +91,25 @@ type testSetup struct {
 	kubeClient       *kubernetes.Clientset
 	atomixClient     *atomixcontroller.Clientset
 	extensionsclient *apiextension.Clientset
-	atomix           AtomixSetup
-	database         DatabaseSetup
-	topo             TopoSetup
-	config           ConfigSetup
+	atomix           Atomix
+	database         Database
+	topo             Topo
+	config           Config
 }
 
-func (s *testSetup) Atomix() AtomixSetup {
+func (s *testSetup) Atomix() Atomix {
 	return s.atomix
 }
 
-func (s *testSetup) Database() DatabaseSetup {
+func (s *testSetup) Database() Database {
 	return s.database
 }
 
-func (s *testSetup) Topo() TopoSetup {
+func (s *testSetup) Topo() Topo {
 	return s.topo
 }
 
-func (s *testSetup) Config() ConfigSetup {
+func (s *testSetup) Config() Config {
 	return s.config
 }
 

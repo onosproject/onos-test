@@ -14,14 +14,8 @@
 
 package setup
 
-import (
-	corev1 "k8s.io/api/core/v1"
-)
-
 // SimulatorSetup is an interface for setting up a simulator
 type SimulatorSetup interface {
 	Setup
-	Name(name string) SimulatorSetup
-	Image(image string) SimulatorSetup
-	PullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup
+	ServiceTypeSetup
 }

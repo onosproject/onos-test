@@ -16,29 +16,45 @@ package env
 
 import "github.com/onosproject/onos-test/pkg/new/onit/setup"
 
-// AppsEnv provides the environment for applications
-type AppsEnv interface {
-	App(name string) AppEnv
+// Apps provides the environment for applications
+type Apps interface {
+	// Apps returns a list of all apps in the environment
+	Apps() []App
+
+	// Get returns the environment for an app by name
+	Get(name string) App
+
+	// Add adds an app to the environment
+	Add(name string) setup.AppSetup
 }
 
-var _ AppsEnv = &appsEnv{}
+var _ Apps = &apps{}
 
-// appsEnv is an implementation of the AppsEnv interface
-type appsEnv struct {
+// apps is an implementation of the Apps interface
+type apps struct {
 	*testEnv
 }
 
-func (e *appsEnv) App(name string) AppEnv {
-	return &appEnv{
-		serviceEnv: &serviceEnv{
+func (e *apps) Apps() []App {
+	panic("implement me")
+}
+
+func (e *apps) Get(name string) App {
+	return &app{
+		service: &service{
 			testEnv: e.testEnv,
 			name:    name,
 		},
 	}
 }
 
-func (e *appsEnv) Add() setup.AppSetup {
+func (e *apps) Add(name string) setup.AppSetup {
 	return &appSetup{
-		testEnv: e.testEnv,
+		serviceTypeSetup: &serviceTypeSetup{
+			serviceSetup: &serviceSetup{
+				testEnv: e.testEnv,
+			},
+		},
+		name: name,
 	}
 }

@@ -14,36 +14,19 @@
 
 package setup
 
-import (
-	corev1 "k8s.io/api/core/v1"
-)
-
-// AtomixSetup is an interface for setting up the Atomix controller
-type AtomixSetup interface {
-	Setup
+// Atomix is an interface for setting up the Atomix controller
+type Atomix interface {
+	ServiceType
 	sequentialSetup
-	Image(image string) AtomixSetup
 }
 
-var _ AtomixSetup = &atomixSetup{}
+var _ Atomix = &atomix{}
 
-// atomixSetup is an implementation of the AtomixSetup interface
-type atomixSetup struct {
-	*testSetup
-	image      string
-	pullPolicy corev1.PullPolicy
+// atomix is an implementation of the Atomix interface
+type atomix struct {
+	*serviceType
 }
 
-func (s *atomixSetup) Image(image string) AtomixSetup {
-	s.image = image
-	return s
-}
-
-func (s *atomixSetup) PullPolicy(pullPolicy corev1.PullPolicy) AtomixSetup {
-	s.pullPolicy = pullPolicy
-	return s
-}
-
-func (s *atomixSetup) setup() error {
+func (s *atomix) setup() error {
 	return nil
 }

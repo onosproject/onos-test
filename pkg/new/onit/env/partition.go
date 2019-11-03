@@ -14,18 +14,20 @@
 
 package env
 
-// PartitionEnv provides the environment for a partition
-type PartitionEnv interface {
-	ServiceEnv
+// Partition provides the environment for a partition
+type Partition interface {
+	Service
+
+	// ID returns the partition number
 	ID() int
 }
 
-// partitionEnv is an implementation of the PartitionEnv interface
-type partitionEnv struct {
-	*serviceEnv
+// partition is an implementation of the Partition interface
+type partition struct {
+	*service
 	id int
 }
 
-func (e *partitionEnv) ID() int {
+func (e *partition) ID() int {
 	return e.id
 }

@@ -14,48 +14,32 @@
 
 package setup
 
-import (
-	corev1 "k8s.io/api/core/v1"
-)
-
-// ConfigSetup is an interface for setting up config nodes
-type ConfigSetup interface {
-	Setup
+// Config is an interface for setting up config nodes
+type Config interface {
+	ServiceType
 	concurrentSetup
-	Image(image string) ConfigSetup
-	PullPolicy(pullPolicy corev1.PullPolicy) ConfigSetup
-	Nodes(nodes int) ConfigSetup
+
+	// Nodes sets the number of nodes to deploy
+	Nodes(nodes int) Config
 }
 
-var _ ConfigSetup = &configSetup{}
+var _ Config = &config{}
 
-// configSetup is an implementation of the ConfigSetup interface
-type configSetup struct {
-	*testSetup
-	image      string
-	pullPolicy corev1.PullPolicy
-	nodes      int
+// config is an implementation of the Config interface
+type config struct {
+	*serviceType
+	nodes int
 }
 
-func (s *configSetup) Image(image string) ConfigSetup {
-	s.image = image
-	return s
-}
-
-func (s *configSetup) PullPolicy(pullPolicy corev1.PullPolicy) ConfigSetup {
-	s.pullPolicy = pullPolicy
-	return s
-}
-
-func (s *configSetup) Nodes(nodes int) ConfigSetup {
+func (s *config) Nodes(nodes int) Config {
 	s.nodes = nodes
 	return s
 }
 
-func (s *configSetup) create() error {
+func (s *config) create() error {
 	return nil
 }
 
-func (s *configSetup) waitForStart() error {
+func (s *config) waitForStart() error {
 	return nil
 }

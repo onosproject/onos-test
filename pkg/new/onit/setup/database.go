@@ -14,55 +14,41 @@
 
 package setup
 
-import (
-	corev1 "k8s.io/api/core/v1"
-)
-
-// DatabaseSetup is an interface for setting up Raft partitions
-type DatabaseSetup interface {
-	Setup
+// Database is an interface for setting up Raft partitions
+type Database interface {
+	ServiceType
 	concurrentSetup
-	Image(image string) DatabaseSetup
-	PullPolicy(pullPolicy corev1.PullPolicy) DatabaseSetup
-	Partitions(partitions int) DatabaseSetup
-	Nodes(nodes int) DatabaseSetup
+
+	// Partitions sets the number of partitions to deploy
+	Partitions(partitions int) Database
+
+	// Nodes sets the number of nodes per partition
+	Nodes(nodes int) Database
 }
 
-var _ DatabaseSetup = &databaseSetup{}
+var _ Database = &database{}
 
-// databaseSetup is an implementation of the DatabaseSetup interface
-type databaseSetup struct {
-	*testSetup
-	image      string
-	pullPolicy corev1.PullPolicy
+// database is an implementation of the Database interface
+type database struct {
+	*serviceType
 	partitions int
 	nodes      int
 }
 
-func (s *databaseSetup) Image(image string) DatabaseSetup {
-	s.image = image
-	return s
-}
-
-func (s *databaseSetup) PullPolicy(pullPolicy corev1.PullPolicy) DatabaseSetup {
-	s.pullPolicy = pullPolicy
-	return s
-}
-
-func (s *databaseSetup) Partitions(partitions int) DatabaseSetup {
+func (s *database) Partitions(partitions int) Database {
 	s.partitions = partitions
 	return s
 }
 
-func (s *databaseSetup) Nodes(nodes int) DatabaseSetup {
+func (s *database) Nodes(nodes int) Database {
 	s.nodes = nodes
 	return s
 }
 
-func (s *databaseSetup) create() error {
+func (s *database) create() error {
 	return nil
 }
 
-func (s *databaseSetup) waitForStart() error {
+func (s *database) waitForStart() error {
 	return nil
 }

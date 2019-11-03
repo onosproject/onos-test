@@ -14,44 +14,79 @@
 
 package env
 
-// ServiceEnv is a base interface for service environments
-type ServiceEnv interface {
+import (
+	"github.com/onosproject/onos-test/pkg/new/onit/setup"
+	corev1 "k8s.io/api/core/v1"
+)
+
+// Service is a base interface for service environments
+type Service interface {
 	// Name is the name of the service
 	Name() string
 
 	// Nodes returns the service nodes
-	Nodes() []NodeEnv
+	Nodes() []Node
 
 	// Node returns a specific node environment
-	Node(name string) NodeEnv
+	Node(name string) Node
 
 	// Remove removes the service
 	Remove()
 }
 
-var _ ServiceEnv = &serviceEnv{}
+var _ Service = &service{}
 
-// serviceEnv is an implementation of the ServiceEnv interface
-type serviceEnv struct {
+// service is an implementation of the Service interface
+type service struct {
 	*testEnv
 	name string
 }
 
-func (e *serviceEnv) Name() string {
+func (e *service) Name() string {
 	return e.name
 }
 
-func (e *serviceEnv) Nodes() []NodeEnv {
+func (e *service) Nodes() []Node {
 	panic("implement me")
 }
 
-func (e *serviceEnv) Node(name string) NodeEnv {
-	return &nodeEnv{
+func (e *service) Node(name string) Node {
+	return &node{
 		testEnv: e.testEnv,
 		name:    name,
 	}
 }
 
-func (e *serviceEnv) Remove() {
+func (e *service) Remove() {
 	panic("implement me")
+}
+
+var _ setup.ServiceTypeSetup = &serviceTypeSetup{}
+
+// serviceTypeSetup is an implementation of the ServiceTypeSetup interface
+type serviceTypeSetup struct {
+	*serviceSetup
+}
+
+func (s *serviceTypeSetup) Using() setup.ServiceSetup {
+	return s.serviceSetup
+}
+
+var _ setup.ServiceSetup = &serviceSetup{}
+
+// serviceSetup is an implementation of the ServiceSetup interface
+type serviceSetup struct {
+	*testEnv
+	image      string
+	pullPolicy corev1.PullPolicy
+}
+
+func (s *serviceSetup) Image(image string) setup.ServiceSetup {
+	s.image = image
+	return s
+}
+
+func (s *serviceSetup) PullPolicy(pullPolicy corev1.PullPolicy) setup.ServiceSetup {
+	s.pullPolicy = pullPolicy
+	return s
 }

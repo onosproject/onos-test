@@ -16,44 +16,26 @@ package env
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
-	corev1 "k8s.io/api/core/v1"
 )
 
-// NetworkEnv provides the environment for a network node
-type NetworkEnv interface {
-	ServiceEnv
+// Network provides the environment for a network node
+type Network interface {
+	Service
 }
 
-var _ NetworkEnv = &networkEnv{}
+var _ Network = &network{}
 
-// networkEnv is an implementation of the NetworkEnv interface
-type networkEnv struct {
-	*serviceEnv
+// network is an implementation of the Network interface
+type network struct {
+	*service
 }
 
 var _ setup.NetworkSetup = &networkSetup{}
 
 // networkSetup is an implementation of the NetworkSetup interface
 type networkSetup struct {
-	*testEnv
-	name       string
-	image      string
-	pullPolicy corev1.PullPolicy
-}
-
-func (s *networkSetup) Name(name string) setup.NetworkSetup {
-	s.name = name
-	return s
-}
-
-func (s *networkSetup) Image(image string) setup.NetworkSetup {
-	s.image = image
-	return s
-}
-
-func (s *networkSetup) PullPolicy(pullPolicy corev1.PullPolicy) setup.NetworkSetup {
-	s.pullPolicy = pullPolicy
-	return s
+	*serviceTypeSetup
+	name string
 }
 
 func (s *networkSetup) Setup() error {

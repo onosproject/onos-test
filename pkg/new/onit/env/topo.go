@@ -14,14 +14,14 @@
 
 package env
 
-// TopoEnv provides the topo environment
-type TopoEnv interface {
-	ServiceEnv
+// Topo provides the topo environment
+type Topo interface {
+	Service
 }
 
-var _ TopoEnv = &topoEnv{}
+var _ Topo = &topo{}
 
-// topoEnv is an implementation of the TopoEnv interface
-type topoEnv struct {
-	*serviceEnv
+// topo is an implementation of the Topo interface
+type topo struct {
+	*service
 }

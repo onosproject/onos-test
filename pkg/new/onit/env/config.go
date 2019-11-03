@@ -14,14 +14,14 @@
 
 package env
 
-// ConfigEnv provides the config environment
-type ConfigEnv interface {
-	ServiceEnv
+// Config provides the config environment
+type Config interface {
+	Service
 }
 
-var _ ConfigEnv = &configEnv{}
+var _ Config = &config{}
 
-// configEnv is an implementation of the ConfigEnv interface
-type configEnv struct {
-	*serviceEnv
+// config is an implementation of the Config interface
+type config struct {
+	*service
 }

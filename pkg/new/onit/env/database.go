@@ -14,35 +14,35 @@
 
 package env
 
-// DatabaseEnv provides the database environment
-type DatabaseEnv interface {
+// Database provides the database environment
+type Database interface {
 	// Partitions returns all database partitions
-	Partitions() []PartitionEnv
+	Partitions() []Partition
 
-	// Partition returns the PartitionEnv for the given partition ID
-	Partition(id int) PartitionEnv
+	// Partition returns the Partition for the given partition ID
+	Partition(id int) Partition
 }
 
-var _ DatabaseEnv = &databaseEnv{}
+var _ Database = &database{}
 
-// databaseEnv is an implementation of the DatabaseEnv interface
-type databaseEnv struct {
+// database is an implementation of the Database interface
+type database struct {
 	*testEnv
 }
 
-func (e *databaseEnv) Partitions() []PartitionEnv {
+func (e *database) Partitions() []Partition {
 	panic("implement me")
 }
 
-func (e databaseEnv) Partition(id int) PartitionEnv {
-	return &partitionEnv{
-		serviceEnv: &serviceEnv{
+func (e database) Partition(id int) Partition {
+	return &partition{
+		service: &service{
 			testEnv: e.testEnv,
 		},
 		id: id,
 	}
 }
 
-func (e *databaseEnv) Nodes(partition int) []NodeEnv {
+func (e *database) Nodes(partition int) []Node {
 	panic("implement me")
 }

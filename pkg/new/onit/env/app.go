@@ -16,44 +16,26 @@ package env
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
-	corev1 "k8s.io/api/core/v1"
 )
 
-// AppEnv provides the environment for an app
-type AppEnv interface {
-	ServiceEnv
+// App provides the environment for an app
+type App interface {
+	Service
 }
 
-var _ AppEnv = &appEnv{}
+var _ App = &app{}
 
-// appEnv is an implementation of the AppEnv interface
-type appEnv struct {
-	*serviceEnv
+// app is an implementation of the App interface
+type app struct {
+	*service
 }
 
 var _ setup.AppSetup = &appSetup{}
 
 // appSetup is an implementation of the AppSetup interface
 type appSetup struct {
-	*testEnv
-	name       string
-	image      string
-	pullPolicy corev1.PullPolicy
-}
-
-func (s *appSetup) Name(name string) setup.AppSetup {
-	s.name = name
-	return s
-}
-
-func (s *appSetup) Image(image string) setup.AppSetup {
-	s.image = image
-	return s
-}
-
-func (s *appSetup) PullPolicy(pullPolicy corev1.PullPolicy) setup.AppSetup {
-	s.pullPolicy = pullPolicy
-	return s
+	*serviceTypeSetup
+	name string
 }
 
 func (s *appSetup) Setup() error {

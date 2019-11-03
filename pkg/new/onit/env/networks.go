@@ -16,30 +16,45 @@ package env
 
 import "github.com/onosproject/onos-test/pkg/new/onit/setup"
 
-// NetworksEnv provides the networks environment
-type NetworksEnv interface {
-	Network(name string) NetworkEnv
-	Add() setup.NetworkSetup
+// Networks provides the networks environment
+type Networks interface {
+	// Networks returns a list of networks in the environment
+	Networks() []Network
+
+	// Get returns the environment for a network service by name
+	Get(name string) Network
+
+	// Add adds a new network to the environment
+	Add(name string) setup.NetworkSetup
 }
 
-var _ NetworksEnv = &networksEnv{}
+var _ Networks = &networks{}
 
-// networksEnv is an implementation of the NetworksEnv interface
-type networksEnv struct {
+// networks is an implementation of the Networks interface
+type networks struct {
 	*testEnv
 }
 
-func (e *networksEnv) Network(name string) NetworkEnv {
-	return &networkEnv{
-		serviceEnv: &serviceEnv{
+func (e *networks) Networks() []Network {
+	panic("implement me")
+}
+
+func (e *networks) Get(name string) Network {
+	return &network{
+		service: &service{
 			testEnv: e.testEnv,
 			name:    name,
 		},
 	}
 }
 
-func (e *networksEnv) Add() setup.NetworkSetup {
+func (e *networks) Add(name string) setup.NetworkSetup {
 	return &networkSetup{
-		testEnv: e.testEnv,
+		serviceTypeSetup: &serviceTypeSetup{
+			serviceSetup: &serviceSetup{
+				testEnv: e.testEnv,
+			},
+		},
+		name: name,
 	}
 }

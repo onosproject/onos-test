@@ -14,48 +14,32 @@
 
 package setup
 
-import (
-	corev1 "k8s.io/api/core/v1"
-)
-
-// TopoSetup is an interface for setting up topo nodes
-type TopoSetup interface {
-	Setup
+// Topo is an interface for setting up topo nodes
+type Topo interface {
+	ServiceType
 	concurrentSetup
-	Image(image string) TopoSetup
-	PullPolicy(pullPolicy corev1.PullPolicy) TopoSetup
-	Nodes(nodes int) TopoSetup
+
+	// Nodes sets the number of topo nodes to deploy
+	Nodes(nodes int) Topo
 }
 
-var _ TopoSetup = &topoSetup{}
+var _ Topo = &topo{}
 
-// topoSetup is an implementation of the TopoSetup interface
-type topoSetup struct {
-	*testSetup
-	image      string
-	pullPolicy corev1.PullPolicy
-	nodes      int
+// topo is an implementation of the Topo interface
+type topo struct {
+	*serviceType
+	nodes int
 }
 
-func (s *topoSetup) Image(image string) TopoSetup {
-	s.image = image
-	return s
-}
-
-func (s *topoSetup) PullPolicy(pullPolicy corev1.PullPolicy) TopoSetup {
-	s.pullPolicy = pullPolicy
-	return s
-}
-
-func (s *topoSetup) Nodes(nodes int) TopoSetup {
+func (s *topo) Nodes(nodes int) Topo {
 	s.nodes = nodes
 	return s
 }
 
-func (s *topoSetup) create() error {
+func (s *topo) create() error {
 	return nil
 }
 
-func (s *topoSetup) waitForStart() error {
+func (s *topo) waitForStart() error {
 	return nil
 }
