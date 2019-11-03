@@ -12,45 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubetest
+package onit
 
 import (
-	"github.com/onosproject/onos-test/pkg/new/onit"
+	"github.com/onosproject/onos-test/pkg/new/kubetest"
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
-	"testing"
 )
 
-// TestsOne is a test
-type TestsOne struct {
-	*onit.Tests
+// Tests is the base type for ONIT test suites
+type Tests struct {
+	*kubetest.Tests
 }
 
-// SetupONOSTestSuite sets up the TestOne test suite
-func (s *TestsOne) SetupONOSTestSuite(setup setup.TestSetup) {
-
+// SetupTestSuite sets up the ONOS cluster
+func (t *Tests) SetupTestSuite() {
+	setupONOSTest(t)
 }
 
-// TestFoo is an example test case
-func (s *TestsOne) TestFoo(t *testing.T) {
-
+// TestSuite is an ONIT test suite
+type TestSuite interface {
+	kubetest.TestSuite
 }
 
-// TestsTwo is a test suite
-type TestsTwo struct {
-	*onit.Tests
+// SetupONOSTestSuite is an interface for setting up an ONOS test
+type SetupONOSTestSuite interface {
+	SetupONOSTestSuite(setup setup.TestSetup)
 }
 
-// TestBar is an example test case
-func (s *TestsTwo) TestBar(t *testing.T) {
-
-}
-
-// TestsThree is an example test
-type TestsThree struct {
-	*onit.Tests
-}
-
-// BenchmarksOne is an example benchmark
-type BenchmarksOne struct {
-	*onit.Benchmarks
+// setupONOSTest sets up the ONOS cluster for the given benchmark suite
+func setupONOSTest(t TestSuite) {
+	if setupONOS, ok := t.(SetupONOSTestSuite); ok {
+		setupONOS.SetupONOSTestSuite(setup.New(t.KubeAPI()))
+	}
 }

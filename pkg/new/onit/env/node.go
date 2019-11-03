@@ -12,18 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package env
 
-import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"os"
-)
+// Node provides the environment for a single node
+type Node interface {
+	// Name returns the name of the node
+	Name() string
 
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	// Kill kills the node
+	Kill()
+}
+
+// node is an implementation of the Node interface
+type node struct {
+	*testEnv
+	name string
+}
+
+func (e *node) Name() string {
+	return e.name
+}
+
+func (e *node) Kill() {
+	panic("implement me")
 }

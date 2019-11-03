@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package env
 
-import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"os"
-)
+// Topo provides the topo environment
+type Topo interface {
+	Service
+}
 
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+var _ Topo = &topo{}
+
+// topo is an implementation of the Topo interface
+type topo struct {
+	*service
 }

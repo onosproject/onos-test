@@ -12,18 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package setup
 
-import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"os"
-)
-
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+// AppSetup is an interface for setting up an application
+type AppSetup interface {
+	Setup
+	ServiceTypeSetup
 }

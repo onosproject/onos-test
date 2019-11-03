@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package setup
 
-import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"os"
-)
+// Atomix is an interface for setting up the Atomix controller
+type Atomix interface {
+	ServiceType
+	sequentialSetup
+}
 
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+var _ Atomix = &atomix{}
+
+// atomix is an implementation of the Atomix interface
+type atomix struct {
+	*serviceType
+}
+
+func (s *atomix) setup() error {
+	return nil
 }

@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package onit
 
-import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"os"
-)
+import "github.com/onosproject/onos-test/pkg/new/kubetest"
 
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+// RegisterTests registers a test suite
+func RegisterTests(name string, suite TestSuite) {
+	kubetest.RegisterTests(name, suite)
+}
+
+// RegisterBenchmarks registers a benchmark suite
+func RegisterBenchmarks(name string, suite BenchmarkSuite) {
+	kubetest.RegisterBenchmarks(name, suite)
 }

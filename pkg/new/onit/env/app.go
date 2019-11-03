@@ -12,18 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package env
 
 import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"os"
+	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 )
 
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+// App provides the environment for an app
+type App interface {
+	Service
+}
+
+var _ App = &app{}
+
+// app is an implementation of the App interface
+type app struct {
+	*service
+}
+
+var _ setup.AppSetup = &appSetup{}
+
+// appSetup is an implementation of the AppSetup interface
+type appSetup struct {
+	*serviceTypeSetup
+	name string
+}
+
+func (s *appSetup) Setup() error {
+	return nil
 }

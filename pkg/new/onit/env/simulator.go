@@ -12,18 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package env
 
 import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"os"
+	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 )
 
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+// Simulator provides the environment for a single simulator
+type Simulator interface {
+	Service
+}
+
+var _ Simulator = &simulator{}
+
+// simulator is an implementation of the Simulator interface
+type simulator struct {
+	*service
+}
+
+var _ setup.SimulatorSetup = &simulatorSetup{}
+
+// simulatorSetup is an implementation of the SimulatorSetup interface
+type simulatorSetup struct {
+	*serviceTypeSetup
+	name string
+}
+
+func (s *simulatorSetup) Setup() error {
+	return nil
 }

@@ -16,13 +16,11 @@ package kubetest
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/util/k8s"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"reflect"
 	"regexp"
 	"runtime/debug"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 )
 
@@ -31,37 +29,46 @@ var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 // Tests is a suite of tests run on a single cluster
 type Tests struct {
 	*assert.Assertions
+	kube KubeAPI
+}
+
+// KubeAPI returns the Kubernetes API
+func (s *Tests) KubeAPI() KubeAPI {
+	return s.kube
 }
 
 // Run runs the tests
 func (s *Tests) Run(t *testing.T) {
+	s.kube = getKubeAPI()
 	RunTests(t, s)
 }
 
 // TestSuite is an identifier interface for test suites
 type TestSuite interface {
+	KubeAPIProvider
+
 	// Run runs the test suite
 	Run(t *testing.T)
 }
 
 // SetupTestSuite is an interface for setting up a suite of tests
 type SetupTestSuite interface {
-	SetupTestSuite(client.Client)
+	SetupTestSuite()
 }
 
 // SetupTest is an interface for setting up individual tests
 type SetupTest interface {
-	SetupTest(client.Client)
+	SetupTest()
 }
 
 // TearDownTestSuite is an interface for tearing down a suite of tests
 type TearDownTestSuite interface {
-	TearDownTestSuite(client.Client)
+	TearDownTestSuite()
 }
 
 // TearDownTest is an interface for tearing down individual tests
 type TearDownTest interface {
-	TearDownTest(client.Client)
+	TearDownTest()
 }
 
 // BeforeTest is an interface for executing code before every test
@@ -86,11 +93,6 @@ func failTestOnPanic(t *testing.T) {
 func RunTests(t *testing.T, suite TestSuite) {
 	defer failTestOnPanic(t)
 
-	client, err := k8s.GetClient()
-	if err != nil {
-		panic(err)
-	}
-
 	suiteSetupDone := false
 
 	methodFinder := reflect.TypeOf(suite)
@@ -107,11 +109,11 @@ func RunTests(t *testing.T, suite TestSuite) {
 		}
 		if !suiteSetupDone {
 			if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-				setupTestSuite.SetupTestSuite(client)
+				setupTestSuite.SetupTestSuite()
 			}
 			defer func() {
 				if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-					tearDownTestSuite.TearDownTestSuite(client)
+					tearDownTestSuite.TearDownTestSuite()
 				}
 			}()
 			suiteSetupDone = true
@@ -122,7 +124,7 @@ func RunTests(t *testing.T, suite TestSuite) {
 				defer failTestOnPanic(t)
 
 				if setupTestSuite, ok := suite.(SetupTest); ok {
-					setupTestSuite.SetupTest(client)
+					setupTestSuite.SetupTest()
 				}
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
 					beforeTestSuite.BeforeTest(method.Name)
@@ -132,7 +134,7 @@ func RunTests(t *testing.T, suite TestSuite) {
 						afterTestSuite.AfterTest(method.Name)
 					}
 					if tearDownTestSuite, ok := suite.(TearDownTest); ok {
-						tearDownTestSuite.TearDownTest(client)
+						tearDownTestSuite.TearDownTest()
 					}
 				}()
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})

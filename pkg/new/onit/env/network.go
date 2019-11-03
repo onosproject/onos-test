@@ -12,18 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package env
 
 import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"os"
+	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 )
 
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+// Network provides the environment for a network node
+type Network interface {
+	Service
+}
+
+var _ Network = &network{}
+
+// network is an implementation of the Network interface
+type network struct {
+	*service
+}
+
+var _ setup.NetworkSetup = &networkSetup{}
+
+// networkSetup is an implementation of the NetworkSetup interface
+type networkSetup struct {
+	*serviceTypeSetup
+	name string
+}
+
+func (s *networkSetup) Setup() error {
+	return nil
 }

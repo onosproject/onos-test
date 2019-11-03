@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/onosproject/onos-test/pkg/kubetest"
+	"github.com/onosproject/onos-test/pkg/new/onit"
 	_ "github.com/onosproject/onos-test/test/api"
 	_ "github.com/onosproject/onos-test/test/atomix"
 	_ "github.com/onosproject/onos-test/test/config"
@@ -25,9 +25,9 @@ import (
 )
 
 func main() {
-	kubetest.RegisterTests("suite-one", &test.TestsOne{})
-	kubetest.RegisterTests("suite-two", &test.TestsTwo{})
-	kubetest.RegisterTests("suite-three", &test.TestsThree{})
-	kubetest.RegisterBenchmarks("benchmarks-one", &test.BenchmarksOne{})
-	kubetest.Main()
+	onit.RegisterTests("suite-one", &test.TestsOne{})
+	onit.RegisterTests("suite-two", &test.TestsTwo{})
+	onit.RegisterTests("suite-three", &test.TestsThree{})
+	onit.RegisterBenchmarks("benchmarks-one", &test.BenchmarksOne{})
+	onit.Main()
 }

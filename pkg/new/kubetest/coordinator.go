@@ -17,7 +17,7 @@ package kubetest
 import (
 	"fmt"
 	"github.com/dustinkirkland/golang-petname"
-	"github.com/onosproject/onos-test/pkg/util/k8s"
+	"github.com/onosproject/onos-test/pkg/new/util/k8s"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

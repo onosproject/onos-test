@@ -18,7 +18,8 @@ import (
 	"bufio"
 	"errors"
 	"github.com/ghodss/yaml"
-	"github.com/onosproject/onos-test/pkg/util/k8s"
+	"github.com/onosproject/onos-test/pkg/new/util/k8s"
+	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -88,7 +89,7 @@ func (r *TestRunner) Run() error {
 		return err
 	}
 
-	step := NewStep(r.test.TestID, "Run test")
+	step := logging.NewStep(r.test.TestID, "Run test")
 	step.Start()
 
 	// Get the stream of logs for the pod
@@ -113,7 +114,7 @@ func (r *TestRunner) Run() error {
 	// Stream the logs to stdout
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
-		printLog(scanner.Text())
+		logging.Print(scanner.Text())
 	}
 
 	// Get the exit message and code
@@ -298,7 +299,7 @@ func (r *TestRunner) createServiceAccount() error {
 
 // startTests starts running a test job
 func (r *TestRunner) startTest() error {
-	step := NewStep(r.test.TestID, "Starting test")
+	step := logging.NewStep(r.test.TestID, "Starting test")
 	step.Start()
 	if err := r.createTestConfig(); err != nil {
 		step.Fail(err)
@@ -352,7 +353,7 @@ func (r *TestRunner) createTestConfig() error {
 
 // createTestJob creates the job to run tests
 func (r *TestRunner) createTestJob() error {
-	step := NewStep(r.test.TestID, "Deploy test coordinator")
+	step := logging.NewStep(r.test.TestID, "Deploy test coordinator")
 	step.Start()
 
 	zero := int32(0)

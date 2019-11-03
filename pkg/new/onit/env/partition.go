@@ -12,18 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package env
 
-import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"os"
-)
+// Partition provides the environment for a partition
+type Partition interface {
+	Service
 
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	// ID returns the partition number
+	ID() int
+}
+
+// partition is an implementation of the Partition interface
+type partition struct {
+	*service
+	id int
+}
+
+func (e *partition) ID() int {
+	return e.id
 }

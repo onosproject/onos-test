@@ -12,18 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package setup
 
-import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"os"
-)
+// Topo is an interface for setting up topo nodes
+type Topo interface {
+	ServiceType
+	concurrentSetup
 
-func main() {
-	cmd := kubetest.GetCommand()
-	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	// Nodes sets the number of topo nodes to deploy
+	Nodes(nodes int) Topo
+}
+
+var _ Topo = &topo{}
+
+// topo is an implementation of the Topo interface
+type topo struct {
+	*serviceType
+	nodes int
+}
+
+func (s *topo) Nodes(nodes int) Topo {
+	s.nodes = nodes
+	return s
+}
+
+func (s *topo) create() error {
+	return nil
+}
+
+func (s *topo) waitForStart() error {
+	return nil
 }
