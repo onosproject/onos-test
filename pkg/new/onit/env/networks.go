@@ -18,8 +18,8 @@ import "github.com/onosproject/onos-test/pkg/new/onit/setup"
 
 // Networks provides the networks environment
 type Networks interface {
-	// Networks returns a list of networks in the environment
-	Networks() []Network
+	// List returns a list of networks in the environment
+	List() []Network
 
 	// Get returns the environment for a network service by name
 	Get(name string) Network
@@ -35,7 +35,7 @@ type networks struct {
 	*testEnv
 }
 
-func (e *networks) Networks() []Network {
+func (e *networks) List() []Network {
 	panic("implement me")
 }
 

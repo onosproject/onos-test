@@ -18,8 +18,8 @@ import "github.com/onosproject/onos-test/pkg/new/onit/setup"
 
 // Simulators provides the simulators environment
 type Simulators interface {
-	// Simulators returns a list of simulators in the environment
-	Simulators() []Simulator
+	// List returns a list of simulators in the environment
+	List() []Simulator
 
 	// Get returns the environment for a simulator service by name
 	Get(name string) Simulator
@@ -35,7 +35,7 @@ type simulators struct {
 	*testEnv
 }
 
-func (e *simulators) Simulators() []Simulator {
+func (e *simulators) List() []Simulator {
 	panic("implement me")
 }
 

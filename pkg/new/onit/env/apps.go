@@ -18,8 +18,8 @@ import "github.com/onosproject/onos-test/pkg/new/onit/setup"
 
 // Apps provides the environment for applications
 type Apps interface {
-	// Apps returns a list of all apps in the environment
-	Apps() []App
+	// List returns a list of all apps in the environment
+	List() []App
 
 	// Get returns the environment for an app by name
 	Get(name string) App
@@ -35,7 +35,7 @@ type apps struct {
 	*testEnv
 }
 
-func (e *apps) Apps() []App {
+func (e *apps) List() []App {
 	panic("implement me")
 }
 
