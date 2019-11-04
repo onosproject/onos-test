@@ -112,3 +112,9 @@ func (s *serviceSetup) PullPolicy(pullPolicy corev1.PullPolicy) setup.ServiceSet
 func (s *serviceSetup) Setup() error {
 	return s.setup.Setup()
 }
+
+func (s *serviceSetup) SetupOrDie() {
+	if err := s.Setup(); err != nil {
+		panic(err)
+	}
+}

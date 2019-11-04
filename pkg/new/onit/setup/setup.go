@@ -63,6 +63,7 @@ func New(kube kube.API) TestSetup {
 // Setup is an interface for setting up ONOS clusters
 type Setup interface {
 	Setup() error
+	SetupOrDie()
 }
 
 // TestSetup is an interface for setting up ONOS clusters
@@ -141,6 +142,12 @@ func (s *testSetup) Setup() error {
 		return err
 	}
 	return nil
+}
+
+func (s *testSetup) SetupOrDie() {
+	if err := s.Setup(); err != nil {
+		panic(err)
+	}
 }
 
 var _ Setup = &testSetup{}

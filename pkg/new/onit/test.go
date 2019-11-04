@@ -16,6 +16,7 @@ package onit
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/kubetest"
+	"github.com/onosproject/onos-test/pkg/new/onit/env"
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 )
 
@@ -24,24 +25,12 @@ type Tests struct {
 	*kubetest.Tests
 }
 
-// SetupTestSuite sets up the ONOS cluster
-func (t *Tests) SetupTestSuite() {
-	setupONOSTest(t)
+// Setup returns the ONOS setup API
+func (t *Tests) Setup() setup.TestSetup {
+	return setup.New(t.API())
 }
 
-// TestSuite is an ONIT test suite
-type TestSuite interface {
-	kubetest.TestSuite
-}
-
-// SetupONOSTestSuite is an interface for setting up an ONOS test
-type SetupONOSTestSuite interface {
-	SetupONOSTestSuite(setup setup.TestSetup)
-}
-
-// setupONOSTest sets up the ONOS cluster for the given benchmark suite
-func setupONOSTest(t TestSuite) {
-	if setupONOS, ok := t.(SetupONOSTestSuite); ok {
-		setupONOS.SetupONOSTestSuite(setup.New(t.API()))
-	}
+// Env returns the ONOS environment API
+func (t *Tests) Env() env.Env {
+	return env.New(t.API())
 }
