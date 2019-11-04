@@ -47,33 +47,17 @@ func (s *topo) Nodes(nodes int) Topo {
 }
 
 func (s *topo) create() error {
-	if err := s.createOnosTopoConfigMap(); err != nil {
+	if err := s.createService(); err != nil {
 		return err
 	}
-	if err := s.createOnosTopoService(); err != nil {
-		return err
-	}
-	if err := s.createOnosTopoDeployment(); err != nil {
+	if err := s.createDeployment(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// createOnosTopoConfigMap creates a ConfigMap for the onos-topo Deployment
-func (s *topo) createOnosTopoConfigMap() error {
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-topo",
-			Namespace: s.namespace,
-		},
-		Data: map[string]string{},
-	}
-	_, err := s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
-	return err
-}
-
-// createOnosTopoService creates a Service to expose the onos-topo Deployment to other pods
-func (s *topo) createOnosTopoService() error {
+// createService creates a Service to expose the onos-topo Deployment to other pods
+func (s *topo) createService() error {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-topo",
@@ -97,8 +81,8 @@ func (s *topo) createOnosTopoService() error {
 	return err
 }
 
-// createOnosTopoDeployment creates an onos-topo Deployment
-func (s *topo) createOnosTopoDeployment() error {
+// createDeployment creates an onos-topo Deployment
+func (s *topo) createDeployment() error {
 	nodes := int32(s.nodes)
 	zero := int64(0)
 	dep := &appsv1.Deployment{
@@ -186,11 +170,6 @@ func (s *topo) createOnosTopoDeployment() error {
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
-									Name:      "topo",
-									MountPath: "/etc/onos-topo/configs",
-									ReadOnly:  true,
-								},
-								{
 									Name:      "secret",
 									MountPath: "/etc/onos-topo/certs",
 									ReadOnly:  true,
@@ -209,16 +188,6 @@ func (s *topo) createOnosTopoDeployment() error {
 						RunAsUser: &zero,
 					},
 					Volumes: []corev1.Volume{
-						{
-							Name: "topo",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: "onos-topo",
-									},
-								},
-							},
-						},
 						{
 							Name: "secret",
 							VolumeSource: corev1.VolumeSource{

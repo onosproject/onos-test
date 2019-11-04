@@ -38,26 +38,26 @@ type atomix struct {
 
 // setupAtomixController sets up the Atomix controller and associated resources
 func (s *atomix) setup() error {
-	if err := s.createAtomixPartitionSetResource(); err != nil {
+	if err := s.createPartitionSetResource(); err != nil {
 		return err
 	}
-	if err := s.createAtomixPartitionResource(); err != nil {
+	if err := s.createPartitionResource(); err != nil {
 		return err
 	}
-	if err := s.createAtomixDeployment(); err != nil {
+	if err := s.createDeployment(); err != nil {
 		return err
 	}
-	if err := s.createAtomixService(); err != nil {
+	if err := s.createService(); err != nil {
 		return err
 	}
-	if err := s.awaitAtomixControllerReady(); err != nil {
+	if err := s.awaitReady(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// createAtomixPartitionSetResource creates the PartitionSet custom resource definition in the k8s cluster
-func (s *atomix) createAtomixPartitionSetResource() error {
+// createPartitionSetResource creates the PartitionSet custom resource definition in the k8s cluster
+func (s *atomix) createPartitionSetResource() error {
 	crd := &apiextensionv1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "partitionsets.k8s.atomix.io",
@@ -85,8 +85,8 @@ func (s *atomix) createAtomixPartitionSetResource() error {
 	return nil
 }
 
-// createAtomixPartitionResource creates the Partition custom resource definition in the k8s cluster
-func (s *atomix) createAtomixPartitionResource() error {
+// createPartitionResource creates the Partition custom resource definition in the k8s cluster
+func (s *atomix) createPartitionResource() error {
 	crd := &apiextensionv1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "partitions.k8s.atomix.io",
@@ -114,8 +114,8 @@ func (s *atomix) createAtomixPartitionResource() error {
 	return nil
 }
 
-// createAtomixDeployment creates the Atomix controller Deployment
-func (s *atomix) createAtomixDeployment() error {
+// createDeployment creates the Atomix controller Deployment
+func (s *atomix) createDeployment() error {
 	replicas := int32(1)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -202,8 +202,8 @@ func (s *atomix) createAtomixDeployment() error {
 	return err
 }
 
-// createAtomixService creates a service for the controller
-func (s *atomix) createAtomixService() error {
+// createService creates a service for the controller
+func (s *atomix) createService() error {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "atomix-controller",
@@ -225,8 +225,8 @@ func (s *atomix) createAtomixService() error {
 	return err
 }
 
-// awaitAtomixControllerReady blocks until the Atomix controller is ready
-func (s *atomix) awaitAtomixControllerReady() error {
+// awaitReady blocks until the Atomix controller is ready
+func (s *atomix) awaitReady() error {
 	for {
 		dep, err := s.kubeClient.AppsV1().Deployments(s.namespace).Get("atomix-controller", metav1.GetOptions{})
 		if err != nil {

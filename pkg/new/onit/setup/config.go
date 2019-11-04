@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"strings"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -49,33 +48,17 @@ func (s *config) Nodes(nodes int) Config {
 }
 
 func (s *config) create() error {
-	if err := s.createOnosConfigService(); err != nil {
+	if err := s.createService(); err != nil {
 		return err
 	}
-	if err := s.createOnosConfigDeployment(); err != nil {
+	if err := s.createDeployment(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// createModelPluginString creates model plugin path based on a device type, version, and image tag
-func (s *config) createModelPluginString(deviceType string, version string, debug bool) string {
-	var sb strings.Builder
-	sb.WriteString("-modelPlugin=/usr/local/lib/")
-	sb.WriteString(deviceType)
-	if debug {
-		sb.WriteString("-debug.so.")
-		sb.WriteString(version)
-	} else {
-		sb.WriteString(".so.")
-		sb.WriteString(version)
-	}
-
-	return sb.String()
-}
-
-// createOnosConfigDeployment creates an onos-config Deployment
-func (s *config) createOnosConfigDeployment() error {
+// createDeployment creates an onos-config Deployment
+func (s *config) createDeployment() error {
 	nodes := int32(s.nodes)
 	zero := int64(0)
 
@@ -177,14 +160,16 @@ func (s *config) createOnosConfigDeployment() error {
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
-									Name:      "config",
-									MountPath: "/etc/onos-config/configs",
-									ReadOnly:  true,
-								},
-								{
 									Name:      "secret",
 									MountPath: "/etc/onos-config/certs",
 									ReadOnly:  true,
+								},
+							},
+							SecurityContext: &corev1.SecurityContext{
+								Capabilities: &corev1.Capabilities{
+									Add: []corev1.Capability{
+										"SYS_PTRACE",
+									},
 								},
 							},
 						},
@@ -193,16 +178,6 @@ func (s *config) createOnosConfigDeployment() error {
 						RunAsUser: &zero,
 					},
 					Volumes: []corev1.Volume{
-						{
-							Name: "config",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: "onos-config",
-									},
-								},
-							},
-						},
 						{
 							Name: "secret",
 							VolumeSource: corev1.VolumeSource{
@@ -220,8 +195,8 @@ func (s *config) createOnosConfigDeployment() error {
 	return err
 }
 
-// createOnosConfigService creates a Service to expose the onos-config Deployment to other pods
-func (s *config) createOnosConfigService() error {
+// createService creates a Service to expose the onos-config Deployment to other pods
+func (s *config) createService() error {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-config",
