@@ -14,7 +14,10 @@
 
 package env
 
-import "github.com/onosproject/onos-test/pkg/new/onit/setup"
+import (
+	"github.com/onosproject/onos-test/pkg/new/onit/setup"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 // Simulators provides the simulators environment
 type Simulators interface {
@@ -36,13 +39,25 @@ type simulators struct {
 }
 
 func (e *simulators) List() []Simulator {
-	panic("implement me")
+	pods, err := e.kubeClient.CoreV1().Pods(e.namespace).List(metav1.ListOptions{
+		LabelSelector: "type=simulator",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	simulators := make([]Simulator, len(pods.Items))
+	for i, pod := range pods.Items {
+		simulators[i] = e.Get(pod.Name)
+	}
+	return simulators
 }
 
 func (e *simulators) Get(name string) Simulator {
 	return &simulator{
 		service: &service{
 			testEnv: e.testEnv,
+			name:    name,
 		},
 	}
 }
