@@ -23,10 +23,6 @@ import (
 	"time"
 )
 
-var (
-	topoOption = "--topo"
-)
-
 // TopoType topology type
 type TopoType int
 
@@ -211,7 +207,7 @@ func (s *networkSetup) createPod() error {
 					Image:           s.image,
 					ImagePullPolicy: s.pullPolicy,
 					Stdin:           true,
-					Args:            []string{"-topo", topoSpec},
+					Args:            []string{"--topo", topoSpec},
 					Ports: []corev1.ContainerPort{
 						{
 							Name:          "stratum",
