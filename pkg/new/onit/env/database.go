@@ -15,19 +15,17 @@
 package env
 
 import (
-	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"strconv"
 )
 
 // Database provides the database environment
 type Database interface {
 	// Partitions returns all database partitions
-	Partitions() []Partition
+	Partitions(group string) []Partition
 
-	// Partition returns the Partition for the given partition ID
-	Partition(id int) Partition
+	// Partition returns the Partition for the given partition
+	Partition(name string) Partition
 }
 
 var _ Database = &database{}
@@ -37,8 +35,8 @@ type database struct {
 	*testEnv
 }
 
-func (e *database) Partitions() []Partition {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"type": "database"}}
+func (e *database) Partitions(group string) []Partition {
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"type": "database", "group": group}}
 	list, err := e.atomixClient.K8sV1alpha1().Partitions(e.namespace).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
 	if err != nil {
@@ -47,22 +45,13 @@ func (e *database) Partitions() []Partition {
 
 	partitions := make([]Partition, 0, len(list.Items))
 	for _, partition := range list.Items {
-		id, err := strconv.Atoi(partition.Labels["partition"])
-		if err != nil {
-			panic(err)
-		}
-		partitions = append(partitions, e.Partition(id))
+		partitions = append(partitions, e.Partition(partition.Name))
 	}
 	return partitions
 }
 
-func (e database) Partition(id int) Partition {
+func (e database) Partition(name string) Partition {
 	return &partition{
-		service: newService(fmt.Sprintf("raft-%d", id), "database", e.testEnv),
-		id:      id,
+		service: newService(name, "database", e.testEnv),
 	}
-}
-
-func (e *database) Nodes(partition int) []Node {
-	return e.Partition(partition).Nodes()
 }
