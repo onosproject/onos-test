@@ -66,22 +66,21 @@ func (s *config) createDeployment() error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-config",
 			Namespace: s.namespace,
+			Labels: map[string]string{
+				"type": "config",
+			},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app":      "onos",
-					"type":     "config",
-					"resource": "onos-config",
+					"type": "config",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app":      "onos",
-						"type":     "config",
-						"resource": "onos-config",
+						"type": "config",
 					},
 					Annotations: map[string]string{
 						"seccomp.security.alpha.kubernetes.io/pod": "unconfined",
@@ -201,12 +200,13 @@ func (s *config) createService() error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-config",
 			Namespace: s.namespace,
+			Labels: map[string]string{
+				"type": "config",
+			},
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app":      "onos",
-				"type":     "config",
-				"resource": "onos-config",
+				"type": "config",
 			},
 			Ports: []corev1.ServicePort{
 				{

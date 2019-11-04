@@ -14,6 +14,13 @@
 
 package env
 
+import (
+	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"strconv"
+)
+
 // Database provides the database environment
 type Database interface {
 	// Partitions returns all database partitions
@@ -31,18 +38,31 @@ type database struct {
 }
 
 func (e *database) Partitions() []Partition {
-	panic("implement me")
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"type": "database"}}
+	list, err := e.atomixClient.K8sV1alpha1().Partitions(e.namespace).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
+	if err != nil {
+		panic(err)
+	}
+
+	partitions := make([]Partition, 0, len(list.Items))
+	for _, partition := range list.Items {
+		id, err := strconv.Atoi(partition.Labels["partition"])
+		if err != nil {
+			panic(err)
+		}
+		partitions = append(partitions, e.Partition(id))
+	}
+	return partitions
 }
 
 func (e database) Partition(id int) Partition {
 	return &partition{
-		service: &service{
-			testEnv: e.testEnv,
-		},
-		id: id,
+		service: newService(fmt.Sprintf("raft-%d", id), "database", e.testEnv),
+		id:      id,
 	}
 }
 
 func (e *database) Nodes(partition int) []Node {
-	panic("implement me")
+	return e.Partition(partition).Nodes()
 }

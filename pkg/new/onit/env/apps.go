@@ -57,10 +57,7 @@ func (e *apps) List() []App {
 
 func (e *apps) Get(name string) App {
 	return &app{
-		service: &service{
-			testEnv: e.testEnv,
-			name:    name,
-		},
+		service: newService(name, "app", e.testEnv),
 	}
 }
 

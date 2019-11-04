@@ -78,7 +78,7 @@ func (s *database) createPartitionSet() error {
 			Template: v1alpha1.PartitionTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"resource": "raft",
+						"type": "database",
 					},
 				},
 				Spec: v1alpha1.PartitionSpec{

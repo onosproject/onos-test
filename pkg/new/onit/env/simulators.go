@@ -55,10 +55,7 @@ func (e *simulators) List() []Simulator {
 
 func (e *simulators) Get(name string) Simulator {
 	return &simulator{
-		service: &service{
-			testEnv: e.testEnv,
-			name:    name,
-		},
+		service: newService(name, "simulator", e.testEnv),
 	}
 }
 

@@ -55,10 +55,7 @@ func (e *networks) List() []Network {
 
 func (e *networks) Get(name string) Network {
 	return &network{
-		service: &service{
-			testEnv: e.testEnv,
-			name:    name,
-		},
+		service: newService(name, "network", e.testEnv),
 	}
 }
 
