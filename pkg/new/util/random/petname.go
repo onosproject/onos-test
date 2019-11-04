@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package setup
+package random
 
-// AppSetup is an interface for setting up an application
-type AppSetup interface {
-	Setup
-	ServiceTypeSetup
+import "github.com/dustinkirkland/golang-petname"
 
-	// Nodes sets the number of application nodes
-	Nodes(nodes int) AppSetup
+// NewPetName returns a new random pet name
+func NewPetName(words int) string {
+	return petname.Generate(words, "-")
 }

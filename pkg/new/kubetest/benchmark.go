@@ -16,6 +16,7 @@ package kubetest
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/new/kube"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"reflect"
@@ -29,23 +30,23 @@ var allBenchmarksFilter = func(_, _ string) (bool, error) { return true, nil }
 // Benchmarks is a suite of benchmarks run on a single cluster
 type Benchmarks struct {
 	*assert.Assertions
-	kube KubeAPI
+	kube kube.API
 }
 
-// KubeAPI returns the Kubernetes API
-func (s *Benchmarks) KubeAPI() KubeAPI {
+// API returns the Kubernetes API
+func (s *Benchmarks) API() kube.API {
 	return s.kube
 }
 
 // Run runs the benchmarks
 func (s *Benchmarks) Run(b *testing.B) {
-	s.kube = getKubeAPI()
+	s.kube = kube.GetAPIFromEnv()
 	RunBenchmarks(b, s)
 }
 
 // BenchmarkSuite is an identifier interface for benchmark suites
 type BenchmarkSuite interface {
-	KubeAPIProvider
+	kube.APIProvider
 
 	// Run runs the benchmark suite
 	Run(b *testing.B)

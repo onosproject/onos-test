@@ -12,13 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package setup
+package cli
 
-// AppSetup is an interface for setting up an application
-type AppSetup interface {
-	Setup
-	ServiceTypeSetup
+import "github.com/spf13/cobra"
 
-	// Nodes sets the number of application nodes
-	Nodes(nodes int) AppSetup
+// GetRootCommand returns the root onit command
+func GetRootCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "onit <command> [args]",
+		Short: "Setup test clusters and run integration tests on Kubernetes",
+	}
+	cmd.AddCommand(getCreateCommand())
+	cmd.AddCommand(getDeleteCommand())
+	cmd.AddCommand(getAddCommand())
+	cmd.AddCommand(getRemoveCommand())
+	cmd.AddCommand(getRunCommand())
+	return cmd
 }

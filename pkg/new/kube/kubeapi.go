@@ -12,18 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubetest
+package kube
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/util/k8s"
+	"github.com/onosproject/onos-test/pkg/new/util/random"
 	"k8s.io/client-go/rest"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// getKubeAPI returns the Kubernetes API for the current environment
-func getKubeAPI() KubeAPI {
-	namespace := os.Getenv(testNamespaceEnv)
+const testNamespaceEnv = "TEST_NAMESPACE"
+
+// GetAPI returns the Kubernetes API for the given namespace
+func GetAPI(namespace string) API {
 	config, err := k8s.GetRestConfig()
 	if err != nil {
 		panic(err)
@@ -39,14 +41,23 @@ func getKubeAPI() KubeAPI {
 	}
 }
 
-// KubeAPIProvider is an interface for types to provide the Kubernetes API
-type KubeAPIProvider interface {
-	// KubeAPI returns the KubeAPI
-	KubeAPI() KubeAPI
+// GetAPIFromEnv returns the Kubernetes API for the current environment
+func GetAPIFromEnv() API {
+	namespace := os.Getenv(testNamespaceEnv)
+	if namespace == "" {
+		namespace = random.NewPetName(2)
+	}
+	return GetAPI(namespace)
 }
 
-// KubeAPI exposes the Kubernetes API to tests
-type KubeAPI interface {
+// APIProvider is an interface for types to provide the Kubernetes API
+type APIProvider interface {
+	// API returns the API
+	API() API
+}
+
+// API exposes the Kubernetes API to tests
+type API interface {
 	// Namespace returns the Kubernetes namespace
 	Namespace() string
 

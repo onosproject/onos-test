@@ -12,13 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package setup
+package cli
 
-// AppSetup is an interface for setting up an application
-type AppSetup interface {
-	Setup
-	ServiceTypeSetup
+const (
+	atomixService = "atomix"
+	raftService   = "raft"
+	configService = "config"
+	topoService   = "topo"
+)
 
-	// Nodes sets the number of application nodes
-	Nodes(nodes int) AppSetup
-}
+const (
+	defaultAtomixImage    = "atomix/atomix-k8s-controller:latest"
+	defaultRaftImage      = "atomix/atomix-raft-node:latest"
+	defaultConfigImage    = "onosproject/onos-config:latest"
+	defaultTopoImage      = "onosproject/onos-topo:latest"
+	defaultMininetImage   = "opennetworkinglab/mininet:latest"
+	defaultSimulatorImage = "onosproject/simulators:latest"
+)

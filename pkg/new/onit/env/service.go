@@ -34,6 +34,12 @@ type Service interface {
 	Remove()
 }
 
+// ServiceSetup is a base interface for services that can be set up
+type ServiceSetup interface {
+	Service
+	setup.Setup
+}
+
 var _ Service = &service{}
 
 // service is an implementation of the Service interface
@@ -61,22 +67,12 @@ func (e *service) Remove() {
 	panic("implement me")
 }
 
-var _ setup.ServiceTypeSetup = &serviceTypeSetup{}
-
-// serviceTypeSetup is an implementation of the ServiceTypeSetup interface
-type serviceTypeSetup struct {
-	*serviceSetup
-}
-
-func (s *serviceTypeSetup) Using() setup.ServiceSetup {
-	return s.serviceSetup
-}
-
 var _ setup.ServiceSetup = &serviceSetup{}
 
 // serviceSetup is an implementation of the ServiceSetup interface
 type serviceSetup struct {
 	*testEnv
+	setup      setup.Setup
 	image      string
 	pullPolicy corev1.PullPolicy
 }
@@ -89,4 +85,8 @@ func (s *serviceSetup) Image(image string) setup.ServiceSetup {
 func (s *serviceSetup) PullPolicy(pullPolicy corev1.PullPolicy) setup.ServiceSetup {
 	s.pullPolicy = pullPolicy
 	return s
+}
+
+func (s *serviceSetup) Setup() error {
+	return s.setup.Setup()
 }

@@ -18,6 +18,17 @@ import (
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 )
 
+func newSimulatorSetup(name string, testEnv *testEnv) setup.SimulatorSetup {
+	setup := &simulatorSetup{
+		serviceSetup: &serviceSetup{
+			testEnv: testEnv,
+		},
+		name: name,
+	}
+	setup.serviceSetup.setup = setup
+	return setup
+}
+
 // Simulator provides the environment for a single simulator
 type Simulator interface {
 	Service
@@ -34,8 +45,12 @@ var _ setup.SimulatorSetup = &simulatorSetup{}
 
 // simulatorSetup is an implementation of the SimulatorSetup interface
 type simulatorSetup struct {
-	*serviceTypeSetup
+	*serviceSetup
 	name string
+}
+
+func (s *simulatorSetup) Using() setup.ServiceSetup {
+	return s
 }
 
 func (s *simulatorSetup) Setup() error {

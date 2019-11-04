@@ -16,7 +16,7 @@ package kubetest
 
 import (
 	"fmt"
-	"github.com/dustinkirkland/golang-petname"
+	"github.com/onosproject/onos-test/pkg/new/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	"math/rand"
@@ -57,7 +57,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 
 	test := &TestConfig{
-		TestID:     newTestID(),
+		TestID:     random.NewPetName(2),
 		Type:       TestTypeTest,
 		Image:      image,
 		Suite:      suite,
@@ -65,7 +65,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		PullPolicy: corev1.PullPolicy(pullPolicy),
 	}
 
-	runner, err := newTestRunner(test)
+	runner, err := NewTestRunner(test)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 
 	test := &TestConfig{
-		TestID:     newTestID(),
+		TestID:     random.NewPetName(2),
 		Type:       TestTypeBenchmark,
 		Image:      image,
 		Suite:      suite,
@@ -102,7 +102,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		PullPolicy: corev1.PullPolicy(pullPolicy),
 	}
 
-	runner, err := newTestRunner(test)
+	runner, err := NewTestRunner(test)
 	if err != nil {
 		return err
 	}
@@ -139,9 +139,4 @@ func runRunCommand(cmd *cobra.Command, args []string) error {
 
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
-}
-
-// newTestID returns a new test ID
-func newTestID() string {
-	return petname.Generate(2, "-")
 }

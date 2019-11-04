@@ -39,6 +39,8 @@ type Service interface {
 
 // ServiceSetup provides methods for setting up a service
 type ServiceSetup interface {
+	Setup
+
 	// Image sets the simulator image to deploy
 	Image(image string) ServiceSetup
 

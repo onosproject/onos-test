@@ -42,6 +42,6 @@ type SetupONOSTestSuite interface {
 // setupONOSTest sets up the ONOS cluster for the given benchmark suite
 func setupONOSTest(t TestSuite) {
 	if setupONOS, ok := t.(SetupONOSTestSuite); ok {
-		setupONOS.SetupONOSTestSuite(setup.New(t.KubeAPI()))
+		setupONOS.SetupONOSTestSuite(setup.New(t.API()))
 	}
 }
