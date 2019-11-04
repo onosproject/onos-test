@@ -36,12 +36,8 @@ type atomix struct {
 	*serviceType
 }
 
-func (s *atomix) setup() error {
-	return nil
-}
-
 // setupAtomixController sets up the Atomix controller and associated resources
-func (s *atomix) setupAtomixController() error {
+func (s *atomix) setup() error {
 	if err := s.createAtomixPartitionSetResource(); err != nil {
 		return err
 	}
