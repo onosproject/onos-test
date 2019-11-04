@@ -18,6 +18,17 @@ import (
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 )
 
+func newAppSetup(name string, testEnv *testEnv) setup.AppSetup {
+	setup := &appSetup{
+		serviceSetup: &serviceSetup{
+			testEnv: testEnv,
+		},
+		name: name,
+	}
+	setup.serviceSetup.setup = setup
+	return setup
+}
+
 // App provides the environment for an app
 type App interface {
 	Service
@@ -34,8 +45,18 @@ var _ setup.AppSetup = &appSetup{}
 
 // appSetup is an implementation of the AppSetup interface
 type appSetup struct {
-	*serviceTypeSetup
-	name string
+	*serviceSetup
+	name  string
+	nodes int
+}
+
+func (s *appSetup) Nodes(nodes int) setup.AppSetup {
+	s.nodes = nodes
+	return s
+}
+
+func (s *appSetup) Using() setup.ServiceSetup {
+	return s
 }
 
 func (s *appSetup) Setup() error {

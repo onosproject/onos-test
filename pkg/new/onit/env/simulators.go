@@ -48,12 +48,5 @@ func (e *simulators) Get(name string) Simulator {
 }
 
 func (e *simulators) Add(name string) setup.SimulatorSetup {
-	return &simulatorSetup{
-		name: name,
-		serviceTypeSetup: &serviceTypeSetup{
-			serviceSetup: &serviceSetup{
-				testEnv: e.testEnv,
-			},
-		},
-	}
+	return newSimulatorSetup(name, e.testEnv)
 }

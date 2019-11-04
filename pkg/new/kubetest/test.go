@@ -16,6 +16,7 @@ package kubetest
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/new/kube"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"reflect"
@@ -29,23 +30,23 @@ var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 // Tests is a suite of tests run on a single cluster
 type Tests struct {
 	*assert.Assertions
-	kube KubeAPI
+	kube kube.API
 }
 
-// KubeAPI returns the Kubernetes API
-func (s *Tests) KubeAPI() KubeAPI {
+// API returns the Kubernetes API
+func (s *Tests) API() kube.API {
 	return s.kube
 }
 
 // Run runs the tests
 func (s *Tests) Run(t *testing.T) {
-	s.kube = getKubeAPI()
+	s.kube = kube.GetAPIFromEnv()
 	RunTests(t, s)
 }
 
 // TestSuite is an identifier interface for test suites
 type TestSuite interface {
-	KubeAPIProvider
+	kube.APIProvider
 
 	// Run runs the test suite
 	Run(t *testing.T)

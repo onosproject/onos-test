@@ -16,13 +16,13 @@ package env
 
 import (
 	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
+	"github.com/onosproject/onos-test/pkg/new/kube"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
 )
 
 // New returns a new onit Env
-func New(kube kubetest.KubeAPI) Env {
+func New(kube kube.API) Env {
 	env := &testEnv{
 		namespace:        kube.Namespace(),
 		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),

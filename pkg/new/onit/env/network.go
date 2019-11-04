@@ -18,6 +18,17 @@ import (
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 )
 
+func newNetworkSetup(name string, testEnv *testEnv) setup.NetworkSetup {
+	setup := &networkSetup{
+		serviceSetup: &serviceSetup{
+			testEnv: testEnv,
+		},
+		name: name,
+	}
+	setup.serviceSetup.setup = setup
+	return setup
+}
+
 // Network provides the environment for a network node
 type Network interface {
 	Service
@@ -34,8 +45,12 @@ var _ setup.NetworkSetup = &networkSetup{}
 
 // networkSetup is an implementation of the NetworkSetup interface
 type networkSetup struct {
-	*serviceTypeSetup
+	*serviceSetup
 	name string
+}
+
+func (s *networkSetup) Using() setup.ServiceSetup {
+	return s
 }
 
 func (s *networkSetup) Setup() error {

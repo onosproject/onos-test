@@ -49,12 +49,5 @@ func (e *networks) Get(name string) Network {
 }
 
 func (e *networks) Add(name string) setup.NetworkSetup {
-	return &networkSetup{
-		serviceTypeSetup: &serviceTypeSetup{
-			serviceSetup: &serviceSetup{
-				testEnv: e.testEnv,
-			},
-		},
-		name: name,
-	}
+	return newNetworkSetup(name, e.testEnv)
 }

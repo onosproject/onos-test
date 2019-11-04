@@ -49,12 +49,5 @@ func (e *apps) Get(name string) App {
 }
 
 func (e *apps) Add(name string) setup.AppSetup {
-	return &appSetup{
-		serviceTypeSetup: &serviceTypeSetup{
-			serviceSetup: &serviceSetup{
-				testEnv: e.testEnv,
-			},
-		},
-		name: name,
-	}
+	return newAppSetup(name, e.testEnv)
 }

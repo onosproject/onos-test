@@ -12,13 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package setup
+package main
 
-// AppSetup is an interface for setting up an application
-type AppSetup interface {
-	Setup
-	ServiceTypeSetup
+import (
+	"fmt"
+	"github.com/onosproject/onos-test/pkg/new/onit/cli"
+	"os"
 
-	// Nodes sets the number of application nodes
-	Nodes(nodes int) AppSetup
+	_ "github.com/onosproject/onos-test/test/api"
+	_ "github.com/onosproject/onos-test/test/atomix"
+	_ "github.com/onosproject/onos-test/test/config"
+	_ "github.com/onosproject/onos-test/test/integration"
+	_ "github.com/onosproject/onos-test/test/topo"
+)
+
+func main() {
+	cmd := cli.GetRootCommand()
+	if err := cmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }

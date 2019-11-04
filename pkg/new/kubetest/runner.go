@@ -60,8 +60,8 @@ type TestRecord struct {
 	ExitCode int
 }
 
-// newTestRunner returns a new test runner
-func newTestRunner(test *TestConfig) (*TestRunner, error) {
+// NewTestRunner returns a new test runner
+func NewTestRunner(test *TestConfig) (*TestRunner, error) {
 	client, err := k8s.GetClientset()
 	if err != nil {
 		return nil, err
