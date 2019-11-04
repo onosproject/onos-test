@@ -54,15 +54,15 @@ func (s *database) Nodes(nodes int) Database {
 }
 
 // create creates a Raft partition set
-func (c *database) create() error {
-	if err := c.createPartitionSet(); err != nil {
+func (s *database) create() error {
+	if err := s.createPartitionSet(); err != nil {
 		return err
 	}
 	return nil
 }
 
 // createPartitionSet creates a Raft partition set from the configuration
-func (c *database) createPartitionSet() error {
+func (s *database) createPartitionSet() error {
 	bytes, err := yaml.Marshal(&raft.RaftProtocol{})
 	if err != nil {
 		return err
@@ -71,10 +71,10 @@ func (c *database) createPartitionSet() error {
 	set := &v1alpha1.PartitionSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "raft",
-			Namespace: c.namespace,
+			Namespace: s.namespace,
 		},
 		Spec: v1alpha1.PartitionSetSpec{
-			Partitions: c.partitions,
+			Partitions: s.partitions,
 			Template: v1alpha1.PartitionTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
@@ -82,23 +82,23 @@ func (c *database) createPartitionSet() error {
 					},
 				},
 				Spec: v1alpha1.PartitionSpec{
-					Size:            int32(c.nodes),
+					Size:            int32(s.nodes),
 					Protocol:        "raft",
-					Image:           c.image,
-					ImagePullPolicy: c.pullPolicy,
+					Image:           s.image,
+					ImagePullPolicy: s.pullPolicy,
 					Config:          string(bytes),
 				},
 			},
 		},
 	}
-	_, err = c.atomixClient.K8sV1alpha1().PartitionSets(c.namespace).Create(set)
+	_, err = s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Create(set)
 	return err
 }
 
 // waitForStart waits for Raft partitions to complete startup
-func (c *database) waitForStart() error {
+func (s *database) waitForStart() error {
 	for {
-		set, err := c.atomixClient.K8sV1alpha1().PartitionSets(c.namespace).Get("raft", metav1.GetOptions{})
+		set, err := s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Get("raft", metav1.GetOptions{})
 		if err != nil {
 			return err
 		} else if int(set.Status.ReadyPartitions) == set.Spec.Partitions {
