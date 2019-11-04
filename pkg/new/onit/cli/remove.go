@@ -58,9 +58,6 @@ func getRemoveNetworkCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the network")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
 	return cmd
 }
 
@@ -88,9 +85,6 @@ func getRemoveSimulatorCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
 	return cmd
 }
 
@@ -118,9 +112,6 @@ func getRemoveAppCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to remove the app")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
 	return cmd
 }
 
