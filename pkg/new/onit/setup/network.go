@@ -18,4 +18,10 @@ package setup
 type NetworkSetup interface {
 	Setup
 	ServiceTypeSetup
+
+	// Single creates a single node topology
+	Single() NetworkSetup
+
+	// Linear creates a linear topology with the given number of devices
+	Linear(devices int) NetworkSetup
 }
