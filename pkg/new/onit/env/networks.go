@@ -14,7 +14,10 @@
 
 package env
 
-import "github.com/onosproject/onos-test/pkg/new/onit/setup"
+import (
+	"github.com/onosproject/onos-test/pkg/new/onit/setup"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 // Networks provides the networks environment
 type Networks interface {
@@ -36,15 +39,23 @@ type networks struct {
 }
 
 func (e *networks) List() []Network {
-	panic("implement me")
+	pods, err := e.kubeClient.CoreV1().Pods(e.namespace).List(metav1.ListOptions{
+		LabelSelector: "type=network",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	networks := make([]Network, len(pods.Items))
+	for i, pod := range pods.Items {
+		networks[i] = e.Get(pod.Name)
+	}
+	return networks
 }
 
 func (e *networks) Get(name string) Network {
 	return &network{
-		service: &service{
-			testEnv: e.testEnv,
-			name:    name,
-		},
+		service: newService(name, "network", e.testEnv),
 	}
 }
 

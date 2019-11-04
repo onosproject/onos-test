@@ -17,6 +17,8 @@ package env
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 // Service is a base interface for service environments
@@ -42,10 +44,19 @@ type ServiceSetup interface {
 
 var _ Service = &service{}
 
+func newService(name string, serviceType string, testEnv *testEnv) *service {
+	return &service{
+		testEnv:     testEnv,
+		name:        name,
+		serviceType: serviceType,
+	}
+}
+
 // service is an implementation of the Service interface
 type service struct {
 	*testEnv
-	name string
+	name        string
+	serviceType string
 }
 
 func (e *service) Name() string {
@@ -53,7 +64,18 @@ func (e *service) Name() string {
 }
 
 func (e *service) Nodes() []Node {
-	panic("implement me")
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"type": e.serviceType}}
+	pods, err := e.kubeClient.CoreV1().Pods(e.namespace).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
+	if err != nil {
+		panic(err)
+	}
+
+	nodes := make([]Node, len(pods.Items))
+	for i, pod := range pods.Items {
+		nodes[i] = e.Node(pod.Name)
+	}
+	return nodes
 }
 
 func (e *service) Node(name string) Node {

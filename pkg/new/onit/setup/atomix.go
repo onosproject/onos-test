@@ -121,6 +121,9 @@ func (s *atomix) createDeployment() error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "atomix-controller",
 			Namespace: s.namespace,
+			Labels: map[string]string{
+				"type": "atomix",
+			},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
@@ -133,6 +136,7 @@ func (s *atomix) createDeployment() error {
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"name": "atomix-controller",
+						"type": "atomix",
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -208,6 +212,9 @@ func (s *atomix) createService() error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "atomix-controller",
 			Namespace: s.namespace,
+			Labels: map[string]string{
+				"type": "atomix",
+			},
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{

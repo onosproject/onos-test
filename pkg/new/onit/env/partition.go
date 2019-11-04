@@ -17,17 +17,9 @@ package env
 // Partition provides the environment for a partition
 type Partition interface {
 	Service
-
-	// ID returns the partition number
-	ID() int
 }
 
 // partition is an implementation of the Partition interface
 type partition struct {
 	*service
-	id int
-}
-
-func (e *partition) ID() int {
-	return e.id
 }

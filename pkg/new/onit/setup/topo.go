@@ -62,12 +62,13 @@ func (s *topo) createService() error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-topo",
 			Namespace: s.namespace,
+			Labels: map[string]string{
+				"type": "topo",
+			},
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app":      "onos",
-				"type":     "topo",
-				"resource": "onos-topo",
+				"type": "topo",
 			},
 			Ports: []corev1.ServicePort{
 				{
@@ -89,22 +90,21 @@ func (s *topo) createDeployment() error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-topo",
 			Namespace: s.namespace,
+			Labels: map[string]string{
+				"type": "topo",
+			},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app":      "onos",
-					"type":     "topo",
-					"resource": "onos-topo",
+					"type": "topo",
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app":      "onos",
-						"type":     "topo",
-						"resource": "onos-topo",
+						"type": "topo",
 					},
 					Annotations: map[string]string{
 						"seccomp.security.alpha.kubernetes.io/pod": "unconfined",

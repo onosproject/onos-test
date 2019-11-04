@@ -14,13 +14,18 @@
 
 package env
 
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+)
+
 // Database provides the database environment
 type Database interface {
 	// Partitions returns all database partitions
-	Partitions() []Partition
+	Partitions(group string) []Partition
 
-	// Partition returns the Partition for the given partition ID
-	Partition(id int) Partition
+	// Partition returns the Partition for the given partition
+	Partition(name string) Partition
 }
 
 var _ Database = &database{}
@@ -30,19 +35,23 @@ type database struct {
 	*testEnv
 }
 
-func (e *database) Partitions() []Partition {
-	panic("implement me")
-}
-
-func (e database) Partition(id int) Partition {
-	return &partition{
-		service: &service{
-			testEnv: e.testEnv,
-		},
-		id: id,
+func (e *database) Partitions(group string) []Partition {
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"type": "database", "group": group}}
+	list, err := e.atomixClient.K8sV1alpha1().Partitions(e.namespace).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
+	if err != nil {
+		panic(err)
 	}
+
+	partitions := make([]Partition, 0, len(list.Items))
+	for _, partition := range list.Items {
+		partitions = append(partitions, e.Partition(partition.Name))
+	}
+	return partitions
 }
 
-func (e *database) Nodes(partition int) []Node {
-	panic("implement me")
+func (e database) Partition(name string) Partition {
+	return &partition{
+		service: newService(name, "database", e.testEnv),
+	}
 }

@@ -30,22 +30,19 @@ func New(kube kube.API) Env {
 		extensionsclient: apiextension.NewForConfigOrDie(kube.Config()),
 	}
 	env.atomix = &atomixEnv{
-		service: &service{
-			testEnv: env,
-		},
+		service: newService("atomix-controller", "atomix", env),
 	}
 	env.database = &database{
 		testEnv: env,
 	}
 	env.topo = &topo{
-		service: &service{
-			testEnv: env,
-		},
+		service: newService("onos-topo", "topo", env),
 	}
 	env.config = &config{
-		service: &service{
-			testEnv: env,
-		},
+		service: newService("onos-config", "topo", env),
+	}
+	env.apps = &apps{
+		testEnv: env,
 	}
 	env.simulators = &simulators{
 		testEnv: env,
