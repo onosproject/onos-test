@@ -14,7 +14,11 @@
 
 package env
 
-import "github.com/onosproject/onos-test/pkg/new/onit/setup"
+import (
+	"github.com/onosproject/onos-test/pkg/new/onit/setup"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+)
 
 // Apps provides the environment for applications
 type Apps interface {
@@ -35,8 +39,20 @@ type apps struct {
 	*testEnv
 }
 
+// GetApps returns a list of apps deployed in the cluster
 func (e *apps) List() []App {
-	panic("implement me")
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "app"}}
+	appList, err := e.kubeClient.AppsV1().Deployments(e.namespace).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
+	if err != nil {
+		panic(err)
+	}
+
+	apps := make([]App, len(appList.Items))
+	for i, app := range appList.Items {
+		apps[i] = e.Get(app.Name)
+	}
+	return apps
 }
 
 func (e *apps) Get(name string) App {
