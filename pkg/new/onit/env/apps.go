@@ -41,7 +41,7 @@ type apps struct {
 
 // GetApps returns a list of apps deployed in the cluster
 func (e *apps) List() []App {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "type": "app"}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"type": "app"}}
 	appList, err := e.kubeClient.AppsV1().Deployments(e.namespace).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
 	if err != nil {
