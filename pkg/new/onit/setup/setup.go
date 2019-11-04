@@ -27,7 +27,7 @@ func New(kube kube.API) TestSetup {
 		namespace:        kube.Namespace(),
 		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
 		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
-		extensionsclient: apiextension.NewForConfigOrDie(kube.Config()),
+		extensionsClient: apiextension.NewForConfigOrDie(kube.Config()),
 	}
 	setup.atomix = &atomix{
 		serviceType: &serviceType{
@@ -90,7 +90,7 @@ type testSetup struct {
 	namespace        string
 	kubeClient       *kubernetes.Clientset
 	atomixClient     *atomixcontroller.Clientset
-	extensionsclient *apiextension.Clientset
+	extensionsClient *apiextension.Clientset
 	atomix           Atomix
 	database         Database
 	topo             Topo

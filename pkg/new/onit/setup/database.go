@@ -14,6 +14,14 @@
 
 package setup
 
+import (
+	"github.com/atomix/atomix-api/proto/atomix/protocols/raft"
+	"github.com/atomix/atomix-k8s-controller/pkg/apis/k8s/v1alpha1"
+	"github.com/ghodss/yaml"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
+)
+
 // Database is an interface for setting up Raft partitions
 type Database interface {
 	ServiceType
@@ -45,10 +53,58 @@ func (s *database) Nodes(nodes int) Database {
 	return s
 }
 
+// create creates a Raft partition set
 func (s *database) create() error {
+	if err := s.createPartitionSet(); err != nil {
+		return err
+	}
 	return nil
 }
 
+// createPartitionSet creates a Raft partition set from the configuration
+func (s *database) createPartitionSet() error {
+	bytes, err := yaml.Marshal(&raft.RaftProtocol{})
+	if err != nil {
+		return err
+	}
+
+	set := &v1alpha1.PartitionSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "raft",
+			Namespace: s.namespace,
+		},
+		Spec: v1alpha1.PartitionSetSpec{
+			Partitions: s.partitions,
+			Template: v1alpha1.PartitionTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"resource": "raft",
+					},
+				},
+				Spec: v1alpha1.PartitionSpec{
+					Size:            int32(s.nodes),
+					Protocol:        "raft",
+					Image:           s.image,
+					ImagePullPolicy: s.pullPolicy,
+					Config:          string(bytes),
+				},
+			},
+		},
+	}
+	_, err = s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Create(set)
+	return err
+}
+
+// waitForStart waits for Raft partitions to complete startup
 func (s *database) waitForStart() error {
-	return nil
+	for {
+		set, err := s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Get("raft", metav1.GetOptions{})
+		if err != nil {
+			return err
+		} else if int(set.Status.ReadyPartitions) == set.Spec.Partitions {
+			return nil
+		} else {
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
 }
