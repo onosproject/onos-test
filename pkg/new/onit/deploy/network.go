@@ -12,51 +12,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package env
+package deploy
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 )
 
-// Network provides the environment for a network node
+// Network is an interface for deploying up a network
 type Network interface {
-	Node
+	Deploy
+	NodeType
 
-	// Devices returns a list of devices in the network
-	Devices() []Node
+	// Single creates a single node topology
+	Single() Network
 
-	// Remove removes the network
-	Remove() error
-
-	// RemoveOrDie removes the network and panics if the remove fails
-	RemoveOrDie()
+	// Linear creates a linear topology with the given number of devices
+	Linear(devices int) Network
 }
 
 var _ Network = &clusterNetwork{}
 
-// clusterService is an implementation of the Network interface
+// clusterNetwork is an implementation of the Network interface
 type clusterNetwork struct {
-	*clusterNode
+	*clusterNodeType
 	network *cluster.Network
 }
 
-func (e *clusterNetwork) Devices() []Node {
-	clusterDevices := e.network.Devices()
-	devices := make([]Node, len(clusterDevices))
-	for i, node := range clusterDevices {
-		devices[i] = &clusterNode{
-			node: node,
-		}
-	}
-	return devices
+func (s *clusterNetwork) Single() Network {
+	s.network.SetSingle()
+	return s
 }
 
-func (e *clusterNetwork) Remove() error {
-	return e.network.Remove()
+func (s *clusterNetwork) Linear(devices int) Network {
+	s.network.SetLinear(devices)
+	return s
 }
 
-func (e *clusterNetwork) RemoveOrDie() {
-	if err := e.Remove(); err != nil {
+func (s *clusterNetwork) Deploy() error {
+	return s.network.Add()
+}
+
+func (s *clusterNetwork) DeployOrDie() {
+	if err := s.Deploy(); err != nil {
 		panic(err)
 	}
 }

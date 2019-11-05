@@ -12,10 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package setup
+package cluster
 
-// SimulatorSetup is an interface for setting up a simulator
-type SimulatorSetup interface {
-	Setup
-	ServiceTypeSetup
+func newDatabase(client *client) *Database {
+	return &Database{
+		client: client,
+	}
+}
+
+// Database provides methods for managing the Atomix database
+type Database struct {
+	*client
+}
+
+// Partitions returns a list of partitions in the database
+func (s *Database) Partitions(group string) *Partitions {
+	return newPartitions(group, s.client)
 }

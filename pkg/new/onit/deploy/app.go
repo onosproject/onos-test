@@ -12,16 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package setup
+package deploy
 
-// NetworkSetup is an interface for setting up a network
-type NetworkSetup interface {
-	Setup
-	ServiceTypeSetup
+import (
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
+)
 
-	// Single creates a single node topology
-	Single() NetworkSetup
+// App is an interface for setting up an application
+type App interface {
+	Deploy
+	ServiceType
 
-	// Linear creates a linear topology with the given number of devices
-	Linear(devices int) NetworkSetup
+	// Nodes sets the number of application nodes
+	Nodes(nodes int) App
+}
+
+// clusterApp is an implementation of the App interface
+type clusterApp struct {
+	*clusterServiceType
+	app *cluster.App
+}
+
+func (s *clusterApp) Nodes(nodes int) App {
+	s.app.SetReplicas(nodes)
+	return s
+}
+
+func (s *clusterApp) Deploy() error {
+	return s.app.Add()
+}
+
+func (s *clusterApp) DeployOrDie() {
+	if err := s.Deploy(); err != nil {
+		panic(err)
+	}
 }

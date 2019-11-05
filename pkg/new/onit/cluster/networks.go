@@ -12,25 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package cluster
 
-import (
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"github.com/onosproject/onos-test/pkg/new/onit/env"
-	"github.com/onosproject/onos-test/pkg/new/onit/setup"
-)
-
-// Benchmarks is the base type for ONIT benchmark suites
-type Benchmarks struct {
-	*kubetest.Benchmarks
+func newNetworks(client *client) *Networks {
+	return &Networks{
+		client: client,
+	}
 }
 
-// Setup returns the ONOS setup API
-func (b *Benchmarks) Setup() setup.TestSetup {
-	return setup.New(b.API())
+// Networks provides methods for adding and modifying networks
+type Networks struct {
+	*client
 }
 
-// Env returns the ONOS environment API
-func (b *Benchmarks) Env() env.Env {
-	return env.New(b.API())
+// Get gets a network by name
+func (s *Networks) Get(name string) *Network {
+	return newNetwork(name, s.client)
+}
+
+// List lists the networks in the cluster
+func (s *Networks) List() []*Network {
+	names := s.listPods(networkType)
+	networks := make([]*Network, len(names))
+	for i, name := range names {
+		networks[i] = s.Get(name)
+	}
+	return networks
 }

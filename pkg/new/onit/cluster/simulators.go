@@ -12,25 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package onit
+package cluster
 
-import (
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"github.com/onosproject/onos-test/pkg/new/onit/env"
-	"github.com/onosproject/onos-test/pkg/new/onit/setup"
-)
-
-// Benchmarks is the base type for ONIT benchmark suites
-type Benchmarks struct {
-	*kubetest.Benchmarks
+func newSimulators(client *client) *Simulators {
+	return &Simulators{
+		client: client,
+	}
 }
 
-// Setup returns the ONOS setup API
-func (b *Benchmarks) Setup() setup.TestSetup {
-	return setup.New(b.API())
+// Simulators provides methods for adding and modifying simulators
+type Simulators struct {
+	*client
 }
 
-// Env returns the ONOS environment API
-func (b *Benchmarks) Env() env.Env {
-	return env.New(b.API())
+// Get gets a simulator by name
+func (s *Simulators) Get(name string) *Simulator {
+	return newSimulator(name, s.client)
+}
+
+// List lists the simulators in the cluster
+func (s *Simulators) List() []*Simulator {
+	names := s.listServices(simulatorType)
+	simulators := make([]*Simulator, len(names))
+	for i, name := range names {
+		simulators[i] = s.Get(name)
+	}
+	return simulators
 }

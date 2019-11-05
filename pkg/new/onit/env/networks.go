@@ -15,8 +15,8 @@
 package env
 
 import (
-	"github.com/onosproject/onos-test/pkg/new/onit/setup"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
+	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
 )
 
 // Networks provides the networks environment
@@ -28,37 +28,36 @@ type Networks interface {
 	Get(name string) Network
 
 	// Add adds a new network to the environment
-	Add(name string) setup.NetworkSetup
+	Add(name string) deploy.Network
 }
 
-var _ Networks = &networks{}
+var _ Networks = &clusterNetworks{}
 
-// networks is an implementation of the Networks interface
-type networks struct {
-	*testEnv
+// clusterNetworks is an implementation of the Networks interface
+type clusterNetworks struct {
+	deployment deploy.Deployment
+	networks   *cluster.Networks
 }
 
-func (e *networks) List() []Network {
-	pods, err := e.kubeClient.CoreV1().Pods(e.namespace).List(metav1.ListOptions{
-		LabelSelector: "type=network",
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	networks := make([]Network, len(pods.Items))
-	for i, pod := range pods.Items {
-		networks[i] = e.Get(pod.Name)
+func (e *clusterNetworks) List() []Network {
+	clusterNetworks := e.networks.List()
+	networks := make([]Network, len(clusterNetworks))
+	for i, network := range clusterNetworks {
+		networks[i] = e.Get(network.Name())
 	}
 	return networks
 }
 
-func (e *networks) Get(name string) Network {
-	return &network{
-		service: newService(name, "network", e.testEnv),
+func (e *clusterNetworks) Get(name string) Network {
+	network := e.networks.Get(name)
+	return &clusterNetwork{
+		clusterNode: &clusterNode{
+			node: network.Node,
+		},
+		network: network,
 	}
 }
 
-func (e *networks) Add(name string) setup.NetworkSetup {
-	return newNetworkSetup(name, e.testEnv)
+func (e *clusterNetworks) Add(name string) deploy.Network {
+	return e.deployment.Network(name)
 }

@@ -15,62 +15,39 @@
 package setup
 
 import (
-	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/new/kube"
-	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	"k8s.io/client-go/kubernetes"
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 )
+
+const raftGroup = "raft"
 
 // New returns a new onit Setup
 func New(kube kube.API) TestSetup {
-	setup := &testSetup{
-		namespace:        kube.Namespace(),
-		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
-		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
-		extensionsClient: apiextension.NewForConfigOrDie(kube.Config()),
+	return &clusterSetup{
+		cluster: cluster.New(kube),
 	}
-	setup.atomix = &atomix{
-		serviceType: &serviceType{
-			service: &service{
-				testSetup: setup,
-			},
-		},
-	}
-	setup.database = &database{
-		serviceType: &serviceType{
-			service: &service{
-				testSetup: setup,
-			},
-		},
-	}
-	setup.topo = &topo{
-		serviceType: &serviceType{
-			service: &service{
-				testSetup: setup,
-			},
-		},
-	}
-	setup.config = &config{
-		serviceType: &serviceType{
-			service: &service{
-				testSetup: setup,
-			},
-		},
-	}
-	return setup
 }
 
 // Setup is an interface for setting up ONOS clusters
 type Setup interface {
 	Setup() error
+	SetupOrDie()
 }
 
 // TestSetup is an interface for setting up ONOS clusters
 type TestSetup interface {
 	Setup
+
+	// Atomix returns the setup configuration for the Atomix controller
 	Atomix() Atomix
+
+	// Database returns the setup configuration for the key-value store
 	Database() Database
+
+	// Topo returns the setup configuration for the ONOS topo service
 	Topo() Topo
+
+	// Config returns the setup configuration for the ONOS config service
 	Config() Config
 }
 
@@ -85,62 +62,87 @@ type concurrentSetup interface {
 	waitForStart() error
 }
 
-// testSetup is an implementation of the Setup interface
-type testSetup struct {
-	namespace        string
-	kubeClient       *kubernetes.Clientset
-	atomixClient     *atomixcontroller.Clientset
-	extensionsClient *apiextension.Clientset
-	atomix           Atomix
-	database         Database
-	topo             Topo
-	config           Config
+// clusterSetup is an implementation of the Setup interface
+type clusterSetup struct {
+	cluster *cluster.Cluster
 }
 
-func (s *testSetup) Atomix() Atomix {
-	return s.atomix
+func (s *clusterSetup) Atomix() Atomix {
+	atomix := s.cluster.Atomix()
+	return &clusterAtomix{
+		clusterServiceType: &clusterServiceType{
+			clusterService: &clusterService{
+				service: atomix.Service,
+			},
+		},
+		atomix: atomix,
+	}
 }
 
-func (s *testSetup) Database() Database {
-	return s.database
+func (s *clusterSetup) Database() Database {
+	return &clusterDatabase{
+		group: s.cluster.Database().Partitions(raftGroup),
+	}
 }
 
-func (s *testSetup) Topo() Topo {
-	return s.topo
+func (s *clusterSetup) Topo() Topo {
+	topo := s.cluster.Topo()
+	return &clusterTopo{
+		clusterServiceType: &clusterServiceType{
+			clusterService: &clusterService{
+				service: topo.Service,
+			},
+		},
+		topo: topo,
+	}
 }
 
-func (s *testSetup) Config() Config {
-	return s.config
+func (s *clusterSetup) Config() Config {
+	config := s.cluster.Config()
+	return &clusterConfig{
+		clusterServiceType: &clusterServiceType{
+			clusterService: &clusterService{
+				service: config.Service,
+			},
+		},
+		config: config,
+	}
 }
 
-func (s *testSetup) Setup() error {
+func (s *clusterSetup) Setup() error {
 	// Set up the Atomix controller
-	if err := s.atomix.setup(); err != nil {
+	if err := s.Atomix().(sequentialSetup).setup(); err != nil {
 		return err
 	}
 
 	// Create the database and services concurrently
-	if err := s.database.create(); err != nil {
+	if err := s.Database().(concurrentSetup).create(); err != nil {
 		return err
 	}
-	if err := s.topo.create(); err != nil {
+	if err := s.Topo().(concurrentSetup).create(); err != nil {
 		return err
 	}
-	if err := s.config.create(); err != nil {
+	if err := s.Config().(concurrentSetup).create(); err != nil {
 		return err
 	}
 
 	// Wait for the database and services to start up
-	if err := s.database.waitForStart(); err != nil {
+	if err := s.Database().(concurrentSetup).waitForStart(); err != nil {
 		return err
 	}
-	if err := s.topo.waitForStart(); err != nil {
+	if err := s.Topo().(concurrentSetup).waitForStart(); err != nil {
 		return err
 	}
-	if err := s.config.waitForStart(); err != nil {
+	if err := s.Config().(concurrentSetup).waitForStart(); err != nil {
 		return err
 	}
 	return nil
 }
 
-var _ Setup = &testSetup{}
+func (s *clusterSetup) SetupOrDie() {
+	if err := s.Setup(); err != nil {
+		panic(err)
+	}
+}
+
+var _ Setup = &clusterSetup{}

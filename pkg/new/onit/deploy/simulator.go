@@ -12,13 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package setup
+package deploy
 
-// AppSetup is an interface for setting up an application
-type AppSetup interface {
-	Setup
-	ServiceTypeSetup
+import (
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
+)
 
-	// Nodes sets the number of application nodes
-	Nodes(nodes int) AppSetup
+// Simulator is an interface for setting up a simulator
+type Simulator interface {
+	Deploy
+	NodeType
+}
+
+var _ Simulator = &clusterSimulator{}
+
+// clusterSimulator is an implementation of the Simulator interface
+type clusterSimulator struct {
+	*clusterNodeType
+	simulator *cluster.Simulator
+}
+
+func (s *clusterSimulator) Deploy() error {
+	return s.simulator.Add()
+}
+
+func (s *clusterSimulator) DeployOrDie() {
+	if err := s.Deploy(); err != nil {
+		panic(err)
+	}
 }

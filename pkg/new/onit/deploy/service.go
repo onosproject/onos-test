@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package setup
+package deploy
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
@@ -27,6 +27,8 @@ type ServiceType interface {
 
 // Service provides methods for setting up a service
 type Service interface {
+	Deploy
+
 	// Image sets the simulator image to deploy
 	Image(image string) Service
 
@@ -48,6 +50,7 @@ var _ Service = &clusterService{}
 // clusterService is an implementation of the Service interface
 type clusterService struct {
 	service *cluster.Service
+	deploy  Deploy
 }
 
 func (s *clusterService) Image(image string) Service {
@@ -58,4 +61,14 @@ func (s *clusterService) Image(image string) Service {
 func (s *clusterService) PullPolicy(pullPolicy corev1.PullPolicy) Service {
 	s.service.SetPullPolicy(pullPolicy)
 	return s
+}
+
+func (s *clusterService) Deploy() error {
+	return s.deploy.Deploy()
+}
+
+func (s *clusterService) DeployOrDie() {
+	if err := s.Deploy(); err != nil {
+		panic(err)
+	}
 }

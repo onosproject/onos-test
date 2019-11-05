@@ -19,7 +19,7 @@ type Partition interface {
 	Service
 }
 
-// partition is an implementation of the Partition interface
-type partition struct {
-	*service
+// clusterPartition is an implementation of the Partition interface
+type clusterPartition struct {
+	*clusterService
 }

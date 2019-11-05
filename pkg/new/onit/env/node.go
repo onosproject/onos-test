@@ -14,25 +14,35 @@
 
 package env
 
+import "github.com/onosproject/onos-test/pkg/new/onit/cluster"
+
 // Node provides the environment for a single node
 type Node interface {
 	// Name returns the name of the node
 	Name() string
 
 	// Kill kills the node
-	Kill()
+	Kill() error
+
+	// KillOrDie kills the node or panics if an error occurs
+	KillOrDie()
 }
 
-// node is an implementation of the Node interface
-type node struct {
-	*testEnv
-	name string
+// clusterNode is an implementation of the Node interface
+type clusterNode struct {
+	node *cluster.Node
 }
 
-func (e *node) Name() string {
-	return e.name
+func (e *clusterNode) Name() string {
+	return e.node.Name()
 }
 
-func (e *node) Kill() {
-	panic("implement me")
+func (e *clusterNode) Kill() error {
+	return e.node.Delete()
+}
+
+func (e *clusterNode) KillOrDie() {
+	if err := e.Kill(); err != nil {
+		panic(err)
+	}
 }
