@@ -16,7 +16,68 @@ package env
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
+	corev1 "k8s.io/api/core/v1"
 )
+
+// SimulatorSetup is an interface for setting up a simulator
+type SimulatorSetup interface {
+	// Name sets the simulator name
+	Name(name string) SimulatorSetup
+
+	// Image sets the image to deploy
+	Image(image string) SimulatorSetup
+
+	// PullPolicy sets the image pull policy
+	PullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup
+
+	// Add deploys the simulator in the cluster
+	Add() (Simulator, error)
+
+	// AddOrDie deploys the simulator and panics if the deployment fails
+	AddOrDie() Simulator
+}
+
+var _ SimulatorSetup = &clusterSimulatorSetup{}
+
+// clusterSimulatorSetup is an implementation of the SimulatorSetup interface
+type clusterSimulatorSetup struct {
+	simulator *cluster.Simulator
+}
+
+func (s *clusterSimulatorSetup) Name(name string) SimulatorSetup {
+	s.simulator.SetName(name)
+	return s
+}
+
+func (s *clusterSimulatorSetup) Image(image string) SimulatorSetup {
+	s.simulator.SetImage(image)
+	return s
+}
+
+func (s *clusterSimulatorSetup) PullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup {
+	s.simulator.SetPullPolicy(pullPolicy)
+	return s
+}
+
+func (s *clusterSimulatorSetup) Add() (Simulator, error) {
+	if err := s.simulator.Add(); err != nil {
+		return nil, err
+	}
+	return &clusterSimulator{
+		clusterNode: &clusterNode{
+			node: s.simulator.Node,
+		},
+		simulator: s.simulator,
+	}, nil
+}
+
+func (s *clusterSimulatorSetup) AddOrDie() Simulator {
+	network, err := s.Add()
+	if err != nil {
+		panic(err)
+	}
+	return network
+}
 
 // Simulator provides the environment for a single simulator
 type Simulator interface {

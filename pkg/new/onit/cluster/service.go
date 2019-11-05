@@ -39,6 +39,11 @@ func (s *Service) Name() string {
 	return s.name
 }
 
+// SetName sets the service name
+func (s *Service) SetName(name string) {
+	s.name = name
+}
+
 // Nodes returns the collection of nodes in the service
 func (s *Service) Nodes() *Nodes {
 	return newNodes(s.name, s.serviceType, s.client)

@@ -16,7 +16,6 @@ package env
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
-	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
 )
 
 // Networks provides the networks environment
@@ -27,16 +26,15 @@ type Networks interface {
 	// Get returns the environment for a network service by name
 	Get(name string) Network
 
-	// Add adds a new network to the environment
-	Add(name string) deploy.Network
+	// New adds a new network to the environment
+	New() NetworkSetup
 }
 
 var _ Networks = &clusterNetworks{}
 
 // clusterNetworks is an implementation of the Networks interface
 type clusterNetworks struct {
-	deployment deploy.Deployment
-	networks   *cluster.Networks
+	networks *cluster.Networks
 }
 
 func (e *clusterNetworks) List() []Network {
@@ -58,6 +56,8 @@ func (e *clusterNetworks) Get(name string) Network {
 	}
 }
 
-func (e *clusterNetworks) Add(name string) deploy.Network {
-	return e.deployment.Network(name)
+func (e *clusterNetworks) New() NetworkSetup {
+	return &clusterNetworkSetup{
+		network: e.networks.New(),
+	}
 }

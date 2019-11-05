@@ -81,12 +81,13 @@ func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 
 	kubeAPI := kube.GetAPI(cluster)
 	env := env.New(kubeAPI)
-	return env.Networks().
-		Add(networkID).
-		Using().
+	_, err := env.Networks().
+		New().
+		Name(networkID).
 		Image(image).
 		PullPolicy(pullPolicy).
-		Deploy()
+		Add()
+	return err
 }
 
 // getAddSimulatorCommand returns a cobra command for deploying a device simulator
@@ -120,12 +121,13 @@ func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
 
 	kubeAPI := kube.GetAPI(cluster)
 	env := env.New(kubeAPI)
-	return env.Simulators().
-		Add(deviceID).
-		Using().
+	_, err := env.Simulators().
+		New().
+		Name(deviceID).
 		Image(image).
 		PullPolicy(pullPolicy).
-		Deploy()
+		Add()
+	return err
 }
 
 // getAddSimulatorCommand returns a cobra command for deploying a device simulator
@@ -162,11 +164,12 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 
 	kubeAPI := kube.GetAPI(cluster)
 	env := env.New(kubeAPI)
-	return env.Apps().
-		Add(appID).
+	_, err := env.Apps().
+		New().
+		Name(appID).
 		Nodes(nodes).
-		Using().
 		Image(image).
 		PullPolicy(pullPolicy).
-		Deploy()
+		Add()
+	return err
 }

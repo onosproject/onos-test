@@ -68,14 +68,8 @@ type clusterSetup struct {
 }
 
 func (s *clusterSetup) Atomix() Atomix {
-	atomix := s.cluster.Atomix()
 	return &clusterAtomix{
-		clusterServiceType: &clusterServiceType{
-			clusterService: &clusterService{
-				service: atomix.Service,
-			},
-		},
-		atomix: atomix,
+		atomix: s.cluster.Atomix(),
 	}
 }
 
@@ -86,26 +80,14 @@ func (s *clusterSetup) Database() Database {
 }
 
 func (s *clusterSetup) Topo() Topo {
-	topo := s.cluster.Topo()
 	return &clusterTopo{
-		clusterServiceType: &clusterServiceType{
-			clusterService: &clusterService{
-				service: topo.Service,
-			},
-		},
-		topo: topo,
+		topo: s.cluster.Topo(),
 	}
 }
 
 func (s *clusterSetup) Config() Config {
-	config := s.cluster.Config()
 	return &clusterConfig{
-		clusterServiceType: &clusterServiceType{
-			clusterService: &clusterService{
-				service: config.Service,
-			},
-		},
-		config: config,
+		config: s.cluster.Config(),
 	}
 }
 

@@ -16,26 +16,40 @@ package setup
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // Config is an interface for setting up config nodes
 type Config interface {
-	ServiceType
-
 	// Nodes sets the number of nodes to deploy
 	Nodes(nodes int) Config
+
+	// Image sets the onos-config image to deploy
+	Image(image string) Config
+
+	// PullPolicy sets the image pull policy
+	PullPolicy(pullPolicy corev1.PullPolicy) Config
 }
 
 var _ Config = &clusterConfig{}
 
 // clusterConfig is an implementation of the Config interface
 type clusterConfig struct {
-	*clusterServiceType
 	config *cluster.Config
 }
 
 func (s *clusterConfig) Nodes(nodes int) Config {
 	s.config.SetReplicas(nodes)
+	return s
+}
+
+func (s *clusterConfig) Image(image string) Config {
+	s.config.SetImage(image)
+	return s
+}
+
+func (s *clusterConfig) PullPolicy(pullPolicy corev1.PullPolicy) Config {
+	s.config.SetPullPolicy(pullPolicy)
 	return s
 }
 

@@ -16,7 +16,74 @@ package env
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
+	corev1 "k8s.io/api/core/v1"
 )
+
+// AppSetup is an interface for setting up an application
+type AppSetup interface {
+	// Name sets the application name
+	Name(name string) AppSetup
+
+	// Nodes sets the number of application nodes
+	Nodes(nodes int) AppSetup
+
+	// Image sets the image to deploy
+	Image(image string) AppSetup
+
+	// PullPolicy sets the image pull policy
+	PullPolicy(pullPolicy corev1.PullPolicy) AppSetup
+
+	// Add adds the application to the cluster
+	Add() (App, error)
+
+	// AddOrDie adds the application and panics if the deployment fails
+	AddOrDie() App
+}
+
+// clusterAppSetup is an implementation of the AppSetup interface
+type clusterAppSetup struct {
+	app *cluster.App
+}
+
+func (s *clusterAppSetup) Name(name string) AppSetup {
+	s.app.SetName(name)
+	return s
+}
+
+func (s *clusterAppSetup) Nodes(nodes int) AppSetup {
+	s.app.SetReplicas(nodes)
+	return s
+}
+
+func (s *clusterAppSetup) Image(image string) AppSetup {
+	s.app.SetImage(image)
+	return s
+}
+
+func (s *clusterAppSetup) PullPolicy(pullPolicy corev1.PullPolicy) AppSetup {
+	s.app.SetPullPolicy(pullPolicy)
+	return s
+}
+
+func (s *clusterAppSetup) Add() (App, error) {
+	if err := s.app.Add(); err != nil {
+		return nil, err
+	}
+	return &clusterApp{
+		clusterService: &clusterService{
+			service: s.app.Service,
+		},
+		app: s.app,
+	}, nil
+}
+
+func (s *clusterAppSetup) AddOrDie() App {
+	app, err := s.Add()
+	if err != nil {
+		panic(err)
+	}
+	return app
+}
 
 // App provides the environment for an app
 type App interface {

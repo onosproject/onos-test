@@ -21,13 +21,17 @@ import (
 
 // Database is an interface for setting up Raft partitions
 type Database interface {
-	ServiceType
-
 	// Partitions sets the number of partitions to deploy
 	Partitions(partitions int) Database
 
 	// Nodes sets the number of nodes per partition
 	Nodes(nodes int) Database
+
+	// Image sets the Raft image to deploy
+	Image(image string) Database
+
+	// PullPolicy sets the image pull policy
+	PullPolicy(pullPolicy corev1.PullPolicy) Database
 }
 
 var _ Database = &clusterDatabase{}
@@ -47,16 +51,12 @@ func (s *clusterDatabase) Nodes(nodes int) Database {
 	return s
 }
 
-func (s *clusterDatabase) Using() Service {
-	return s
-}
-
-func (s *clusterDatabase) Image(image string) Service {
+func (s *clusterDatabase) Image(image string) Database {
 	s.group.SetImage(image)
 	return s
 }
 
-func (s *clusterDatabase) PullPolicy(pullPolicy corev1.PullPolicy) Service {
+func (s *clusterDatabase) PullPolicy(pullPolicy corev1.PullPolicy) Database {
 	s.group.SetPullPolicy(pullPolicy)
 	return s
 }

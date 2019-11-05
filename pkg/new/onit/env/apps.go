@@ -16,7 +16,6 @@ package env
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
-	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
 )
 
 // Apps provides the environment for applications
@@ -27,16 +26,15 @@ type Apps interface {
 	// Get returns the environment for an app by name
 	Get(name string) App
 
-	// Add adds an app to the environment
-	Add(name string) deploy.App
+	// New adds an app to the environment
+	New() AppSetup
 }
 
 var _ Apps = &clusterApps{}
 
 // clusterApps is an implementation of the Apps interface
 type clusterApps struct {
-	deployment deploy.Deployment
-	apps       *cluster.Apps
+	apps *cluster.Apps
 }
 
 func (e *clusterApps) List() []App {
@@ -58,6 +56,8 @@ func (e *clusterApps) Get(name string) App {
 	}
 }
 
-func (e *clusterApps) Add(name string) deploy.App {
-	return e.deployment.App(name)
+func (e *clusterApps) New() AppSetup {
+	return &clusterAppSetup{
+		app: e.apps.New(),
+	}
 }
