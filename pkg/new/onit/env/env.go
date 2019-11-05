@@ -48,17 +48,26 @@ type Env interface {
 	// Simulator returns the environment for a simulator by name
 	Simulator(name string) Simulator
 
+	// NewSimulator returns a new SimulatorSetup for adding a simulator to the cluster
+	NewSimulator() SimulatorSetup
+
 	// Networks returns the networks environment
 	Networks() Networks
 
 	// Network returns the environment for a network by name
 	Network(name string) Network
 
+	// NewNetwork returns a new NetworkSetup for adding a network to the cluster
+	NewNetwork() NetworkSetup
+
 	// Apps returns the applications environment
 	Apps() Apps
 
 	// App returns the environment for an app by name
 	App(name string) App
+
+	// NewApp returns a new AppSetup for adding an application to the cluster
+	NewApp() AppSetup
 }
 
 // clusterEnv is an implementation of the Env interface
@@ -106,6 +115,10 @@ func (e *clusterEnv) Simulator(name string) Simulator {
 	return e.Simulators().Get(name)
 }
 
+func (e *clusterEnv) NewSimulator() SimulatorSetup {
+	return e.Simulators().New()
+}
+
 func (e *clusterEnv) Networks() Networks {
 	return &clusterNetworks{
 		networks: e.cluster.Networks(),
@@ -116,6 +129,10 @@ func (e *clusterEnv) Network(name string) Network {
 	return e.Networks().Get(name)
 }
 
+func (e *clusterEnv) NewNetwork() NetworkSetup {
+	return e.Networks().New()
+}
+
 func (e *clusterEnv) Apps() Apps {
 	return &clusterApps{
 		apps: e.cluster.Apps(),
@@ -124,4 +141,8 @@ func (e *clusterEnv) Apps() Apps {
 
 func (e *clusterEnv) App(name string) App {
 	return e.Apps().Get(name)
+}
+
+func (e *clusterEnv) NewApp() AppSetup {
+	return e.Apps().New()
 }
