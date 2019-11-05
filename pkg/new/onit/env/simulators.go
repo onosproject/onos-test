@@ -15,7 +15,7 @@
 package env
 
 import (
-	"github.com/onosproject/onos-test/pkg/new/onit/setup"
+	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,7 +28,7 @@ type Simulators interface {
 	Get(name string) Simulator
 
 	// Add adds a new simulator to the environment
-	Add(name string) setup.SimulatorSetup
+	Add(name string) deploy.Simulator
 }
 
 var _ Simulators = &simulators{}
@@ -59,6 +59,6 @@ func (e *simulators) Get(name string) Simulator {
 	}
 }
 
-func (e *simulators) Add(name string) setup.SimulatorSetup {
-	return newSimulatorSetup(name, e.testEnv)
+func (e *simulators) Add(name string) deploy.Simulator {
+	return e.deployment.Simulator(name)
 }

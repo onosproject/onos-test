@@ -16,7 +16,6 @@ package env
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
@@ -87,34 +86,4 @@ func (e *service) Node(name string) Node {
 
 func (e *service) Remove() {
 	panic("implement me")
-}
-
-var _ setup.ServiceSetup = &serviceSetup{}
-
-// serviceSetup is an implementation of the ServiceSetup interface
-type serviceSetup struct {
-	*testEnv
-	setup      setup.Setup
-	image      string
-	pullPolicy corev1.PullPolicy
-}
-
-func (s *serviceSetup) Image(image string) setup.ServiceSetup {
-	s.image = image
-	return s
-}
-
-func (s *serviceSetup) PullPolicy(pullPolicy corev1.PullPolicy) setup.ServiceSetup {
-	s.pullPolicy = pullPolicy
-	return s
-}
-
-func (s *serviceSetup) Setup() error {
-	return s.setup.Setup()
-}
-
-func (s *serviceSetup) SetupOrDie() {
-	if err := s.Setup(); err != nil {
-		panic(err)
-	}
 }

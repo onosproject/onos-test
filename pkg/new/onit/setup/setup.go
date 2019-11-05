@@ -69,9 +69,17 @@ type Setup interface {
 // TestSetup is an interface for setting up ONOS clusters
 type TestSetup interface {
 	Setup
+
+	// Atomix returns the setup configuration for the Atomix controller
 	Atomix() Atomix
+
+	// Database returns the setup configuration for the key-value store
 	Database() Database
+
+	// Topo returns the setup configuration for the ONOS topo service
 	Topo() Topo
+
+	// Config returns the setup configuration for the ONOS config service
 	Config() Config
 }
 

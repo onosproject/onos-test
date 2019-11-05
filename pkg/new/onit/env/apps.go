@@ -15,7 +15,7 @@
 package env
 
 import (
-	"github.com/onosproject/onos-test/pkg/new/onit/setup"
+	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
@@ -29,7 +29,7 @@ type Apps interface {
 	Get(name string) App
 
 	// Add adds an app to the environment
-	Add(name string) setup.AppSetup
+	Add(name string) deploy.App
 }
 
 var _ Apps = &apps{}
@@ -61,6 +61,6 @@ func (e *apps) Get(name string) App {
 	}
 }
 
-func (e *apps) Add(name string) setup.AppSetup {
-	return newAppSetup(name, e.testEnv)
+func (e *apps) Add(name string) deploy.App {
+	return e.deployment.App(name)
 }

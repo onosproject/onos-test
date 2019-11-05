@@ -17,6 +17,7 @@ package env
 import (
 	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/new/kube"
+	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
 )
@@ -28,6 +29,7 @@ func New(kube kube.API) Env {
 		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
 		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
 		extensionsclient: apiextension.NewForConfigOrDie(kube.Config()),
+		deployment:       deploy.New(kube),
 	}
 	env.atomix = &atomixEnv{
 		service: newService("atomix-controller", "atomix", env),
@@ -73,17 +75,26 @@ type Env interface {
 	// Simulator returns the environment for a simulator by name
 	Simulator(name string) Simulator
 
+	// AddSimulator returns a Simulator deployment for adding a simulator to the cluster
+	AddSimulator(name string) deploy.Simulator
+
 	// Networks returns the networks environment
 	Networks() Networks
 
 	// Network returns the environment for a network by name
 	Network(name string) Network
 
+	// AddNetwork returns a Network deployment for adding a network to the cluster
+	AddNetwork(name string) deploy.Network
+
 	// Apps returns the applications environment
 	Apps() Apps
 
 	// App returns the environment for an app by name
 	App(name string) App
+
+	// AddApp returns an App deployment for adding an application to the cluster
+	AddApp(name string) deploy.App
 }
 
 // testEnv is an implementation of the Env interface
@@ -92,6 +103,7 @@ type testEnv struct {
 	kubeClient       *kubernetes.Clientset
 	atomixClient     *atomixcontroller.Clientset
 	extensionsclient *apiextension.Clientset
+	deployment       deploy.Deployment
 	atomix           *atomixEnv
 	database         *database
 	topo             *topo
@@ -125,6 +137,10 @@ func (e *testEnv) Simulator(name string) Simulator {
 	return e.Simulators().Get(name)
 }
 
+func (e *testEnv) AddSimulator(name string) deploy.Simulator {
+	return e.Simulators().Add(name)
+}
+
 func (e *testEnv) Networks() Networks {
 	return e.networks
 }
@@ -133,10 +149,18 @@ func (e *testEnv) Network(name string) Network {
 	return e.Networks().Get(name)
 }
 
+func (e *testEnv) AddNetwork(name string) deploy.Network {
+	return e.Networks().Add(name)
+}
+
 func (e *testEnv) Apps() Apps {
 	return e.apps
 }
 
 func (e *testEnv) App(name string) App {
 	return e.Apps().Get(name)
+}
+
+func (e *testEnv) AddApp(name string) deploy.App {
+	return e.Apps().Add(name)
 }

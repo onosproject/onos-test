@@ -86,7 +86,7 @@ func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 		Using().
 		Image(image).
 		PullPolicy(pullPolicy).
-		Setup()
+		Deploy()
 }
 
 // getAddSimulatorCommand returns a cobra command for deploying a device simulator
@@ -125,7 +125,7 @@ func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
 		Using().
 		Image(image).
 		PullPolicy(pullPolicy).
-		Setup()
+		Deploy()
 }
 
 // getAddSimulatorCommand returns a cobra command for deploying a device simulator
@@ -168,5 +168,5 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 		Using().
 		Image(image).
 		PullPolicy(pullPolicy).
-		Setup()
+		Deploy()
 }

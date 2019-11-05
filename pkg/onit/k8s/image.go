@@ -94,7 +94,7 @@ func (c *ClusterController) setPodsImage(pods *corev1.PodList, image string, pul
 // setDeploymentImage updates the image for a deployment
 func (c *ClusterController) setDeploymentImage(deployment *appsv1.Deployment, pods *corev1.PodList, image string, pullPolicy corev1.PullPolicy) console.ErrorStatus {
 	// If this is a deployment, update the deployment
-	c.status.Start("Updating deployment")
+	c.status.Start("Updating deploy")
 	if err := c.updateDeployment(deployment.Name, image, pullPolicy); err != nil {
 		return c.status.Fail(err)
 	}

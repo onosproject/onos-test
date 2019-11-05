@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package setup
+package deploy
 
 import corev1 "k8s.io/api/core/v1"
 
@@ -24,6 +24,8 @@ type ServiceType interface {
 
 // Service provides methods for setting up a service
 type Service interface {
+	Deploy
+
 	// Image sets the simulator image to deploy
 	Image(image string) Service
 
@@ -44,7 +46,8 @@ var _ Service = &service{}
 
 // service is an implementation of the Service interface
 type service struct {
-	*testSetup
+	*testDeployment
+	deploy     Deploy
 	image      string
 	pullPolicy corev1.PullPolicy
 }
@@ -57,4 +60,14 @@ func (s *service) Image(image string) Service {
 func (s *service) PullPolicy(pullPolicy corev1.PullPolicy) Service {
 	s.pullPolicy = pullPolicy
 	return s
+}
+
+func (s *service) Deploy() error {
+	return s.deploy.Deploy()
+}
+
+func (s *service) DeployOrDie() {
+	if err := s.Deploy(); err != nil {
+		panic(err)
+	}
 }

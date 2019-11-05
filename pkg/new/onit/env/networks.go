@@ -15,7 +15,7 @@
 package env
 
 import (
-	"github.com/onosproject/onos-test/pkg/new/onit/setup"
+	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,7 +28,7 @@ type Networks interface {
 	Get(name string) Network
 
 	// Add adds a new network to the environment
-	Add(name string) setup.NetworkSetup
+	Add(name string) deploy.Network
 }
 
 var _ Networks = &networks{}
@@ -59,6 +59,6 @@ func (e *networks) Get(name string) Network {
 	}
 }
 
-func (e *networks) Add(name string) setup.NetworkSetup {
-	return newNetworkSetup(name, e.testEnv)
+func (e *networks) Add(name string) deploy.Network {
+	return e.deployment.Network(name)
 }
