@@ -17,7 +17,6 @@ package env
 import (
 	"github.com/onosproject/onos-test/pkg/new/kube"
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
-	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
 )
 
 const raftGroup = "raft"
@@ -25,8 +24,7 @@ const raftGroup = "raft"
 // New returns a new onit Env
 func New(kube kube.API) Env {
 	return &clusterEnv{
-		cluster:    cluster.New(kube),
-		deployment: deploy.New(kube),
+		cluster: cluster.New(kube),
 	}
 }
 
@@ -50,8 +48,8 @@ type Env interface {
 	// Simulator returns the environment for a simulator by name
 	Simulator(name string) Simulator
 
-	// AddSimulator returns a Simulator deployment for adding a simulator to the cluster
-	AddSimulator(name string) deploy.Simulator
+	// NewSimulator returns a new SimulatorSetup for adding a simulator to the cluster
+	NewSimulator() SimulatorSetup
 
 	// Networks returns the networks environment
 	Networks() Networks
@@ -59,8 +57,8 @@ type Env interface {
 	// Network returns the environment for a network by name
 	Network(name string) Network
 
-	// AddNetwork returns a Network deployment for adding a network to the cluster
-	AddNetwork(name string) deploy.Network
+	// NewNetwork returns a new NetworkSetup for adding a network to the cluster
+	NewNetwork() NetworkSetup
 
 	// Apps returns the applications environment
 	Apps() Apps
@@ -68,14 +66,13 @@ type Env interface {
 	// App returns the environment for an app by name
 	App(name string) App
 
-	// AddApp returns an App deployment for adding an application to the cluster
-	AddApp(name string) deploy.App
+	// NewApp returns a new AppSetup for adding an application to the cluster
+	NewApp() AppSetup
 }
 
 // clusterEnv is an implementation of the Env interface
 type clusterEnv struct {
-	cluster    *cluster.Cluster
-	deployment deploy.Deployment
+	cluster *cluster.Cluster
 }
 
 func (e *clusterEnv) Atomix() Atomix {
@@ -110,7 +107,6 @@ func (e *clusterEnv) Config() Config {
 
 func (e *clusterEnv) Simulators() Simulators {
 	return &clusterSimulators{
-		deployment: e.deployment,
 		simulators: e.cluster.Simulators(),
 	}
 }
@@ -119,14 +115,13 @@ func (e *clusterEnv) Simulator(name string) Simulator {
 	return e.Simulators().Get(name)
 }
 
-func (e *clusterEnv) AddSimulator(name string) deploy.Simulator {
-	return e.Simulators().Add(name)
+func (e *clusterEnv) NewSimulator() SimulatorSetup {
+	return e.Simulators().New()
 }
 
 func (e *clusterEnv) Networks() Networks {
 	return &clusterNetworks{
-		deployment: e.deployment,
-		networks:   e.cluster.Networks(),
+		networks: e.cluster.Networks(),
 	}
 }
 
@@ -134,14 +129,13 @@ func (e *clusterEnv) Network(name string) Network {
 	return e.Networks().Get(name)
 }
 
-func (e *clusterEnv) AddNetwork(name string) deploy.Network {
-	return e.Networks().Add(name)
+func (e *clusterEnv) NewNetwork() NetworkSetup {
+	return e.Networks().New()
 }
 
 func (e *clusterEnv) Apps() Apps {
 	return &clusterApps{
-		deployment: e.deployment,
-		apps:       e.cluster.Apps(),
+		apps: e.cluster.Apps(),
 	}
 }
 
@@ -149,6 +143,6 @@ func (e *clusterEnv) App(name string) App {
 	return e.Apps().Get(name)
 }
 
-func (e *clusterEnv) AddApp(name string) deploy.App {
-	return e.Apps().Add(name)
+func (e *clusterEnv) NewApp() AppSetup {
+	return e.Apps().New()
 }

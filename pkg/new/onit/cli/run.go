@@ -16,7 +16,6 @@ package cli
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/kubetest"
-	"github.com/onosproject/onos-test/pkg/new/util/k8s"
 	"github.com/onosproject/onos-test/pkg/new/util/random"
 	corev1 "k8s.io/api/core/v1"
 	"os"
@@ -112,22 +111,14 @@ func runTest(cmd *cobra.Command, testType kubetest.TestType) error {
 		return runner.Run()
 	}
 
-	client, err := k8s.GetClientset()
-	if err != nil {
+	cluster := kubetest.NewTestCluster(clusterID)
+	if err := cluster.StartTest(test); err != nil {
 		return err
 	}
-
-	clusterSetup := &clusterSetup{
-		clusterID: clusterID,
-		client:    client,
-	}
-	if err := clusterSetup.startTest(test); err != nil {
+	if err := cluster.AwaitTestComplete(test); err != nil {
 		return err
 	}
-	if err := clusterSetup.awaitTestJobComplete(test); err != nil {
-		return err
-	}
-	_, code, err := clusterSetup.getStatus(test)
+	_, code, err := cluster.GetTestResult(test)
 	if err != nil {
 		return err
 	}

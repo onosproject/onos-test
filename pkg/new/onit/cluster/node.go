@@ -39,6 +39,11 @@ func (n *Node) Name() string {
 	return n.name
 }
 
+// SetName sets the node name
+func (n *Node) SetName(name string) {
+	n.name = name
+}
+
 // Image returns the image configured for the node
 func (n *Node) Image() string {
 	return n.image

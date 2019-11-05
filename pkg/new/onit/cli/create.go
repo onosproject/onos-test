@@ -16,7 +16,7 @@ package cli
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/kube"
-	"github.com/onosproject/onos-test/pkg/new/util/k8s"
+	"github.com/onosproject/onos-test/pkg/new/kubetest"
 	"github.com/onosproject/onos-test/pkg/new/util/random"
 
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
@@ -99,42 +99,30 @@ func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	client, err := k8s.GetClientset()
-	if err != nil {
-		return err
-	}
-
-	clusterSetup := &clusterSetup{
-		clusterID: clusterID,
-		client:    client,
-	}
-	if err := clusterSetup.setup(); err != nil {
+	cluster := kubetest.NewTestCluster(clusterID)
+	if err := cluster.Create(); err != nil {
 		return err
 	}
 
 	kubeAPI := kube.GetAPI(clusterID)
 	setup := setup.New(kubeAPI)
 	setup.Atomix().
-		Using().
 		Image(images[atomixService]).
 		PullPolicy(pullPolicy)
 	setup.Database().
 		Partitions(partitions).
 		Nodes(nodes[raftService]).
-		Using().
 		Image(images[raftService]).
 		PullPolicy(pullPolicy)
 	if nodes[configService] > 0 {
 		setup.Config().
 			Nodes(nodes[configService]).
-			Using().
 			Image(images[configService]).
 			PullPolicy(pullPolicy)
 	}
 	if nodes[topoService] > 0 {
 		setup.Topo().
 			Nodes(nodes[topoService]).
-			Using().
 			Image(images[topoService]).
 			PullPolicy(pullPolicy)
 	}

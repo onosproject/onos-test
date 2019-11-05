@@ -14,6 +14,8 @@
 
 package cluster
 
+import "github.com/onosproject/onos-test/pkg/new/util/random"
+
 func newSimulators(client *client) *Simulators {
 	return &Simulators{
 		client: client,
@@ -23,6 +25,11 @@ func newSimulators(client *client) *Simulators {
 // Simulators provides methods for adding and modifying simulators
 type Simulators struct {
 	*client
+}
+
+// New returns a new simulator
+func (s *Simulators) New() *Simulator {
+	return newSimulator(random.NewPetName(2), s.client)
 }
 
 // Get gets a simulator by name

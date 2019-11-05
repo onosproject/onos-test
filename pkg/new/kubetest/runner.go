@@ -389,7 +389,7 @@ func (r *TestRunner) createTestJob() error {
 							Env: []corev1.EnvVar{
 								{
 									Name:  testContextEnv,
-									Value: string(TestContextCoordinator),
+									Value: string(testContextCoordinator),
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{

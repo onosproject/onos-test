@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cli
+package kubetest
 
 import (
 	"errors"
 	"github.com/ghodss/yaml"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
+	"github.com/onosproject/onos-test/pkg/new/util/k8s"
 	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -28,28 +28,42 @@ import (
 	"time"
 )
 
-// clusterSetup handles setting up and tearing down clusters from the CLI
-type clusterSetup struct {
-	clusterID string
-	client    *kubernetes.Clientset
+// NewTestCluster returns a new test cluster for the given Kubernetes API
+func NewTestCluster(namespace string) *TestCluster {
+	client, err := k8s.GetClientset()
+	if err != nil {
+		panic(err)
+	}
+	return &TestCluster{
+		client:    client,
+		namespace: namespace,
+	}
 }
 
-func (c *clusterSetup) setup() error {
+// TestCluster manages a test cluster
+type TestCluster struct {
+	client    *kubernetes.Clientset
+	namespace string
+}
+
+// Create creates the cluster
+func (c *TestCluster) Create() error {
 	return c.setupNamespace()
 }
 
-func (c *clusterSetup) teardown() error {
+// Delete deletes the cluster
+func (c *TestCluster) Delete() error {
 	return c.teardownNamespace()
 }
 
 // setupNamespace sets up the test namespace
-func (c *clusterSetup) setupNamespace() error {
+func (c *TestCluster) setupNamespace() error {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: c.clusterID,
+			Name: c.namespace,
 		},
 	}
-	step := logging.NewStep(c.clusterID, "Create worker namespace")
+	step := logging.NewStep(c.namespace, "Create namespace")
 	step.Start()
 	_, err := c.client.CoreV1().Namespaces().Create(ns)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
@@ -61,8 +75,8 @@ func (c *clusterSetup) setupNamespace() error {
 }
 
 // setupRBAC sets up role based access controls for the cluster
-func (c *clusterSetup) setupRBAC() error {
-	step := logging.NewStep(c.clusterID, "Set up RBAC")
+func (c *TestCluster) setupRBAC() error {
+	step := logging.NewStep(c.namespace, "Set up RBAC")
 	step.Start()
 	if err := c.createClusterRole(); err != nil {
 		step.Fail(err)
@@ -81,11 +95,11 @@ func (c *clusterSetup) setupRBAC() error {
 }
 
 // createClusterRole creates the ClusterRole required by the Atomix controller and tests if not yet created
-func (c *clusterSetup) createClusterRole() error {
+func (c *TestCluster) createClusterRole() error {
 	role := &rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.clusterID,
-			Namespace: c.clusterID,
+			Name:      c.namespace,
+			Namespace: c.namespace,
 		},
 		Rules: []rbacv1.PolicyRule{
 			{
@@ -164,22 +178,22 @@ func (c *clusterSetup) createClusterRole() error {
 }
 
 // createClusterRoleBinding creates the ClusterRoleBinding required by the test manager
-func (c *clusterSetup) createClusterRoleBinding() error {
+func (c *TestCluster) createClusterRoleBinding() error {
 	roleBinding := &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.clusterID,
-			Namespace: c.clusterID,
+			Name:      c.namespace,
+			Namespace: c.namespace,
 		},
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Name:      c.clusterID,
-				Namespace: c.clusterID,
+				Name:      c.namespace,
+				Namespace: c.namespace,
 			},
 		},
 		RoleRef: rbacv1.RoleRef{
 			Kind:     "ClusterRole",
-			Name:     c.clusterID,
+			Name:     c.namespace,
 			APIGroup: "rbac.authorization.k8s.io",
 		},
 	}
@@ -191,22 +205,22 @@ func (c *clusterSetup) createClusterRoleBinding() error {
 }
 
 // createServiceAccount creates a ServiceAccount used by the test manager
-func (c *clusterSetup) createServiceAccount() error {
+func (c *TestCluster) createServiceAccount() error {
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.clusterID,
-			Namespace: c.clusterID,
+			Name:      c.namespace,
+			Namespace: c.namespace,
 		},
 	}
-	_, err := c.client.CoreV1().ServiceAccounts(c.clusterID).Create(serviceAccount)
+	_, err := c.client.CoreV1().ServiceAccounts(c.namespace).Create(serviceAccount)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
 	}
 	return nil
 }
 
-// startTest starts running a test job
-func (c *clusterSetup) startTest(test *kubetest.TestConfig) error {
+// StartTest starts running a test job
+func (c *TestCluster) StartTest(test *TestConfig) error {
 	if err := c.createTestConfig(test); err != nil {
 		return err
 	}
@@ -220,7 +234,7 @@ func (c *clusterSetup) startTest(test *kubetest.TestConfig) error {
 }
 
 // createTestConfig creates a ConfigMap for the test configuration
-func (c *clusterSetup) createTestConfig(test *kubetest.TestConfig) error {
+func (c *TestCluster) createTestConfig(test *TestConfig) error {
 	data, err := yaml.Marshal(test)
 	if err != nil {
 		return err
@@ -229,24 +243,24 @@ func (c *clusterSetup) createTestConfig(test *kubetest.TestConfig) error {
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      test.TestID,
-			Namespace: c.clusterID,
+			Namespace: c.namespace,
 		},
 		Data: map[string]string{
-			"config.yaml": string(data),
+			configFile: string(data),
 		},
 	}
-	_, err = c.client.CoreV1().ConfigMaps(c.clusterID).Create(cm)
+	_, err = c.client.CoreV1().ConfigMaps(c.namespace).Create(cm)
 	return err
 }
 
 // createTestJob creates the job to run tests
-func (c *clusterSetup) createTestJob(test *kubetest.TestConfig) error {
+func (c *TestCluster) createTestJob(test *TestConfig) error {
 	zero := int32(0)
 	one := int32(1)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      test.TestID,
-			Namespace: c.clusterID,
+			Namespace: c.namespace,
 			Annotations: map[string]string{
 				"test-id": test.TestID,
 				"suite":   test.Suite,
@@ -264,7 +278,7 @@ func (c *clusterSetup) createTestJob(test *kubetest.TestConfig) error {
 					},
 				},
 				Spec: corev1.PodSpec{
-					ServiceAccountName: c.clusterID,
+					ServiceAccountName: c.namespace,
 					RestartPolicy:      corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
 						{
@@ -273,18 +287,18 @@ func (c *clusterSetup) createTestJob(test *kubetest.TestConfig) error {
 							ImagePullPolicy: test.PullPolicy,
 							Env: []corev1.EnvVar{
 								{
-									Name:  "TEST_CONTEXT",
-									Value: "worker",
+									Name:  testContextEnv,
+									Value: string(testContextWorker),
 								},
 								{
-									Name:  "TEST_NAMESPACE",
-									Value: c.clusterID,
+									Name:  testNamespaceEnv,
+									Value: c.namespace,
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "config",
-									MountPath: "/config",
+									MountPath: configPath,
 									ReadOnly:  true,
 								},
 							},
@@ -311,12 +325,12 @@ func (c *clusterSetup) createTestJob(test *kubetest.TestConfig) error {
 		timeoutSeconds := int64(test.Timeout / time.Second)
 		job.Spec.ActiveDeadlineSeconds = &timeoutSeconds
 	}
-	_, err := c.client.BatchV1().Jobs(c.clusterID).Create(job)
+	_, err := c.client.BatchV1().Jobs(c.namespace).Create(job)
 	return err
 }
 
 // awaitTestJobRunning blocks until the test job creates a pod in the RUNNING state
-func (c *clusterSetup) awaitTestJobRunning(test *kubetest.TestConfig) error {
+func (c *TestCluster) awaitTestJobRunning(test *TestConfig) error {
 	for {
 		pod, err := c.getPod(test)
 		if err != nil {
@@ -328,8 +342,8 @@ func (c *clusterSetup) awaitTestJobRunning(test *kubetest.TestConfig) error {
 	}
 }
 
-// awaitTestJobComplete blocks until the test job is complete
-func (c *clusterSetup) awaitTestJobComplete(test *kubetest.TestConfig) error {
+// AwaitTestComplete blocks until the test job is complete
+func (c *TestCluster) AwaitTestComplete(test *TestConfig) error {
 	for {
 		pod, err := c.getPod(test)
 		if err != nil {
@@ -345,8 +359,8 @@ func (c *clusterSetup) awaitTestJobComplete(test *kubetest.TestConfig) error {
 	}
 }
 
-// getStatus gets the status message and exit code of the given pod
-func (c *clusterSetup) getStatus(test *kubetest.TestConfig) (string, int, error) {
+// GetTestResult gets the status message and exit code of the given test
+func (c *TestCluster) GetTestResult(test *TestConfig) (string, int, error) {
 	pod, err := c.getPod(test)
 	if err != nil {
 		return "", 0, err
@@ -361,8 +375,8 @@ func (c *clusterSetup) getStatus(test *kubetest.TestConfig) (string, int, error)
 }
 
 // getPod finds the Pod for the given test
-func (c *clusterSetup) getPod(test *kubetest.TestConfig) (*corev1.Pod, error) {
-	pods, err := c.client.CoreV1().Pods(c.clusterID).List(metav1.ListOptions{
+func (c *TestCluster) getPod(test *TestConfig) (*corev1.Pod, error) {
+	pods, err := c.client.CoreV1().Pods(c.namespace).List(metav1.ListOptions{
 		LabelSelector: "test=" + test.TestID,
 	})
 	if err != nil {
@@ -383,6 +397,6 @@ func (c *clusterSetup) getPod(test *kubetest.TestConfig) (*corev1.Pod, error) {
 }
 
 // teardownNamespace tears down the cluster namespace
-func (c *clusterSetup) teardownNamespace() error {
-	return c.client.CoreV1().Namespaces().Delete(c.clusterID, &metav1.DeleteOptions{})
+func (c *TestCluster) teardownNamespace() error {
+	return c.client.CoreV1().Namespaces().Delete(c.namespace, &metav1.DeleteOptions{})
 }

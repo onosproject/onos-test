@@ -16,26 +16,40 @@ package setup
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // Topo is an interface for setting up topo nodes
 type Topo interface {
-	ServiceType
-
 	// Nodes sets the number of clusterTopo nodes to deploy
 	Nodes(nodes int) Topo
+
+	// Image sets the onos-topo image to deploy
+	Image(image string) Topo
+
+	// PullPolicy sets the image pull policy
+	PullPolicy(pullPolicy corev1.PullPolicy) Topo
 }
 
 var _ Topo = &clusterTopo{}
 
 // clusterTopo is an implementation of the Topo interface
 type clusterTopo struct {
-	*clusterServiceType
 	topo *cluster.Topo
 }
 
 func (s *clusterTopo) Nodes(nodes int) Topo {
 	s.topo.SetReplicas(nodes)
+	return s
+}
+
+func (s *clusterTopo) Image(image string) Topo {
+	s.topo.SetImage(image)
+	return s
+}
+
+func (s *clusterTopo) PullPolicy(pullPolicy corev1.PullPolicy) Topo {
+	s.topo.SetPullPolicy(pullPolicy)
 	return s
 }
 

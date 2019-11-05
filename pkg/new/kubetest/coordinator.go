@@ -20,6 +20,7 @@ import (
 	"github.com/onosproject/onos-test/pkg/new/util/k8s"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sync"
 )
 
 // newTestCoordinator returns a new test coordinator
@@ -60,6 +61,11 @@ type TestCoordinator struct {
 
 // Run runs the tests
 func (c *TestCoordinator) Run() error {
+	client, err := k8s.GetClientset()
+	if err != nil {
+		return err
+	}
+
 	jobs := make([]*TestJob, 0)
 	if c.test.Suite == "" {
 		for suite := range Registry.tests {
@@ -72,8 +78,11 @@ func (c *TestCoordinator) Run() error {
 				PullPolicy: c.test.PullPolicy,
 			}
 			job := &TestJob{
-				client: c.client,
-				test:   config,
+				cluster: &TestCluster{
+					client:    client,
+					namespace: config.TestID,
+				},
+				test: config,
 			}
 			jobs = append(jobs, job)
 		}
@@ -87,8 +96,11 @@ func (c *TestCoordinator) Run() error {
 			PullPolicy: c.test.PullPolicy,
 		}
 		job := &TestJob{
-			client: c.client,
-			test:   config,
+			cluster: &TestCluster{
+				client:    client,
+				namespace: config.TestID,
+			},
+			test: config,
 		}
 		jobs = append(jobs, job)
 	}
@@ -103,6 +115,11 @@ type BenchmarkCoordinator struct {
 
 // Run runs the tests
 func (c *BenchmarkCoordinator) Run() error {
+	client, err := k8s.GetClientset()
+	if err != nil {
+		return err
+	}
+
 	jobs := make([]*TestJob, 0)
 	if c.test.Suite == "" {
 		for suite := range Registry.benchmarks {
@@ -115,8 +132,11 @@ func (c *BenchmarkCoordinator) Run() error {
 				PullPolicy: c.test.PullPolicy,
 			}
 			job := &TestJob{
-				client: c.client,
-				test:   config,
+				cluster: &TestCluster{
+					client:    client,
+					namespace: config.TestID,
+				},
+				test: config,
 			}
 			jobs = append(jobs, job)
 		}
@@ -130,8 +150,11 @@ func (c *BenchmarkCoordinator) Run() error {
 			PullPolicy: c.test.PullPolicy,
 		}
 		job := &TestJob{
-			client: c.client,
-			test:   config,
+			cluster: &TestCluster{
+				client:    client,
+				namespace: config.TestID,
+			},
+			test: config,
 		}
 		jobs = append(jobs, job)
 	}
@@ -140,34 +163,44 @@ func (c *BenchmarkCoordinator) Run() error {
 
 // runJobs runs the given test jobs
 func runJobs(jobs []*TestJob) error {
+	// Start jobs in separate goroutines
+	wg := &sync.WaitGroup{}
+	mu := &sync.Mutex{}
+	errChan := make(chan error, len(jobs))
+	codeChan := make(chan int, len(jobs))
 	for _, job := range jobs {
-		if err := job.Start(); err != nil {
-			return err
-		}
+		wg.Add(1)
+		go func(job *TestJob) {
+			if output, code, err := job.Run(); err != nil {
+				errChan <- err
+			} else {
+				mu.Lock()
+				_, _ = os.Stdout.WriteString(output)
+				codeChan <- code
+				mu.Unlock()
+			}
+			wg.Done()
+		}(job)
 	}
 
-	for _, job := range jobs {
-		if err := job.WaitForComplete(); err != nil {
-			return err
-		}
+	// Wait for all jobs to start before proceeding
+	go func() {
+		wg.Wait()
+		close(errChan)
+		close(codeChan)
+	}()
+
+	// If any job returned an error, return it
+	for err := range errChan {
+		return err
 	}
 
-	exitCode := 0
-	for _, job := range jobs {
-		output, code, err := job.GetResult()
-		if err != nil {
-			return err
-		}
-		_, _ = os.Stdout.WriteString(output)
+	// If any job returned a non-zero exit code, exit with it
+	for code := range codeChan {
 		if code != 0 {
-			exitCode = code
+			os.Exit(code)
 		}
 	}
-
-	for _, job := range jobs {
-		_ = job.TearDown()
-	}
-	os.Exit(exitCode)
 	return nil
 }
 

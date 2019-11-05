@@ -16,19 +16,33 @@ package setup
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // Atomix is an interface for setting up the Atomix controller
 type Atomix interface {
-	ServiceType
+	// Image sets the Atomix controller image to deploy
+	Image(image string) Atomix
+
+	// PullPolicy sets the image pull policy
+	PullPolicy(pullPolicy corev1.PullPolicy) Atomix
 }
 
 var _ Atomix = &clusterAtomix{}
 
 // clusterAtomix is an implementation of the Atomix interface
 type clusterAtomix struct {
-	*clusterServiceType
 	atomix *cluster.Atomix
+}
+
+func (s *clusterAtomix) Image(image string) Atomix {
+	s.atomix.SetImage(image)
+	return s
+}
+
+func (s *clusterAtomix) PullPolicy(pullPolicy corev1.PullPolicy) Atomix {
+	s.atomix.SetPullPolicy(pullPolicy)
+	return s
 }
 
 func (s *clusterAtomix) setup() error {

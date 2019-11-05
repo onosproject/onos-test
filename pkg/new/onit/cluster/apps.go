@@ -14,6 +14,8 @@
 
 package cluster
 
+import "github.com/onosproject/onos-test/pkg/new/util/random"
+
 func newApps(client *client) *Apps {
 	return &Apps{
 		client: client,
@@ -23,6 +25,11 @@ func newApps(client *client) *Apps {
 // Apps provides methods for adding and modifying applications
 type Apps struct {
 	*client
+}
+
+// New returns a new app
+func (s *Apps) New() *App {
+	return newApp(random.NewPetName(2), s.client)
 }
 
 // Get gets an app by name

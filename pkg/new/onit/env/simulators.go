@@ -16,7 +16,6 @@ package env
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
-	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
 )
 
 // Simulators provides the simulators environment
@@ -27,15 +26,14 @@ type Simulators interface {
 	// Get returns the environment for a simulator service by name
 	Get(name string) Simulator
 
-	// Add adds a new simulator to the environment
-	Add(name string) deploy.Simulator
+	// New adds a new simulator to the environment
+	New() SimulatorSetup
 }
 
 var _ Simulators = &clusterSimulators{}
 
 // clusterSimulators is an implementation of the Simulators interface
 type clusterSimulators struct {
-	deployment deploy.Deployment
 	simulators *cluster.Simulators
 }
 
@@ -58,6 +56,8 @@ func (e *clusterSimulators) Get(name string) Simulator {
 	}
 }
 
-func (e *clusterSimulators) Add(name string) deploy.Simulator {
-	return e.deployment.Simulator(name)
+func (e *clusterSimulators) New() SimulatorSetup {
+	return &clusterSimulatorSetup{
+		simulator: e.simulators.New(),
+	}
 }
