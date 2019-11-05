@@ -22,7 +22,6 @@ import (
 // Database is an interface for setting up Raft partitions
 type Database interface {
 	ServiceType
-	concurrentSetup
 
 	// Partitions sets the number of partitions to deploy
 	Partitions(partitions int) Database

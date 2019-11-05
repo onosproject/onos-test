@@ -21,7 +21,6 @@ import (
 // Atomix is an interface for setting up the Atomix controller
 type Atomix interface {
 	ServiceType
-	sequentialSetup
 }
 
 var _ Atomix = &clusterAtomix{}

@@ -15,61 +15,18 @@
 package env
 
 import (
-	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/new/kube"
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
-	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	"k8s.io/client-go/kubernetes"
 )
+
+const raftGroup = "raft"
 
 // New returns a new onit Env
 func New(kube kube.API) Env {
-	cluster := cluster.New(kube)
-	atomix := cluster.Atomix()
-	group := cluster.Database().Partitions("raft")
-	topo := cluster.Topo()
-	config := cluster.Config()
-	apps := cluster.Apps()
-	simulators := cluster.Simulators()
-	networks := cluster.Networks()
-	deployment := deploy.New(kube)
 	return &clusterEnv{
-		namespace:        kube.Namespace(),
-		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
-		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
-		extensionsclient: apiextension.NewForConfigOrDie(kube.Config()),
-		deployment:       deploy.New(kube),
-		atomix: &clusterAtomix{
-			clusterService: &clusterService{
-				service: atomix.Service,
-			},
-		},
-		database: &clusterDatabase{
-			group: group,
-		},
-		topo: &clusterTopo{
-			clusterService: &clusterService{
-				service: topo.Service,
-			},
-		},
-		config: &clusterConfig{
-			clusterService: &clusterService{
-				service: config.Service,
-			},
-		},
-		apps: &clusterApps{
-			deployment: deployment,
-			apps:       apps,
-		},
-		simulators: &clusterSimulators{
-			deployment: deployment,
-			simulators: simulators,
-		},
-		networks: &clusterNetworks{
-			deployment: deployment,
-			networks:   networks,
-		},
+		cluster:    cluster.New(kube),
+		deployment: deploy.New(kube),
 	}
 }
 
@@ -117,38 +74,45 @@ type Env interface {
 
 // clusterEnv is an implementation of the Env interface
 type clusterEnv struct {
-	namespace        string
-	kubeClient       *kubernetes.Clientset
-	atomixClient     *atomixcontroller.Clientset
-	extensionsclient *apiextension.Clientset
-	deployment       deploy.Deployment
-	atomix           *clusterAtomix
-	database         *clusterDatabase
-	topo             *clusterTopo
-	config           *clusterConfig
-	simulators       *clusterSimulators
-	networks         *clusterNetworks
-	apps             *clusterApps
+	cluster    *cluster.Cluster
+	deployment deploy.Deployment
 }
 
 func (e *clusterEnv) Atomix() Atomix {
-	return e.atomix
+	return &clusterAtomix{
+		clusterService: &clusterService{
+			service: e.cluster.Atomix().Service,
+		},
+	}
 }
 
 func (e *clusterEnv) Database() Database {
-	return e.database
+	return &clusterDatabase{
+		group: e.cluster.Database().Partitions(raftGroup),
+	}
 }
 
 func (e *clusterEnv) Topo() Topo {
-	return e.topo
+	return &clusterTopo{
+		clusterService: &clusterService{
+			service: e.cluster.Topo().Service,
+		},
+	}
 }
 
 func (e *clusterEnv) Config() Config {
-	return e.config
+	return &clusterConfig{
+		clusterService: &clusterService{
+			service: e.cluster.Config().Service,
+		},
+	}
 }
 
 func (e *clusterEnv) Simulators() Simulators {
-	return e.simulators
+	return &clusterSimulators{
+		deployment: e.deployment,
+		simulators: e.cluster.Simulators(),
+	}
 }
 
 func (e *clusterEnv) Simulator(name string) Simulator {
@@ -160,7 +124,10 @@ func (e *clusterEnv) AddSimulator(name string) deploy.Simulator {
 }
 
 func (e *clusterEnv) Networks() Networks {
-	return e.networks
+	return &clusterNetworks{
+		deployment: e.deployment,
+		networks:   e.cluster.Networks(),
+	}
 }
 
 func (e *clusterEnv) Network(name string) Network {
@@ -172,7 +139,10 @@ func (e *clusterEnv) AddNetwork(name string) deploy.Network {
 }
 
 func (e *clusterEnv) Apps() Apps {
-	return e.apps
+	return &clusterApps{
+		deployment: e.deployment,
+		apps:       e.cluster.Apps(),
+	}
 }
 
 func (e *clusterEnv) App(name string) App {

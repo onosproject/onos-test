@@ -23,52 +23,67 @@ import (
 
 // New returns a new onit Env
 func New(kube kube.API) *Cluster {
+	client := &client{
+		namespace:        kube.Namespace(),
+		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
+		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
+		extensionsClient: apiextension.NewForConfigOrDie(kube.Config()),
+	}
 	return &Cluster{
-		client: &client{
-			namespace:        kube.Namespace(),
-			kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
-			atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
-			extensionsClient: apiextension.NewForConfigOrDie(kube.Config()),
-		},
+		client:     client,
+		atomix:     newAtomix(client),
+		database:   newDatabase(client),
+		topo:       newTopo(client),
+		config:     newConfig(client),
+		apps:       newApps(client),
+		simulators: newSimulators(client),
+		networks:   newNetworks(client),
 	}
 }
 
 // Cluster facilitates modifying subsystems in Kubernetes
 type Cluster struct {
 	*client
+	atomix     *Atomix
+	database   *Database
+	topo       *Topo
+	config     *Config
+	apps       *Apps
+	simulators *Simulators
+	networks   *Networks
 }
 
 // Atomix returns the Atomix service
 func (c *Cluster) Atomix() *Atomix {
-	return newAtomix(c.client)
+	return c.atomix
 }
 
 // Database returns the database service
 func (c *Cluster) Database() *Database {
-	return newDatabase(c.client)
+	return c.database
 }
 
 // Topo returns the topo service
 func (c *Cluster) Topo() *Topo {
-	return newTopo(c.client)
+	return c.topo
 }
 
 // Config returns the configuration service
 func (c *Cluster) Config() *Config {
-	return newConfig(c.client)
+	return c.config
 }
 
 // Apps returns the cluster applications
 func (c *Cluster) Apps() *Apps {
-	return newApps(c.client)
+	return c.apps
 }
 
 // Simulators returns the cluster simulators
 func (c *Cluster) Simulators() *Simulators {
-	return newSimulators(c.client)
+	return c.simulators
 }
 
 // Networks returns the cluster networks
 func (c *Cluster) Networks() *Networks {
-	return newNetworks(c.client)
+	return c.networks
 }

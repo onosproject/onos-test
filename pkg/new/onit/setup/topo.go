@@ -21,7 +21,6 @@ import (
 // Topo is an interface for setting up topo nodes
 type Topo interface {
 	ServiceType
-	concurrentSetup
 
 	// Nodes sets the number of clusterTopo nodes to deploy
 	Nodes(nodes int) Topo

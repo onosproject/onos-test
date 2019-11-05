@@ -21,7 +21,6 @@ import (
 // Config is an interface for setting up config nodes
 type Config interface {
 	ServiceType
-	concurrentSetup
 
 	// Nodes sets the number of nodes to deploy
 	Nodes(nodes int) Config
