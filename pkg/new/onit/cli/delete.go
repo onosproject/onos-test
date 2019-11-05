@@ -15,7 +15,7 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/new/util/k8s"
+	"github.com/onosproject/onos-test/pkg/new/kubetest"
 	"github.com/spf13/cobra"
 )
 
@@ -52,14 +52,6 @@ func getDeleteClusterCommand() *cobra.Command {
 
 func runDeleteClusterCommand(cmd *cobra.Command, args []string) error {
 	clusterID := args[0]
-	client, err := k8s.GetClientset()
-	if err != nil {
-		return err
-	}
-
-	clusterSetup := &clusterSetup{
-		clusterID: clusterID,
-		client:    client,
-	}
-	return clusterSetup.teardown()
+	cluster := kubetest.NewTestCluster(clusterID)
+	return cluster.Delete()
 }

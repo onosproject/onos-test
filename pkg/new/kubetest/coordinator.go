@@ -60,6 +60,11 @@ type TestCoordinator struct {
 
 // Run runs the tests
 func (c *TestCoordinator) Run() error {
+	client, err := k8s.GetClientset()
+	if err != nil {
+		return err
+	}
+
 	jobs := make([]*TestJob, 0)
 	if c.test.Suite == "" {
 		for suite := range Registry.tests {
@@ -72,8 +77,11 @@ func (c *TestCoordinator) Run() error {
 				PullPolicy: c.test.PullPolicy,
 			}
 			job := &TestJob{
-				client: c.client,
-				test:   config,
+				cluster: &TestCluster{
+					client:    client,
+					namespace: config.TestID,
+				},
+				test: config,
 			}
 			jobs = append(jobs, job)
 		}
@@ -87,8 +95,11 @@ func (c *TestCoordinator) Run() error {
 			PullPolicy: c.test.PullPolicy,
 		}
 		job := &TestJob{
-			client: c.client,
-			test:   config,
+			cluster: &TestCluster{
+				client:    client,
+				namespace: config.TestID,
+			},
+			test: config,
 		}
 		jobs = append(jobs, job)
 	}
@@ -103,6 +114,11 @@ type BenchmarkCoordinator struct {
 
 // Run runs the tests
 func (c *BenchmarkCoordinator) Run() error {
+	client, err := k8s.GetClientset()
+	if err != nil {
+		return err
+	}
+
 	jobs := make([]*TestJob, 0)
 	if c.test.Suite == "" {
 		for suite := range Registry.benchmarks {
@@ -115,8 +131,11 @@ func (c *BenchmarkCoordinator) Run() error {
 				PullPolicy: c.test.PullPolicy,
 			}
 			job := &TestJob{
-				client: c.client,
-				test:   config,
+				cluster: &TestCluster{
+					client:    client,
+					namespace: config.TestID,
+				},
+				test: config,
 			}
 			jobs = append(jobs, job)
 		}
@@ -130,8 +149,11 @@ func (c *BenchmarkCoordinator) Run() error {
 			PullPolicy: c.test.PullPolicy,
 		}
 		job := &TestJob{
-			client: c.client,
-			test:   config,
+			cluster: &TestCluster{
+				client:    client,
+				namespace: config.TestID,
+			},
+			test: config,
 		}
 		jobs = append(jobs, job)
 	}

@@ -28,10 +28,8 @@ const (
 	testNamespaceEnv = "TEST_NAMESPACE"
 	testContextEnv   = "TEST_CONTEXT"
 
-	// TestContextCoordinator is a coordinator test context
-	TestContextCoordinator TestContext = "coordinator"
-	// TestContextWorker is a worker test context
-	TestContextWorker TestContext = "worker"
+	testContextCoordinator TestContext = "coordinator"
+	testContextWorker      TestContext = "worker"
 )
 
 // Main runs a test
@@ -52,9 +50,9 @@ func Main() {
 func Run(config *TestConfig) error {
 	context := getTestContext()
 	switch context {
-	case TestContextCoordinator:
+	case testContextCoordinator:
 		return runCoordinator(config)
-	case TestContextWorker:
+	case testContextWorker:
 		return runWorker(config)
 	}
 	return nil
