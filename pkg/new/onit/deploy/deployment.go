@@ -15,19 +15,14 @@
 package deploy
 
 import (
-	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/new/kube"
-	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	"k8s.io/client-go/kubernetes"
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 )
 
 // New returns a new onit Deployment
 func New(kube kube.API) Deployment {
-	return &testDeployment{
-		namespace:        kube.Namespace(),
-		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
-		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
-		extensionsclient: apiextension.NewForConfigOrDie(kube.Config()),
+	return &clusterDeployment{
+		cluster: cluster.New(kube),
 	}
 }
 
@@ -52,22 +47,49 @@ type Deployment interface {
 	Network(name string) Network
 }
 
-// testDeployment is an implementation of the Deployment interface
-type testDeployment struct {
-	namespace        string
-	kubeClient       *kubernetes.Clientset
-	atomixClient     *atomixcontroller.Clientset
-	extensionsclient *apiextension.Clientset
+// clusterDeployment is an implementation of the Deployment interface
+type clusterDeployment struct {
+	cluster *cluster.Cluster
 }
 
-func (d *testDeployment) App(name string) App {
-	return newAppDeploy(name, d)
+func (d *clusterDeployment) App(name string) App {
+	app := d.cluster.Apps().Get(name)
+	deploy := &clusterApp{
+		clusterServiceType: &clusterServiceType{
+			clusterService: &clusterService{
+				service: app.Service,
+			},
+		},
+		app: app,
+	}
+	deploy.clusterServiceType.deploy = deploy
+	return deploy
 }
 
-func (d *testDeployment) Simulator(name string) Simulator {
-	return newSimulatorDeploy(name, d)
+func (d *clusterDeployment) Simulator(name string) Simulator {
+	simulator := d.cluster.Simulators().Get(name)
+	deploy := &clusterSimulator{
+		clusterNodeType: &clusterNodeType{
+			clusterNode: &clusterNode{
+				node: simulator.Node,
+			},
+		},
+		simulator: simulator,
+	}
+	deploy.clusterNodeType.deploy = deploy
+	return deploy
 }
 
-func (d *testDeployment) Network(name string) Network {
-	return newNetworkDeploy(name, d)
+func (d *clusterDeployment) Network(name string) Network {
+	network := d.cluster.Networks().Get(name)
+	deploy := &clusterNetwork{
+		clusterNodeType: &clusterNodeType{
+			clusterNode: &clusterNode{
+				node: network.Node,
+			},
+		},
+		network: network,
+	}
+	deploy.clusterNodeType.deploy = deploy
+	return deploy
 }

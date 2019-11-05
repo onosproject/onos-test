@@ -12,37 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package env
+package cluster
 
-import (
-	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
-)
-
-// App provides the environment for an app
-type App interface {
-	Service
-
-	// Remove removes the application
-	Remove() error
-
-	// RemoveOrDie removes the application and panics if the remove fails
-	RemoveOrDie()
-}
-
-var _ App = &clusterApp{}
-
-// clusterApp is an implementation of the App interface
-type clusterApp struct {
-	*clusterService
-	app *cluster.App
-}
-
-func (e *clusterApp) Remove() error {
-	return e.app.Remove()
-}
-
-func (e *clusterApp) RemoveOrDie() {
-	if err := e.Remove(); err != nil {
-		panic(err)
+func newPartition(name string, client *client) *Partition {
+	return &Partition{
+		Service: newService(name, databaseType, client),
 	}
+}
+
+// Partition provides methods for querying a database partition
+type Partition struct {
+	*Service
 }

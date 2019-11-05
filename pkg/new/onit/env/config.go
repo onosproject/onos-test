@@ -19,9 +19,9 @@ type Config interface {
 	Service
 }
 
-var _ Config = &config{}
+var _ Config = &clusterConfig{}
 
-// config is an implementation of the Config interface
-type config struct {
-	*service
+// clusterConfig is an implementation of the Config interface
+type clusterConfig struct {
+	*clusterService
 }

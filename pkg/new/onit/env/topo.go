@@ -19,9 +19,9 @@ type Topo interface {
 	Service
 }
 
-var _ Topo = &topo{}
+var _ Topo = &clusterTopo{}
 
-// topo is an implementation of the Topo interface
-type topo struct {
-	*service
+// clusterTopo is an implementation of the Topo interface
+type clusterTopo struct {
+	*clusterService
 }

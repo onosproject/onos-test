@@ -15,8 +15,8 @@
 package env
 
 import (
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Simulators provides the simulators environment
@@ -31,34 +31,33 @@ type Simulators interface {
 	Add(name string) deploy.Simulator
 }
 
-var _ Simulators = &simulators{}
+var _ Simulators = &clusterSimulators{}
 
-// simulators is an implementation of the Simulators interface
-type simulators struct {
-	*testEnv
+// clusterSimulators is an implementation of the Simulators interface
+type clusterSimulators struct {
+	deployment deploy.Deployment
+	simulators *cluster.Simulators
 }
 
-func (e *simulators) List() []Simulator {
-	pods, err := e.kubeClient.CoreV1().Pods(e.namespace).List(metav1.ListOptions{
-		LabelSelector: "type=simulator",
-	})
-	if err != nil {
-		panic(err)
+func (e *clusterSimulators) List() []Simulator {
+	clusterNetworks := e.simulators.List()
+	networks := make([]Simulator, len(clusterNetworks))
+	for i, network := range clusterNetworks {
+		networks[i] = e.Get(network.Name())
 	}
-
-	simulators := make([]Simulator, len(pods.Items))
-	for i, pod := range pods.Items {
-		simulators[i] = e.Get(pod.Name)
-	}
-	return simulators
+	return networks
 }
 
-func (e *simulators) Get(name string) Simulator {
-	return &simulator{
-		service: newService(name, "simulator", e.testEnv),
+func (e *clusterSimulators) Get(name string) Simulator {
+	simulator := e.simulators.Get(name)
+	return &clusterSimulator{
+		clusterNode: &clusterNode{
+			node: simulator.Node,
+		},
+		simulator: simulator,
 	}
 }
 
-func (e *simulators) Add(name string) deploy.Simulator {
+func (e *clusterSimulators) Add(name string) deploy.Simulator {
 	return e.deployment.Simulator(name)
 }

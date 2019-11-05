@@ -71,8 +71,7 @@ func runRemoveNetworkCommand(cmd *cobra.Command, args []string) error {
 	if network == nil {
 		return fmt.Errorf("unknown network: %s", networkID)
 	}
-	network.Remove()
-	return nil
+	return network.Remove()
 }
 
 // getRemoveSimulatorCommand returns a cobra command for tearing down a device simulator
@@ -98,8 +97,7 @@ func runRemoveSimulatorCommand(cmd *cobra.Command, args []string) error {
 	if simulator == nil {
 		return fmt.Errorf("unknown device: %s", deviceID)
 	}
-	simulator.Remove()
-	return nil
+	return simulator.Remove()
 }
 
 // getRemoveAppCommand returns a cobra command for tearing down an app
@@ -125,6 +123,5 @@ func runRemoveAppCommand(cmd *cobra.Command, args []string) error {
 	if app == nil {
 		return fmt.Errorf("unknown application: %s", appID)
 	}
-	app.Remove()
-	return nil
+	return app.Remove()
 }

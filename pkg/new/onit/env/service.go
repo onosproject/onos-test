@@ -15,9 +15,8 @@
 package env
 
 import (
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 )
 
 // Service is a base interface for service environments
@@ -30,9 +29,6 @@ type Service interface {
 
 	// Node returns a specific node environment
 	Node(name string) Node
-
-	// Remove removes the service
-	Remove()
 }
 
 // ServiceSetup is a base interface for services that can be set up
@@ -41,49 +37,26 @@ type ServiceSetup interface {
 	setup.Setup
 }
 
-var _ Service = &service{}
-
-func newService(name string, serviceType string, testEnv *testEnv) *service {
-	return &service{
-		testEnv:     testEnv,
-		name:        name,
-		serviceType: serviceType,
-	}
+// clusterService is an implementation of the Service interface
+type clusterService struct {
+	service *cluster.Service
 }
 
-// service is an implementation of the Service interface
-type service struct {
-	*testEnv
-	name        string
-	serviceType string
+func (e *clusterService) Name() string {
+	return e.service.Name()
 }
 
-func (e *service) Name() string {
-	return e.name
-}
-
-func (e *service) Nodes() []Node {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"type": e.serviceType}}
-	pods, err := e.kubeClient.CoreV1().Pods(e.namespace).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
-	if err != nil {
-		panic(err)
-	}
-
-	nodes := make([]Node, len(pods.Items))
-	for i, pod := range pods.Items {
-		nodes[i] = e.Node(pod.Name)
+func (e *clusterService) Nodes() []Node {
+	clusterNodes := e.service.Nodes()
+	nodes := make([]Node, len(clusterNodes))
+	for i, node := range clusterNodes {
+		nodes[i] = e.Node(node.Name())
 	}
 	return nodes
 }
 
-func (e *service) Node(name string) Node {
-	return &node{
-		testEnv: e.testEnv,
-		name:    name,
+func (e *clusterService) Node(name string) Node {
+	return &clusterNode{
+		e.service.Node(name),
 	}
-}
-
-func (e *service) Remove() {
-	panic("implement me")
 }

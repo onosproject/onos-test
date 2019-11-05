@@ -15,9 +15,8 @@
 package env
 
 import (
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 )
 
 // Apps provides the environment for applications
@@ -32,35 +31,33 @@ type Apps interface {
 	Add(name string) deploy.App
 }
 
-var _ Apps = &apps{}
+var _ Apps = &clusterApps{}
 
-// apps is an implementation of the Apps interface
-type apps struct {
-	*testEnv
+// clusterApps is an implementation of the Apps interface
+type clusterApps struct {
+	deployment deploy.Deployment
+	apps       *cluster.Apps
 }
 
-// GetApps returns a list of apps deployed in the cluster
-func (e *apps) List() []App {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"type": "app"}}
-	appList, err := e.kubeClient.AppsV1().Deployments(e.namespace).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
-	if err != nil {
-		panic(err)
-	}
-
-	apps := make([]App, len(appList.Items))
-	for i, app := range appList.Items {
-		apps[i] = e.Get(app.Name)
+func (e *clusterApps) List() []App {
+	clusterApps := e.apps.List()
+	apps := make([]App, len(clusterApps))
+	for i, app := range clusterApps {
+		apps[i] = e.Get(app.Name())
 	}
 	return apps
 }
 
-func (e *apps) Get(name string) App {
-	return &app{
-		service: newService(name, "app", e.testEnv),
+func (e *clusterApps) Get(name string) App {
+	app := e.apps.Get(name)
+	return &clusterApp{
+		clusterService: &clusterService{
+			service: app.Service,
+		},
+		app: app,
 	}
 }
 
-func (e *apps) Add(name string) deploy.App {
+func (e *clusterApps) Add(name string) deploy.App {
 	return e.deployment.App(name)
 }

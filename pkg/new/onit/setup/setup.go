@@ -17,47 +17,51 @@ package setup
 import (
 	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/new/kube"
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
 )
 
 // New returns a new onit Setup
 func New(kube kube.API) TestSetup {
-	setup := &testSetup{
+	cluster := cluster.New(kube)
+	atomix := cluster.Atomix()
+	group := cluster.Database().Partitions("raft")
+	topo := cluster.Topo()
+	config := cluster.Config()
+	return &testSetup{
 		namespace:        kube.Namespace(),
 		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
 		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
 		extensionsClient: apiextension.NewForConfigOrDie(kube.Config()),
-	}
-	setup.atomix = &atomix{
-		serviceType: &serviceType{
-			service: &service{
-				testSetup: setup,
+		atomix: &clusterAtomix{
+			clusterServiceType: &clusterServiceType{
+				clusterService: &clusterService{
+					service: atomix.Service,
+				},
 			},
+			atomix: atomix,
+		},
+		database: &clusterDatabase{
+			group: group,
+		},
+		topo: &clusterTopo{
+			clusterServiceType: &clusterServiceType{
+				clusterService: &clusterService{
+					service: topo.Service,
+				},
+			},
+			topo: topo,
+		},
+		config: &clusterConfig{
+			clusterServiceType: &clusterServiceType{
+				clusterService: &clusterService{
+					service: config.Service,
+				},
+			},
+			config: config,
 		},
 	}
-	setup.database = &database{
-		serviceType: &serviceType{
-			service: &service{
-				testSetup: setup,
-			},
-		},
-	}
-	setup.topo = &topo{
-		serviceType: &serviceType{
-			service: &service{
-				testSetup: setup,
-			},
-		},
-	}
-	setup.config = &config{
-		serviceType: &serviceType{
-			service: &service{
-				testSetup: setup,
-			},
-		},
-	}
-	return setup
 }
 
 // Setup is an interface for setting up ONOS clusters

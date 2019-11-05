@@ -12,37 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package env
+package cluster
 
-import "github.com/onosproject/onos-test/pkg/new/onit/cluster"
-
-// Node provides the environment for a single node
-type Node interface {
-	// Name returns the name of the node
-	Name() string
-
-	// Kill kills the node
-	Kill() error
-
-	// KillOrDie kills the node or panics if an error occurs
-	KillOrDie()
-}
-
-// clusterNode is an implementation of the Node interface
-type clusterNode struct {
-	node *cluster.Node
-}
-
-func (e *clusterNode) Name() string {
-	return e.node.Name()
-}
-
-func (e *clusterNode) Kill() error {
-	return e.node.Delete()
-}
-
-func (e *clusterNode) KillOrDie() {
-	if err := e.Kill(); err != nil {
-		panic(err)
+func newSimulators(client *client) *Simulators {
+	return &Simulators{
+		client: client,
 	}
+}
+
+// Simulators provides methods for adding and modifying simulators
+type Simulators struct {
+	*client
+}
+
+// Get gets a simulator by name
+func (s *Simulators) Get(name string) *Simulator {
+	return newSimulator(name, s.client)
+}
+
+// List lists the simulators in the cluster
+func (s *Simulators) List() []*Simulator {
+	names := s.listServices(simulatorType)
+	simulators := make([]*Simulator, len(names))
+	for i, name := range names {
+		simulators[i] = s.Get(name)
+	}
+	return simulators
 }

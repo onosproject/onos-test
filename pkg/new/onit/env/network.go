@@ -15,101 +15,48 @@
 package env
 
 import (
-	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 )
 
 // Network provides the environment for a network node
 type Network interface {
-	Service
+	Node
 
 	// Devices returns a list of devices in the network
 	Devices() []Node
+
+	// Remove removes the network
+	Remove() error
+
+	// RemoveOrDie removes the network and panics if the remove fails
+	RemoveOrDie()
 }
 
-var _ Network = &network{}
+var _ Network = &clusterNetwork{}
 
-// network is an implementation of the Network interface
-type network struct {
-	*service
+// clusterService is an implementation of the Network interface
+type clusterNetwork struct {
+	*clusterNode
+	network *cluster.Network
 }
 
-func (e *network) Devices() []Node {
-	services, err := e.kubeClient.CoreV1().Services(e.namespace).List(metav1.ListOptions{
-		LabelSelector: "type=network,network=" + e.name,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	devices := make([]Node, len(services.Items))
-	for i, service := range services.Items {
-		devices[i] = &node{
-			testEnv: e.testEnv,
-			name:    service.Name,
+func (e *clusterNetwork) Devices() []Node {
+	clusterDevices := e.network.Devices()
+	devices := make([]Node, len(clusterDevices))
+	for i, node := range clusterDevices {
+		devices[i] = &clusterNode{
+			node: node,
 		}
 	}
 	return devices
 }
 
-func (e *network) Remove() {
-	if err := e.teardownNetwork(); err != nil {
+func (e *clusterNetwork) Remove() error {
+	return e.network.Remove()
+}
+
+func (e *clusterNetwork) RemoveOrDie() {
+	if err := e.Remove(); err != nil {
 		panic(err)
 	}
-}
-
-// teardownNetwork tears down a network by name
-func (e *network) teardownNetwork() error {
-	pods, err := e.kubeClient.CoreV1().Pods(e.namespace).List(metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("type=network,network=%s", e.name),
-	})
-	if err != nil {
-		return err
-	} else if len(pods.Items) == 0 {
-		return fmt.Errorf("no resources matching '%s' found", e.name)
-	}
-	total := len(pods.Items)
-	if e := e.deletePod(); e != nil {
-		err = e
-	}
-	if e := e.deleteService(); e != nil {
-		err = e
-	}
-
-	for total > 0 {
-		time.Sleep(50 * time.Millisecond)
-		pods, err = e.kubeClient.CoreV1().Pods(e.namespace).List(metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("type=network,network=%s", e.name),
-		})
-		if err != nil {
-			return err
-		}
-
-		total = len(pods.Items)
-
-	}
-	return err
-}
-
-// deletePod deletes a network Pod by name
-func (e *network) deletePod() error {
-	return e.kubeClient.CoreV1().Pods(e.namespace).Delete(e.name, &metav1.DeleteOptions{})
-}
-
-// deleteService deletes all network Service by name
-func (e *network) deleteService() error {
-	label := "type=network,network=" + e.name
-	serviceList, _ := e.kubeClient.CoreV1().Services(e.namespace).List(metav1.ListOptions{
-		LabelSelector: label,
-	})
-
-	for _, svc := range serviceList.Items {
-		err := e.kubeClient.CoreV1().Services(e.namespace).Delete(svc.Name, &metav1.DeleteOptions{})
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

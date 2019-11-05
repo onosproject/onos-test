@@ -19,55 +19,55 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// ServiceType provides methods for setting up a service
-type ServiceType interface {
+// NodeType provides methods for setting up a single-node service
+type NodeType interface {
 	// Using returns the service setup
-	Using() Service
+	Using() Node
 }
 
-// Service provides methods for setting up a service
-type Service interface {
+// Node provides methods for setting up a single-node service
+type Node interface {
 	Deploy
 
 	// Image sets the simulator image to deploy
-	Image(image string) Service
+	Image(image string) Node
 
 	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) Service
+	PullPolicy(pullPolicy corev1.PullPolicy) Node
 }
 
-// clusterServiceType is an implementation of the ServiceType interface
-type clusterServiceType struct {
-	*clusterService
+// clusterNodeType is an implementation of the NodeType interface
+type clusterNodeType struct {
+	*clusterNode
 }
 
-func (s *clusterServiceType) Using() Service {
-	return s.clusterService
+func (s *clusterNodeType) Using() Node {
+	return s.clusterNode
 }
 
-var _ Service = &clusterService{}
+var _ Node = &clusterNode{}
 
-// clusterService is an implementation of the Service interface
-type clusterService struct {
-	service *cluster.Service
-	deploy  Deploy
+// clusterNode is an implementation of the Node interface
+type clusterNode struct {
+	node   *cluster.Node
+	deploy Deploy
 }
 
-func (s *clusterService) Image(image string) Service {
-	s.service.SetImage(image)
+func (s *clusterNode) Image(image string) Node {
+	s.node.SetImage(image)
 	return s
 }
 
-func (s *clusterService) PullPolicy(pullPolicy corev1.PullPolicy) Service {
-	s.service.SetPullPolicy(pullPolicy)
+func (s *clusterNode) PullPolicy(pullPolicy corev1.PullPolicy) Node {
+	s.node.SetPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterService) Deploy() error {
+func (s *clusterNode) Deploy() error {
 	return s.deploy.Deploy()
 }
 
-func (s *clusterService) DeployOrDie() {
+func (s *clusterNode) DeployOrDie() {
 	if err := s.Deploy(); err != nil {
 		panic(err)
 	}

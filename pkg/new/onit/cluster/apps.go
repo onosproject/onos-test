@@ -12,37 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package env
+package cluster
 
-import "github.com/onosproject/onos-test/pkg/new/onit/cluster"
-
-// Node provides the environment for a single node
-type Node interface {
-	// Name returns the name of the node
-	Name() string
-
-	// Kill kills the node
-	Kill() error
-
-	// KillOrDie kills the node or panics if an error occurs
-	KillOrDie()
-}
-
-// clusterNode is an implementation of the Node interface
-type clusterNode struct {
-	node *cluster.Node
-}
-
-func (e *clusterNode) Name() string {
-	return e.node.Name()
-}
-
-func (e *clusterNode) Kill() error {
-	return e.node.Delete()
-}
-
-func (e *clusterNode) KillOrDie() {
-	if err := e.Kill(); err != nil {
-		panic(err)
+func newApps(client *client) *Apps {
+	return &Apps{
+		client: client,
 	}
+}
+
+// Apps provides methods for adding and modifying applications
+type Apps struct {
+	*client
+}
+
+// Get gets an app by name
+func (s *Apps) Get(name string) *App {
+	return newApp(name, s.client)
+}
+
+// List lists the networks in the cluster
+func (s *Apps) List() []*App {
+	names := s.listDeployments(appType)
+	apps := make([]*App, len(names))
+	for i, name := range names {
+		apps[i] = s.Get(name)
+	}
+	return apps
 }

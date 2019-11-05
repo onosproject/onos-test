@@ -14,7 +14,10 @@
 
 package setup
 
-import corev1 "k8s.io/api/core/v1"
+import (
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
+	corev1 "k8s.io/api/core/v1"
+)
 
 // ServiceType provides methods for setting up a service
 type ServiceType interface {
@@ -31,30 +34,28 @@ type Service interface {
 	PullPolicy(pullPolicy corev1.PullPolicy) Service
 }
 
-// serviceType is an implementation of the ServiceType interface
-type serviceType struct {
-	*service
+// clusterServiceType is an implementation of the ServiceType interface
+type clusterServiceType struct {
+	*clusterService
 }
 
-func (s *serviceType) Using() Service {
-	return s.service
+func (s *clusterServiceType) Using() Service {
+	return s.clusterService
 }
 
-var _ Service = &service{}
+var _ Service = &clusterService{}
 
-// service is an implementation of the Service interface
-type service struct {
-	*testSetup
-	image      string
-	pullPolicy corev1.PullPolicy
+// clusterService is an implementation of the Service interface
+type clusterService struct {
+	service *cluster.Service
 }
 
-func (s *service) Image(image string) Service {
-	s.image = image
+func (s *clusterService) Image(image string) Service {
+	s.service.SetImage(image)
 	return s
 }
 
-func (s *service) PullPolicy(pullPolicy corev1.PullPolicy) Service {
-	s.pullPolicy = pullPolicy
+func (s *clusterService) PullPolicy(pullPolicy corev1.PullPolicy) Service {
+	s.service.SetPullPolicy(pullPolicy)
 	return s
 }

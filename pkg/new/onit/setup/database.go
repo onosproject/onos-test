@@ -15,11 +15,8 @@
 package setup
 
 import (
-	"github.com/atomix/atomix-api/proto/atomix/protocols/raft"
-	"github.com/atomix/atomix-k8s-controller/pkg/apis/k8s/v1alpha1"
-	"github.com/ghodss/yaml"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // Database is an interface for setting up Raft partitions
@@ -34,78 +31,41 @@ type Database interface {
 	Nodes(nodes int) Database
 }
 
-var _ Database = &database{}
+var _ Database = &clusterDatabase{}
 
-// database is an implementation of the Database interface
-type database struct {
-	*serviceType
-	partitions int
-	nodes      int
+// clusterDatabase is an implementation of the Database interface
+type clusterDatabase struct {
+	group *cluster.Partitions
 }
 
-func (s *database) Partitions(partitions int) Database {
-	s.partitions = partitions
+func (s *clusterDatabase) Partitions(partitions int) Database {
+	s.group.SetPartitions(partitions)
 	return s
 }
 
-func (s *database) Nodes(nodes int) Database {
-	s.nodes = nodes
+func (s *clusterDatabase) Nodes(nodes int) Database {
+	s.group.SetNodes(nodes)
 	return s
 }
 
-// create creates a Raft partition set
-func (s *database) create() error {
-	if err := s.createPartitionSet(); err != nil {
-		return err
-	}
-	return nil
+func (s *clusterDatabase) Using() Service {
+	return s
 }
 
-// createPartitionSet creates a Raft partition set from the configuration
-func (s *database) createPartitionSet() error {
-	bytes, err := yaml.Marshal(&raft.RaftProtocol{})
-	if err != nil {
-		return err
-	}
-
-	set := &v1alpha1.PartitionSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "raft",
-			Namespace: s.namespace,
-		},
-		Spec: v1alpha1.PartitionSetSpec{
-			Partitions: s.partitions,
-			Template: v1alpha1.PartitionTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"type":  "database",
-						"group": "raft",
-					},
-				},
-				Spec: v1alpha1.PartitionSpec{
-					Size:            int32(s.nodes),
-					Protocol:        "raft",
-					Image:           s.image,
-					ImagePullPolicy: s.pullPolicy,
-					Config:          string(bytes),
-				},
-			},
-		},
-	}
-	_, err = s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Create(set)
-	return err
+func (s *clusterDatabase) Image(image string) Service {
+	s.group.SetImage(image)
+	return s
 }
 
-// waitForStart waits for Raft partitions to complete startup
-func (s *database) waitForStart() error {
-	for {
-		set, err := s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Get("raft", metav1.GetOptions{})
-		if err != nil {
-			return err
-		} else if int(set.Status.ReadyPartitions) == set.Spec.Partitions {
-			return nil
-		} else {
-			time.Sleep(100 * time.Millisecond)
-		}
-	}
+func (s *clusterDatabase) PullPolicy(pullPolicy corev1.PullPolicy) Service {
+	s.group.SetPullPolicy(pullPolicy)
+	return s
+}
+
+func (s *clusterDatabase) create() error {
+	return s.group.Create()
+}
+
+func (s *clusterDatabase) waitForStart() error {
+	return s.group.AwaitReady()
 }

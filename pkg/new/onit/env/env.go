@@ -17,6 +17,7 @@ package env
 import (
 	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/new/kube"
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/new/onit/deploy"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
@@ -24,41 +25,58 @@ import (
 
 // New returns a new onit Env
 func New(kube kube.API) Env {
-	env := &testEnv{
+	cluster := cluster.New(kube)
+	atomix := cluster.Atomix()
+	group := cluster.Database().Partitions("raft")
+	topo := cluster.Topo()
+	config := cluster.Config()
+	apps := cluster.Apps()
+	simulators := cluster.Simulators()
+	networks := cluster.Networks()
+	deployment := deploy.New(kube)
+	return &clusterEnv{
 		namespace:        kube.Namespace(),
 		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
 		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
 		extensionsclient: apiextension.NewForConfigOrDie(kube.Config()),
 		deployment:       deploy.New(kube),
+		atomix: &clusterAtomix{
+			clusterService: &clusterService{
+				service: atomix.Service,
+			},
+		},
+		database: &clusterDatabase{
+			group: group,
+		},
+		topo: &clusterTopo{
+			clusterService: &clusterService{
+				service: topo.Service,
+			},
+		},
+		config: &clusterConfig{
+			clusterService: &clusterService{
+				service: config.Service,
+			},
+		},
+		apps: &clusterApps{
+			deployment: deployment,
+			apps:       apps,
+		},
+		simulators: &clusterSimulators{
+			deployment: deployment,
+			simulators: simulators,
+		},
+		networks: &clusterNetworks{
+			deployment: deployment,
+			networks:   networks,
+		},
 	}
-	env.atomix = &atomixEnv{
-		service: newService("atomix-controller", "atomix", env),
-	}
-	env.database = &database{
-		testEnv: env,
-	}
-	env.topo = &topo{
-		service: newService("onos-topo", "topo", env),
-	}
-	env.config = &config{
-		service: newService("onos-config", "topo", env),
-	}
-	env.apps = &apps{
-		testEnv: env,
-	}
-	env.simulators = &simulators{
-		testEnv: env,
-	}
-	env.networks = &networks{
-		testEnv: env,
-	}
-	return env
 }
 
 // Env is an interface for tests to operate on the ONOS environment
 type Env interface {
 	// Atomix returns the Atomix environment
-	Atomix() AtomixEnv
+	Atomix() Atomix
 
 	// Database returns the database environment
 	Database() Database
@@ -97,70 +115,70 @@ type Env interface {
 	AddApp(name string) deploy.App
 }
 
-// testEnv is an implementation of the Env interface
-type testEnv struct {
+// clusterEnv is an implementation of the Env interface
+type clusterEnv struct {
 	namespace        string
 	kubeClient       *kubernetes.Clientset
 	atomixClient     *atomixcontroller.Clientset
 	extensionsclient *apiextension.Clientset
 	deployment       deploy.Deployment
-	atomix           *atomixEnv
-	database         *database
-	topo             *topo
-	config           *config
-	simulators       *simulators
-	networks         *networks
-	apps             *apps
+	atomix           *clusterAtomix
+	database         *clusterDatabase
+	topo             *clusterTopo
+	config           *clusterConfig
+	simulators       *clusterSimulators
+	networks         *clusterNetworks
+	apps             *clusterApps
 }
 
-func (e *testEnv) Atomix() AtomixEnv {
+func (e *clusterEnv) Atomix() Atomix {
 	return e.atomix
 }
 
-func (e *testEnv) Database() Database {
+func (e *clusterEnv) Database() Database {
 	return e.database
 }
 
-func (e *testEnv) Topo() Topo {
+func (e *clusterEnv) Topo() Topo {
 	return e.topo
 }
 
-func (e *testEnv) Config() Config {
+func (e *clusterEnv) Config() Config {
 	return e.config
 }
 
-func (e *testEnv) Simulators() Simulators {
+func (e *clusterEnv) Simulators() Simulators {
 	return e.simulators
 }
 
-func (e *testEnv) Simulator(name string) Simulator {
+func (e *clusterEnv) Simulator(name string) Simulator {
 	return e.Simulators().Get(name)
 }
 
-func (e *testEnv) AddSimulator(name string) deploy.Simulator {
+func (e *clusterEnv) AddSimulator(name string) deploy.Simulator {
 	return e.Simulators().Add(name)
 }
 
-func (e *testEnv) Networks() Networks {
+func (e *clusterEnv) Networks() Networks {
 	return e.networks
 }
 
-func (e *testEnv) Network(name string) Network {
+func (e *clusterEnv) Network(name string) Network {
 	return e.Networks().Get(name)
 }
 
-func (e *testEnv) AddNetwork(name string) deploy.Network {
+func (e *clusterEnv) AddNetwork(name string) deploy.Network {
 	return e.Networks().Add(name)
 }
 
-func (e *testEnv) Apps() Apps {
+func (e *clusterEnv) Apps() Apps {
 	return e.apps
 }
 
-func (e *testEnv) App(name string) App {
+func (e *clusterEnv) App(name string) App {
 	return e.Apps().Get(name)
 }
 
-func (e *testEnv) AddApp(name string) deploy.App {
+func (e *clusterEnv) AddApp(name string) deploy.App {
 	return e.Apps().Add(name)
 }

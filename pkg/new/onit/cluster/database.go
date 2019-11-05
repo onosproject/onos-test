@@ -12,37 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package env
+package cluster
 
-import (
-	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
-)
-
-// App provides the environment for an app
-type App interface {
-	Service
-
-	// Remove removes the application
-	Remove() error
-
-	// RemoveOrDie removes the application and panics if the remove fails
-	RemoveOrDie()
-}
-
-var _ App = &clusterApp{}
-
-// clusterApp is an implementation of the App interface
-type clusterApp struct {
-	*clusterService
-	app *cluster.App
-}
-
-func (e *clusterApp) Remove() error {
-	return e.app.Remove()
-}
-
-func (e *clusterApp) RemoveOrDie() {
-	if err := e.Remove(); err != nil {
-		panic(err)
+func newDatabase(client *client) *Database {
+	return &Database{
+		client: client,
 	}
+}
+
+// Database provides methods for managing the Atomix database
+type Database struct {
+	*client
+}
+
+// Partitions returns a list of partitions in the database
+func (s *Database) Partitions(group string) *Partitions {
+	return newPartitions(group, s.client)
 }

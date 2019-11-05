@@ -15,8 +15,7 @@
 package env
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 )
 
 // Database provides the database environment
@@ -28,30 +27,26 @@ type Database interface {
 	Partition(name string) Partition
 }
 
-var _ Database = &database{}
+var _ Database = &clusterDatabase{}
 
-// database is an implementation of the Database interface
-type database struct {
-	*testEnv
+// clusterDatabase is an implementation of the Database interface
+type clusterDatabase struct {
+	group *cluster.Partitions
 }
 
-func (e *database) Partitions(group string) []Partition {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"type": "database", "group": group}}
-	list, err := e.atomixClient.K8sV1alpha1().Partitions(e.namespace).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
-	if err != nil {
-		panic(err)
-	}
-
-	partitions := make([]Partition, 0, len(list.Items))
-	for _, partition := range list.Items {
-		partitions = append(partitions, e.Partition(partition.Name))
+func (e *clusterDatabase) Partitions(group string) []Partition {
+	clusterPartitions := e.group.Partitions()
+	partitions := make([]Partition, len(clusterPartitions))
+	for i, partition := range clusterPartitions {
+		partitions[i] = e.Partition(partition.Name())
 	}
 	return partitions
 }
 
-func (e database) Partition(name string) Partition {
-	return &partition{
-		service: newService(name, "database", e.testEnv),
+func (e clusterDatabase) Partition(name string) Partition {
+	return &clusterPartition{
+		clusterService: &clusterService{
+			service: e.group.Partition(name).Service,
+		},
 	}
 }
