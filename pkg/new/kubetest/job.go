@@ -20,8 +20,22 @@ type TestJob struct {
 	test    *TestConfig
 }
 
-// Start starts the test job
-func (j *TestJob) Start() error {
+// Run runs the test job
+func (j *TestJob) Run() (string, int, error) {
+	if err := j.start(); err != nil {
+		return "", 0, err
+	}
+	if err := j.waitForComplete(); err != nil {
+		_ = j.tearDown()
+		return "", 0, err
+	}
+	message, code, err := j.getResult()
+	_ = j.tearDown()
+	return message, code, err
+}
+
+// start starts the test job
+func (j *TestJob) start() error {
 	if err := j.cluster.Create(); err != nil {
 		return err
 	}
@@ -31,20 +45,20 @@ func (j *TestJob) Start() error {
 	return nil
 }
 
-// WaitForComplete waits for the test job to finish running
-func (j *TestJob) WaitForComplete() error {
+// waitForComplete waits for the test job to finish running
+func (j *TestJob) waitForComplete() error {
 	if err := j.cluster.AwaitTestComplete(j.test); err != nil {
 		return err
 	}
 	return nil
 }
 
-// GetResult gets the job result
-func (j *TestJob) GetResult() (string, int, error) {
+// getResult gets the job result
+func (j *TestJob) getResult() (string, int, error) {
 	return j.cluster.GetTestResult(j.test)
 }
 
-// TearDown tears down the job
-func (j *TestJob) TearDown() error {
+// tearDown tears down the job
+func (j *TestJob) tearDown() error {
 	return j.cluster.Delete()
 }
