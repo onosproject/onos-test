@@ -126,7 +126,7 @@ func TestTransaction(t *testing.T) {
 
 	// Now rollback the change
 	_, adminClient := env.GetAdminClient()
-	rollbackResponse, rollbackError := adminClient.RollbackNewNetworkChange(
+	rollbackResponse, rollbackError := adminClient.RollbackNetworkChange(
 		context.Background(), &admin.RollbackRequest{Name: changeID})
 
 	assert.NoError(t, rollbackError, "Rollback returned an error")
