@@ -36,7 +36,7 @@ type clusterTopo struct {
 }
 
 func (s *clusterTopo) Nodes(nodes int) Topo {
-	s.topo.SetNodes(nodes)
+	s.topo.SetReplicas(nodes)
 	return s
 }
 

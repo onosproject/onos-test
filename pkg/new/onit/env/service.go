@@ -47,7 +47,7 @@ func (e *clusterService) Name() string {
 }
 
 func (e *clusterService) Nodes() []Node {
-	clusterNodes := e.service.Nodes()
+	clusterNodes := e.service.Nodes().List()
 	nodes := make([]Node, len(clusterNodes))
 	for i, node := range clusterNodes {
 		nodes[i] = e.Node(node.Name())
@@ -57,6 +57,6 @@ func (e *clusterService) Nodes() []Node {
 
 func (e *clusterService) Node(name string) Node {
 	return &clusterNode{
-		e.service.Node(name),
+		e.service.Nodes().Get(name),
 	}
 }

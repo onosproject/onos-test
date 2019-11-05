@@ -49,7 +49,7 @@ func (s *Config) Create() error {
 
 // createDeployment creates an onos-config Deployment
 func (s *Config) createDeployment() error {
-	nodes := int32(s.nodes)
+	nodes := int32(s.replicas)
 	zero := int64(0)
 
 	dep := &appsv1.Deployment{
@@ -237,7 +237,7 @@ func (s *Config) AwaitReady() error {
 		}
 
 		// Return once the all replicas in the deployment are ready
-		if int(dep.Status.ReadyReplicas) == s.nodes {
+		if int(dep.Status.ReadyReplicas) == s.replicas {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)

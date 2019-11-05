@@ -28,7 +28,7 @@ func newService(name string, serviceType serviceType, client *client) *Service {
 type Service struct {
 	*client
 	name        string
-	nodes       int
+	replicas    int
 	serviceType serviceType
 	image       string
 	pullPolicy  corev1.PullPolicy
@@ -39,24 +39,19 @@ func (s *Service) Name() string {
 	return s.name
 }
 
-// Node returns a node by name
-func (s *Service) Node(name string) *Node {
-	return newNode(name, s.client)
+// Nodes returns the collection of nodes in the service
+func (s *Service) Nodes() *Nodes {
+	return newNodes(s.name, s.serviceType, s.client)
 }
 
-// Nodes returns a list of nodes in the service
-func (s *Service) Nodes() []*Node {
-	names := s.listPods(s.serviceType)
-	nodes := make([]*Node, len(names))
-	for i, name := range names {
-		nodes[i] = s.Node(name)
-	}
-	return nodes
+// Replicas returns the number of nodes in the service
+func (s *Service) Replicas() int {
+	return s.replicas
 }
 
-// SetNodes sets the number of nodes in the service
-func (s *Service) SetNodes(nodes int) {
-	s.nodes = nodes
+// SetReplicas sets the number of nodes in the service
+func (s *Service) SetReplicas(replicas int) {
+	s.replicas = replicas
 }
 
 // Image returns the image for the service

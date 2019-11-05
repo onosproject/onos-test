@@ -36,7 +36,7 @@ type clusterConfig struct {
 }
 
 func (s *clusterConfig) Nodes(nodes int) Config {
-	s.config.SetNodes(nodes)
+	s.config.SetReplicas(nodes)
 	return s
 }
 

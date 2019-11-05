@@ -74,7 +74,7 @@ func (s *Topo) createService() error {
 
 // createDeployment creates an onos-topo Deployment
 func (s *Topo) createDeployment() error {
-	nodes := int32(s.nodes)
+	nodes := int32(s.replicas)
 	zero := int64(0)
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -222,7 +222,7 @@ func (s *Topo) AwaitReady() error {
 		}
 
 		// Return once the all replicas in the deployment are ready
-		if int(dep.Status.ReadyReplicas) == s.nodes {
+		if int(dep.Status.ReadyReplicas) == s.replicas {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)

@@ -209,7 +209,7 @@ func (s *App) awaitDeploymentReady() error {
 		}
 
 		// Return once the all replicas in the deployment are ready
-		if int(dep.Status.ReadyReplicas) == s.nodes {
+		if int(dep.Status.ReadyReplicas) == s.replicas {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)

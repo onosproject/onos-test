@@ -12,38 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deploy
+package cluster
 
-import (
-	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
-)
-
-// App is an interface for setting up an application
-type App interface {
-	Deploy
-	ServiceType
-
-	// Nodes sets the number of application nodes
-	Nodes(nodes int) App
-}
-
-// clusterApp is an implementation of the App interface
-type clusterApp struct {
-	*clusterServiceType
-	app *cluster.App
-}
-
-func (s *clusterApp) Nodes(nodes int) App {
-	s.app.SetReplicas(nodes)
-	return s
-}
-
-func (s *clusterApp) Deploy() error {
-	return s.app.Add()
-}
-
-func (s *clusterApp) DeployOrDie() {
-	if err := s.Deploy(); err != nil {
-		panic(err)
+func newNodes(name string, serviceType serviceType, client *client) *Nodes {
+	return &Nodes{
+		client:      client,
+		name:        name,
+		serviceType: serviceType,
 	}
+}
+
+// Nodes is a collection of nodes
+type Nodes struct {
+	*client
+	name        string
+	serviceType serviceType
+}
+
+// Get gets a node by name
+func (s *Nodes) Get(name string) *Node {
+	return newNode(name, s.client)
+}
+
+// List returns a list of nodes in the service
+func (s *Nodes) List() []*Node {
+	names := s.listPods(s.serviceType)
+	nodes := make([]*Node, len(names))
+	for i, name := range names {
+		nodes[i] = s.Get(name)
+	}
+	return nodes
 }
