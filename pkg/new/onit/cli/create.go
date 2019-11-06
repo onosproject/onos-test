@@ -85,6 +85,8 @@ func getCreateClusterCommand() *cobra.Command {
 }
 
 func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	var clusterID string
 	if len(args) > 0 {
 		clusterID = args[0]

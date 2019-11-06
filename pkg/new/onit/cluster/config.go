@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"time"
@@ -38,12 +39,18 @@ type Config struct {
 
 // Create creates the config service
 func (s *Config) Create() error {
+	step := logging.NewStep(s.namespace, "Setup onos-config service")
+	step.Log("Create onos-config Service")
 	if err := s.createService(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Log("Create onos-config Deployment")
 	if err := s.createDeployment(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Complete()
 	return nil
 }
 

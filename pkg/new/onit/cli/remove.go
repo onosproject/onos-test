@@ -62,6 +62,8 @@ func getRemoveNetworkCommand() *cobra.Command {
 }
 
 func runRemoveNetworkCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	networkID := args[0]
 	cluster, _ := cmd.Flags().GetString("cluster")
 
@@ -88,6 +90,8 @@ func getRemoveSimulatorCommand() *cobra.Command {
 }
 
 func runRemoveSimulatorCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	deviceID := args[0]
 	cluster, _ := cmd.Flags().GetString("cluster")
 
@@ -114,6 +118,8 @@ func getRemoveAppCommand() *cobra.Command {
 }
 
 func runRemoveAppCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	appID := args[0]
 	cluster, _ := cmd.Flags().GetString("cluster")
 

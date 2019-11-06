@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -36,21 +37,33 @@ type Atomix struct {
 
 // Setup sets up the Atomix controller and associated resources
 func (s *Atomix) Setup() error {
+	step := logging.NewStep(s.namespace, "Setup Atomix controller")
+	step.Log("Creating PartitionSet resource")
 	if err := s.createPartitionSetResource(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Log("Creating Partition resource")
 	if err := s.createPartitionResource(); err != nil {
 		return err
+		step.Fail(err)
 	}
+	step.Log("Creating controller Deployment")
 	if err := s.createDeployment(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Log("Creating controller Service")
 	if err := s.createService(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Log("Waiting for controller to become ready")
 	if err := s.awaitReady(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Complete()
 	return nil
 }
 

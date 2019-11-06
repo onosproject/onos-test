@@ -66,6 +66,8 @@ func getAddNetworkCommand() *cobra.Command {
 }
 
 func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	var networkID string
 	if len(args) > 0 {
 		networkID = args[0]
@@ -106,6 +108,8 @@ func getAddSimulatorCommand() *cobra.Command {
 }
 
 func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	var deviceID string
 	if len(args) > 0 {
 		deviceID = args[0]
@@ -148,6 +152,8 @@ func getAddAppCommand() *cobra.Command {
 }
 
 func runAddAppCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	var appID string
 	if len(args) > 0 {
 		appID = args[0]

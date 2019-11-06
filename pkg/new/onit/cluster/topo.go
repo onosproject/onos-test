@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,12 +38,18 @@ type Topo struct {
 
 // Create creates the topology subsystem
 func (s *Topo) Create() error {
+	step := logging.NewStep(s.namespace, "Setup onos-topo service")
+	step.Log("Create onos-topo Service")
 	if err := s.createService(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Log("Create onos-topo Deployment")
 	if err := s.createDeployment(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Complete()
 	return nil
 }
 

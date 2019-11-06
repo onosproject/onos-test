@@ -51,6 +51,7 @@ func getDeleteClusterCommand() *cobra.Command {
 }
 
 func runDeleteClusterCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
 	clusterID := args[0]
 	cluster := kubetest.NewTestCluster(clusterID)
 	return cluster.Delete()

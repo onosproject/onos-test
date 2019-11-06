@@ -18,6 +18,7 @@ import (
 	"github.com/atomix/atomix-api/proto/atomix/protocols/raft"
 	"github.com/atomix/atomix-k8s-controller/pkg/apis/k8s/v1alpha1"
 	"github.com/ghodss/yaml"
+	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -99,9 +100,13 @@ func (s *Partitions) Partitions() []*Partition {
 
 // Create creates a partition set
 func (s *Partitions) Create() error {
+	step := logging.NewStep(s.namespace, "Create Raft partitions")
+	step.Log("Creating Raft PartitionSet")
 	if err := s.createPartitionSet(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Complete()
 	return nil
 }
 
