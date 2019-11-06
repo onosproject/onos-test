@@ -15,7 +15,6 @@
 package k8s
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -32,9 +31,6 @@ import (
 
 // setupOnosConfig sets up the onos-config Deployment
 func (c *ClusterController) setupOnosConfig() error {
-	if err := c.createOnosConfigConfigMap(); err != nil {
-		return err
-	}
 	if err := c.createOnosConfigService(); err != nil {
 		return err
 	}
@@ -57,53 +53,6 @@ func (c *ClusterController) setupOnosConfig() error {
 		return err
 	}
 	return nil
-}
-
-// createOnosConfigConfigMap creates a ConfigMap for the onos-config Deployment
-func (c *ClusterController) createOnosConfigConfigMap() error {
-	config, err := c.config.load()
-	if err != nil {
-		return err
-	}
-
-	// Serialize the change store configuration
-	changeStore, err := json.Marshal(config["changeStore"])
-	if err != nil {
-		return err
-	}
-
-	// Serialize the network store configuration
-	networkStore, err := json.Marshal(config["networkStore"])
-	if err != nil {
-		return err
-	}
-
-	// Serialize the device store configuration
-	deviceStore, err := json.Marshal(config["deviceStore"])
-	if err != nil {
-		return err
-	}
-
-	// Serialize the config store configuration
-	configStore, err := json.Marshal(config["configStore"])
-	if err != nil {
-		return err
-	}
-
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-config",
-			Namespace: c.clusterID,
-		},
-		Data: map[string]string{
-			"changeStore.json":  string(changeStore),
-			"configStore.json":  string(configStore),
-			"deviceStore.json":  string(deviceStore),
-			"networkStore.json": string(networkStore),
-		},
-	}
-	_, err = c.kubeclient.CoreV1().ConfigMaps(c.clusterID).Create(cm)
-	return err
 }
 
 // createModelPluginString creates model plugin path based on a device type, version, and image tag
@@ -209,9 +158,6 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 								"-caPath=/etc/onos-config/certs/onf.cacrt",
 								"-keyPath=/etc/onos-config/certs/onos-config.key",
 								"-certPath=/etc/onos-config/certs/onos-config.crt",
-								"-configStore=/etc/onos-config/configs/configStore.json",
-								"-changeStore=/etc/onos-config/configs/changeStore.json",
-								"-networkStore=/etc/onos-config/configs/networkStore.json",
 								testDevModelPluginV1,
 								testDevModelPluginV2,
 								testDevSimModelPluginV1,
@@ -247,11 +193,6 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 								PeriodSeconds:       20,
 							},
 							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "config",
-									MountPath: "/etc/onos-config/configs",
-									ReadOnly:  true,
-								},
 								{
 									Name:      "secret",
 									MountPath: "/etc/onos-config/certs",
