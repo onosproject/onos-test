@@ -214,16 +214,6 @@ func (c *ClusterController) createOnosConfigDeployment() error {
 					},
 					Volumes: []corev1.Volume{
 						{
-							Name: "config",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: "onos-config",
-									},
-								},
-							},
-						},
-						{
 							Name: "secret",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
