@@ -85,6 +85,8 @@ func runRunBenchCommand(cmd *cobra.Command, _ []string) error {
 }
 
 func runTest(cmd *cobra.Command, testType kubetest.TestType) error {
+	runCommand(cmd)
+
 	clusterID, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")
 	suite, _ := cmd.Flags().GetString("suite")

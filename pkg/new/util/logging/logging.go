@@ -22,28 +22,62 @@ import (
 )
 
 var (
+	start   = "‣"
 	success = "✓"
 	failure = "✗"
 	writer  = os.Stdout
 )
 
+const verboseEnv = "VERBOSE_LOGGING"
+
+// GetVerbose returns whether verbose logging is enabled
+func GetVerbose() bool {
+	verbose := os.Getenv(verboseEnv)
+	return verbose != ""
+}
+
+// SetVerbose sets verbose logging
+func SetVerbose(verbose bool) {
+	if verbose {
+		_ = os.Setenv(verboseEnv, "true")
+	} else {
+		_ = os.Unsetenv(verboseEnv)
+	}
+}
+
 // NewStep returns a new step
 func NewStep(test, name string) *Step {
 	return &Step{
-		test: test,
-		name: name,
+		test:    test,
+		name:    name,
+		verbose: GetVerbose(),
 	}
 }
 
 // Step is a loggable step
 type Step struct {
-	test string
-	name string
+	test    string
+	name    string
+	verbose bool
+}
+
+// Log logs a progress message
+func (s *Step) Log(message string) {
+	if s.verbose {
+		fmt.Fprintln(writer, fmt.Sprintf("  %s %s %s", time.Now().Format(time.RFC3339), s.test, message))
+	}
+}
+
+// Logf logs a progress message
+func (s *Step) Logf(message string, args ...interface{}) {
+	if s.verbose {
+		fmt.Fprintln(writer, fmt.Sprintf("  %s %s %s", time.Now().Format(time.RFC3339), s.test, fmt.Sprintf(message, args...)))
+	}
 }
 
 // Start starts the step
 func (s *Step) Start() {
-	fmt.Fprintln(writer, fmt.Sprintf("  %s %s %s", time.Now().Format(time.RFC3339), s.test, s.name))
+	fmt.Fprintln(writer, color.CyanString(fmt.Sprintf("%s %s %s %s", start, time.Now().Format(time.RFC3339), s.test, s.name)))
 }
 
 // Complete completes the step
@@ -58,7 +92,9 @@ func (s *Step) Fail(err error) {
 
 // Print prints the given log line
 func Print(line string) {
-	if line[0] == success[0] {
+	if line[0] == start[0] {
+		fmt.Fprintln(writer, color.YellowString(line))
+	} else if line[0] == success[0] {
 		fmt.Fprintln(writer, color.GreenString(line))
 	} else if line[0] == failure[0] {
 		fmt.Fprintln(writer, color.RedString(line))

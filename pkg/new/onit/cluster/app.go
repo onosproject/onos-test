@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,15 +37,24 @@ type App struct {
 
 // Add adds the application to the cluster
 func (s *App) Add() error {
+	step := logging.NewStep(s.namespace, fmt.Sprintf("Add simulator %s", s.Name()))
+	step.Start()
+	step.Logf("Creating %s Service", s.Name())
 	if err := s.createService(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Logf("Creating %s Deployment", s.Name())
 	if err := s.createDeployment(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Logf("Waiting for %s to become ready", s.Name())
 	if err := s.awaitDeploymentReady(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Complete()
 	return nil
 }
 

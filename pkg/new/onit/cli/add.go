@@ -62,10 +62,13 @@ func getAddNetworkCommand() *cobra.Command {
 	cmd.Flags().StringP("image", "i", defaultMininetImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 
 func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	var networkID string
 	if len(args) > 0 {
 		networkID = args[0]
@@ -102,10 +105,13 @@ func getAddSimulatorCommand() *cobra.Command {
 	cmd.Flags().StringP("image", "i", defaultSimulatorImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 
 func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	var deviceID string
 	if len(args) > 0 {
 		deviceID = args[0]
@@ -144,10 +150,13 @@ func getAddAppCommand() *cobra.Command {
 	cmd.Flags().IntP("nodes", "n", 1, "the number of nodes to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the app")
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 
 func runAddAppCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	var appID string
 	if len(args) > 0 {
 		appID = args[0]

@@ -16,19 +16,18 @@ package cluster
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"os"
 	"path/filepath"
-	"runtime"
 	"time"
 )
 
 var (
-	_, path, _, _     = runtime.Caller(0)
-	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(path)))), "configs"), "device")
+	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(path))))), "configs"), "device")
 )
 
 func newSimulator(name string, client *client) *Simulator {
@@ -44,16 +43,26 @@ type Simulator struct {
 
 // Add adds the simulator to the cluster
 func (s *Simulator) Add() error {
+	step := logging.NewStep(s.namespace, fmt.Sprintf("Add simulator %s", s.Name()))
+	step.Start()
+	step.Logf("Creating %s ConfigMap", s.Name())
 	if err := s.createConfigMap(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Logf("Creating %s Pod", s.Name())
 	if err := s.createPod(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Logf("Creating %s Service", s.Name())
 	if err := s.createService(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Logf("Waiting for %s to become ready", s.Name())
 	if err := s.awaitReady(); err != nil {
+		step.Fail(err)
 		return err
 	}
 	return nil

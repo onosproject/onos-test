@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"time"
@@ -38,12 +39,19 @@ type Config struct {
 
 // Create creates the config service
 func (s *Config) Create() error {
+	step := logging.NewStep(s.namespace, "Setup onos-config service")
+	step.Start()
+	step.Log("Creating onos-config Service")
 	if err := s.createService(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Log("Creating onos-config Deployment")
 	if err := s.createDeployment(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Complete()
 	return nil
 }
 
@@ -71,9 +79,6 @@ func (s *Config) createDeployment() error {
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"type": "config",
-					},
-					Annotations: map[string]string{
-						"seccomp.security.alpha.kubernetes.io/pod": "unconfined",
 					},
 				},
 				Spec: corev1.PodSpec{

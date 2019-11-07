@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -81,15 +82,24 @@ func (s *Network) SetLinear(nodes int) *Network {
 
 // Add adds the network to the cluster
 func (s *Network) Add() error {
+	step := logging.NewStep(s.namespace, fmt.Sprintf("Add network %s", s.Name()))
+	step.Start()
+	step.Logf("Creating %s Pod", s.Name())
 	if err := s.createPod(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Logf("Creating %s Service", s.Name())
 	if err := s.createService(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Logf("Waiting for %s to become ready", s.Name())
 	if err := s.awaitReady(); err != nil {
+		step.Fail(err)
 		return err
 	}
+	step.Complete()
 	return nil
 }
 
@@ -222,11 +232,7 @@ func (s *Network) createService() error {
 
 // Remove removes the network from the cluster
 func (s *Network) Remove() error {
-	return s.teardownNetwork()
-}
-
-// teardownNetwork tears down a network by name
-func (s *Network) teardownNetwork() error {
+	step := logging.NewStep(s.namespace, fmt.Sprintf("Remove network %s", s.Name()))
 	pods, err := s.kubeClient.CoreV1().Pods(s.namespace).List(metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("type=network,network=%s", s.name),
 	})
@@ -235,7 +241,10 @@ func (s *Network) teardownNetwork() error {
 	} else if len(pods.Items) == 0 {
 		return fmt.Errorf("no resources matching '%s' found", s.name)
 	}
+
 	total := len(pods.Items)
+
+	step.Logf("Deleting %s Pod", s.Name())
 	if e := s.deletePod(); e != nil {
 		err = e
 	}

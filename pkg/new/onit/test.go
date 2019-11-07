@@ -26,7 +26,7 @@ type Tests struct {
 }
 
 // Setup returns the ONOS setup API
-func (t *Tests) Setup() setup.TestSetup {
+func (t *Tests) Setup() setup.Setup {
 	return setup.New(t.API())
 }
 

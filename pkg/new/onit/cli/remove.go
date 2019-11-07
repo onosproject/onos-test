@@ -58,10 +58,13 @@ func getRemoveNetworkCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the network")
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 
 func runRemoveNetworkCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	networkID := args[0]
 	cluster, _ := cmd.Flags().GetString("cluster")
 
@@ -84,10 +87,13 @@ func getRemoveSimulatorCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 
 func runRemoveSimulatorCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	deviceID := args[0]
 	cluster, _ := cmd.Flags().GetString("cluster")
 
@@ -110,10 +116,13 @@ func getRemoveAppCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to remove the app")
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 
 func runRemoveAppCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
 	appID := args[0]
 	cluster, _ := cmd.Flags().GetString("cluster")
 
