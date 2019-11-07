@@ -41,12 +41,12 @@ type Config struct {
 func (s *Config) Create() error {
 	step := logging.NewStep(s.namespace, "Setup onos-config service")
 	step.Start()
-	step.Log("Create onos-config Service")
+	step.Log("Creating onos-config Service")
 	if err := s.createService(); err != nil {
 		step.Fail(err)
 		return err
 	}
-	step.Log("Create onos-config Deployment")
+	step.Log("Creating onos-config Deployment")
 	if err := s.createDeployment(); err != nil {
 		step.Fail(err)
 		return err

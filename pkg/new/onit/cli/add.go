@@ -62,6 +62,7 @@ func getAddNetworkCommand() *cobra.Command {
 	cmd.Flags().StringP("image", "i", defaultMininetImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 
@@ -104,6 +105,7 @@ func getAddSimulatorCommand() *cobra.Command {
 	cmd.Flags().StringP("image", "i", defaultSimulatorImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 
@@ -148,6 +150,7 @@ func getAddAppCommand() *cobra.Command {
 	cmd.Flags().IntP("nodes", "n", 1, "the number of nodes to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the app")
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 

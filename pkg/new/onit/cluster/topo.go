@@ -40,12 +40,12 @@ type Topo struct {
 func (s *Topo) Create() error {
 	step := logging.NewStep(s.namespace, "Setup onos-topo service")
 	step.Start()
-	step.Log("Create onos-topo Service")
+	step.Log("Creating onos-topo Service")
 	if err := s.createService(); err != nil {
 		step.Fail(err)
 		return err
 	}
-	step.Log("Create onos-topo Deployment")
+	step.Log("Creating onos-topo Deployment")
 	if err := s.createDeployment(); err != nil {
 		step.Fail(err)
 		return err

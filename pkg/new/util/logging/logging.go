@@ -63,7 +63,7 @@ func (s *Step) Logf(message string, args ...interface{}) {
 
 // Start starts the step
 func (s *Step) Start() {
-	fmt.Fprintln(writer, color.BlueString(fmt.Sprintf("%s %s %s %s", start, time.Now().Format(time.RFC3339), s.test, s.name)))
+	fmt.Fprintln(writer, color.CyanString(fmt.Sprintf("%s %s %s %s", start, time.Now().Format(time.RFC3339), s.test, s.name)))
 }
 
 // Complete completes the step

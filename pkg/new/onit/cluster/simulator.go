@@ -27,7 +27,7 @@ import (
 )
 
 var (
-	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(path)))), "configs"), "device")
+	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(path))))), "configs"), "device")
 )
 
 func newSimulator(name string, client *client) *Simulator {
