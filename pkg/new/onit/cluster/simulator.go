@@ -23,12 +23,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"os"
 	"path/filepath"
-	"runtime"
 	"time"
 )
 
 var (
-	_, path, _, _     = runtime.Caller(0)
 	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(path)))), "configs"), "device")
 )
 
@@ -46,6 +44,7 @@ type Simulator struct {
 // Add adds the simulator to the cluster
 func (s *Simulator) Add() error {
 	step := logging.NewStep(s.namespace, fmt.Sprintf("Add simulator %s", s.Name()))
+	step.Start()
 	step.Logf("Creating %s ConfigMap", s.Name())
 	if err := s.createConfigMap(); err != nil {
 		step.Fail(err)

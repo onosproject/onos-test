@@ -40,6 +40,7 @@ type Config struct {
 // Create creates the config service
 func (s *Config) Create() error {
 	step := logging.NewStep(s.namespace, "Setup onos-config service")
+	step.Start()
 	step.Log("Create onos-config Service")
 	if err := s.createService(); err != nil {
 		step.Fail(err)
@@ -78,9 +79,6 @@ func (s *Config) createDeployment() error {
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"type": "config",
-					},
-					Annotations: map[string]string{
-						"seccomp.security.alpha.kubernetes.io/pod": "unconfined",
 					},
 				},
 				Spec: corev1.PodSpec{

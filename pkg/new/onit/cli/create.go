@@ -16,7 +16,7 @@ package cli
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/kube"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/new/util/random"
 
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
@@ -101,12 +101,12 @@ func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	cluster := kubetest.NewTestCluster(clusterID)
+	kubeAPI := kube.GetAPI(clusterID)
+	cluster := cluster.New(kubeAPI)
 	if err := cluster.Create(); err != nil {
 		return err
 	}
 
-	kubeAPI := kube.GetAPI(clusterID)
 	setup := setup.New(kubeAPI)
 	setup.Atomix().
 		Image(images[atomixService]).

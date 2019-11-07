@@ -38,6 +38,7 @@ type App struct {
 // Add adds the application to the cluster
 func (s *App) Add() error {
 	step := logging.NewStep(s.namespace, fmt.Sprintf("Add simulator %s", s.Name()))
+	step.Start()
 	step.Logf("Creating %s Service", s.Name())
 	if err := s.createService(); err != nil {
 		step.Fail(err)

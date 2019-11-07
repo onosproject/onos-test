@@ -38,6 +38,7 @@ type Atomix struct {
 // Setup sets up the Atomix controller and associated resources
 func (s *Atomix) Setup() error {
 	step := logging.NewStep(s.namespace, "Setup Atomix controller")
+	step.Start()
 	step.Log("Creating PartitionSet resource")
 	if err := s.createPartitionSetResource(); err != nil {
 		step.Fail(err)

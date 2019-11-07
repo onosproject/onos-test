@@ -39,6 +39,7 @@ type Topo struct {
 // Create creates the topology subsystem
 func (s *Topo) Create() error {
 	step := logging.NewStep(s.namespace, "Setup onos-topo service")
+	step.Start()
 	step.Log("Create onos-topo Service")
 	if err := s.createService(); err != nil {
 		step.Fail(err)

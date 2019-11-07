@@ -83,6 +83,7 @@ func (s *Network) SetLinear(nodes int) *Network {
 // Add adds the network to the cluster
 func (s *Network) Add() error {
 	step := logging.NewStep(s.namespace, fmt.Sprintf("Add network %s", s.Name()))
+	step.Start()
 	step.Logf("Creating %s Pod", s.Name())
 	if err := s.createPod(); err != nil {
 		step.Fail(err)

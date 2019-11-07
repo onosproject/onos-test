@@ -22,7 +22,7 @@ import (
 const raftGroup = "raft"
 
 // New returns a new onit Setup
-func New(kube kube.API) TestSetup {
+func New(kube kube.API) Setup {
 	return &clusterSetup{
 		cluster: cluster.New(kube),
 	}
@@ -30,14 +30,6 @@ func New(kube kube.API) TestSetup {
 
 // Setup is an interface for setting up ONOS clusters
 type Setup interface {
-	Setup() error
-	SetupOrDie()
-}
-
-// TestSetup is an interface for setting up ONOS clusters
-type TestSetup interface {
-	Setup
-
 	// Atomix returns the setup configuration for the Atomix controller
 	Atomix() Atomix
 
@@ -49,6 +41,12 @@ type TestSetup interface {
 
 	// Config returns the setup configuration for the ONOS config service
 	Config() Config
+
+	// Setup sets up the cluster
+	Setup() error
+
+	// SetupOrDie sets up the cluster and panics if the setup fails
+	SetupOrDie()
 }
 
 // sequentialSetup is a setup step that must run sequentially

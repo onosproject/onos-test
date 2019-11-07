@@ -15,7 +15,8 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
+	"github.com/onosproject/onos-test/pkg/new/kube"
+	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 	"github.com/spf13/cobra"
 )
 
@@ -53,6 +54,7 @@ func getDeleteClusterCommand() *cobra.Command {
 func runDeleteClusterCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 	clusterID := args[0]
-	cluster := kubetest.NewTestCluster(clusterID)
+	kubeAPI := kube.GetAPI(clusterID)
+	cluster := cluster.New(kubeAPI)
 	return cluster.Delete()
 }

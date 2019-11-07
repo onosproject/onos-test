@@ -101,6 +101,7 @@ func (s *Partitions) Partitions() []*Partition {
 // Create creates a partition set
 func (s *Partitions) Create() error {
 	step := logging.NewStep(s.namespace, "Create Raft partitions")
+	step.Start()
 	step.Log("Creating Raft PartitionSet")
 	if err := s.createPartitionSet(); err != nil {
 		step.Fail(err)
