@@ -61,13 +61,14 @@ func TestModels(t *testing.T) {
 
 	// Run the test cases
 	for _, testCase := range testCases {
-		t.Run(testCase.description,
+		thisTestCase := testCase
+		t.Run(thisTestCase.description,
 			func(t *testing.T) {
-				description := testCase.description
-				path := testCase.path
-				value := testCase.value
-				valueType := testCase.valueType
-				expectedError := testCase.expectedError
+				description := thisTestCase.description
+				path := thisTestCase.path
+				value := thisTestCase.value
+				valueType := thisTestCase.valueType
+				expectedError := thisTestCase.expectedError
 				t.Parallel()
 
 				t.Logf("testing %q", description)

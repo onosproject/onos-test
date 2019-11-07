@@ -106,11 +106,12 @@ func TestConfigGetCLI(t *testing.T) {
 
 	// Run the test cases
 	for _, testCase := range testCases {
-		description := makeDescription(testCase.path)
+		thisTestCase := testCase
+		description := makeDescription(thisTestCase.path)
 		t.Run(description,
 			func(t *testing.T) {
-				path := testCase.path
-				expectedValue := testCase.expectedValue
+				path := thisTestCase.path
+				expectedValue := thisTestCase.expectedValue
 				t.Parallel()
 				assert.Equal(t, expectedValue, opState[path])
 			})
