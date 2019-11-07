@@ -46,8 +46,8 @@ func (s *Atomix) Setup() error {
 	}
 	step.Log("Creating Partition resource")
 	if err := s.createPartitionResource(); err != nil {
-		return err
 		step.Fail(err)
+		return err
 	}
 	step.Log("Creating controller Deployment")
 	if err := s.createDeployment(); err != nil {

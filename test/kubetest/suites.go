@@ -16,18 +16,12 @@ package kubetest
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit"
-	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 	"testing"
 )
 
 // TestsOne is a test
 type TestsOne struct {
 	*onit.Tests
-}
-
-// SetupONOSTestSuite sets up the TestOne test suite
-func (s *TestsOne) SetupONOSTestSuite(setup setup.TestSetup) {
-
 }
 
 // TestFoo is an example test case

@@ -26,7 +26,7 @@ type Benchmarks struct {
 }
 
 // Setup returns the ONOS setup API
-func (b *Benchmarks) Setup() setup.TestSetup {
+func (b *Benchmarks) Setup() setup.Setup {
 	return setup.New(b.API())
 }
 

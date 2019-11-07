@@ -17,7 +17,6 @@ package cli
 import (
 	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 // GetRootCommand returns the root onit command
@@ -37,7 +36,5 @@ func GetRootCommand() *cobra.Command {
 
 func runCommand(cmd *cobra.Command) {
 	verbose, _ := cmd.Flags().GetBool("verbose")
-	if verbose {
-		_ = os.Setenv(logging.Verbose, "true")
-	}
+	logging.SetVerbose(verbose)
 }

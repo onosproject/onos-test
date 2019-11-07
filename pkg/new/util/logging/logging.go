@@ -28,15 +28,29 @@ var (
 	writer  = os.Stdout
 )
 
-const Verbose = "VERBOSE_LOGGING"
+const verboseEnv = "VERBOSE_LOGGING"
+
+// GetVerbose returns whether verbose logging is enabled
+func GetVerbose() bool {
+	verbose := os.Getenv(verboseEnv)
+	return verbose != ""
+}
+
+// SetVerbose sets verbose logging
+func SetVerbose(verbose bool) {
+	if verbose {
+		_ = os.Setenv(verboseEnv, "true")
+	} else {
+		_ = os.Unsetenv(verboseEnv)
+	}
+}
 
 // NewStep returns a new step
 func NewStep(test, name string) *Step {
-	verbose := os.Getenv(Verbose)
 	return &Step{
 		test:    test,
 		name:    name,
-		verbose: verbose != "",
+		verbose: GetVerbose(),
 	}
 }
 
@@ -54,10 +68,10 @@ func (s *Step) Log(message string) {
 	}
 }
 
-// Log logs a progress message
+// Logf logs a progress message
 func (s *Step) Logf(message string, args ...interface{}) {
 	if s.verbose {
-		fmt.Fprintln(writer, fmt.Sprintf("  %s %s %s", time.Now().Format(time.RFC3339), s.test, fmt.Sprintf(message, args)))
+		fmt.Fprintln(writer, fmt.Sprintf("  %s %s %s", time.Now().Format(time.RFC3339), s.test, fmt.Sprintf(message, args...)))
 	}
 }
 
