@@ -198,7 +198,7 @@ func (c *ClusterController) updateDeployment(name string, image string, pullPoli
 			return err
 		}
 		deployment.Spec.Template.Spec.Containers[0].Image = image
-		deployment.Spec.Template.Spec.Containers[0].ImagePullPolicy = corev1.PullPolicy(pullPolicy)
+		deployment.Spec.Template.Spec.Containers[0].ImagePullPolicy = pullPolicy
 
 		if strings.Compare(deployment.Spec.Template.Spec.Containers[0].Image, image) == 0 {
 			deployment.Spec.Template.CreationTimestamp = metav1.Now()
