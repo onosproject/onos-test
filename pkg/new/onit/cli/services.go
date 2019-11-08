@@ -26,6 +26,6 @@ const (
 	defaultRaftImage      = "atomix/atomix-raft-node:latest"
 	defaultConfigImage    = "onosproject/onos-config:latest"
 	defaultTopoImage      = "onosproject/onos-topo:latest"
-	defaultMininetImage   = "opennetworkinglab/mininet:latest"
-	defaultSimulatorImage = "onosproject/simulators:latest"
+	defaultMininetImage   = "opennetworking/mn-stratum:latest"
+	defaultSimulatorImage = "onosproject/device-simulator:latest"
 )

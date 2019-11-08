@@ -22,14 +22,17 @@ import (
 // GetRootCommand returns the root onit command
 func GetRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "onit <command> [args]",
-		Short: "Setup test clusters and run integration tests on Kubernetes",
+		Use:                    "onit <command> [args]",
+		Short:                  "Setup test clusters and run integration tests on Kubernetes",
+		BashCompletionFunction: bashCompletion,
 	}
+	cmd.AddCommand(getGetCommand())
 	cmd.AddCommand(getCreateCommand())
 	cmd.AddCommand(getDeleteCommand())
 	cmd.AddCommand(getAddCommand())
 	cmd.AddCommand(getRemoveCommand())
 	cmd.AddCommand(getRunCommand())
+	cmd.AddCommand(getCompletionCommand())
 	cmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose output")
 	return cmd
 }

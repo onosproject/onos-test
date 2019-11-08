@@ -28,6 +28,27 @@ import (
 	"time"
 )
 
+// GetTestClusters returns a list of test clusters
+func GetTestClusters() ([]string, error) {
+	client, err := k8s.GetClientset()
+	if err != nil {
+		return nil, err
+	}
+
+	namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	clusters := make([]string, 0)
+	for _, namespace := range namespaces.Items {
+		if namespace.Labels["test"] != "" {
+			clusters = append(clusters, namespace.Name)
+		}
+	}
+	return clusters, nil
+}
+
 // NewTestCluster returns a new test cluster for the given Kubernetes API
 func NewTestCluster(namespace string) *TestCluster {
 	client, err := k8s.GetClientset()
@@ -61,6 +82,9 @@ func (c *TestCluster) setupNamespace() error {
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: c.namespace,
+			Labels: map[string]string{
+				"test": c.namespace,
+			},
 		},
 	}
 	step := logging.NewStep(c.namespace, "Create namespace")

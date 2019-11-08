@@ -52,6 +52,9 @@ func getRunTestCommand() *cobra.Command {
 		RunE:  runRunTestCommand,
 	}
 	cmd.Flags().StringP("cluster", "c", "", "the cluster on which to run the test")
+	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_clusters"},
+	}
 	cmd.Flags().StringP("image", "i", "", "the test image to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("suite", "s", "", "the test suite to run")
@@ -72,6 +75,9 @@ func getRunBenchCommand() *cobra.Command {
 		RunE:  runRunBenchCommand,
 	}
 	cmd.Flags().StringP("cluster", "c", "", "the cluster on which to run the test")
+	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_clusters"},
+	}
 	cmd.Flags().StringP("image", "i", "", "the test image to run")
 	cmd.Flags().StringP("suite", "s", "", "the test suite to run")
 	cmd.Flags().StringP("test", "t", "", "the name of the test method to run")
