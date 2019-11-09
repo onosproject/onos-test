@@ -27,10 +27,12 @@ import (
 type TopoType int
 
 const (
-	// Linear linear topology type
-	Linear TopoType = iota
 	// Single node topology
-	Single
+	Single TopoType = iota
+	// Linear linear topology type
+	Linear
+	// Custom topology type
+	Custom
 )
 
 func (d TopoType) String() string {
@@ -46,9 +48,9 @@ func newNetwork(name string, client *client) *Network {
 // Network is an implementation of the Network interface
 type Network struct {
 	*Node
-	name     string
 	topoType TopoType
-	nodes    int
+	topo     string
+	devices  int
 }
 
 // Devices returns a list of devices in the network
@@ -74,9 +76,17 @@ func (s *Network) SetSingle() *Network {
 }
 
 // SetLinear sets the network to a linear topology
-func (s *Network) SetLinear(nodes int) *Network {
-	s.topoType = Single
-	s.nodes = nodes
+func (s *Network) SetLinear(devices int) *Network {
+	s.topoType = Linear
+	s.devices = devices
+	return s
+}
+
+// SetTopo sets the network topology
+func (s *Network) SetTopo(topo string, devices int) *Network {
+	s.topoType = Custom
+	s.topo = topo
+	s.devices = devices
 	return s
 }
 
@@ -110,7 +120,9 @@ func (s *Network) createPod() error {
 	case Single:
 		topoSpec = "single"
 	case Linear:
-		topoSpec = fmt.Sprintf("linear,%d", s.nodes)
+		topoSpec = fmt.Sprintf("linear,%d", s.devices)
+	case Custom:
+		topoSpec = s.topo
 	}
 
 	var isPrivileged = true
@@ -119,7 +131,7 @@ func (s *Network) createPod() error {
 			Name:      s.name,
 			Namespace: s.namespace,
 			Labels: map[string]string{
-				"type":    "Network",
+				"type":    string(networkType),
 				"Network": s.name,
 			},
 		},
@@ -186,10 +198,9 @@ func (s *Network) getNumDevices() int {
 	switch s.topoType {
 	case Single:
 		return 1
-	case Linear:
-		return s.nodes
+	default:
+		return s.devices
 	}
-	return 0
 }
 
 // createService creates a Network service
@@ -202,15 +213,15 @@ func (s *Network) createService() error {
 				Name:      serviceName,
 				Namespace: s.namespace,
 				Labels: map[string]string{
-					"type":    "Network",
-					"Network": s.name,
+					"type":    string(networkType),
+					"network": s.name,
 					"device":  serviceName,
 				},
 			},
 			Spec: corev1.ServiceSpec{
 				Selector: map[string]string{
-					"type":    "Network",
-					"Network": s.name,
+					"type":    string(networkType),
+					"network": s.name,
 				},
 				Ports: []corev1.ServicePort{
 					{

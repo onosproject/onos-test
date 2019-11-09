@@ -30,6 +30,9 @@ type NetworkSetup interface {
 	// Linear creates a linear topology with the given number of devices
 	Linear(devices int) NetworkSetup
 
+	// Topo creates a custom topology
+	Topo(topo string, devices int) NetworkSetup
+
 	// Image sets the image to deploy
 	Image(image string) NetworkSetup
 
@@ -72,6 +75,11 @@ func (s *clusterNetworkSetup) Single() NetworkSetup {
 
 func (s *clusterNetworkSetup) Linear(devices int) NetworkSetup {
 	s.network.SetLinear(devices)
+	return s
+}
+
+func (s *clusterNetworkSetup) Topo(topo string, devices int) NetworkSetup {
+	s.network.SetTopo(topo, devices)
 	return s
 }
 
