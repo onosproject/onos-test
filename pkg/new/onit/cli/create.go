@@ -72,7 +72,7 @@ func getCreateClusterCommand() *cobra.Command {
 
 	nodes := make(map[string]int)
 	nodes[atomixService] = 1
-	nodes[raftService] = 3
+	nodes[raftService] = 1
 	nodes[configService] = 1
 	nodes[topoService] = 1
 

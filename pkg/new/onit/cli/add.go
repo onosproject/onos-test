@@ -31,7 +31,7 @@ var (
 		onit add simulator simulator-1
 
 		# Add a network of stratum switches that emulates a linear network topology with two nodes
-		onit add network stratum-linear -- --topo linear,2
+		onit add network stratum-linear --topo linear,2
 	   
 		# Add latest version of an application 
 		onit add app onos-ztp --image onosproject/onos-ztp:latest --image-pull-policy "Always" `
@@ -62,7 +62,14 @@ func getAddNetworkCommand() *cobra.Command {
 	cmd.Flags().StringP("image", "i", defaultMininetImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
+	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_clusters"},
+	}
 	_ = cmd.MarkFlagRequired("cluster")
+	cmd.Flags().StringP("topo", "t", "", "the topology to create")
+	_ = cmd.MarkFlagRequired("topo")
+	cmd.Flags().IntP("devices", "d", 0, "the number of devices in the topology")
+	_ = cmd.MarkFlagRequired("devices")
 	return cmd
 }
 
@@ -81,6 +88,8 @@ func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 	image, _ := cmd.Flags().GetString("image")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
+	topo, _ := cmd.Flags().GetString("topo")
+	devices, _ := cmd.Flags().GetInt("devices")
 
 	kubeAPI := kube.GetAPI(cluster)
 	env := env.New(kubeAPI)
@@ -89,6 +98,7 @@ func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 		Name(networkID).
 		Image(image).
 		PullPolicy(pullPolicy).
+		Topo(topo, devices).
 		Add()
 	return err
 }
@@ -105,6 +115,9 @@ func getAddSimulatorCommand() *cobra.Command {
 	cmd.Flags().StringP("image", "i", defaultSimulatorImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
+	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_clusters"},
+	}
 	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
@@ -150,6 +163,9 @@ func getAddAppCommand() *cobra.Command {
 	cmd.Flags().IntP("nodes", "n", 1, "the number of nodes to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the app")
+	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_clusters"},
+	}
 	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }

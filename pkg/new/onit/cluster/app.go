@@ -37,7 +37,7 @@ type App struct {
 
 // Add adds the application to the cluster
 func (s *App) Add() error {
-	step := logging.NewStep(s.namespace, fmt.Sprintf("Add simulator %s", s.Name()))
+	step := logging.NewStep(s.namespace, fmt.Sprintf("Add app %s", s.Name()))
 	step.Start()
 	step.Logf("Creating %s Service", s.Name())
 	if err := s.createService(); err != nil {
@@ -240,15 +240,7 @@ func (s *App) teardownApp() error {
 	if e := s.deleteAppService(); e != nil {
 		err = e
 	}
-	if e := s.deleteAppConfigMap(); e != nil {
-		err = e
-	}
 	return err
-}
-
-// deleteAppConfigMap deletes an app ConfigMap by name
-func (s *App) deleteAppConfigMap() error {
-	return s.kubeClient.CoreV1().ConfigMaps(s.namespace).Delete(s.name, &metav1.DeleteOptions{})
 }
 
 // deleteAppPod deletes an app Pod by name
