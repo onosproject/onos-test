@@ -30,13 +30,11 @@ func (j *TestJob) Run() (string, int, error) {
 		return "", 0, err
 	}
 	message, code, err := j.getResult()
-	if code != 0 {
-		bytes, err := j.cluster.GetTestOutput(j.test)
-		if err != nil {
-			return "", 0, err
-		}
-		message = string(bytes)
+	bytes, err := j.cluster.GetTestOutput(j.test)
+	if err != nil {
+		return "", 0, err
 	}
+	message = string(bytes)
 	_ = j.tearDown()
 	return message, code, err
 }
