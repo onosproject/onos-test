@@ -21,13 +21,6 @@ import (
 	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
-	"path/filepath"
-	"runtime"
-)
-
-var (
-	_, path, _, _ = runtime.Caller(0)
-	certsPath     = filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(path)))), "certs")
 )
 
 // New returns a new onit Env

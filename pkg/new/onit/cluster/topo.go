@@ -17,14 +17,11 @@ package cluster
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/new/util/logging"
-	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -69,36 +66,13 @@ func (s *Topo) createSecret() error {
 			Name:      "onos-topo",
 			Namespace: s.namespace,
 		},
-		StringData: map[string]string{},
+		StringData: map[string]string{
+			"onf.cacrt":     caCert,
+			"onos-topo.crt": topoCert,
+			"onos-topo.key": topoKey,
+		},
 	}
-
-	err := filepath.Walk(certsPath, func(path string, info os.FileInfo, errArg error) error {
-		if info == nil {
-			return nil
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		file, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-
-		fileBytes, err := ioutil.ReadAll(file)
-		if err != nil {
-			return err
-		}
-
-		secret.StringData[info.Name()] = string(fileBytes)
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
+	_, err := s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
 	return err
 }
 
@@ -182,8 +156,8 @@ func (s *Topo) createDeployment() error {
 							},
 							Args: []string{
 								"-caPath=/etc/onos-topo/certs/onf.cacrt",
-								"-keyPath=/etc/onos-topo/certs/onos-config.key",
-								"-certPath=/etc/onos-topo/certs/onos-config.crt",
+								"-keyPath=/etc/onos-topo/certs/onos-topo.key",
+								"-certPath=/etc/onos-topo/certs/onos-topo.crt",
 							},
 							Ports: []corev1.ContainerPort{
 								{

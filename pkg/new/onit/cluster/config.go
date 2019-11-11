@@ -17,11 +17,8 @@ package cluster
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/new/util/logging"
-	"io/ioutil"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"os"
-	"path/filepath"
 	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -70,36 +67,13 @@ func (s *Config) createSecret() error {
 			Name:      "onos-config",
 			Namespace: s.namespace,
 		},
-		StringData: map[string]string{},
+		StringData: map[string]string{
+			"onf.cacrt":       caCert,
+			"onos-config.crt": configCert,
+			"onos-config.key": configKey,
+		},
 	}
-
-	err := filepath.Walk(certsPath, func(path string, info os.FileInfo, errArg error) error {
-		if info == nil {
-			return nil
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		file, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-
-		fileBytes, err := ioutil.ReadAll(file)
-		if err != nil {
-			return err
-		}
-
-		secret.StringData[info.Name()] = string(fileBytes)
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
+	_, err := s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
 	return err
 }
 

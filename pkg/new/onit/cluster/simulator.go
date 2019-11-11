@@ -23,10 +23,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 )
 
 var (
+	_, path, _, _ = runtime.Caller(0)
 	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(path))))), "configs"), "device")
 )
 

@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-const cert = `
+const clientCert = `
 -----BEGIN CERTIFICATE-----
 MIIDZTCCAk0CCQDl7NF6ekffcTANBgkqhkiG9w0BAQsFADByMQswCQYDVQQGEwJV
 UzELMAkGA1UECAwCQ0ExEjAQBgNVBAcMCU1lbmxvUGFyazEMMAoGA1UECgwDT05G
@@ -46,7 +46,7 @@ e3q1STjfQqe8
 -----END CERTIFICATE-----
 `
 
-const key = `
+const clientKey = `
 -----BEGIN PRIVATE KEY-----
 MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDmZHXagZc/64MP
 sPNBl1OD3p4dZNzRQo/CJ7YjksstWxGgfY87mzYHmvqv8Tw5QbjSkZvq2QNEgnx4
@@ -130,7 +130,7 @@ func (e *clusterService) Node(name string) Node {
 }
 
 func (e *clusterService) Connect() (*grpc.ClientConn, error) {
-	cert, err := tls.X509KeyPair([]byte(cert), []byte(key))
+	cert, err := tls.X509KeyPair([]byte(clientCert), []byte(clientKey))
 	if err != nil {
 		return nil, err
 	}
