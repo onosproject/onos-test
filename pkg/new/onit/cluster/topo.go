@@ -17,11 +17,14 @@ package cluster
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/new/util/logging"
+	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -45,6 +48,11 @@ func (s *Topo) Create() error {
 		step.Fail(err)
 		return err
 	}
+	step.Log("Creating onos-topo Secret")
+	if err := s.createSecret(); err != nil {
+		step.Fail(err)
+		return err
+	}
 	step.Log("Creating onos-topo Deployment")
 	if err := s.createDeployment(); err != nil {
 		step.Fail(err)
@@ -52,6 +60,46 @@ func (s *Topo) Create() error {
 	}
 	step.Complete()
 	return nil
+}
+
+// createSecret creates the onos-config Secret
+func (s *Topo) createSecret() error {
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "onos-topo",
+			Namespace: s.namespace,
+		},
+		StringData: map[string]string{},
+	}
+
+	err := filepath.Walk(certsPath, func(path string, info os.FileInfo, errArg error) error {
+		if info == nil {
+			return nil
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+
+		fileBytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			return err
+		}
+
+		secret.StringData[info.Name()] = string(fileBytes)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
+	return err
 }
 
 // createService creates a Service to expose the onos-topo Deployment to other pods
@@ -190,7 +238,7 @@ func (s *Topo) createDeployment() error {
 							Name: "secret",
 							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName: s.namespace,
+									SecretName: "onos-topo",
 								},
 							},
 						},

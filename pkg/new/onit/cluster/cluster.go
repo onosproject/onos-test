@@ -19,12 +19,8 @@ import (
 	"github.com/onosproject/onos-test/pkg/new/kube"
 	"github.com/onosproject/onos-test/pkg/new/kubetest"
 	"github.com/onosproject/onos-test/pkg/new/util/logging"
-	"io/ioutil"
-	corev1 "k8s.io/api/core/v1"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"os"
 	"path/filepath"
 	"runtime"
 )
@@ -110,11 +106,6 @@ func (c *Cluster) Create() error {
 		step.Fail(err)
 		return err
 	}
-	step.Log("Creating secrets")
-	if err := c.createSecret(); err != nil {
-		step.Fail(err)
-		return err
-	}
 	step.Complete()
 	return nil
 }
@@ -130,45 +121,4 @@ func (c *Cluster) Delete() error {
 	}
 	step.Complete()
 	return nil
-}
-
-// createSecret creates a secret for configuring TLS in onos nodes and clients
-func (c *Cluster) createSecret() error {
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.namespace,
-			Namespace: c.namespace,
-		},
-		StringData: map[string]string{},
-	}
-
-	err := filepath.Walk(certsPath, func(path string, info os.FileInfo, errArg error) error {
-
-		if info == nil {
-			return nil
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		file, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-
-		fileBytes, err := ioutil.ReadAll(file)
-		if err != nil {
-			return err
-		}
-
-		secret.StringData[info.Name()] = string(fileBytes)
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = c.kubeClient.CoreV1().Secrets(c.namespace).Create(secret)
-	return err
 }
