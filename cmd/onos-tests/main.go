@@ -20,6 +20,7 @@ import (
 )
 
 func main() {
-	onit.RegisterTests("topo", &topo.TopoTests{})
+	onit.RegisterTests("topo", &topo.TopoTestSuite{})
+	onit.RegisterBenchmarks("topo", &topo.TopoBenchmarkSuite{})
 	onit.Main()
 }

@@ -17,6 +17,7 @@ package kubetest
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/new/util/k8s"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 )
@@ -73,6 +74,12 @@ func (w *TestWorker) Run() error {
 		},
 	}
 
+	// Hack to enable verbose testing.
+	os.Args = []string{
+		os.Args[0],
+		"-test.v",
+	}
+
 	testing.Main(func(_, _ string) (bool, error) { return true, nil }, tests, nil, nil)
 	return nil
 }
@@ -97,6 +104,13 @@ func (w *BenchmarkWorker) Run() error {
 				RunBenchmarks(b, benchmark)
 			},
 		},
+	}
+
+	// Hack to enable verbose testing.
+	os.Args = []string{
+		os.Args[0],
+		"-test.bench=.",
+		"-test.v",
 	}
 
 	testing.Main(func(_, _ string) (bool, error) { return true, nil }, nil, benchmarks, nil)

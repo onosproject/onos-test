@@ -23,21 +23,18 @@ import (
 	"testing"
 )
 
-// TopoTests tests the topo service
-type TopoTests struct {
+// TopoTestSuite tests the topo service
+type TopoTestSuite struct {
 	onit.TestSuite
 }
 
-func (s *TopoTests) SetupTestSuite() {
+func (s *TopoTestSuite) SetupTestSuite() {
 	setup := s.Setup()
-	setup.Database().
-		Partitions(3).
-		Nodes(3)
 	setup.Topo().Nodes(2)
 	setup.SetupOrDie()
 }
 
-func (s *TopoTests) TestDeviceService(t *testing.T) {
+func (s *TopoTestSuite) TestDeviceService(t *testing.T) {
 	env := s.Env()
 
 	conn, err := env.Topo().Connect()
