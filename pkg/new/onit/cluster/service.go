@@ -14,13 +14,18 @@
 
 package cluster
 
-import corev1 "k8s.io/api/core/v1"
+import (
+	"fmt"
+	corev1 "k8s.io/api/core/v1"
+)
 
-func newService(name string, serviceType serviceType, client *client) *Service {
+func newService(name string, port int, serviceType serviceType, image string, client *client) *Service {
 	return &Service{
 		client:      client,
 		name:        name,
+		port:        port,
 		serviceType: serviceType,
+		image:       image,
 	}
 }
 
@@ -28,6 +33,7 @@ func newService(name string, serviceType serviceType, client *client) *Service {
 type Service struct {
 	*client
 	name        string
+	port        int
 	replicas    int
 	serviceType serviceType
 	image       string
@@ -42,6 +48,21 @@ func (s *Service) Name() string {
 // SetName sets the service name
 func (s *Service) SetName(name string) {
 	s.name = name
+}
+
+// Port returns the service port
+func (s *Service) Port() int {
+	return s.port
+}
+
+// SetPort sets the service port
+func (s *Service) SetPort(port int) {
+	s.port = port
+}
+
+// Address returns the service address
+func (s *Service) Address() string {
+	return fmt.Sprintf("%s:%d", s.name, s.port)
 }
 
 // Nodes returns the collection of nodes in the service

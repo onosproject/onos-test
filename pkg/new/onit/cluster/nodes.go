@@ -31,7 +31,7 @@ type Nodes struct {
 
 // Get gets a node by name
 func (s *Nodes) Get(name string) *Node {
-	return newNode(name, s.client)
+	return newNode(name, "", s.client)
 }
 
 // List returns a list of nodes in the service

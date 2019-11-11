@@ -26,7 +26,7 @@ import (
 
 func newAtomix(client *client) *Atomix {
 	return &Atomix{
-		Service: newService("atomix-controller", atomixType, client),
+		Service: newService("atomix-controller", 5679, atomixType, atomixImage, client),
 	}
 }
 

@@ -16,24 +16,34 @@ package topo
 
 import (
 	"context"
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
-	"github.com/onosproject/onos-test/test/env"
+	"github.com/onosproject/onos-test/pkg/new/onit"
 	"github.com/onosproject/onos-topo/pkg/northbound/device"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"testing"
 )
 
-func init() {
-	test.Registry.RegisterTest("device-service", TestDeviceService, []*runner.TestSuite{TopoTests})
+// TopoTests tests the topo service
+type TopoTests struct {
+	onit.TestSuite
 }
 
-// TestDeviceService :
-func TestDeviceService(t *testing.T) {
-	conn, err := env.GetTopoConn()
+func (s *TopoTests) SetupTestSuite() {
+	setup := s.Setup()
+	setup.Database().
+		Partitions(3).
+		Nodes(3)
+	setup.Topo().Nodes(2)
+	setup.SetupOrDie()
+}
+
+func (s *TopoTests) TestDeviceService(t *testing.T) {
+	env := s.Env()
+
+	conn, err := env.Topo().Connect()
 	assert.NoError(t, err)
 	defer conn.Close()
+
 	client := device.NewDeviceServiceClient(conn)
 
 	list, err := client.List(context.Background(), &device.ListRequest{})

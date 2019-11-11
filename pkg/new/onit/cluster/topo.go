@@ -27,7 +27,7 @@ import (
 
 func newTopo(client *client) *Topo {
 	return &Topo{
-		Service: newService("onos-topo", topoType, client),
+		Service: newService("onos-topo", 5150, topoType, topoImage, client),
 	}
 }
 

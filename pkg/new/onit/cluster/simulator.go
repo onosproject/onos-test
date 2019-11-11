@@ -32,7 +32,7 @@ var (
 
 func newSimulator(name string, client *client) *Simulator {
 	return &Simulator{
-		Node: newNode(name, client),
+		Node: newNode(name, simulatorImage, client),
 	}
 }
 

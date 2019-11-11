@@ -16,7 +16,7 @@ package cluster
 
 func newPartition(name string, client *client) *Partition {
 	return &Partition{
-		Service: newService(name, databaseType, client),
+		Service: newService(name, 5678, databaseType, databaseImage, client),
 	}
 }
 

@@ -59,8 +59,8 @@ type TestWorker struct {
 
 // Run runs a test
 func (w *TestWorker) Run() error {
-	test := Registry.tests[w.test.Suite]
-	if test == nil {
+	test, ok := Registry.tests[w.test.Suite]
+	if !ok {
 		return fmt.Errorf("unknown test suite %s", w.test.Suite)
 	}
 
@@ -68,7 +68,7 @@ func (w *TestWorker) Run() error {
 		{
 			Name: w.test.Suite,
 			F: func(t *testing.T) {
-				test.Run(t)
+				RunTests(t, test)
 			},
 		},
 	}
@@ -85,8 +85,8 @@ type BenchmarkWorker struct {
 
 // Run runs a benchmark
 func (w *BenchmarkWorker) Run() error {
-	benchmark := Registry.benchmarks[w.test.Suite]
-	if benchmark == nil {
+	benchmark, ok := Registry.benchmarks[w.test.Suite]
+	if !ok {
 		return fmt.Errorf("unknown benchmark suite %s", w.test.Suite)
 	}
 
@@ -94,7 +94,7 @@ func (w *BenchmarkWorker) Run() error {
 		{
 			Name: w.test.Suite,
 			F: func(b *testing.B) {
-				benchmark.Run(b)
+				RunBenchmarks(b, benchmark)
 			},
 		},
 	}

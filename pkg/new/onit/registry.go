@@ -17,11 +17,11 @@ package onit
 import "github.com/onosproject/onos-test/pkg/new/kubetest"
 
 // RegisterTests registers a test suite
-func RegisterTests(name string, suite kubetest.TestSuite) {
+func RegisterTests(name string, suite kubetest.TestingSuite) {
 	kubetest.RegisterTests(name, suite)
 }
 
 // RegisterBenchmarks registers a benchmark suite
-func RegisterBenchmarks(name string, suite kubetest.BenchmarkSuite) {
+func RegisterBenchmarks(name string, suite kubetest.BenchmarkingSuite) {
 	kubetest.RegisterBenchmarks(name, suite)
 }

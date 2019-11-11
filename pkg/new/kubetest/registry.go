@@ -15,33 +15,33 @@
 package kubetest
 
 // RegisterTests registers a test suite
-func RegisterTests(name string, suite TestSuite) {
+func RegisterTests(name string, suite TestingSuite) {
 	Registry.RegisterTests(name, suite)
 }
 
 // RegisterBenchmarks registers a benchmark suite
-func RegisterBenchmarks(name string, suite BenchmarkSuite) {
+func RegisterBenchmarks(name string, suite BenchmarkingSuite) {
 	Registry.RegisterBenchmarks(name, suite)
 }
 
 // Registry is the global test registry
 var Registry = &TestRegistry{
-	tests:      make(map[string]TestSuite),
-	benchmarks: make(map[string]BenchmarkSuite),
+	tests:      make(map[string]TestingSuite),
+	benchmarks: make(map[string]BenchmarkingSuite),
 }
 
 // TestRegistry is a registry of runnable tests
 type TestRegistry struct {
-	tests      map[string]TestSuite
-	benchmarks map[string]BenchmarkSuite
+	tests      map[string]TestingSuite
+	benchmarks map[string]BenchmarkingSuite
 }
 
 // RegisterTests registers a test suite
-func (s *TestRegistry) RegisterTests(name string, suite TestSuite) {
+func (s *TestRegistry) RegisterTests(name string, suite TestingSuite) {
 	s.tests[name] = suite
 }
 
 // RegisterBenchmarks registers a benchmark suite
-func (s *TestRegistry) RegisterBenchmarks(name string, suite BenchmarkSuite) {
+func (s *TestRegistry) RegisterBenchmarks(name string, suite BenchmarkingSuite) {
 	s.benchmarks[name] = suite
 }

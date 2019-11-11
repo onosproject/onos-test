@@ -25,10 +25,11 @@ import (
 	"time"
 )
 
-func newPartitions(group string, client *client) *Partitions {
+func newPartitions(group string, image string, client *client) *Partitions {
 	return &Partitions{
 		client: client,
 		group:  group,
+		image:  image,
 	}
 }
 

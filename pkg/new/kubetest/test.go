@@ -17,7 +17,6 @@ package kubetest
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/new/kube"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"reflect"
 	"regexp"
@@ -27,29 +26,20 @@ import (
 
 var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
 
-// Tests is a suite of tests run on a single cluster
-type Tests struct {
-	*assert.Assertions
+// TestingSuite is a suite of tests
+type TestingSuite interface{}
+
+// TestSuite is an identifier interface for test suites
+type TestSuite struct {
 	kube kube.API
 }
 
 // API returns the Kubernetes API
-func (s *Tests) API() kube.API {
+func (s *TestSuite) API() kube.API {
+	if s.kube == nil {
+		s.kube = kube.GetAPIFromEnv()
+	}
 	return s.kube
-}
-
-// Run runs the tests
-func (s *Tests) Run(t *testing.T) {
-	s.kube = kube.GetAPIFromEnv()
-	RunTests(t, s)
-}
-
-// TestSuite is an identifier interface for test suites
-type TestSuite interface {
-	kube.APIProvider
-
-	// Run runs the test suite
-	Run(t *testing.T)
 }
 
 // SetupTestSuite is an interface for setting up a suite of tests
@@ -91,7 +81,7 @@ func failTestOnPanic(t *testing.T) {
 }
 
 // RunTests runs a test suite
-func RunTests(t *testing.T, suite TestSuite) {
+func RunTests(t *testing.T, suite TestingSuite) {
 	defer failTestOnPanic(t)
 
 	suiteSetupDone := false
@@ -147,15 +137,9 @@ func RunTests(t *testing.T, suite TestSuite) {
 }
 
 // runTest runs a test
-func runTests(b testing.TB, tests []testing.InternalTest) {
-	r, ok := b.(testRunner)
-	if !ok { // backwards compatibility with Go 1.6 and below
-		testing.RunTests(allTestsFilter, tests)
-		return
-	}
-
+func runTests(t *testing.T, tests []testing.InternalTest) {
 	for _, test := range tests {
-		r.Run(test.Name, test.F)
+		t.Run(test.Name, test.F)
 	}
 }
 
@@ -165,9 +149,4 @@ func testFilter(name string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
-}
-
-// testRunner is an interface for running a test
-type testRunner interface {
-	Run(name string, f func(t *testing.T)) bool
 }

@@ -28,7 +28,7 @@ import (
 
 func newConfig(client *client) *Config {
 	return &Config{
-		Service: newService("onos-config", configType, client),
+		Service: newService("onos-config", 5150, configType, configImage, client),
 	}
 }
 

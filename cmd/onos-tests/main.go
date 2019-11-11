@@ -16,18 +16,10 @@ package main
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit"
-	_ "github.com/onosproject/onos-test/test/api"
-	_ "github.com/onosproject/onos-test/test/atomix"
-	_ "github.com/onosproject/onos-test/test/config"
-	_ "github.com/onosproject/onos-test/test/integration"
-	test "github.com/onosproject/onos-test/test/kubetest"
-	_ "github.com/onosproject/onos-test/test/topo"
+	"github.com/onosproject/onos-test/test/topo"
 )
 
 func main() {
-	onit.RegisterTests("suite-one", &test.TestsOne{})
-	onit.RegisterTests("suite-two", &test.TestsTwo{})
-	onit.RegisterTests("suite-three", &test.TestsThree{})
-	onit.RegisterBenchmarks("benchmarks-one", &test.BenchmarksOne{})
+	onit.RegisterTests("topo", &topo.TopoTests{})
 	onit.Main()
 }

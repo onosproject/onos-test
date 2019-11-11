@@ -26,7 +26,7 @@ import (
 
 func newApp(name string, client *client) *App {
 	return &App{
-		Service: newService(name, appType, client),
+		Service: newService(name, 5150, appType, "", client),
 	}
 }
 
@@ -121,7 +121,7 @@ func (s *App) createDeployment() error {
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "grpc",
-									ContainerPort: 5150,
+									ContainerPort: int32(s.port),
 								},
 								{
 									Name:          "debug",
@@ -132,7 +132,7 @@ func (s *App) createDeployment() error {
 							ReadinessProbe: &corev1.Probe{
 								Handler: corev1.Handler{
 									TCPSocket: &corev1.TCPSocketAction{
-										Port: intstr.FromInt(5150),
+										Port: intstr.FromInt(s.port),
 									},
 								},
 								InitialDelaySeconds: 5,
@@ -141,7 +141,7 @@ func (s *App) createDeployment() error {
 							LivenessProbe: &corev1.Probe{
 								Handler: corev1.Handler{
 									TCPSocket: &corev1.TCPSocketAction{
-										Port: intstr.FromInt(5150),
+										Port: intstr.FromInt(s.port),
 									},
 								},
 								InitialDelaySeconds: 15,

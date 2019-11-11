@@ -17,7 +17,6 @@ package kubetest
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/new/kube"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"reflect"
 	"regexp"
@@ -27,29 +26,20 @@ import (
 
 var allBenchmarksFilter = func(_, _ string) (bool, error) { return true, nil }
 
-// Benchmarks is a suite of benchmarks run on a single cluster
-type Benchmarks struct {
-	*assert.Assertions
+// BenchmarkingSuite is a suite of benchmarks
+type BenchmarkingSuite interface{}
+
+// BenchmarkSuite is an identifier interface for benchmark suites
+type BenchmarkSuite struct {
 	kube kube.API
 }
 
 // API returns the Kubernetes API
-func (s *Benchmarks) API() kube.API {
+func (s *BenchmarkSuite) API() kube.API {
+	if s.kube == nil {
+		s.kube = kube.GetAPIFromEnv()
+	}
 	return s.kube
-}
-
-// Run runs the benchmarks
-func (s *Benchmarks) Run(b *testing.B) {
-	s.kube = kube.GetAPIFromEnv()
-	RunBenchmarks(b, s)
-}
-
-// BenchmarkSuite is an identifier interface for benchmark suites
-type BenchmarkSuite interface {
-	kube.APIProvider
-
-	// Run runs the benchmark suite
-	Run(b *testing.B)
 }
 
 // SetupBenchmarkSuite is an interface for setting up a suite of benchmarks
@@ -91,7 +81,7 @@ func failBenchmarkOnPanic(b *testing.B) {
 }
 
 // RunBenchmarks runs a benchmark suite
-func RunBenchmarks(b *testing.B, suite BenchmarkSuite) {
+func RunBenchmarks(b *testing.B, suite BenchmarkingSuite) {
 	defer failBenchmarkOnPanic(b)
 
 	suiteSetupDone := false
@@ -147,15 +137,9 @@ func RunBenchmarks(b *testing.B, suite BenchmarkSuite) {
 }
 
 // runBenchmark runs a benchmark
-func runBenchmarks(b testing.TB, benchmarks []testing.InternalBenchmark) {
-	r, ok := b.(benchmark)
-	if !ok { // backwards compatibility with Go 1.6 and below
-		testing.RunBenchmarks(allBenchmarksFilter, benchmarks)
-		return
-	}
-
+func runBenchmarks(b *testing.B, benchmarks []testing.InternalBenchmark) {
 	for _, benchmark := range benchmarks {
-		r.Run(benchmark.Name, benchmark.F)
+		b.Run(benchmark.Name, benchmark.F)
 	}
 }
 
@@ -165,9 +149,4 @@ func benchmarkFilter(name string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
-}
-
-// benchmark is an interface for running a benchmark
-type benchmark interface {
-	Run(name string, f func(b *testing.B)) bool
 }

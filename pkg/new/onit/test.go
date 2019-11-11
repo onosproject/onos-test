@@ -20,17 +20,17 @@ import (
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 )
 
-// Tests is the base type for ONIT test suites
-type Tests struct {
-	*kubetest.Tests
+// TestSuite is the base type for ONIT test suites
+type TestSuite struct {
+	kubetest.TestSuite
 }
 
 // Setup returns the ONOS setup API
-func (t *Tests) Setup() setup.Setup {
+func (t *TestSuite) Setup() setup.Setup {
 	return setup.New(t.API())
 }
 
 // Env returns the ONOS environment API
-func (t *Tests) Env() env.Env {
+func (t *TestSuite) Env() env.Env {
 	return env.New(t.API())
 }

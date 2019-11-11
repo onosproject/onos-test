@@ -19,10 +19,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func newNode(name string, client *client) *Node {
+func newNode(name string, image string, client *client) *Node {
 	return &Node{
 		client: client,
 		name:   name,
+		image:  image,
 	}
 }
 

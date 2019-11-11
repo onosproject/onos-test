@@ -15,6 +15,7 @@
 package kubetest
 
 import (
+	"bytes"
 	"errors"
 	"github.com/ghodss/yaml"
 	"github.com/onosproject/onos-test/pkg/new/util/k8s"
@@ -140,6 +141,7 @@ func (c *TestCluster) createClusterRole() error {
 					"events",
 					"configmaps",
 					"secrets",
+					"serviceaccounts",
 				},
 				Verbs: []string{
 					"*",
@@ -176,6 +178,40 @@ func (c *TestCluster) createClusterRole() error {
 				},
 				Resources: []string{
 					"poddisruptionbudgets",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"batch",
+				},
+				Resources: []string{
+					"jobs",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"rbac.authorization.k8s.io",
+				},
+				Resources: []string{
+					"clusterroles",
+					"clusterrolebindings",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"apiextensions.k8s.io",
+				},
+				Resources: []string{
+					"customresourcedefinitions",
 				},
 				Verbs: []string{
 					"*",
@@ -381,6 +417,32 @@ func (c *TestCluster) AwaitTestComplete(test *TestConfig) error {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+// GetTestOutput gets the output from the given test
+func (c *TestCluster) GetTestOutput(test *TestConfig) ([]byte, error) {
+	pod, err := c.getPod(test)
+	if err != nil {
+		return nil, err
+	}
+	return c.getLogs(*pod)
+}
+
+// getLogs gets the logs from the given pod
+func (c *TestCluster) getLogs(pod corev1.Pod) ([]byte, error) {
+	req := c.client.CoreV1().Pods(c.namespace).GetLogs(pod.Name, &corev1.PodLogOptions{})
+	readCloser, err := req.Stream()
+	if err != nil {
+		return nil, err
+	}
+
+	defer readCloser.Close()
+
+	var buf bytes.Buffer
+	if _, err = buf.ReadFrom(readCloser); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 // GetTestResult gets the status message and exit code of the given test

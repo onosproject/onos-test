@@ -41,7 +41,7 @@ func (d TopoType) String() string {
 
 func newNetwork(name string, client *client) *Network {
 	return &Network{
-		Node: newNode(name, client),
+		Node: newNode(name, networkImage, client),
 	}
 }
 
@@ -64,7 +64,7 @@ func (s *Network) Devices() []*Node {
 
 	devices := make([]*Node, len(services.Items))
 	for i, service := range services.Items {
-		devices[i] = newNode(service.Name, s.client)
+		devices[i] = newNode(service.Name, "", s.client)
 	}
 	return devices
 }

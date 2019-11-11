@@ -20,17 +20,17 @@ import (
 	"github.com/onosproject/onos-test/pkg/new/onit/setup"
 )
 
-// Benchmarks is the base type for ONIT benchmark suites
-type Benchmarks struct {
-	*kubetest.Benchmarks
+// BenchmarkSuite is the base type for ONIT benchmark suites
+type BenchmarkSuite struct {
+	kubetest.BenchmarkSuite
 }
 
 // Setup returns the ONOS setup API
-func (b *Benchmarks) Setup() setup.Setup {
+func (b *BenchmarkSuite) Setup() setup.Setup {
 	return setup.New(b.API())
 }
 
 // Env returns the ONOS environment API
-func (b *Benchmarks) Env() env.Env {
+func (b *BenchmarkSuite) Env() env.Env {
 	return env.New(b.API())
 }
