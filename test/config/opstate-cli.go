@@ -62,7 +62,7 @@ func parseOpstateCommandOutput(t *testing.T, output []string) map[string]string 
 }
 
 // TestConfigGetCLI tests the topo service's device CLI commands
-func TestConfigGetCLI(t *testing.T) {
+func (s *CLITestSuite) TestConfigGetCLI(t *testing.T) {
 	device1 := env.GetDevices()[0]
 
 	output, code := env.ExecuteCLI("onos config get opstate " + device1)

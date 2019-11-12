@@ -23,7 +23,7 @@ import (
 )
 
 // TestModels tests GNMI operation involving unknown or illegal paths
-func TestModels(t *testing.T) {
+func (s *SmokeTestSuite) TestModels(t *testing.T) {
 	const (
 		unknownPath       = "/system/config/no-such-path"
 		ntpPath           = "/system/ntp/state/enable-ntp-auth"

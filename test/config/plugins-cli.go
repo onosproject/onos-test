@@ -85,7 +85,7 @@ func parsePluginsCommandOutput(t *testing.T, output []string) map[string]map[str
 }
 
 // TestPluginsGetCLI tests the config service's plugin CLI commands
-func TestPluginsGetCLI(t *testing.T) {
+func (s *CLITestSuite) TestPluginsGetCLI(t *testing.T) {
 	device1 := env.GetDevices()[0]
 
 	output, code := env.ExecuteCLI("onos config get plugins " + device1)

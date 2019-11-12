@@ -24,7 +24,7 @@ import (
 )
 
 // TestDeviceState tests that a device is connected and available.
-func TestDeviceState(t *testing.T) {
+func (s *SmokeTestSuite) TestDeviceState(t *testing.T) {
 	// Get the first configured device from the environment.
 	envDevice := env.GetDevices()[0]
 	conn, errConn := env.GetTopoConn()

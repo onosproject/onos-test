@@ -17,12 +17,16 @@ package main
 import (
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/test/atomix"
+	"github.com/onosproject/onos-test/test/config"
 	"github.com/onosproject/onos-test/test/topo"
 )
 
 func main() {
 	onit.RegisterTests("atomix", &atomix.TestSuite{})
 	onit.RegisterTests("topo", &topo.TestSuite{})
+	onit.RegisterTests("config", &config.SmokeTestSuite{})
+	onit.RegisterTests("config-cli", &config.CLITestSuite{})
+	onit.RegisterTests("config-ha", &config.HATestSuite{})
 
 	onit.RegisterBenchmarks("atomix", &atomix.BenchmarkSuite{})
 	onit.RegisterBenchmarks("topo", &topo.BenchmarkSuite{})

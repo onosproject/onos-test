@@ -35,7 +35,7 @@ const (
 )
 
 // TestSubscribe tests a stream subscription to updates to a device
-func TestSubscribe(t *testing.T) {
+func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
 
 	// Get the first configured device from the environment.
 	device := env.GetDevices()[0]

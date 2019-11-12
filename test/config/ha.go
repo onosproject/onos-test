@@ -13,19 +13,3 @@
 // limitations under the License.
 
 package config
-
-import (
-	"testing"
-
-	"github.com/onosproject/onos-test/test/env"
-	"github.com/stretchr/testify/assert"
-)
-
-// TestHA : integration test
-func TestHA(t *testing.T) {
-	configNodes := env.GetConfigNodes()
-	if len(configNodes) > 0 {
-		err := env.KillNode(configNodes[0])
-		assert.NoError(t, err)
-	}
-}

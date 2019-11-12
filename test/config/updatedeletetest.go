@@ -31,7 +31,7 @@ const (
 )
 
 // TestUpdateDelete tests update and delete paths in a single GNMI request
-func TestUpdateDelete(t *testing.T) {
+func (s *SmokeTestSuite) TestUpdateDelete(t *testing.T) {
 	// Get the first configured device from the environment.
 	device := env.GetDevices()[0]
 

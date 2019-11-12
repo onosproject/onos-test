@@ -28,7 +28,7 @@ const (
 )
 
 // TestSingleState tests query of a single GNMI path of a read/only value to a single device
-func TestSingleState(t *testing.T) {
+func (s *SmokeTestSuite) TestSingleState(t *testing.T) {
 	// Get the first configured device from the environment.
 	device := env.GetDevices()[0]
 
