@@ -67,12 +67,14 @@ func getCreateClusterCommand() *cobra.Command {
 	images := make(map[string]string)
 	images[atomixService] = defaultAtomixImage
 	images[raftService] = defaultRaftImage
+	images[cliService] = defaultCLIImage
 	images[configService] = defaultConfigImage
 	images[topoService] = defaultTopoImage
 
 	nodes := make(map[string]int)
 	nodes[atomixService] = 1
 	nodes[raftService] = 1
+	nodes[cliService] = 1
 	nodes[configService] = 1
 	nodes[topoService] = 1
 
@@ -116,6 +118,12 @@ func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 		Nodes(nodes[raftService]).
 		Image(images[raftService]).
 		PullPolicy(pullPolicy)
+	if nodes[cliService] > 0 {
+		setup.CLI().
+			Nodes(nodes[cliService]).
+			Image(images[cliService]).
+			PullPolicy(pullPolicy)
+	}
 	if nodes[configService] > 0 {
 		setup.Config().
 			Nodes(nodes[configService]).

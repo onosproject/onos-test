@@ -19,17 +19,27 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/setup"
 )
 
-// TestSuite is a suite of tests for Atomix primitives
-type TestSuite struct {
+// testSuite is a suite of tests for Atomix primitives
+type testSuite struct {
 	onit.TestSuite
 }
 
 // SetupTestSuite sets up the Atomix test suite
-func (s *TestSuite) SetupTestSuite() {
+func (s *testSuite) SetupTestSuite() {
 	setup.Database().
 		Partitions(3).
 		Nodes(3)
 	setup.SetupOrDie()
+}
+
+// SmokeTestSuite is a suite of tests for Atomix primitives
+type SmokeTestSuite struct {
+	testSuite
+}
+
+// HATestSuite is a suite of HA tests for Atomix primitives
+type HATestSuite struct {
+	testSuite
 }
 
 // BenchmarkSuite is a suite of benchmarks for Atomix primitives

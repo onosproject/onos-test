@@ -26,7 +26,7 @@ import (
 )
 
 // TestRaftHA : integration test
-func (s *TestSuite) TestRaftHA(t *testing.T) {
+func (s *HATestSuite) TestRaftHA(t *testing.T) {
 	partitions := env.Database().Partitions("raft")
 	group, err := partitions.Connect()
 	assert.NoError(t, err)

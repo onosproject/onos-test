@@ -17,20 +17,97 @@ package cluster
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/util/logging"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"os"
-	"path/filepath"
-	"runtime"
 	"time"
 )
 
-var (
-	_, path, _, _     = runtime.Caller(0)
-	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(path))))), "configs"), "device")
-)
+const simulatorConfig = `
+{
+  "interfaces": {
+    "interface": [
+      {
+        "name": "admin",
+        "config": {
+          "name": "admin"
+        }
+      }
+    ]
+  },
+  "system": {
+    "aaa": {
+      "authentication": {
+        "admin-user": {
+          "config": {
+            "admin-password": "password"
+          }
+        },
+        "config": {
+          "authentication-method": [
+            "openconfig-aaa-types:LOCAL"
+          ]
+        }
+      }
+    },
+    "clock": {
+      "config": {
+        "timezone-name": "Europe/Dublin"
+      }
+    },
+    "config": {
+      "hostname": "replace-device-name",
+      "domain-name": "opennetworking.org",
+      "login-banner": "This device is for authorized use only",
+      "motd-banner": "replace-motd-banner"
+    },
+    "openflow": {
+      "agent": {
+        "config": {
+          "backoff-interval": 5,
+          "datapath-id": "00:16:3e:00:00:00:00:00",
+          "failure-mode": "SECURE",
+          "inactivity-probe": 10,
+          "max-backoff": 10
+        }
+      },
+      "controllers": {
+        "controller": [
+          {
+            "config": {
+              "name": "main"
+            },
+            "connections": {
+              "connection": [
+                {
+                  "aux-id": 0,
+                  "config": {
+                    "address": "192.0.2.10",
+                    "aux-id": 0,
+                    "port": 6633,
+                    "priority": 1,
+                    "source-interface": "admin",
+                    "transport": "TLS"
+                  },
+                  "state": {
+                    "address": "192.0.2.10",
+                    "aux-id": 0,
+                    "port": 6633,
+                    "priority": 1,
+                    "source-interface": "admin",
+                    "transport": "TLS"
+                  }
+                }
+              ]
+            },
+            "name": "main"
+          }
+        ]
+      }
+    }
+  }
+}
+`
 
 func newSimulator(name string, client *client) *Simulator {
 	return &Simulator{
@@ -72,26 +149,16 @@ func (s *Simulator) Add() error {
 
 // createConfigMap creates a simulator configuration
 func (s *Simulator) createConfigMap() error {
-	file, err := os.Open(filepath.Join(deviceConfigsPath, "default.json"))
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	jsonBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		return err
-	}
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.name,
 			Namespace: s.namespace,
 		},
 		Data: map[string]string{
-			"config.json": string(jsonBytes),
+			"config.json": simulatorConfig,
 		},
 	}
-	_, err = s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
+	_, err := s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
 	return err
 }
 

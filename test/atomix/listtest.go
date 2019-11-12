@@ -24,7 +24,7 @@ import (
 )
 
 // TestAtomixList : integration test
-func (s *TestSuite) TestAtomixList(t *testing.T) {
+func (s *SmokeTestSuite) TestAtomixList(t *testing.T) {
 	group, err := env.Database().Partitions("raft").Connect()
 	assert.NoError(t, err)
 	assert.NotNil(t, group)

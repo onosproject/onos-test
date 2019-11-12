@@ -22,7 +22,8 @@ import (
 )
 
 func main() {
-	onit.RegisterTests("atomix", &atomix.TestSuite{})
+	onit.RegisterTests("atomix", &atomix.SmokeTestSuite{})
+	onit.RegisterTests("atomix-ha", &atomix.HATestSuite{})
 	onit.RegisterTests("topo", &topo.TestSuite{})
 	onit.RegisterTests("config", &config.SmokeTestSuite{})
 	onit.RegisterTests("config-cli", &config.CLITestSuite{})
