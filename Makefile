@@ -20,7 +20,7 @@ build-test-runner:
 	go build -o build/_output/onos-test-runner ./cmd/onos-test-runner
 
 build-onos-tests:
-	go build -o build/_output/onos-tests ./cmd/onos-tests
+	go build -o build/onos-tests/_output/bin/onos-tests ./cmd/onos-tests
 
 test: # @HELP run the unit tests and source code validation
 test: license_check build deps linters
@@ -52,11 +52,11 @@ integration: kind
 	onit run suite integration-tests
 
 onos-tests-docker: # @HELP build onos-tests Docker image
-	@go mod vendor
+onos-tests-docker:
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/onos-tests/_output/bin/onos-tests ./cmd/onos-tests
 	docker build . -f build/onos-tests/Dockerfile \
 		--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
 		-t onosproject/onos-tests:${ONOS_TEST_VERSION}
-	@rm -rf vendor
 
 onos-test-runner-docker: # @HELP build onos-test-runner Docker image
 	@go mod vendor
