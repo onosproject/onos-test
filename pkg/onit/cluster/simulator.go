@@ -251,6 +251,10 @@ func (s *Simulator) createService() error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.name,
 			Namespace: s.namespace,
+			Labels: map[string]string{
+				"type":      "simulator",
+				"simulator": s.name,
+			},
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{

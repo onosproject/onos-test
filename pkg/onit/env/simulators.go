@@ -38,12 +38,12 @@ type clusterSimulatorsEnv struct {
 }
 
 func (e *clusterSimulatorsEnv) List() []SimulatorEnv {
-	clusterNetworks := e.simulators.List()
-	networks := make([]SimulatorEnv, len(clusterNetworks))
-	for i, network := range clusterNetworks {
-		networks[i] = e.Get(network.Name())
+	clusterSimulators := e.simulators.List()
+	simulators := make([]SimulatorEnv, len(clusterSimulators))
+	for i, simulator := range clusterSimulators {
+		simulators[i] = e.Get(simulator.Name())
 	}
-	return networks
+	return simulators
 }
 
 func (e *clusterSimulatorsEnv) Get(name string) SimulatorEnv {
