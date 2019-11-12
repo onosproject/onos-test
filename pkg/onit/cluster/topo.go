@@ -20,7 +20,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"time"
 )
@@ -41,6 +40,10 @@ type Topo struct {
 
 // Create creates the topology subsystem
 func (s *Topo) Create() error {
+	if s.replicas == 0 {
+		return nil
+	}
+
 	step := logging.NewStep(s.namespace, "Setup onos-topo service")
 	step.Start()
 	step.Log("Creating onos-topo Service")
@@ -230,24 +233,11 @@ func (s *Topo) createDeployment() error {
 
 // AwaitReady waits for the onos-topo pods to complete startup
 func (s *Topo) AwaitReady() error {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{typeLabel: topoType.name()}}
-	unblocked := make(map[string]bool)
+	if s.replicas == 0 {
+		return nil
+	}
+
 	for {
-		// Get a list of the pods that match the deployment
-		pods, err := s.kubeClient.CoreV1().Pods(s.namespace).List(metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		})
-		if err != nil {
-			return err
-		}
-
-		// Iterate through the pods in the deployment and unblock the debugger
-		for _, pod := range pods.Items {
-			if _, ok := unblocked[pod.Name]; !ok && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].State.Running != nil {
-				unblocked[pod.Name] = true
-			}
-		}
-
 		// Get the onos-topo deployment
 		dep, err := s.kubeClient.AppsV1().Deployments(s.namespace).Get("onos-topo", metav1.GetOptions{})
 		if err != nil {

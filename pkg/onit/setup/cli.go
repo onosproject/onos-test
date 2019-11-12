@@ -21,6 +21,9 @@ import (
 
 // CLISetup is an interface for setting up CLI nodes
 type CLISetup interface {
+	// Nodes sets the number of clusterTopo nodes to deploy
+	Nodes(nodes int) CLISetup
+
 	// Image sets the onos-cli image to deploy
 	Image(image string) CLISetup
 
@@ -33,6 +36,11 @@ var _ CLISetup = &clusterCLISetup{}
 // clusterCLISetup is an implementation of the CLI interface
 type clusterCLISetup struct {
 	cli *cluster.CLI
+}
+
+func (s *clusterCLISetup) Nodes(nodes int) CLISetup {
+	s.cli.SetReplicas(nodes)
+	return s
 }
 
 func (s *clusterCLISetup) Image(image string) CLISetup {

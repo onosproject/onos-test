@@ -20,7 +20,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"time"
 )
 
@@ -40,6 +39,10 @@ type CLI struct {
 
 // Create creates the CLI subsystem
 func (c *CLI) Create() error {
+	if c.replicas == 0 {
+		return nil
+	}
+
 	step := logging.NewStep(c.namespace, "Setup onos-cli service")
 	step.Start()
 	step.Log("Creating onos-cli ConfigMap")
@@ -80,7 +83,7 @@ app: default
 
 // createDeployment creates an onos-topo Deployment
 func (c *CLI) createDeployment() error {
-	nodes := int32(1)
+	nodes := int32(c.replicas)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "onos-cli",
@@ -141,24 +144,11 @@ func (c *CLI) createDeployment() error {
 
 // AwaitReady waits for the onos-cli pods to complete startup
 func (c *CLI) AwaitReady() error {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{typeLabel: cliType.name()}}
-	unblocked := make(map[string]bool)
+	if c.replicas == 0 {
+		return nil
+	}
+
 	for {
-		// Get a list of the pods that match the deployment
-		pods, err := c.kubeClient.CoreV1().Pods(c.namespace).List(metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		})
-		if err != nil {
-			return err
-		}
-
-		// Iterate through the pods in the deployment and unblock the debugger
-		for _, pod := range pods.Items {
-			if _, ok := unblocked[pod.Name]; !ok && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].State.Running != nil {
-				unblocked[pod.Name] = true
-			}
-		}
-
 		// Get the onos-topo deployment
 		dep, err := c.kubeClient.AppsV1().Deployments(c.namespace).Get("onos-cli", metav1.GetOptions{})
 		if err != nil {

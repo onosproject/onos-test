@@ -17,7 +17,6 @@ package cluster
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/util/logging"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"time"
 
@@ -42,6 +41,10 @@ type Config struct {
 
 // Create creates the config service
 func (s *Config) Create() error {
+	if s.replicas == 0 {
+		return nil
+	}
+
 	step := logging.NewStep(s.namespace, "Setup onos-config service")
 	step.Start()
 	step.Log("Creating onos-config Secret")
@@ -242,24 +245,11 @@ func (s *Config) createService() error {
 
 // AwaitReady waits for the onos-config pods to complete startup
 func (s *Config) AwaitReady() error {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app": "onos", "resource": "onos-config"}}
-	unblocked := make(map[string]bool)
+	if s.replicas == 0 {
+		return nil
+	}
+
 	for {
-		// Get a list of the pods that match the deployment
-		pods, err := s.kubeClient.CoreV1().Pods(s.namespace).List(metav1.ListOptions{
-			LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
-		})
-		if err != nil {
-			return err
-		}
-
-		// Iterate through the pods in the deployment and unblock the debugger
-		for _, pod := range pods.Items {
-			if _, ok := unblocked[pod.Name]; !ok && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].State.Running != nil {
-				unblocked[pod.Name] = true
-			}
-		}
-
 		// Get the onos-config deployment
 		dep, err := s.kubeClient.AppsV1().Deployments(s.namespace).Get("onos-config", metav1.GetOptions{})
 		if err != nil {
