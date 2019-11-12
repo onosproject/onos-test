@@ -15,6 +15,7 @@
 package config
 
 import (
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"strconv"
 	"testing"
 
@@ -36,7 +37,6 @@ func (s *SmokeTestSuite) TestTreePath(t *testing.T) {
 	device := s.addSimulator(t)
 
 	// Make a GNMI client to use for requests
-	env := s.Env()
 	c, err := env.Config().NewGNMIClient()
 	assert.NoError(t, err)
 	assert.True(t, c != nil, "Fetching client returned nil")

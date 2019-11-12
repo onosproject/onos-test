@@ -34,10 +34,10 @@ type AppSetup interface {
 	PullPolicy(pullPolicy corev1.PullPolicy) AppSetup
 
 	// Add adds the application to the cluster
-	Add() (App, error)
+	Add() (AppEnv, error)
 
 	// AddOrDie adds the application and panics if the deployment fails
-	AddOrDie() App
+	AddOrDie() AppEnv
 }
 
 // clusterAppSetup is an implementation of the AppSetup interface
@@ -65,19 +65,19 @@ func (s *clusterAppSetup) PullPolicy(pullPolicy corev1.PullPolicy) AppSetup {
 	return s
 }
 
-func (s *clusterAppSetup) Add() (App, error) {
+func (s *clusterAppSetup) Add() (AppEnv, error) {
 	if err := s.app.Add(); err != nil {
 		return nil, err
 	}
-	return &clusterApp{
-		clusterService: &clusterService{
+	return &clusterAppEnv{
+		clusterServiceEnv: &clusterServiceEnv{
 			service: s.app.Service,
 		},
 		app: s.app,
 	}, nil
 }
 
-func (s *clusterAppSetup) AddOrDie() App {
+func (s *clusterAppSetup) AddOrDie() AppEnv {
 	app, err := s.Add()
 	if err != nil {
 		panic(err)
@@ -85,9 +85,9 @@ func (s *clusterAppSetup) AddOrDie() App {
 	return app
 }
 
-// App provides the environment for an app
-type App interface {
-	Service
+// AppEnv provides the environment for an app
+type AppEnv interface {
+	ServiceEnv
 
 	// Remove removes the application
 	Remove() error
@@ -96,19 +96,19 @@ type App interface {
 	RemoveOrDie()
 }
 
-var _ App = &clusterApp{}
+var _ AppEnv = &clusterAppEnv{}
 
-// clusterApp is an implementation of the App interface
-type clusterApp struct {
-	*clusterService
+// clusterAppEnv is an implementation of the App interface
+type clusterAppEnv struct {
+	*clusterServiceEnv
 	app *cluster.App
 }
 
-func (e *clusterApp) Remove() error {
+func (e *clusterAppEnv) Remove() error {
 	return e.app.Remove()
 }
 
-func (e *clusterApp) RemoveOrDie() {
+func (e *clusterAppEnv) RemoveOrDie() {
 	if err := e.Remove(); err != nil {
 		panic(err)
 	}

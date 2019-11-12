@@ -19,53 +19,133 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 )
 
-// New returns a new onit Env
-func New(kube kube.API) Env {
+// New returns a new onit ClusterEnv
+func New(kube kube.API) ClusterEnv {
 	return &clusterEnv{
 		cluster: cluster.New(kube),
 	}
 }
 
-// Env is an interface for tests to operate on the ONOS environment
-type Env interface {
+var env ClusterEnv
+
+// getEnv gets the current environment
+func getEnv() ClusterEnv {
+	if env == nil {
+		env = New(kube.GetAPIFromEnv())
+	}
+	return env
+}
+
+// Atomix returns the Atomix environment
+func Atomix() AtomixEnv {
+	return getEnv().Atomix()
+}
+
+// Database returns the database environment
+func Database() DatabaseEnv {
+	return getEnv().Database()
+}
+
+// CLI returns the CLI environment
+func CLI() CLIEnv {
+	return getEnv().CLI()
+}
+
+// Topo returns the onos-topo environment
+func Topo() TopoEnv {
+	return getEnv().Topo()
+}
+
+// Config returns the onos-config environment
+func Config() ConfigEnv {
+	return getEnv().Config()
+}
+
+// Simulators returns the device simulators environment
+func Simulators() SimulatorsEnv {
+	return getEnv().Simulators()
+}
+
+// Simulator returns the environment for a device simulator
+func Simulator(name string) SimulatorEnv {
+	return getEnv().Simulator(name)
+}
+
+// NewSimulator returns the setup configuration for a new device simulator
+func NewSimulator() SimulatorSetup {
+	return getEnv().NewSimulator()
+}
+
+// Networks returns the networks environment
+func Networks() NetworksEnv {
+	return getEnv().Networks()
+}
+
+// Network returns the environment for a network
+func Network(name string) NetworkEnv {
+	return getEnv().Network(name)
+}
+
+// NewNetwork returns the setup configuration for a new netwpork
+func NewNetwork() NetworkSetup {
+	return getEnv().NewNetwork()
+}
+
+// Apps returns the environment for applications
+func Apps() AppsEnv {
+	return getEnv().Apps()
+}
+
+// App returns the environment for an application
+func App(name string) AppEnv {
+	return getEnv().App(name)
+}
+
+// NewApp returns the setup configuration for a new application
+func NewApp() AppSetup {
+	return getEnv().NewApp()
+}
+
+// ClusterEnv is an interface for tests to operate on the ONOS environment
+type ClusterEnv interface {
 	// Atomix returns the Atomix environment
-	Atomix() Atomix
+	Atomix() AtomixEnv
 
 	// Database returns the database environment
-	Database() Database
+	Database() DatabaseEnv
 
 	// CLI returns the CLI environment
-	CLI() CLI
+	CLI() CLIEnv
 
 	// Topo returns the topo environment
-	Topo() Topo
+	Topo() TopoEnv
 
 	// Config returns the config environment
-	Config() Config
+	Config() ConfigEnv
 
 	// Simulators returns the simulators environment
-	Simulators() Simulators
+	Simulators() SimulatorsEnv
 
 	// Simulator returns the environment for a simulator by name
-	Simulator(name string) Simulator
+	Simulator(name string) SimulatorEnv
 
 	// NewSimulator returns a new SimulatorSetup for adding a simulator to the cluster
 	NewSimulator() SimulatorSetup
 
 	// Networks returns the networks environment
-	Networks() Networks
+	Networks() NetworksEnv
 
 	// Network returns the environment for a network by name
-	Network(name string) Network
+	Network(name string) NetworkEnv
 
 	// NewNetwork returns a new NetworkSetup for adding a network to the cluster
 	NewNetwork() NetworkSetup
 
 	// Apps returns the applications environment
-	Apps() Apps
+	Apps() AppsEnv
 
 	// App returns the environment for an app by name
-	App(name string) App
+	App(name string) AppEnv
 
 	// NewApp returns a new AppSetup for adding an application to the cluster
 	NewApp() AppSetup
@@ -76,51 +156,51 @@ type clusterEnv struct {
 	cluster *cluster.Cluster
 }
 
-func (e *clusterEnv) Atomix() Atomix {
-	return &clusterAtomix{
-		clusterService: &clusterService{
+func (e *clusterEnv) Atomix() AtomixEnv {
+	return &clusterAtomixEnv{
+		clusterServiceEnv: &clusterServiceEnv{
 			service: e.cluster.Atomix().Service,
 		},
 	}
 }
 
-func (e *clusterEnv) Database() Database {
-	return &clusterDatabase{
+func (e *clusterEnv) Database() DatabaseEnv {
+	return &clusterDatabaseEnv{
 		database: e.cluster.Database(),
 	}
 }
 
-func (e *clusterEnv) CLI() CLI {
-	return &clusterCLI{
-		clusterService: &clusterService{
+func (e *clusterEnv) CLI() CLIEnv {
+	return &clusterCLIEnv{
+		clusterServiceEnv: &clusterServiceEnv{
 			service: e.cluster.CLI().Service,
 		},
 	}
 }
 
-func (e *clusterEnv) Topo() Topo {
-	return &clusterTopo{
-		clusterService: &clusterService{
+func (e *clusterEnv) Topo() TopoEnv {
+	return &clusterTopoEnv{
+		clusterServiceEnv: &clusterServiceEnv{
 			service: e.cluster.Topo().Service,
 		},
 	}
 }
 
-func (e *clusterEnv) Config() Config {
-	return &clusterConfig{
-		clusterService: &clusterService{
+func (e *clusterEnv) Config() ConfigEnv {
+	return &clusterConfigEnv{
+		clusterServiceEnv: &clusterServiceEnv{
 			service: e.cluster.Config().Service,
 		},
 	}
 }
 
-func (e *clusterEnv) Simulators() Simulators {
-	return &clusterSimulators{
+func (e *clusterEnv) Simulators() SimulatorsEnv {
+	return &clusterSimulatorsEnv{
 		simulators: e.cluster.Simulators(),
 	}
 }
 
-func (e *clusterEnv) Simulator(name string) Simulator {
+func (e *clusterEnv) Simulator(name string) SimulatorEnv {
 	return e.Simulators().Get(name)
 }
 
@@ -128,13 +208,13 @@ func (e *clusterEnv) NewSimulator() SimulatorSetup {
 	return e.Simulators().New()
 }
 
-func (e *clusterEnv) Networks() Networks {
-	return &clusterNetworks{
+func (e *clusterEnv) Networks() NetworksEnv {
+	return &clusterNetworksEnv{
 		networks: e.cluster.Networks(),
 	}
 }
 
-func (e *clusterEnv) Network(name string) Network {
+func (e *clusterEnv) Network(name string) NetworkEnv {
 	return e.Networks().Get(name)
 }
 
@@ -142,13 +222,13 @@ func (e *clusterEnv) NewNetwork() NetworkSetup {
 	return e.Networks().New()
 }
 
-func (e *clusterEnv) Apps() Apps {
-	return &clusterApps{
+func (e *clusterEnv) Apps() AppsEnv {
+	return &clusterAppsEnv{
 		apps: e.cluster.Apps(),
 	}
 }
 
-func (e *clusterEnv) App(name string) App {
+func (e *clusterEnv) App(name string) AppEnv {
 	return e.Apps().Get(name)
 }
 

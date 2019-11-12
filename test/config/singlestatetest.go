@@ -15,6 +15,7 @@
 package config
 
 import (
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"regexp"
 	"testing"
 
@@ -28,8 +29,6 @@ const (
 
 // TestSingleState tests query of a single GNMI path of a read/only value to a single device
 func (s *SmokeTestSuite) TestSingleState(t *testing.T) {
-	env := s.Env()
-
 	simulator := s.addSimulator(t)
 
 	// Make a GNMI client to use for requests

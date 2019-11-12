@@ -16,6 +16,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -88,7 +89,6 @@ func parsePluginsCommandOutput(t *testing.T, output []string) map[string]map[str
 func (s *CLITestSuite) TestPluginsGetCLI(t *testing.T) {
 	device1 := s.addSimulator(t)
 
-	env := s.Env()
 	output, code, err := env.CLI().Execute(fmt.Sprintf("onos config get plugins %s", device1.Name()))
 	assert.NoError(t, err)
 	assert.Equal(t, 0, code)

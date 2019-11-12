@@ -36,10 +36,10 @@ type SimulatorSetup interface {
 	PullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup
 
 	// Add deploys the simulator in the cluster
-	Add() (Simulator, error)
+	Add() (SimulatorEnv, error)
 
 	// AddOrDie deploys the simulator and panics if the deployment fails
-	AddOrDie() Simulator
+	AddOrDie() SimulatorEnv
 }
 
 var _ SimulatorSetup = &clusterSimulatorSetup{}
@@ -64,19 +64,19 @@ func (s *clusterSimulatorSetup) PullPolicy(pullPolicy corev1.PullPolicy) Simulat
 	return s
 }
 
-func (s *clusterSimulatorSetup) Add() (Simulator, error) {
+func (s *clusterSimulatorSetup) Add() (SimulatorEnv, error) {
 	if err := s.simulator.Add(); err != nil {
 		return nil, err
 	}
-	return &clusterSimulator{
-		clusterNode: &clusterNode{
+	return &clusterSimulatorEnv{
+		clusterNodeEnv: &clusterNodeEnv{
 			node: s.simulator.Node,
 		},
 		simulator: s.simulator,
 	}, nil
 }
 
-func (s *clusterSimulatorSetup) AddOrDie() Simulator {
+func (s *clusterSimulatorSetup) AddOrDie() SimulatorEnv {
 	network, err := s.Add()
 	if err != nil {
 		panic(err)
@@ -84,9 +84,9 @@ func (s *clusterSimulatorSetup) AddOrDie() Simulator {
 	return network
 }
 
-// Simulator provides the environment for a single simulator
-type Simulator interface {
-	Node
+// SimulatorEnv provides the environment for a single simulator
+type SimulatorEnv interface {
+	NodeEnv
 
 	// Destination returns the gNMI client destination
 	Destination() client.Destination
@@ -101,19 +101,19 @@ type Simulator interface {
 	RemoveOrDie()
 }
 
-var _ Simulator = &clusterSimulator{}
+var _ SimulatorEnv = &clusterSimulatorEnv{}
 
-// clusterSimulator is an implementation of the Simulator interface
-type clusterSimulator struct {
-	*clusterNode
+// clusterSimulatorEnv is an implementation of the Simulator interface
+type clusterSimulatorEnv struct {
+	*clusterNodeEnv
 	simulator *cluster.Simulator
 }
 
-func (e *clusterSimulator) Connect() (*grpc.ClientConn, error) {
+func (e *clusterSimulatorEnv) Connect() (*grpc.ClientConn, error) {
 	return grpc.Dial(e.Address(), grpc.WithInsecure())
 }
 
-func (e *clusterSimulator) Destination() client.Destination {
+func (e *clusterSimulatorEnv) Destination() client.Destination {
 	return client.Destination{
 		Addrs:   []string{e.Address()},
 		Target:  e.Name(),
@@ -122,7 +122,7 @@ func (e *clusterSimulator) Destination() client.Destination {
 	}
 }
 
-func (e *clusterSimulator) NewGNMIClient() (*gnmi.Client, error) {
+func (e *clusterSimulatorEnv) NewGNMIClient() (*gnmi.Client, error) {
 	conn, err := e.Connect()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -133,11 +133,11 @@ func (e *clusterSimulator) NewGNMIClient() (*gnmi.Client, error) {
 	return client, nil
 }
 
-func (e *clusterSimulator) Remove() error {
+func (e *clusterSimulatorEnv) Remove() error {
 	return e.simulator.Remove()
 }
 
-func (e *clusterSimulator) RemoveOrDie() {
+func (e *clusterSimulatorEnv) RemoveOrDie() {
 	if err := e.Remove(); err != nil {
 		panic(err)
 	}

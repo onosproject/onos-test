@@ -18,45 +18,45 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 )
 
-// Apps provides the environment for applications
-type Apps interface {
+// AppsEnv provides the environment for applications
+type AppsEnv interface {
 	// List returns a list of all apps in the environment
-	List() []App
+	List() []AppEnv
 
 	// Get returns the environment for an app by name
-	Get(name string) App
+	Get(name string) AppEnv
 
 	// New adds an app to the environment
 	New() AppSetup
 }
 
-var _ Apps = &clusterApps{}
+var _ AppsEnv = &clusterAppsEnv{}
 
-// clusterApps is an implementation of the Apps interface
-type clusterApps struct {
+// clusterAppsEnv is an implementation of the Apps interface
+type clusterAppsEnv struct {
 	apps *cluster.Apps
 }
 
-func (e *clusterApps) List() []App {
+func (e *clusterAppsEnv) List() []AppEnv {
 	clusterApps := e.apps.List()
-	apps := make([]App, len(clusterApps))
+	apps := make([]AppEnv, len(clusterApps))
 	for i, app := range clusterApps {
 		apps[i] = e.Get(app.Name())
 	}
 	return apps
 }
 
-func (e *clusterApps) Get(name string) App {
+func (e *clusterAppsEnv) Get(name string) AppEnv {
 	app := e.apps.Get(name)
-	return &clusterApp{
-		clusterService: &clusterService{
+	return &clusterAppEnv{
+		clusterServiceEnv: &clusterServiceEnv{
 			service: app.Service,
 		},
 		app: app,
 	}
 }
 
-func (e *clusterApps) New() AppSetup {
+func (e *clusterAppsEnv) New() AppSetup {
 	return &clusterAppSetup{
 		app: e.apps.New(),
 	}

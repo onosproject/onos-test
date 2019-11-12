@@ -18,45 +18,45 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 )
 
-// Networks provides the networks environment
-type Networks interface {
+// NetworksEnv provides the networks environment
+type NetworksEnv interface {
 	// List returns a list of networks in the environment
-	List() []Network
+	List() []NetworkEnv
 
 	// Get returns the environment for a network service by name
-	Get(name string) Network
+	Get(name string) NetworkEnv
 
 	// New adds a new network to the environment
 	New() NetworkSetup
 }
 
-var _ Networks = &clusterNetworks{}
+var _ NetworksEnv = &clusterNetworksEnv{}
 
-// clusterNetworks is an implementation of the Networks interface
-type clusterNetworks struct {
+// clusterNetworksEnv is an implementation of the Networks interface
+type clusterNetworksEnv struct {
 	networks *cluster.Networks
 }
 
-func (e *clusterNetworks) List() []Network {
+func (e *clusterNetworksEnv) List() []NetworkEnv {
 	clusterNetworks := e.networks.List()
-	networks := make([]Network, len(clusterNetworks))
+	networks := make([]NetworkEnv, len(clusterNetworks))
 	for i, network := range clusterNetworks {
 		networks[i] = e.Get(network.Name())
 	}
 	return networks
 }
 
-func (e *clusterNetworks) Get(name string) Network {
+func (e *clusterNetworksEnv) Get(name string) NetworkEnv {
 	network := e.networks.Get(name)
-	return &clusterNetwork{
-		clusterNode: &clusterNode{
+	return &clusterNetworkEnv{
+		clusterNodeEnv: &clusterNodeEnv{
 			node: network.Node,
 		},
 		network: network,
 	}
 }
 
-func (e *clusterNetworks) New() NetworkSetup {
+func (e *clusterNetworksEnv) New() NetworkSetup {
 	return &clusterNetworkSetup{
 		network: e.networks.New(),
 	}

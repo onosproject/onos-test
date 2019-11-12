@@ -19,29 +19,29 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 )
 
-// Partitions is an Atomix partition group
-type Partitions interface {
+// PartitionsEnv is an Atomix partition group
+type PartitionsEnv interface {
 	// List returns a list of partitions in the group
-	List() []Partition
+	List() []PartitionEnv
 
 	// Get returns the environment for a partition service by name
-	Get(name string) Partition
+	Get(name string) PartitionEnv
 
 	// Connect connects to the partition group
 	Connect() (*client.PartitionGroup, error)
 }
 
-// clusterPartitions is an implementation of the Partitions interface
-type clusterPartitions struct {
+// clusterPartitionsEnv is an implementation of the Partitions interface
+type clusterPartitionsEnv struct {
 	partitions *cluster.Partitions
 }
 
-func (e *clusterPartitions) List() []Partition {
+func (e *clusterPartitionsEnv) List() []PartitionEnv {
 	clusterPartitions := e.partitions.Partitions()
-	partitions := make([]Partition, len(clusterPartitions))
+	partitions := make([]PartitionEnv, len(clusterPartitions))
 	for i, partition := range clusterPartitions {
-		partitions[i] = &clusterPartition{
-			clusterService: &clusterService{
+		partitions[i] = &clusterPartitionEnv{
+			clusterServiceEnv: &clusterServiceEnv{
 				service: partition.Service,
 			},
 		}
@@ -49,14 +49,14 @@ func (e *clusterPartitions) List() []Partition {
 	return partitions
 }
 
-func (e *clusterPartitions) Get(name string) Partition {
-	return &clusterPartition{
-		clusterService: &clusterService{
+func (e *clusterPartitionsEnv) Get(name string) PartitionEnv {
+	return &clusterPartitionEnv{
+		clusterServiceEnv: &clusterServiceEnv{
 			service: e.partitions.Partition(name).Service,
 		},
 	}
 }
 
-func (e *clusterPartitions) Connect() (*client.PartitionGroup, error) {
+func (e *clusterPartitionsEnv) Connect() (*client.PartitionGroup, error) {
 	return e.partitions.Connect()
 }

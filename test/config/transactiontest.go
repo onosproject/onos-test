@@ -70,7 +70,7 @@ func checkDeviceValue(t *testing.T, deviceGnmiClient client.Impl, devicePaths []
 	assert.Equal(t, 0, len(extensions))
 }
 
-func getDeviceGNMIClient(t *testing.T, simulator env.Simulator) client.Impl {
+func getDeviceGNMIClient(t *testing.T, simulator env.SimulatorEnv) client.Impl {
 	deviceGnmiClient, deviceGnmiClientError := simulator.NewGNMIClient()
 	assert.NoError(t, deviceGnmiClientError)
 	assert.True(t, deviceGnmiClient != nil, "Fetching device client returned nil")
@@ -87,7 +87,6 @@ func (s *SmokeTestSuite) TestTransaction(t *testing.T) {
 	devices[1] = device2.Name()
 
 	// Make a GNMI client to use for requests
-	env := s.Env()
 	gnmiClient, gnmiClientError := env.Config().NewGNMIClient()
 	assert.NoError(t, gnmiClientError)
 	assert.True(t, gnmiClient != nil, "Fetching client returned nil")

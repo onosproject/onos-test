@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/env"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"github.com/onosproject/onos-topo/pkg/northbound/device"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -31,7 +33,6 @@ type BenchmarkSuite struct {
 
 // SetupBenchmarkSuite sets up the topo benchmark suite
 func (s *BenchmarkSuite) SetupBenchmarkSuite() {
-	setup := s.Setup()
 	setup.Database().
 		Partitions(3).
 		Nodes(3)
@@ -41,7 +42,6 @@ func (s *BenchmarkSuite) SetupBenchmarkSuite() {
 
 // BenchmarkDeviceService : benchmark
 func (s *BenchmarkSuite) BenchmarkDeviceService(b *testing.B) {
-	env := s.Env()
 	conn, err := env.Topo().Connect()
 	assert.NoError(b, err)
 	defer conn.Close()

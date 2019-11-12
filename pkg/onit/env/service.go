@@ -17,12 +17,11 @@ package env
 import (
 	"crypto/tls"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
-	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"google.golang.org/grpc"
 )
 
-// Service is a base interface for service environments
-type Service interface {
+// ServiceEnv is a base interface for service environments
+type ServiceEnv interface {
 	// Address returns the service address
 	Address() string
 
@@ -30,10 +29,10 @@ type Service interface {
 	Name() string
 
 	// Nodes returns the service nodes
-	Nodes() []Node
+	Nodes() []NodeEnv
 
 	// Node returns a specific node environment
-	Node(name string) Node
+	Node(name string) NodeEnv
 
 	// AwaitReady waits for all nodes in the service to become ready
 	AwaitReady() error
@@ -48,49 +47,43 @@ type Service interface {
 	Connect() (*grpc.ClientConn, error)
 }
 
-// ServiceSetup is a base interface for services that can be set up
-type ServiceSetup interface {
-	Service
-	setup.Setup
-}
-
-// clusterService is an implementation of the Service interface
-type clusterService struct {
+// clusterServiceEnv is an implementation of the Service interface
+type clusterServiceEnv struct {
 	service *cluster.Service
 }
 
-func (e *clusterService) Name() string {
+func (e *clusterServiceEnv) Name() string {
 	return e.service.Name()
 }
 
-func (e *clusterService) Address() string {
+func (e *clusterServiceEnv) Address() string {
 	return e.service.Address()
 }
 
-func (e *clusterService) Nodes() []Node {
+func (e *clusterServiceEnv) Nodes() []NodeEnv {
 	clusterNodes := e.service.Nodes().List()
-	nodes := make([]Node, len(clusterNodes))
+	nodes := make([]NodeEnv, len(clusterNodes))
 	for i, node := range clusterNodes {
 		nodes[i] = e.Node(node.Name())
 	}
 	return nodes
 }
 
-func (e *clusterService) Node(name string) Node {
-	return &clusterNode{
+func (e *clusterServiceEnv) Node(name string) NodeEnv {
+	return &clusterNodeEnv{
 		e.service.Nodes().Get(name),
 	}
 }
 
-func (e *clusterService) AwaitReady() error {
+func (e *clusterServiceEnv) AwaitReady() error {
 	return e.service.AwaitReady()
 }
 
-func (e *clusterService) Execute(command ...string) ([]string, int, error) {
+func (e *clusterServiceEnv) Execute(command ...string) ([]string, int, error) {
 	return e.service.Execute(command...)
 }
 
-func (e *clusterService) Credentials() *tls.Config {
+func (e *clusterServiceEnv) Credentials() *tls.Config {
 	config, err := e.service.Credentials()
 	if err != nil {
 		panic(err)
@@ -98,6 +91,6 @@ func (e *clusterService) Credentials() *tls.Config {
 	return config
 }
 
-func (e *clusterService) Connect() (*grpc.ClientConn, error) {
+func (e *clusterServiceEnv) Connect() (*grpc.ClientConn, error) {
 	return e.service.Connect()
 }

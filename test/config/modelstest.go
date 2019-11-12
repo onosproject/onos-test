@@ -15,6 +15,7 @@
 package config
 
 import (
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/status"
 	"testing"
@@ -29,7 +30,6 @@ func (s *SmokeTestSuite) TestModels(t *testing.T) {
 		clockTimeZonePath = "/system/clock/config/timezone-name"
 	)
 
-	env := s.Env()
 	simulator := s.addSimulator(t)
 
 	// Data to run the test cases

@@ -16,7 +16,6 @@ package kubetest
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/kube"
 	"os"
 	"reflect"
 	"regexp"
@@ -28,17 +27,7 @@ import (
 type BenchmarkingSuite interface{}
 
 // BenchmarkSuite is an identifier interface for benchmark suites
-type BenchmarkSuite struct {
-	kube kube.API
-}
-
-// API returns the Kubernetes API
-func (s *BenchmarkSuite) API() kube.API {
-	if s.kube == nil {
-		s.kube = kube.GetAPIFromEnv()
-	}
-	return s.kube
-}
+type BenchmarkSuite struct{}
 
 // SetupBenchmarkSuite is an interface for setting up a suite of benchmarks
 type SetupBenchmarkSuite interface {

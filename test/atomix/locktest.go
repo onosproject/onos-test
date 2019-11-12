@@ -18,6 +18,7 @@ import (
 	"context"
 	atomixlock "github.com/atomix/atomix-go-client/pkg/client/lock"
 	"github.com/atomix/atomix-go-client/pkg/client/session"
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/stretchr/testify/assert"
 	"sync/atomic"
 	"testing"
@@ -26,8 +27,6 @@ import (
 
 // TestAtomixLock : integration test
 func (s *TestSuite) TestAtomixLock(t *testing.T) {
-	env := s.Env()
-
 	group, err := env.Database().Partitions("raft").Connect()
 	assert.NoError(t, err)
 	assert.NotNil(t, group)

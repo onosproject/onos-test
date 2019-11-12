@@ -19,45 +19,45 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// Topo is an interface for setting up topo nodes
-type Topo interface {
+// TopoSetup is an interface for setting up topo nodes
+type TopoSetup interface {
 	// Nodes sets the number of clusterTopo nodes to deploy
-	Nodes(nodes int) Topo
+	Nodes(nodes int) TopoSetup
 
 	// Image sets the onos-topo image to deploy
-	Image(image string) Topo
+	Image(image string) TopoSetup
 
 	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) Topo
+	PullPolicy(pullPolicy corev1.PullPolicy) TopoSetup
 }
 
-var _ Topo = &clusterTopo{}
+var _ TopoSetup = &clusterTopoSetup{}
 
-// clusterTopo is an implementation of the Topo interface
-type clusterTopo struct {
+// clusterTopoSetup is an implementation of the Topo interface
+type clusterTopoSetup struct {
 	topo *cluster.Topo
 }
 
-func (s *clusterTopo) Nodes(nodes int) Topo {
+func (s *clusterTopoSetup) Nodes(nodes int) TopoSetup {
 	s.topo.SetReplicas(nodes)
 	return s
 }
 
-func (s *clusterTopo) Image(image string) Topo {
+func (s *clusterTopoSetup) Image(image string) TopoSetup {
 	s.topo.SetImage(image)
 	return s
 }
 
-func (s *clusterTopo) PullPolicy(pullPolicy corev1.PullPolicy) Topo {
+func (s *clusterTopoSetup) PullPolicy(pullPolicy corev1.PullPolicy) TopoSetup {
 	s.topo.SetPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterTopo) create() error {
+func (s *clusterTopoSetup) create() error {
 	return s.topo.Create()
 }
 
 // waitForStart waits for the onos-topo pods to complete startup
-func (s *clusterTopo) waitForStart() error {
+func (s *clusterTopoSetup) waitForStart() error {
 	return s.topo.AwaitReady()
 }

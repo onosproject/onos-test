@@ -19,6 +19,7 @@ import (
 	"context"
 	"github.com/atomix/atomix-go-client/pkg/client/map"
 	"github.com/atomix/atomix-go-client/pkg/client/session"
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -26,8 +27,6 @@ import (
 
 // TestAtomixMap : integration test
 func (s *TestSuite) TestAtomixMap(t *testing.T) {
-	env := s.Env()
-
 	group, err := env.Database().Partitions("raft").Connect()
 	assert.NoError(t, err)
 	assert.NotNil(t, group)

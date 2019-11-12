@@ -22,9 +22,9 @@ import (
 	"time"
 )
 
-// Config provides the config environment
-type Config interface {
-	Service
+// ConfigEnv provides the config environment
+type ConfigEnv interface {
+	ServiceEnv
 
 	// Destination returns the gNMI client destination
 	Destination() client.Destination
@@ -36,14 +36,14 @@ type Config interface {
 	NewGNMIClient() (*gnmi.Client, error)
 }
 
-var _ Config = &clusterConfig{}
+var _ ConfigEnv = &clusterConfigEnv{}
 
-// clusterConfig is an implementation of the Config interface
-type clusterConfig struct {
-	*clusterService
+// clusterConfigEnv is an implementation of the Config interface
+type clusterConfigEnv struct {
+	*clusterServiceEnv
 }
 
-func (e *clusterConfig) Destination() client.Destination {
+func (e *clusterConfigEnv) Destination() client.Destination {
 	return client.Destination{
 		Addrs:   []string{e.Address()},
 		Target:  "gnmi",
@@ -52,7 +52,7 @@ func (e *clusterConfig) Destination() client.Destination {
 	}
 }
 
-func (e *clusterConfig) NewAdminServiceClient() (admin.ConfigAdminServiceClient, error) {
+func (e *clusterConfigEnv) NewAdminServiceClient() (admin.ConfigAdminServiceClient, error) {
 	conn, err := e.Connect()
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (e *clusterConfig) NewAdminServiceClient() (admin.ConfigAdminServiceClient,
 	return admin.NewConfigAdminServiceClient(conn), nil
 }
 
-func (e *clusterConfig) NewGNMIClient() (*gnmi.Client, error) {
+func (e *clusterConfigEnv) NewGNMIClient() (*gnmi.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	client, err := gnmi.New(ctx, e.Destination())

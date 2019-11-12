@@ -18,6 +18,7 @@ import (
 	"context"
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/onit/env"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"github.com/onosproject/onos-topo/pkg/northbound/device"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -29,8 +30,7 @@ type testSuite struct {
 }
 
 // addSimulator adds a device to the network
-func (s *testSuite) addSimulator(t *testing.T) env.Simulator {
-	env := s.Env()
+func (s *testSuite) addSimulator(t *testing.T) env.SimulatorEnv {
 	simulator := env.Simulators().New().AddOrDie()
 
 	conn, err := env.Topo().Connect()
@@ -59,7 +59,6 @@ type SmokeTestSuite struct {
 
 // SetupTestSuite sets up the onos-config test suite
 func (s *SmokeTestSuite) SetupTestSuite() {
-	setup := s.Setup()
 	setup.Topo().Nodes(2)
 	setup.Config().Nodes(2)
 	setup.SetupOrDie()
@@ -72,7 +71,6 @@ type CLITestSuite struct {
 
 // SetupTestSuite sets up the onos-config CLI test suite
 func (s *CLITestSuite) SetupTestSuite() {
-	setup := s.Setup()
 	setup.Topo().Nodes(2)
 	setup.Config().Nodes(2)
 	setup.SetupOrDie()
@@ -85,7 +83,6 @@ type HATestSuite struct {
 
 // SetupTestSuite sets up the onos-config CLI test suite
 func (s *HATestSuite) SetupTestSuite() {
-	setup := s.Setup()
 	setup.Topo().Nodes(2)
 	setup.Config().Nodes(2)
 	setup.SetupOrDie()

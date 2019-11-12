@@ -16,6 +16,7 @@ package atomix
 
 import (
 	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 )
 
 // TestSuite is a suite of tests for Atomix primitives
@@ -25,7 +26,6 @@ type TestSuite struct {
 
 // SetupTestSuite sets up the Atomix test suite
 func (s *TestSuite) SetupTestSuite() {
-	setup := s.Setup()
 	setup.Database().
 		Partitions(3).
 		Nodes(3)
@@ -39,7 +39,6 @@ type BenchmarkSuite struct {
 
 // SetupBenchmarkSuite sets up the Atomix benchmark suite
 func (s *BenchmarkSuite) SetupBenchmarkSuite() {
-	setup := s.Setup()
 	setup.Database().
 		Partitions(3).
 		Nodes(3)

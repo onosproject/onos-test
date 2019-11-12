@@ -20,8 +20,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Node provides the environment for a single node
-type Node interface {
+// NodeEnv provides the environment for a single node
+type NodeEnv interface {
 	// Name returns the name of the node
 	Name() string
 
@@ -44,24 +44,24 @@ type Node interface {
 	KillOrDie()
 }
 
-// clusterNode is an implementation of the Node interface
-type clusterNode struct {
+// clusterNodeEnv is an implementation of the Node interface
+type clusterNodeEnv struct {
 	node *cluster.Node
 }
 
-func (e *clusterNode) Name() string {
+func (e *clusterNodeEnv) Name() string {
 	return e.node.Name()
 }
 
-func (e *clusterNode) Address() string {
+func (e *clusterNodeEnv) Address() string {
 	return e.node.Address()
 }
 
-func (e *clusterNode) Execute(command ...string) ([]string, int, error) {
+func (e *clusterNodeEnv) Execute(command ...string) ([]string, int, error) {
 	return e.node.Execute(command...)
 }
 
-func (e *clusterNode) Credentials() *tls.Config {
+func (e *clusterNodeEnv) Credentials() *tls.Config {
 	config, err := e.node.Credentials()
 	if err != nil {
 		panic(err)
@@ -69,15 +69,15 @@ func (e *clusterNode) Credentials() *tls.Config {
 	return config
 }
 
-func (e *clusterNode) Connect() (*grpc.ClientConn, error) {
+func (e *clusterNodeEnv) Connect() (*grpc.ClientConn, error) {
 	return e.node.Connect()
 }
 
-func (e *clusterNode) Kill() error {
+func (e *clusterNodeEnv) Kill() error {
 	return e.node.Delete()
 }
 
-func (e *clusterNode) KillOrDie() {
+func (e *clusterNodeEnv) KillOrDie() {
 	if err := e.Kill(); err != nil {
 		panic(err)
 	}

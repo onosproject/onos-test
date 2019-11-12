@@ -19,6 +19,7 @@ import (
 	"github.com/atomix/atomix-go-client/pkg/client/map"
 	"github.com/atomix/atomix-go-client/pkg/client/session"
 	"github.com/google/uuid"
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -26,8 +27,6 @@ import (
 
 // TestRaftHA : integration test
 func (s *TestSuite) TestRaftHA(t *testing.T) {
-	env := s.Env()
-
 	partitions := env.Database().Partitions("raft")
 	group, err := partitions.Connect()
 	assert.NoError(t, err)

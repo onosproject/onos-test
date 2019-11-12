@@ -19,44 +19,44 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// Config is an interface for setting up config nodes
-type Config interface {
+// ConfigSetup is an interface for setting up config nodes
+type ConfigSetup interface {
 	// Nodes sets the number of nodes to deploy
-	Nodes(nodes int) Config
+	Nodes(nodes int) ConfigSetup
 
 	// Image sets the onos-config image to deploy
-	Image(image string) Config
+	Image(image string) ConfigSetup
 
 	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) Config
+	PullPolicy(pullPolicy corev1.PullPolicy) ConfigSetup
 }
 
-var _ Config = &clusterConfig{}
+var _ ConfigSetup = &clusterConfigSetup{}
 
-// clusterConfig is an implementation of the Config interface
-type clusterConfig struct {
+// clusterConfigSetup is an implementation of the Config interface
+type clusterConfigSetup struct {
 	config *cluster.Config
 }
 
-func (s *clusterConfig) Nodes(nodes int) Config {
+func (s *clusterConfigSetup) Nodes(nodes int) ConfigSetup {
 	s.config.SetReplicas(nodes)
 	return s
 }
 
-func (s *clusterConfig) Image(image string) Config {
+func (s *clusterConfigSetup) Image(image string) ConfigSetup {
 	s.config.SetImage(image)
 	return s
 }
 
-func (s *clusterConfig) PullPolicy(pullPolicy corev1.PullPolicy) Config {
+func (s *clusterConfigSetup) PullPolicy(pullPolicy corev1.PullPolicy) ConfigSetup {
 	s.config.SetPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterConfig) create() error {
+func (s *clusterConfigSetup) create() error {
 	return s.config.Create()
 }
 
-func (s *clusterConfig) waitForStart() error {
+func (s *clusterConfigSetup) waitForStart() error {
 	return s.config.AwaitReady()
 }

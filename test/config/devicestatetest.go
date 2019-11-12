@@ -16,6 +16,7 @@ package config
 
 import (
 	"context"
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-topo/pkg/northbound/device"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -26,7 +27,7 @@ import (
 func (s *SmokeTestSuite) TestDeviceState(t *testing.T) {
 	simulator := s.addSimulator(t)
 
-	conn, err := s.Env().Topo().Connect()
+	conn, err := env.Topo().Connect()
 	assert.NoError(t, err)
 	client := device.NewDeviceServiceClient(conn)
 

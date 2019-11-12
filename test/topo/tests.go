@@ -17,6 +17,8 @@ package topo
 import (
 	"context"
 	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/env"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"github.com/onosproject/onos-topo/pkg/northbound/device"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -30,15 +32,12 @@ type TestSuite struct {
 
 // SetupTestSuite sets up the topo test suite
 func (s *TestSuite) SetupTestSuite() {
-	setup := s.Setup()
 	setup.Topo().Nodes(2)
 	setup.SetupOrDie()
 }
 
 // TestDeviceService : test
 func (s *TestSuite) TestDeviceService(t *testing.T) {
-	env := s.Env()
-
 	conn, err := env.Topo().Connect()
 	assert.NoError(t, err)
 	defer conn.Close()

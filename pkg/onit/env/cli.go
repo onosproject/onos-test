@@ -14,14 +14,14 @@
 
 package env
 
-// CLI provides the CLI environment
-type CLI interface {
-	Service
+// CLIEnv provides the CLI environment
+type CLIEnv interface {
+	ServiceEnv
 }
 
-var _ CLI = &clusterCLI{}
+var _ CLIEnv = &clusterCLIEnv{}
 
-// clusterCLI is an implementation of the CLI interface
-type clusterCLI struct {
-	*clusterService
+// clusterCLIEnv is an implementation of the CLI interface
+type clusterCLIEnv struct {
+	*clusterServiceEnv
 }

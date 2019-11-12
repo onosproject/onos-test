@@ -19,37 +19,37 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// CLI is an interface for setting up CLI nodes
-type CLI interface {
+// CLISetup is an interface for setting up CLI nodes
+type CLISetup interface {
 	// Image sets the onos-cli image to deploy
-	Image(image string) CLI
+	Image(image string) CLISetup
 
 	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) CLI
+	PullPolicy(pullPolicy corev1.PullPolicy) CLISetup
 }
 
-var _ CLI = &clusterCLI{}
+var _ CLISetup = &clusterCLISetup{}
 
-// clusterCLI is an implementation of the CLI interface
-type clusterCLI struct {
+// clusterCLISetup is an implementation of the CLI interface
+type clusterCLISetup struct {
 	cli *cluster.CLI
 }
 
-func (s *clusterCLI) Image(image string) CLI {
+func (s *clusterCLISetup) Image(image string) CLISetup {
 	s.cli.SetImage(image)
 	return s
 }
 
-func (s *clusterCLI) PullPolicy(pullPolicy corev1.PullPolicy) CLI {
+func (s *clusterCLISetup) PullPolicy(pullPolicy corev1.PullPolicy) CLISetup {
 	s.cli.SetPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterCLI) create() error {
+func (s *clusterCLISetup) create() error {
 	return s.cli.Create()
 }
 
 // waitForStart waits for the onos-topo pods to complete startup
-func (s *clusterCLI) waitForStart() error {
+func (s *clusterCLISetup) waitForStart() error {
 	return s.cli.AwaitReady()
 }

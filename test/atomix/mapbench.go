@@ -16,14 +16,13 @@ package atomix
 
 import (
 	"context"
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 // BenchmarkAtomixMap : benchmark
 func (s *BenchmarkSuite) BenchmarkAtomixMap(b *testing.B) {
-	env := s.Env()
-
 	group, err := env.Database().Partitions("raft").Connect()
 	assert.NoError(b, err)
 	assert.NotNil(b, group)

@@ -21,29 +21,74 @@ import (
 
 const raftGroup = "raft"
 
-// New returns a new onit Setup
-func New(kube kube.API) Setup {
+// New returns a new onit ClusterSetup
+func New(kube kube.API) ClusterSetup {
 	return &clusterSetup{
 		cluster: cluster.New(kube),
 	}
 }
 
-// Setup is an interface for setting up ONOS clusters
-type Setup interface {
+var setup ClusterSetup
+
+// getSetup gets the current setup
+func getSetup() ClusterSetup {
+	if setup == nil {
+		setup = New(kube.GetAPIFromEnv())
+	}
+	return setup
+}
+
+// Atomix returns the setup configuration for the Atomix controller
+func Atomix() AtomixSetup {
+	return getSetup().Atomix()
+}
+
+// Database returns the setup configuration for the key-value store
+func Database() DatabaseSetup {
+	return getSetup().Database()
+}
+
+// CLI returns the setup configuration for the CLI service
+func CLI() CLISetup {
+	return getSetup().CLI()
+}
+
+// Topo returns the setup configuration for the topo service
+func Topo() TopoSetup {
+	return getSetup().Topo()
+}
+
+// Config returns the setup configuration for the config service
+func Config() ConfigSetup {
+	return getSetup().Config()
+}
+
+// Setup sets up the cluster
+func Setup() error {
+	return getSetup().Setup()
+}
+
+// SetupOrDie sets up the cluster and panics if setup fails
+func SetupOrDie() {
+	getSetup().SetupOrDie()
+}
+
+// ClusterSetup is an interface for setting up ONOS clusters
+type ClusterSetup interface {
 	// Atomix returns the setup configuration for the Atomix controller
-	Atomix() Atomix
+	Atomix() AtomixSetup
 
 	// Database returns the setup configuration for the key-value store
-	Database() Database
+	Database() DatabaseSetup
 
 	// CLI returns the setup configuration for the ONSO CLI service
-	CLI() CLI
+	CLI() CLISetup
 
 	// Topo returns the setup configuration for the ONOS topo service
-	Topo() Topo
+	Topo() TopoSetup
 
 	// Config returns the setup configuration for the ONOS config service
-	Config() Config
+	Config() ConfigSetup
 
 	// Setup sets up the cluster
 	Setup() error
@@ -68,32 +113,32 @@ type clusterSetup struct {
 	cluster *cluster.Cluster
 }
 
-func (s *clusterSetup) Atomix() Atomix {
-	return &clusterAtomix{
+func (s *clusterSetup) Atomix() AtomixSetup {
+	return &clusterAtomixSetup{
 		atomix: s.cluster.Atomix(),
 	}
 }
 
-func (s *clusterSetup) Database() Database {
-	return &clusterDatabase{
+func (s *clusterSetup) Database() DatabaseSetup {
+	return &clusterDatabaseSetup{
 		group: s.cluster.Database().Partitions(raftGroup),
 	}
 }
 
-func (s *clusterSetup) CLI() CLI {
-	return &clusterCLI{
+func (s *clusterSetup) CLI() CLISetup {
+	return &clusterCLISetup{
 		cli: s.cluster.CLI(),
 	}
 }
 
-func (s *clusterSetup) Topo() Topo {
-	return &clusterTopo{
+func (s *clusterSetup) Topo() TopoSetup {
+	return &clusterTopoSetup{
 		topo: s.cluster.Topo(),
 	}
 }
 
-func (s *clusterSetup) Config() Config {
-	return &clusterConfig{
+func (s *clusterSetup) Config() ConfigSetup {
+	return &clusterConfigSetup{
 		config: s.cluster.Config(),
 	}
 }
@@ -140,4 +185,4 @@ func (s *clusterSetup) SetupOrDie() {
 	}
 }
 
-var _ Setup = &clusterSetup{}
+var _ ClusterSetup = &clusterSetup{}

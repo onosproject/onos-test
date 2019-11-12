@@ -15,6 +15,7 @@
 package config
 
 import (
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"strconv"
 	"testing"
 
@@ -35,8 +36,6 @@ func makeDevicePath(device string, path string) []DevicePath {
 
 // TestSinglePath tests query/set/delete of a single GNMI path to a single device
 func (s *SmokeTestSuite) TestSinglePath(t *testing.T) {
-	env := s.Env()
-
 	simulator := s.addSimulator(t)
 
 	// Make a GNMI client to use for requests

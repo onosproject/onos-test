@@ -16,7 +16,6 @@ package kubetest
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/kube"
 	"os"
 	"reflect"
 	"regexp"
@@ -28,17 +27,7 @@ import (
 type TestingSuite interface{}
 
 // TestSuite is an identifier interface for test suites
-type TestSuite struct {
-	kube kube.API
-}
-
-// API returns the Kubernetes API
-func (s *TestSuite) API() kube.API {
-	if s.kube == nil {
-		s.kube = kube.GetAPIFromEnv()
-	}
-	return s.kube
-}
+type TestSuite struct{}
 
 // SetupTestSuite is an interface for setting up a suite of tests
 type SetupTestSuite interface {

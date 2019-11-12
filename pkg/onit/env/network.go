@@ -40,10 +40,10 @@ type NetworkSetup interface {
 	PullPolicy(pullPolicy corev1.PullPolicy) NetworkSetup
 
 	// Add adds the network to the cluster
-	Add() (Network, error)
+	Add() (NetworkEnv, error)
 
 	// AddOrDie adds the network and panics if the deployment fails
-	AddOrDie() Network
+	AddOrDie() NetworkEnv
 }
 
 var _ NetworkSetup = &clusterNetworkSetup{}
@@ -83,19 +83,19 @@ func (s *clusterNetworkSetup) Topo(topo string, devices int) NetworkSetup {
 	return s
 }
 
-func (s *clusterNetworkSetup) Add() (Network, error) {
+func (s *clusterNetworkSetup) Add() (NetworkEnv, error) {
 	if err := s.network.Add(); err != nil {
 		return nil, err
 	}
-	return &clusterNetwork{
-		clusterNode: &clusterNode{
+	return &clusterNetworkEnv{
+		clusterNodeEnv: &clusterNodeEnv{
 			node: s.network.Node,
 		},
 		network: s.network,
 	}, nil
 }
 
-func (s *clusterNetworkSetup) AddOrDie() Network {
+func (s *clusterNetworkSetup) AddOrDie() NetworkEnv {
 	network, err := s.Add()
 	if err != nil {
 		panic(err)
@@ -103,12 +103,12 @@ func (s *clusterNetworkSetup) AddOrDie() Network {
 	return network
 }
 
-// Network provides the environment for a network node
-type Network interface {
-	Node
+// NetworkEnv provides the environment for a network node
+type NetworkEnv interface {
+	NodeEnv
 
 	// Devices returns a list of devices in the network
-	Devices() []Node
+	Devices() []NodeEnv
 
 	// Remove removes the network
 	Remove() error
@@ -117,30 +117,30 @@ type Network interface {
 	RemoveOrDie()
 }
 
-var _ Network = &clusterNetwork{}
+var _ NetworkEnv = &clusterNetworkEnv{}
 
-// clusterNetwork is an implementation of the Network interface
-type clusterNetwork struct {
-	*clusterNode
+// clusterNetworkEnv is an implementation of the Network interface
+type clusterNetworkEnv struct {
+	*clusterNodeEnv
 	network *cluster.Network
 }
 
-func (e *clusterNetwork) Devices() []Node {
+func (e *clusterNetworkEnv) Devices() []NodeEnv {
 	clusterDevices := e.network.Devices()
-	devices := make([]Node, len(clusterDevices))
+	devices := make([]NodeEnv, len(clusterDevices))
 	for i, node := range clusterDevices {
-		devices[i] = &clusterNode{
+		devices[i] = &clusterNodeEnv{
 			node: node,
 		}
 	}
 	return devices
 }
 
-func (e *clusterNetwork) Remove() error {
+func (e *clusterNetworkEnv) Remove() error {
 	return e.network.Remove()
 }
 
-func (e *clusterNetwork) RemoveOrDie() {
+func (e *clusterNetworkEnv) RemoveOrDie() {
 	if err := e.Remove(); err != nil {
 		panic(err)
 	}

@@ -19,32 +19,32 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// Atomix is an interface for setting up the Atomix controller
-type Atomix interface {
+// AtomixSetup is an interface for setting up the Atomix controller
+type AtomixSetup interface {
 	// Image sets the Atomix controller image to deploy
-	Image(image string) Atomix
+	Image(image string) AtomixSetup
 
 	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) Atomix
+	PullPolicy(pullPolicy corev1.PullPolicy) AtomixSetup
 }
 
-var _ Atomix = &clusterAtomix{}
+var _ AtomixSetup = &clusterAtomixSetup{}
 
-// clusterAtomix is an implementation of the Atomix interface
-type clusterAtomix struct {
+// clusterAtomixSetup is an implementation of the Atomix interface
+type clusterAtomixSetup struct {
 	atomix *cluster.Atomix
 }
 
-func (s *clusterAtomix) Image(image string) Atomix {
+func (s *clusterAtomixSetup) Image(image string) AtomixSetup {
 	s.atomix.SetImage(image)
 	return s
 }
 
-func (s *clusterAtomix) PullPolicy(pullPolicy corev1.PullPolicy) Atomix {
+func (s *clusterAtomixSetup) PullPolicy(pullPolicy corev1.PullPolicy) AtomixSetup {
 	s.atomix.SetPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterAtomix) setup() error {
+func (s *clusterAtomixSetup) setup() error {
 	return s.atomix.Setup()
 }

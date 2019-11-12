@@ -16,6 +16,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"strconv"
 	"testing"
 	"time"
@@ -35,8 +36,6 @@ const (
 
 // TestSubscribe tests a stream subscription to updates to a device
 func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
-	env := s.Env()
-
 	simulator := s.addSimulator(t)
 
 	// Make a GNMI client to use for subscribe

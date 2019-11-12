@@ -18,21 +18,21 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 )
 
-// Database provides the database environment
-type Database interface {
+// DatabaseEnv provides the database environment
+type DatabaseEnv interface {
 	// Partitions returns all database partitions
-	Partitions(group string) Partitions
+	Partitions(group string) PartitionsEnv
 }
 
-var _ Database = &clusterDatabase{}
+var _ DatabaseEnv = &clusterDatabaseEnv{}
 
-// clusterDatabase is an implementation of the Database interface
-type clusterDatabase struct {
+// clusterDatabaseEnv is an implementation of the Database interface
+type clusterDatabaseEnv struct {
 	database *cluster.Database
 }
 
-func (e *clusterDatabase) Partitions(group string) Partitions {
-	return &clusterPartitions{
+func (e *clusterDatabaseEnv) Partitions(group string) PartitionsEnv {
+	return &clusterPartitionsEnv{
 		partitions: e.database.Partitions(group),
 	}
 }

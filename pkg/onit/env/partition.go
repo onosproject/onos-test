@@ -14,12 +14,12 @@
 
 package env
 
-// Partition provides the environment for a partition
-type Partition interface {
-	Service
+// PartitionEnv provides the environment for a partition
+type PartitionEnv interface {
+	ServiceEnv
 }
 
-// clusterPartition is an implementation of the Partition interface
-type clusterPartition struct {
-	*clusterService
+// clusterPartitionEnv is an implementation of the Partition interface
+type clusterPartitionEnv struct {
+	*clusterServiceEnv
 }

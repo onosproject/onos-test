@@ -19,52 +19,52 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// Database is an interface for setting up Raft partitions
-type Database interface {
+// DatabaseSetup is an interface for setting up Raft partitions
+type DatabaseSetup interface {
 	// Partitions sets the number of partitions to deploy
-	Partitions(partitions int) Database
+	Partitions(partitions int) DatabaseSetup
 
 	// Nodes sets the number of nodes per partition
-	Nodes(nodes int) Database
+	Nodes(nodes int) DatabaseSetup
 
 	// Image sets the Raft image to deploy
-	Image(image string) Database
+	Image(image string) DatabaseSetup
 
 	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) Database
+	PullPolicy(pullPolicy corev1.PullPolicy) DatabaseSetup
 }
 
-var _ Database = &clusterDatabase{}
+var _ DatabaseSetup = &clusterDatabaseSetup{}
 
-// clusterDatabase is an implementation of the Database interface
-type clusterDatabase struct {
+// clusterDatabaseSetup is an implementation of the Database interface
+type clusterDatabaseSetup struct {
 	group *cluster.Partitions
 }
 
-func (s *clusterDatabase) Partitions(partitions int) Database {
+func (s *clusterDatabaseSetup) Partitions(partitions int) DatabaseSetup {
 	s.group.SetPartitions(partitions)
 	return s
 }
 
-func (s *clusterDatabase) Nodes(nodes int) Database {
+func (s *clusterDatabaseSetup) Nodes(nodes int) DatabaseSetup {
 	s.group.SetNodes(nodes)
 	return s
 }
 
-func (s *clusterDatabase) Image(image string) Database {
+func (s *clusterDatabaseSetup) Image(image string) DatabaseSetup {
 	s.group.SetImage(image)
 	return s
 }
 
-func (s *clusterDatabase) PullPolicy(pullPolicy corev1.PullPolicy) Database {
+func (s *clusterDatabaseSetup) PullPolicy(pullPolicy corev1.PullPolicy) DatabaseSetup {
 	s.group.SetPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterDatabase) create() error {
+func (s *clusterDatabaseSetup) create() error {
 	return s.group.Create()
 }
 
-func (s *clusterDatabase) waitForStart() error {
+func (s *clusterDatabaseSetup) waitForStart() error {
 	return s.group.AwaitReady()
 }

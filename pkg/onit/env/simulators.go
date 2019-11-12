@@ -18,45 +18,45 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 )
 
-// Simulators provides the simulators environment
-type Simulators interface {
+// SimulatorsEnv provides the simulators environment
+type SimulatorsEnv interface {
 	// List returns a list of simulators in the environment
-	List() []Simulator
+	List() []SimulatorEnv
 
 	// Get returns the environment for a simulator service by name
-	Get(name string) Simulator
+	Get(name string) SimulatorEnv
 
 	// New adds a new simulator to the environment
 	New() SimulatorSetup
 }
 
-var _ Simulators = &clusterSimulators{}
+var _ SimulatorsEnv = &clusterSimulatorsEnv{}
 
-// clusterSimulators is an implementation of the Simulators interface
-type clusterSimulators struct {
+// clusterSimulatorsEnv is an implementation of the Simulators interface
+type clusterSimulatorsEnv struct {
 	simulators *cluster.Simulators
 }
 
-func (e *clusterSimulators) List() []Simulator {
+func (e *clusterSimulatorsEnv) List() []SimulatorEnv {
 	clusterNetworks := e.simulators.List()
-	networks := make([]Simulator, len(clusterNetworks))
+	networks := make([]SimulatorEnv, len(clusterNetworks))
 	for i, network := range clusterNetworks {
 		networks[i] = e.Get(network.Name())
 	}
 	return networks
 }
 
-func (e *clusterSimulators) Get(name string) Simulator {
+func (e *clusterSimulatorsEnv) Get(name string) SimulatorEnv {
 	simulator := e.simulators.Get(name)
-	return &clusterSimulator{
-		clusterNode: &clusterNode{
+	return &clusterSimulatorEnv{
+		clusterNodeEnv: &clusterNodeEnv{
 			node: simulator.Node,
 		},
 		simulator: simulator,
 	}
 }
 
-func (e *clusterSimulators) New() SimulatorSetup {
+func (e *clusterSimulatorsEnv) New() SimulatorSetup {
 	return &clusterSimulatorSetup{
 		simulator: e.simulators.New(),
 	}

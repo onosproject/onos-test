@@ -14,14 +14,14 @@
 
 package env
 
-// Atomix provides the Atomix environment
-type Atomix interface {
-	Service
+// AtomixEnv provides the Atomix environment
+type AtomixEnv interface {
+	ServiceEnv
 }
 
-var _ Atomix = &clusterAtomix{}
+var _ AtomixEnv = &clusterAtomixEnv{}
 
-// clusterAtomix is an implementation of the Atomix interface
-type clusterAtomix struct {
-	*clusterService
+// clusterAtomixEnv is an implementation of the Atomix interface
+type clusterAtomixEnv struct {
+	*clusterServiceEnv
 }
