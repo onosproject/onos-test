@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/onosproject/onos-test/pkg/new/onit"
+	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/test/atomix"
 	"github.com/onosproject/onos-test/test/topo"
 )

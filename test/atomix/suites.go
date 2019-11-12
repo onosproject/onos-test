@@ -15,7 +15,7 @@
 package atomix
 
 import (
-	"github.com/onosproject/onos-test/pkg/new/onit"
+	"github.com/onosproject/onos-test/pkg/onit"
 )
 
 // TestSuite is a suite of tests for Atomix primitives

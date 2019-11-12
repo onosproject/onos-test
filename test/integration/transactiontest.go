@@ -16,8 +16,6 @@ package integration
 
 import (
 	"context"
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
 	"strconv"
 	"testing"
 
@@ -38,10 +36,6 @@ var (
 	paths  = []string{path1, path2}
 	values = []string{value1, value2}
 )
-
-func init() {
-	test.Registry.RegisterTest("transaction", TestTransaction, []*runner.TestSuite{AllTests, SomeTests, IntegrationTests})
-}
 
 func getDevicePaths(devices []string, paths []string) []DevicePath {
 	var devicePaths = make([]DevicePath, len(paths)*len(devices))

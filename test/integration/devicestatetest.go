@@ -16,8 +16,6 @@ package integration
 
 import (
 	"context"
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
 	"github.com/onosproject/onos-test/test/env"
 	"github.com/onosproject/onos-topo/pkg/northbound/device"
 	"github.com/stretchr/testify/assert"
@@ -44,8 +42,4 @@ func TestDeviceState(t *testing.T) {
 	assert.Equal(t, responseDevice.Protocols[0].ConnectivityState, device.ConnectivityState_REACHABLE)
 	assert.Equal(t, responseDevice.Protocols[0].ChannelState, device.ChannelState_CONNECTED)
 	assert.Equal(t, responseDevice.Protocols[0].ServiceState, device.ServiceState_AVAILABLE)
-}
-
-func init() {
-	test.Registry.RegisterTest("device-state", TestDeviceState, []*runner.TestSuite{AllTests, IntegrationTests})
 }

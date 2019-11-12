@@ -16,7 +16,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/new/kubetest"
+	"github.com/onosproject/onos-test/pkg/kubetest"
 	"os"
 )
 

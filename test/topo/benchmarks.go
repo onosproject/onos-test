@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/onosproject/onos-test/pkg/new/onit"
+	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-topo/pkg/northbound/device"
 	"github.com/stretchr/testify/assert"
 	"testing"

@@ -15,8 +15,6 @@
 package integration
 
 import (
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
 	"regexp"
 	"testing"
 
@@ -47,8 +45,4 @@ func TestSingleState(t *testing.T) {
 	match := re.MatchString(valueAfter[0].pathDataValue)
 	assert.Equal(t, match, true, "Query for state returned the wrong value: %s\n", valueAfter)
 	assert.Equal(t, 0, len(extensions))
-}
-
-func init() {
-	test.Registry.RegisterTest("single-state", TestSingleState, []*runner.TestSuite{AllTests, IntegrationTests})
 }

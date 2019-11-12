@@ -15,13 +15,14 @@
 package cli
 
 import (
-	"fmt"
+	"github.com/onosproject/onos-test/pkg/kube"
+	"github.com/onosproject/onos-test/pkg/onit/cluster"
+	"github.com/onosproject/onos-test/pkg/util/random"
 
 	"github.com/onosproject/onos-test/pkg/onit/setup"
 
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/onosproject/onos-test/pkg/onit/k8s"
 	"github.com/spf13/cobra"
 )
 
@@ -60,66 +61,72 @@ func getCreateClusterCommand() *cobra.Command {
 		Use:   "cluster [id]",
 		Short: "Setup a test cluster on Kubernetes",
 		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			dockerRegistry, _ := cmd.Flags().GetString("docker-registry")
-			configNodes, _ := cmd.Flags().GetInt("config-nodes")
-			topoNodes, _ := cmd.Flags().GetInt("topo-nodes")
-			partitions, _ := cmd.Flags().GetInt("partitions")
-			partitionSize, _ := cmd.Flags().GetInt("partition-size")
-			configName, _ := cmd.Flags().GetString("config")
-			imageTags, _ := cmd.Flags().GetStringToString("image-tags")
-			imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
-			clusterType, _ := cmd.Flags().GetString("cluster-type")
-
-			// Get or create a cluster ID
-			var clusterID string
-			if len(args) > 0 {
-				clusterID = args[0]
-			} else {
-				clusterID = fmt.Sprintf("cluster-%s", setup.NewUUIDString())
-			}
-
-			testSetup := setup.New().
-				SetClusterID(clusterID).
-				SetDockerRegistry(dockerRegistry).
-				SetClusterType(clusterType).
-				SetConfigNodes(configNodes).
-				SetTopoNodes(topoNodes).
-				SetPartitions(partitions).
-				SetPartitionSize(partitionSize).
-				SetConfigName(configName).
-				SetImagePullPolicy(imagePullPolicy).
-				SetImageTags(imageTags).
-				Build()
-
-			err := testSetup.CreateCluster()
-			if err != nil {
-				exitError(err)
-			}
-
-		},
+		RunE:  runCreateClusterCommand,
 	}
 
-	imageTags := make(map[string]string)
-	imageTags["config"] = string(k8s.Debug)
-	imageTags["topo"] = string(k8s.Debug)
-	imageTags["simulator"] = string(k8s.Latest)
-	imageTags["stratum"] = string(k8s.Latest)
-	imageTags["test"] = string(k8s.Latest)
-	imageTags["atomix"] = string(k8s.Latest)
-	imageTags["raft"] = string(k8s.Latest)
-	imageTags["gui"] = string(k8s.Latest)
-	imageTags["cli"] = string(k8s.Latest)
+	images := make(map[string]string)
+	images[atomixService] = defaultAtomixImage
+	images[raftService] = defaultRaftImage
+	images[configService] = defaultConfigImage
+	images[topoService] = defaultTopoImage
 
-	cmd.Flags().StringP("config", "c", "default", "test cluster configuration")
-	cmd.Flags().String("docker-registry", "", "an optional host:port for a private Docker registry")
-	cmd.Flags().Int("config-nodes", 1, "the number of onos-config nodes to deploy")
-	cmd.Flags().Int("topo-nodes", 1, "the number of onos-topo nodes to deploy")
+	nodes := make(map[string]int)
+	nodes[atomixService] = 1
+	nodes[raftService] = 1
+	nodes[configService] = 1
+	nodes[topoService] = 1
+
+	cmd.Flags().StringToStringP("image", "i", images, "override the image to deploy for a subsystem")
+	cmd.Flags().StringToIntP("nodes", "n", nodes, "set the number of nodes to deploy for a subsystem")
 	cmd.Flags().IntP("partitions", "p", 1, "the number of Raft partitions to deploy")
-	cmd.Flags().IntP("partition-size", "s", 1, "the size of each Raft partition")
-	cmd.Flags().StringToString("image-tags", imageTags, "the image docker container tag for each node in the cluster")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
-	cmd.Flags().String("cluster-type", "k8s", "type of cluster that should be created")
 
 	return cmd
+}
+
+func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
+	var clusterID string
+	if len(args) > 0 {
+		clusterID = args[0]
+	}
+	if clusterID == "" {
+		clusterID = random.NewPetName(2)
+	}
+
+	images, _ := cmd.Flags().GetStringToString("image")
+	nodes, _ := cmd.Flags().GetStringToInt("nodes")
+	partitions, _ := cmd.Flags().GetInt("partitions")
+	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
+	pullPolicy := corev1.PullPolicy(imagePullPolicy)
+
+	kubeAPI := kube.GetAPI(clusterID)
+	cluster := cluster.New(kubeAPI)
+	if err := cluster.Create(); err != nil {
+		return err
+	}
+
+	setup := setup.New(kubeAPI)
+	setup.Atomix().
+		Image(images[atomixService]).
+		PullPolicy(pullPolicy)
+	setup.Database().
+		Partitions(partitions).
+		Nodes(nodes[raftService]).
+		Image(images[raftService]).
+		PullPolicy(pullPolicy)
+	if nodes[configService] > 0 {
+		setup.Config().
+			Nodes(nodes[configService]).
+			Image(images[configService]).
+			PullPolicy(pullPolicy)
+	}
+	if nodes[topoService] > 0 {
+		setup.Topo().
+			Nodes(nodes[topoService]).
+			Image(images[topoService]).
+			PullPolicy(pullPolicy)
+	}
+	return setup.Setup()
 }

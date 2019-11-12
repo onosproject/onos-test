@@ -15,8 +15,9 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/onit/setup"
-
+	"fmt"
+	"github.com/onosproject/onos-test/pkg/kube"
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/spf13/cobra"
 )
 
@@ -51,29 +52,30 @@ func getRemoveNetworkCommand() *cobra.Command {
 		Use:   "network [name]",
 		Short: "Remove a stratum network from the cluster",
 		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			name := args[0]
-
-			// Get the cluster ID
-			clusterID, err := cmd.Flags().GetString("cluster")
-			if err != nil {
-				exitError(err)
-			}
-
-			testSetup := setup.New().
-				SetClusterID(clusterID).
-				SetNetworkName(name).
-				Build()
-			testSetup.RemoveNetwork()
-
-		},
+		RunE:  runRemoveNetworkCommand,
 	}
 
-	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the network")
+	cmd.Flags().StringP("cluster", "c", "", "the cluster to which to add the network")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
+}
+
+func runRemoveNetworkCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
+	networkID := args[0]
+	cluster, _ := cmd.Flags().GetString("cluster")
+
+	kubeAPI := kube.GetAPI(cluster)
+	env := env.New(kubeAPI)
+	network := env.Simulator(networkID)
+	if network == nil {
+		return fmt.Errorf("unknown network: %s", networkID)
+	}
+	return network.Remove()
 }
 
 // getRemoveSimulatorCommand returns a cobra command for tearing down a device simulator
@@ -82,28 +84,30 @@ func getRemoveSimulatorCommand() *cobra.Command {
 		Use:   "simulator <name>",
 		Short: "Remove a device simulator from the cluster",
 		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			name := args[0]
-
-			// Get the cluster ID
-			clusterID, err := cmd.Flags().GetString("cluster")
-			if err != nil {
-				exitError(err)
-			}
-
-			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID).SetSimulatorName(name)
-			testSetup := testSetupBuilder.Build()
-			testSetup.RemoveSimulator()
-
-		},
+		RunE:  runRemoveSimulatorCommand,
 	}
 
-	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to add the simulator")
+	cmd.Flags().StringP("cluster", "c", "", "the cluster to which to add the simulator")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
+}
+
+func runRemoveSimulatorCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
+	deviceID := args[0]
+	cluster, _ := cmd.Flags().GetString("cluster")
+
+	kubeAPI := kube.GetAPI(cluster)
+	env := env.New(kubeAPI)
+	simulator := env.Simulator(deviceID)
+	if simulator == nil {
+		return fmt.Errorf("unknown device: %s", deviceID)
+	}
+	return simulator.Remove()
 }
 
 // getRemoveAppCommand returns a cobra command for tearing down an app
@@ -112,26 +116,28 @@ func getRemoveAppCommand() *cobra.Command {
 		Use:   "app <name>",
 		Short: "Remove an app from the cluster",
 		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			name := args[0]
-
-			// Get the cluster ID
-			clusterID, err := cmd.Flags().GetString("cluster")
-			if err != nil {
-				exitError(err)
-			}
-
-			testSetupBuilder := setup.New()
-			testSetupBuilder.SetClusterID(clusterID).SetAppName(name)
-			testSetup := testSetupBuilder.Build()
-			testSetup.RemoveApp()
-
-		},
+		RunE:  runRemoveAppCommand,
 	}
 
-	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster to which to remove the app")
+	cmd.Flags().StringP("cluster", "c", "", "the cluster to which to remove the app")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
+	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
+}
+
+func runRemoveAppCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+
+	appID := args[0]
+	cluster, _ := cmd.Flags().GetString("cluster")
+
+	kubeAPI := kube.GetAPI(cluster)
+	env := env.New(kubeAPI)
+	app := env.App(appID)
+	if app == nil {
+		return fmt.Errorf("unknown application: %s", appID)
+	}
+	return app.Remove()
 }

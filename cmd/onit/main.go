@@ -16,20 +16,12 @@ package main
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/onosproject/onos-test/test"
-	_ "github.com/onosproject/onos-test/test/api"
-	_ "github.com/onosproject/onos-test/test/atomix"
-	_ "github.com/onosproject/onos-test/test/config"
-	_ "github.com/onosproject/onos-test/test/integration"
-	_ "github.com/onosproject/onos-test/test/topo"
-
 	"github.com/onosproject/onos-test/pkg/onit/cli"
+	"os"
 )
 
 func main() {
-	cmd := cli.GetOnitCommand(test.Registry)
+	cmd := cli.GetRootCommand()
 	if err := cmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

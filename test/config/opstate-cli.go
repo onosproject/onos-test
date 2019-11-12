@@ -15,10 +15,7 @@
 package config
 
 import (
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
 	"github.com/onosproject/onos-test/test/env"
-	"github.com/onosproject/onos-test/test/integration"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -27,10 +24,6 @@ import (
 type testCase struct {
 	path          string
 	expectedValue string
-}
-
-func init() {
-	test.Registry.RegisterTest("config-opstate-cli", TestConfigGetCLI, []*runner.TestSuite{ConfigTests, integration.IntegrationTests})
 }
 
 func makeDescription(path string) string {

@@ -17,15 +17,9 @@ package integration
 import (
 	"testing"
 
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
 	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 )
-
-func init() {
-	test.Registry.RegisterTest("ha", TestHA, []*runner.TestSuite{})
-}
 
 // TestHA : integration test
 func TestHA(t *testing.T) {

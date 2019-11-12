@@ -16,8 +16,6 @@ package integration
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
 	"strconv"
 	"testing"
 	"time"
@@ -35,11 +33,6 @@ const (
 	subValue = "Europe/Madrid"
 	subPath  = "/system/clock/config/timezone-name"
 )
-
-func init() {
-	//example of registering groups
-	test.Registry.RegisterTest("subscribe", TestSubscribe, []*runner.TestSuite{AllTests, SomeTests, IntegrationTests})
-}
 
 // TestSubscribe tests a stream subscription to updates to a device
 func TestSubscribe(t *testing.T) {

@@ -15,8 +15,6 @@
 package integration
 
 import (
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
 	"testing"
 
 	"github.com/onosproject/onos-test/test/env"
@@ -79,8 +77,4 @@ func TestUpdateDelete(t *testing.T) {
 	assert.NoError(t, errorAfterDelete)
 	assert.Equal(t, valueAfterDelete[0].pathDataValue, "", "New child was not removed")
 	assert.Equal(t, 0, len(extensions))
-}
-
-func init() {
-	test.Registry.RegisterTest("update-delete", TestUpdateDelete, []*runner.TestSuite{AllTests, IntegrationTests})
 }

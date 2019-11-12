@@ -15,8 +15,6 @@
 package integration
 
 import (
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
 	"strconv"
 	"testing"
 
@@ -76,8 +74,4 @@ func TestSinglePath(t *testing.T) {
 	assert.Equal(t, 0, len(extensions))
 	assert.Equal(t, valueAfterDelete[0].pathDataValue, "",
 		"incorrect value found for path /system/clock/config/timezone-name after delete")
-}
-
-func init() {
-	test.Registry.RegisterTest("single-path", TestSinglePath, []*runner.TestSuite{AllTests, IntegrationTests})
 }

@@ -15,7 +15,8 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/onit/setup"
+	"github.com/onosproject/onos-test/pkg/kube"
+	"github.com/onosproject/onos-test/pkg/onit/cluster"
 	"github.com/spf13/cobra"
 )
 
@@ -42,25 +43,18 @@ func getDeleteCommand() *cobra.Command {
 // getDeleteClusterCommand returns a cobra "teardown" command for tearing down a test cluster
 func getDeleteClusterCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cluster [id]",
+		Use:   "cluster <id>",
 		Short: "Delete a test cluster on Kubernetes",
-		Args:  cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-
-			// Get the cluster ID
-			var clusterID string
-			if len(args) > 0 {
-				clusterID = args[0]
-			} else {
-				clusterID = setup.GetDefaultCluster()
-			}
-
-			testSetup := setup.New().
-				SetClusterID(clusterID).
-				Build()
-			testSetup.DeleteCluster()
-
-		},
+		Args:  cobra.ExactArgs(1),
+		RunE:  runDeleteClusterCommand,
 	}
 	return cmd
+}
+
+func runDeleteClusterCommand(cmd *cobra.Command, args []string) error {
+	runCommand(cmd)
+	clusterID := args[0]
+	kubeAPI := kube.GetAPI(clusterID)
+	cluster := cluster.New(kubeAPI)
+	return cluster.Delete()
 }

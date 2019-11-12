@@ -15,8 +15,6 @@
 package integration
 
 import (
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
 	"strconv"
 	"testing"
 
@@ -91,8 +89,4 @@ func TestTreePath(t *testing.T) {
 	assert.Equal(t, valueAfterRootDelete[0].pathDataValue, "",
 		"New root was not removed")
 	assert.Equal(t, 0, len(extensions))
-}
-
-func init() {
-	test.Registry.RegisterTest("tree-path", TestTreePath, []*runner.TestSuite{AllTests, IntegrationTests})
 }

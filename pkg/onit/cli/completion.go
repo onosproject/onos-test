@@ -16,7 +16,7 @@ package cli
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"io"
 	"os"
 
@@ -26,76 +26,70 @@ import (
 const bashCompletion = `
 __onit_get_clusters() {
     local onit_output out
-    if onit_output=$(onit get clusters --no-headers 2>/dev/null); then
+    if onit_output=$(onit get clusters 2>/dev/null); then
         out=($(echo "${onit_output}" | awk '{print $1}'))
         COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__onit_get_apps() {
+    local onit_output out cluster
+    if cluster=$(__onit_get_cluster 2>/dev/null); then
+        if onit_output=$(onit get apps -c ${cluster} 2>/dev/null); then
+            out=($(echo "${onit_output}" | awk '{print $1}'))
+            COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+        fi
     fi
 }
 
 __onit_get_networks() {
-    local onit_output out
-    if onit_output=$(onit get networks 2>/dev/null); then
-        out=($(echo "${onit_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    local onit_output out cluster
+    if cluster=$(__onit_get_cluster 2>/dev/null); then
+        if onit_output=$(onit get networks -c ${cluster} 2>/dev/null); then
+            out=($(echo "${onit_output}" | awk '{print $1}'))
+            COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+        fi
     fi
 }
 
 __onit_get_simulators() {
-    local onit_output out
-    if onit_output=$(onit get simulators 2>/dev/null); then
-        out=($(echo "${onit_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    local onit_output out cluster
+    if cluster=$(__onit_get_cluster 2>/dev/null); then
+        if onit_output=$(onit get simulators -c ${cluster} 2>/dev/null); then
+            out=($(echo "${onit_output}" | awk '{print $1}'))
+            COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+        fi
     fi
 }
 
-__onit_get_nodes() {
-    local onit_output out
-    if onit_output=$(onit get nodes --no-headers 2>/dev/null); then
-        out=($(echo "${onit_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
-}
-
-__onit_get_tests() {
-    local onit_output out
-    if onit_output=$(onit get tests 2>/dev/null); then
-        out=($(echo "${onit_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
-}
-
-__onit_get_test_suites() {
-    local onit_output out
-    if onit_output=$(onit get test-suites --no-headers 2>/dev/null); then
-        out=($(echo "${onit_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
-}
-
-__onit_get_benchmarks() {
-    local onit_output out
-    if onit_output=$(onit get benchmarks 2>/dev/null); then
-        out=($(echo "${onit_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
-}
-
-__onit_get_bench_suites() {
-    local onit_output out
-    if onit_output=$(onit get bench-suites --no-headers 2>/dev/null); then
-        out=($(echo "${onit_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
+__onit_get_cluster() {
+    for ((i=0; i < ${#words[@]}; i++)); 
+    do
+        if [[ ${words[i]} -eq "-c" ]]; then
+            echo ${words[i+1]}
+        fi
+        if [[ ${words[i]} -eq "--cluster" ]]; then
+            echo ${words[i+1]}
+        fi
+    done
 }
 
 __onit_custom_func() {
     case ${last_command} in
-        onit_set_cluster | onit_delete_cluster)
+        onit_delete_cluster)
             if [[ ${#nouns[@]} -eq 0 ]]; then
                 __onit_get_clusters
             fi
             return
             ;;
+
+		onit_remove_app)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __onit_get_apps
+            fi
+            return
+			;;
+		
 		onit_remove_simulator)
             if [[ ${#nouns[@]} -eq 0 ]]; then
                 __onit_get_simulators
@@ -108,42 +102,8 @@ __onit_custom_func() {
                 __onit_get_networks
             fi
             return
-            ;;	
-			
-        onit_get_logs | onit_fetch_logs | onit_debug | onit_ssh)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __onit_get_nodes
-            fi
-            return
             ;;
 
-        onit_run_test)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __onit_get_tests
-            fi
-            return
-            ;;
-
-        onit_run_test-suite)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __onit_get_test_suites
-            fi
-            return
-            ;;
-
-        onit_run_benchmark)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __onit_get_benchmarks
-            fi
-            return
-            ;;
-
-        onit_run_bench-suite)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __onit_get_bench_suites
-            fi
-            return
-            ;;
         *)
             ;;
     esac
@@ -158,23 +118,23 @@ func getCompletionCommand() *cobra.Command {
 		ValidArgs: []string{"bash", "zsh"},
 		Example: `For bash run the following command from the shell: eval $(onit completion bash).
 For zsh run the following command from the shell: source <(onit completion zsh).`,
-		Run: runCompletionCommand,
+		RunE: runCompletionCommand,
 	}
 }
 
-func runCompletionCommand(cmd *cobra.Command, args []string) {
+func runCompletionCommand(cmd *cobra.Command, args []string) error {
 	if args[0] == "bash" {
 		if err := runCompletionBash(os.Stdout, cmd.Parent()); err != nil {
-			exitError(err)
+			return err
 		}
+		return nil
 	} else if args[0] == "zsh" {
 		if err := runCompletionZsh(os.Stdout, cmd.Parent()); err != nil {
-			exitError(err)
+			return err
 		}
-
-	} else {
-		exitError(errors.New("unsupported shell type " + args[0]))
+		return nil
 	}
+	return fmt.Errorf("unsupported shell type %s", args[0])
 }
 
 func runCompletionBash(out io.Writer, cmd *cobra.Command) error {
@@ -186,7 +146,7 @@ func runCompletionZsh(out io.Writer, cmd *cobra.Command) error {
 
 	_, err := out.Write([]byte(header))
 	if err != nil {
-		exitError(err)
+		return err
 	}
 
 	init := `
@@ -316,17 +276,17 @@ __onit_convert_bash_to_zsh() {
 `
 	_, err = out.Write([]byte(init))
 	if err != nil {
-		exitError(err)
+		return err
 	}
 
 	buf := new(bytes.Buffer)
 	err = cmd.GenBashCompletion(buf)
 	if err != nil {
-		exitError(err)
+		return err
 	}
 	_, err = out.Write(buf.Bytes())
 	if err != nil {
-		exitError(err)
+		return err
 	}
 
 	tail := `
@@ -337,7 +297,7 @@ _complete onit 2>/dev/null
 `
 	_, err = out.Write([]byte(tail))
 	if err != nil {
-		exitError(err)
+		return err
 	}
 	return nil
 }

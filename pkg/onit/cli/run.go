@@ -15,15 +15,12 @@
 package cli
 
 import (
-	"fmt"
+	"github.com/onosproject/onos-test/pkg/kubetest"
+	"github.com/onosproject/onos-test/pkg/util/random"
+	corev1 "k8s.io/api/core/v1"
 	"os"
 	"time"
 
-	"github.com/onosproject/onos-test/pkg/onit/setup"
-
-	"github.com/onosproject/onos-test/test"
-
-	"github.com/onosproject/onos-test/pkg/runner"
 	"github.com/spf13/cobra"
 )
 
@@ -32,175 +29,109 @@ var (
 		# Run a single test on the cluster
 		onit run test <name of a test>
 
-		# Run a suite of tests on the cluster
-		onit run test-suite <name of a suite>
-
 		# Run a benchmark on the cluster
-		onit run bench <name of a benchmark>
-
-		# Run a suite of benchmarks on the cluster
-		onit run bench-suite <name of a suite>`
+		onit run bench <name of a benchmark>`
 )
 
 // getRunCommand returns a cobra run command to run integration tests
-func getRunCommand(registry *runner.TestRegistry) *cobra.Command {
+func getRunCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "run {test,test-suite,bench,bench-suite}",
+		Use:     "run {test,bench}",
 		Short:   "Run integration tests",
 		Example: runExample,
 	}
 	cmd.AddCommand(getRunTestCommand())
-	cmd.AddCommand(getRunTestSuiteCommand(registry))
 	cmd.AddCommand(getRunBenchCommand())
-	cmd.AddCommand(getRunBenchSuiteCommand(registry))
 	return cmd
 }
 
 func getRunTestCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "test [tests]",
+		Use:   "test",
 		Short: "Run tests on Kubernetes",
-		Run: func(cmd *cobra.Command, args []string) {
-			count, _ := cmd.Flags().GetInt("count")
-			testNames := test.Registry.GetTestNames()
-			testID := fmt.Sprintf("test-%d", newUUIDInt())
-			testName := args
-
-			if Subset(testName, testNames) {
-				runTestsRemote(cmd, testID, "test", args, count)
-			} else {
-				err := fmt.Errorf("The test ID=%s:Name=%s does not exist", testID, testName)
-				exitError(err)
-			}
-		},
+		RunE:  runRunTestCommand,
 	}
-	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster on which to run the test")
+	cmd.Flags().StringP("cluster", "c", "", "the cluster on which to run the test")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
-	cmd.Flags().IntP("count", "n", 0, "run tests n times")
-	cmd.Flags().IntP("timeout", "t", 60*10, "test timeout in seconds")
+	cmd.Flags().StringP("image", "i", "", "the test image to run")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	cmd.Flags().StringP("suite", "s", "", "the test suite to run")
+	cmd.Flags().StringP("test", "t", "", "the name of the test method to run")
+	cmd.Flags().Duration("timeout", 10*time.Minute, "test timeout")
 	return cmd
 }
 
-func getRunTestSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "test-suite [suite]",
-		Aliases: []string{"suite"},
-		Short:   "Run a suite of tests on Kubernetes",
-		Run: func(cmd *cobra.Command, args []string) {
-			count, _ := cmd.Flags().GetInt("count")
-			testSuiteID := fmt.Sprintf("test-%d", newUUIDInt())
-			testSuiteNames := test.Registry.GetTestSuiteNames()
-			testSuiteName := args
-			if Subset(testSuiteName, testSuiteNames) {
-				runTestsRemote(cmd, testSuiteID, "test-suite", args, count)
-			} else {
-				err := fmt.Errorf("The test suite ID=%s:Name=%s does not exist", testSuiteID, testSuiteName)
-				exitError(err)
-			}
-		},
-	}
-	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster on which to run the test")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
-	cmd.Flags().IntP("count", "n", 0, "run tests n times")
-	cmd.Flags().IntP("timeout", "t", 60*10, "test timeout in seconds")
-
-	return cmd
+// runRunTestCommand runs the run test command
+func runRunTestCommand(cmd *cobra.Command, _ []string) error {
+	return runTest(cmd, kubetest.TestTypeTest)
 }
 
 func getRunBenchCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "bench [tests]",
-		Aliases: []string{"bench", "benchmarks"},
+		Use:     "benchmark",
+		Aliases: []string{"bench"},
 		Short:   "Run benchmarks on Kubernetes",
-		Run: func(cmd *cobra.Command, args []string) {
-			count, _ := cmd.Flags().GetInt("count")
-			testBenchID := fmt.Sprintf("bench-%d", newUUIDInt())
-			testBenchNames := test.Registry.GetBenchmarkNames()
-			testBenchName := args
-			if Subset(testBenchName, testBenchNames) {
-				runTestsRemote(cmd, testBenchID, "bench", args, count)
-			} else {
-				err := fmt.Errorf("The benchmark ID=%s:Name=%s does not exist", testBenchID, testBenchName)
-				exitError(err)
-			}
-		},
+		RunE:    runRunBenchCommand,
 	}
-	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster on which to run the test")
+	cmd.Flags().StringP("cluster", "c", "", "the cluster on which to run the benchmark")
 	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
-	cmd.Flags().IntP("count", "n", 0, "the number of iterations to run")
-	cmd.Flags().IntP("timeout", "t", 60*10, "test timeout in seconds")
+	cmd.Flags().StringP("image", "i", "", "the benchmark image to run")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	cmd.Flags().StringP("suite", "s", "", "the benchmark suite to run")
+	cmd.Flags().StringP("benchmark", "t", "", "the name of the benchmark method to run")
+	cmd.Flags().Duration("timeout", 10*time.Minute, "benchmark timeout")
 	return cmd
 }
 
-func getRunBenchSuiteCommand(registry *runner.TestRegistry) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "bench-suite [suite]",
-		Aliases: []string{"benchmark-suite", "benchmark-suites", "bench-suites"},
-		Short:   "Run a suite of benchmarks on Kubernetes",
-		Run: func(cmd *cobra.Command, args []string) {
-			count, _ := cmd.Flags().GetInt("count")
-			testBenchSuiteID := fmt.Sprintf("bench-%d", newUUIDInt())
-			testBenchSuiteNames := test.Registry.GetBenchSuiteNames()
-			testBenchSutiteName := args
-			if Subset(testBenchSutiteName, testBenchSuiteNames) {
-				runTestsRemote(cmd, testBenchSuiteID, "bench-suite", args, count)
-			} else {
-				err := fmt.Errorf("The benchmark suite ID=%s:Name=%s does not exist", testBenchSuiteID, testBenchSutiteName)
-				exitError(err)
-			}
-		},
-	}
-	cmd.Flags().StringP("cluster", "c", setup.GetDefaultCluster(), "the cluster on which to run the test")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
-	cmd.Flags().IntP("count", "n", 0, "the number of iterations to run")
-	cmd.Flags().IntP("timeout", "t", 60*10, "test timeout in seconds")
-	return cmd
+// runRunBenchCommand runs the run benchmark command
+func runRunBenchCommand(cmd *cobra.Command, _ []string) error {
+	return runTest(cmd, kubetest.TestTypeBenchmark)
 }
 
-func runTestsRemote(cmd *cobra.Command, testID string, commandType string, tests []string, count int) {
+func runTest(cmd *cobra.Command, testType kubetest.TestType) error {
+	runCommand(cmd)
 
-	// Get the cluster ID
-	clusterID, err := cmd.Flags().GetString("cluster")
-	if err != nil {
-		exitError(err)
+	clusterID, _ := cmd.Flags().GetString("cluster")
+	image, _ := cmd.Flags().GetString("image")
+	suite, _ := cmd.Flags().GetString("suite")
+	timeout, _ := cmd.Flags().GetDuration("timeout")
+	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
+	pullPolicy := corev1.PullPolicy(imagePullPolicy)
+
+	test := &kubetest.TestConfig{
+		TestID:     random.NewPetName(2),
+		Type:       testType,
+		Image:      image,
+		Suite:      suite,
+		Timeout:    timeout,
+		PullPolicy: pullPolicy,
 	}
 
-	testSetupBuilder := setup.New()
-	if clusterID != "" {
-		testSetupBuilder.SetClusterID(clusterID)
-		fmt.Println("The test will be executed on cluster ", clusterID)
-	} else {
-		testSetup := testSetupBuilder.Build()
-		err := testSetup.CreateCluster()
+	// If the cluster ID was not specified, create a new cluster to run the test
+	// Otherwise, deploy the test in the existing cluster
+	if clusterID == "" {
+		runner, err := kubetest.NewTestRunner(test)
 		if err != nil {
-			exitError(err)
+			return err
 		}
+		return runner.Run()
 	}
-	testSetup := testSetupBuilder.Build()
-	cluster, err := testSetup.GetCluster()
+
+	cluster := kubetest.NewTestCluster(clusterID)
+	if err := cluster.StartTest(test); err != nil {
+		return err
+	}
+	if err := cluster.AwaitTestComplete(test); err != nil {
+		return err
+	}
+	_, code, err := cluster.GetTestResult(test)
 	if err != nil {
-		exitError(err)
+		return err
 	}
-
-	timeout, _ := cmd.Flags().GetInt("timeout")
-	if count > 0 {
-		tests = append(tests, fmt.Sprintf("-n=%d", count))
-	}
-
-	message, code, status := cluster.RunTests(testID, append([]string{commandType}, tests...), time.Duration(timeout)*time.Second)
-	if status.Failed() {
-		exitStatus(status)
-	} else {
-		fmt.Println(message)
-		os.Exit(code)
-	}
-
+	os.Exit(code)
+	return nil
 }
