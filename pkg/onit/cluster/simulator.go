@@ -111,7 +111,7 @@ const simulatorConfig = `
 
 func newSimulator(name string, client *client) *Simulator {
 	return &Simulator{
-		Node: newNode(name, 5150, simulatorImage, client),
+		Node: newNode(name, 11161, simulatorImage, client),
 	}
 }
 

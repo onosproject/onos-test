@@ -38,13 +38,18 @@ func (s *testSuite) addSimulator(t *testing.T) env.SimulatorEnv {
 
 	client := device.NewDeviceServiceClient(conn)
 
+	timeout := 15 * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	_, err = client.Add(ctx, &device.AddRequest{
 		Device: &device.Device{
 			ID:      device.ID(simulator.Name()),
 			Address: simulator.Address(),
-			Type:    "Simulator",
+			Type:    "Devicesim",
 			Version: "1.0.0",
+			Timeout: &timeout,
+			TLS: device.TlsConfig{
+				Plain: true,
+			},
 		},
 	})
 	cancel()
