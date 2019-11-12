@@ -85,7 +85,7 @@ func (e *clusterEnv) Atomix() Atomix {
 
 func (e *clusterEnv) Database() Database {
 	return &clusterDatabase{
-		group: e.cluster.Database().Partitions(raftGroup),
+		database: e.cluster.Database(),
 	}
 }
 

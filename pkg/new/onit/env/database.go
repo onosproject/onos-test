@@ -21,32 +21,18 @@ import (
 // Database provides the database environment
 type Database interface {
 	// Partitions returns all database partitions
-	Partitions(group string) []Partition
-
-	// Partition returns the Partition for the given partition
-	Partition(name string) Partition
+	Partitions(group string) Partitions
 }
 
 var _ Database = &clusterDatabase{}
 
 // clusterDatabase is an implementation of the Database interface
 type clusterDatabase struct {
-	group *cluster.Partitions
+	database *cluster.Database
 }
 
-func (e *clusterDatabase) Partitions(group string) []Partition {
-	clusterPartitions := e.group.Partitions()
-	partitions := make([]Partition, len(clusterPartitions))
-	for i, partition := range clusterPartitions {
-		partitions[i] = e.Partition(partition.Name())
-	}
-	return partitions
-}
-
-func (e clusterDatabase) Partition(name string) Partition {
-	return &clusterPartition{
-		clusterService: &clusterService{
-			service: e.group.Partition(name).Service,
-		},
+func (e *clusterDatabase) Partitions(group string) Partitions {
+	return &clusterPartitions{
+		partitions: e.database.Partitions(group),
 	}
 }

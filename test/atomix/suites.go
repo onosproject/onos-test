@@ -15,18 +15,33 @@
 package atomix
 
 import (
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
+	"github.com/onosproject/onos-test/pkg/new/onit"
 )
 
-var (
-	// AtomixTests is the complete Atomix test suite
-	AtomixTests = runner.NewTestSuite("atomix")
-	// AtomixBenchmarks benchmark suite for Atomix
-	AtomixBenchmarks = runner.NewBenchSuite("atomix")
-)
+// AtomixTestSuite is a suite of tests for Atomix primitives
+type AtomixTestSuite struct {
+	onit.TestSuite
+}
 
-func init() {
-	test.Registry.RegisterTestSuite(*AtomixTests)
-	test.Registry.RegisterBenchSuite(*AtomixBenchmarks)
+// SetupTestSuite sets up the Atomix test suite
+func (s *AtomixTestSuite) SetupTestSuite() {
+	setup := s.Setup()
+	setup.Database().
+		Partitions(3).
+		Nodes(3)
+	setup.SetupOrDie()
+}
+
+// AtomixBenchmarkSuite is a suite of benchmarks for Atomix primitives
+type AtomixBenchmarkSuite struct {
+	onit.BenchmarkSuite
+}
+
+// SetupBenchmarkSuite sets up the Atomix benchmark suite
+func (s *AtomixBenchmarkSuite) SetupBenchmarkSuite() {
+	setup := s.Setup()
+	setup.Database().
+		Partitions(3).
+		Nodes(3)
+	setup.SetupOrDie()
 }

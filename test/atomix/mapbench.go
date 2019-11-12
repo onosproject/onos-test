@@ -16,24 +16,19 @@ package atomix
 
 import (
 	"context"
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
-	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 // BenchAtomixMap : benchmark
-func BenchAtomixMap(b *testing.B) {
-	client, err := env.NewAtomixClient("map")
-	assert.NoError(b, err)
-	assert.NotNil(b, client)
+func (s *AtomixBenchmarkSuite) BenchmarkAtomixMap(b *testing.B) {
+	env := s.Env()
 
-	group, err := client.GetGroup(context.Background(), "raft")
+	group, err := env.Database().Partitions("raft").Connect()
 	assert.NoError(b, err)
 	assert.NotNil(b, group)
 
-	m, err := group.GetMap(context.Background(), "bench")
+	m, err := group.GetMap(context.Background(), "BenchmarkAtomixMap")
 	assert.NoError(b, err)
 	assert.NotNil(b, m)
 
@@ -43,8 +38,4 @@ func BenchAtomixMap(b *testing.B) {
 			_, _ = m.Put(context.Background(), "foo", []byte("Hello world!"))
 		}
 	})
-}
-
-func init() {
-	test.Registry.RegisterBench("atomix-map", BenchAtomixMap, []*runner.BenchSuite{AtomixBenchmarks})
 }

@@ -15,7 +15,10 @@
 package cluster
 
 import (
+	"context"
+	"fmt"
 	"github.com/atomix/atomix-api/proto/atomix/protocols/raft"
+	atomix "github.com/atomix/atomix-go-client/pkg/client"
 	"github.com/atomix/atomix-k8s-controller/pkg/apis/k8s/v1alpha1"
 	"github.com/ghodss/yaml"
 	"github.com/onosproject/onos-test/pkg/new/util/logging"
@@ -41,6 +44,11 @@ type Partitions struct {
 	nodes      int
 	image      string
 	pullPolicy corev1.PullPolicy
+}
+
+// Name returns the partition group name
+func (s *Partitions) Name() string {
+	return s.group
 }
 
 // SetPartitions sets the number of partitions in the group
@@ -85,7 +93,7 @@ func (s *Partitions) Partition(name string) *Partition {
 
 // Partitions lists the partitions in the group
 func (s *Partitions) Partitions() []*Partition {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{typeLabel: databaseType.name(), "group": s.group}}
+	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{typeLabel: partitionType.name(), "group": s.group}}
 	list, err := s.atomixClient.K8sV1alpha1().Partitions(s.namespace).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
 	if err != nil {
@@ -97,6 +105,15 @@ func (s *Partitions) Partitions() []*Partition {
 		partitions = append(partitions, s.Partition(partition.Name))
 	}
 	return partitions
+}
+
+// Connect connects to the partition group
+func (s *Partitions) Connect() (*atomix.PartitionGroup, error) {
+	client, err := atomix.NewClient(fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", s.namespace), atomix.WithNamespace(s.namespace))
+	if err != nil {
+		return nil, err
+	}
+	return client.GetGroup(context.Background(), s.group)
 }
 
 // Create creates a partition set

@@ -17,24 +17,20 @@ package atomix
 import (
 	"context"
 	"github.com/atomix/atomix-go-client/pkg/client/session"
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
-	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
 // TestAtomixList : integration test
-func TestAtomixList(t *testing.T) {
-	client, err := env.NewAtomixClient("list")
-	assert.NoError(t, err)
-	assert.NotNil(t, client)
+func (s *AtomixTestSuite) TestAtomixList(t *testing.T) {
+	env := s.Env()
 
-	group, err := client.GetGroup(context.Background(), "raft")
+	group, err := env.Database().Partitions("raft").Connect()
 	assert.NoError(t, err)
+	assert.NotNil(t, group)
 
-	list, err := group.GetList(context.Background(), "test", session.WithTimeout(5*time.Second))
+	list, err := group.GetList(context.Background(), "TestAtomixList", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
 	size, err := list.Len(context.Background())
@@ -50,11 +46,11 @@ func TestAtomixList(t *testing.T) {
 
 	value, err := list.Get(context.Background(), 0)
 	assert.NoError(t, err)
-	assert.Equal(t, "Hello world!", value)
+	assert.Equal(t, "Hello world!", string(value))
 
 	value, err = list.Remove(context.Background(), 0)
 	assert.NoError(t, err)
-	assert.Equal(t, "Hello world!", value)
+	assert.Equal(t, "Hello world!", string(value))
 
 	size, err = list.Len(context.Background())
 	assert.NoError(t, err)
@@ -71,18 +67,14 @@ func TestAtomixList(t *testing.T) {
 	i := 0
 	for value := range ch {
 		if i == 0 {
-			assert.Equal(t, "Hello world!", value)
+			assert.Equal(t, "Hello world!", string(value))
 			i++
 		} else if i == 1 {
-			assert.Equal(t, "Hello world again!", value)
+			assert.Equal(t, "Hello world again!", string(value))
 			i++
 		} else {
 			assert.Fail(t, "Too many values")
 		}
 	}
 	assert.NoError(t, err)
-}
-
-func init() {
-	test.Registry.RegisterTest("atomix-list", TestAtomixList, []*runner.TestSuite{AtomixTests})
 }

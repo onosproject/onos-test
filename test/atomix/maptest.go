@@ -19,24 +19,20 @@ import (
 	"context"
 	"github.com/atomix/atomix-go-client/pkg/client/map"
 	"github.com/atomix/atomix-go-client/pkg/client/session"
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
-	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
 // TestAtomixMap : integration test
-func TestAtomixMap(t *testing.T) {
-	client, err := env.NewAtomixClient("map")
-	assert.NoError(t, err)
-	assert.NotNil(t, client)
+func (s *AtomixTestSuite) TestAtomixMap(t *testing.T) {
+	env := s.Env()
 
-	group, err := client.GetGroup(context.Background(), "raft")
+	group, err := env.Database().Partitions("raft").Connect()
 	assert.NoError(t, err)
+	assert.NotNil(t, group)
 
-	m, err := group.GetMap(context.Background(), "test", session.WithTimeout(5*time.Second))
+	m, err := group.GetMap(context.Background(), "TestAtomixMap", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
 	ch := make(chan *_map.Entry)
@@ -116,8 +112,4 @@ func TestAtomixMap(t *testing.T) {
 	assert.Equal(t, "bar", event.Entry.Key)
 	assert.Equal(t, []byte("Hello world!"), event.Entry.Value)
 	assert.Equal(t, value.Version, event.Entry.Version)
-}
-
-func init() {
-	test.Registry.RegisterTest("atomix-map", TestAtomixMap, []*runner.TestSuite{AtomixTests})
 }

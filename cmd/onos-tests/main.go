@@ -16,11 +16,16 @@ package main
 
 import (
 	"github.com/onosproject/onos-test/pkg/new/onit"
+	"github.com/onosproject/onos-test/test/atomix"
 	"github.com/onosproject/onos-test/test/topo"
 )
 
 func main() {
+	onit.RegisterTests("atomix", &atomix.AtomixTestSuite{})
 	onit.RegisterTests("topo", &topo.TopoTestSuite{})
+
+	onit.RegisterBenchmarks("atomix", &atomix.AtomixBenchmarkSuite{})
 	onit.RegisterBenchmarks("topo", &topo.TopoBenchmarkSuite{})
+
 	onit.Main()
 }

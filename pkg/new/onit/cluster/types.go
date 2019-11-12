@@ -23,6 +23,7 @@ func (s serviceType) name() string {
 const (
 	atomixType    serviceType = "atomix"
 	databaseType  serviceType = "database"
+	partitionType serviceType = "partition"
 	topoType      serviceType = "topo"
 	configType    serviceType = "config"
 	appType       serviceType = "app"

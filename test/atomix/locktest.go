@@ -18,9 +18,6 @@ import (
 	"context"
 	atomixlock "github.com/atomix/atomix-go-client/pkg/client/lock"
 	"github.com/atomix/atomix-go-client/pkg/client/session"
-	"github.com/onosproject/onos-test/pkg/runner"
-	"github.com/onosproject/onos-test/test"
-	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 	"sync/atomic"
 	"testing"
@@ -28,18 +25,17 @@ import (
 )
 
 // TestAtomixLock : integration test
-func TestAtomixLock(t *testing.T) {
-	client, err := env.NewAtomixClient("lock")
-	assert.NoError(t, err)
-	assert.NotNil(t, client)
+func (s *AtomixTestSuite) TestAtomixLock(t *testing.T) {
+	env := s.Env()
 
-	group, err := client.GetGroup(context.Background(), "raft")
+	group, err := env.Database().Partitions("raft").Connect()
+	assert.NoError(t, err)
+	assert.NotNil(t, group)
+
+	lock1, err := group.GetLock(context.Background(), "TestAtomixLock", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
-	lock1, err := group.GetLock(context.Background(), "test", session.WithTimeout(5*time.Second))
-	assert.NoError(t, err)
-
-	lock2, err := group.GetLock(context.Background(), "test", session.WithTimeout(5*time.Second))
+	lock2, err := group.GetLock(context.Background(), "TestAtomixLock", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
 	id, err := lock1.Lock(context.Background())
@@ -106,8 +102,4 @@ func TestAtomixLock(t *testing.T) {
 
 	id = atomic.LoadUint64(&lock)
 	assert.Equal(t, uint64(0), id)
-}
-
-func init() {
-	test.Registry.RegisterTest("atomix-lock", TestAtomixLock, []*runner.TestSuite{AtomixTests})
 }
