@@ -22,7 +22,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/onosproject/onos-config/pkg/utils"
-	"github.com/onosproject/onos-test/test/env"
 	"github.com/openconfig/gnmi/client"
 	"github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/stretchr/testify/assert"
@@ -36,9 +35,9 @@ const (
 
 // TestSubscribe tests a stream subscription to updates to a device
 func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
+	env := s.Env()
 
-	// Get the first configured device from the environment.
-	device := env.GetDevices()[0]
+	simulator := s.addSimulator(t)
 
 	// Make a GNMI client to use for subscribe
 	subC := client.BaseClient{}
@@ -47,7 +46,7 @@ func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
 
 	assert.NoError(t, err, "Unexpected error doing parsing")
 
-	path.Target = device
+	path.Target = simulator.Name()
 
 	request, errReq := buildRequest(path, gnmi.SubscriptionList_STREAM)
 
@@ -57,9 +56,7 @@ func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
 
 	assert.NoError(t, errQuery, "Can't build Query")
 
-	dest, errDest := env.GetDestination("")
-
-	assert.NoError(t, errDest, "Can't build Destination")
+	dest := env.Config().Destination()
 
 	q.Addrs = dest.Addrs
 	q.Timeout = dest.Timeout
@@ -88,12 +85,12 @@ func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
 	time.Sleep(100000)
 
 	// Make a GNMI client to use for requests
-	c, err := env.NewGnmiClient(MakeContext(), "")
+	c, err := env.Config().NewGNMIClient()
 	assert.NoError(t, err)
 	assert.True(t, c != nil, "Fetching client returned nil")
 
 	// Set a value using gNMI client
-	setPath := makeDevicePath(device, subPath)
+	setPath := makeDevicePath(simulator.Name(), subPath)
 	setPath[0].pathDataValue = subValue
 	setPath[0].pathDataType = StringVal
 	_, _, errorSet := GNMISet(MakeContext(), c, setPath, noPaths)
@@ -103,7 +100,7 @@ func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
 	// Wait for the Update response with Update
 	select {
 	case response = <-respChan:
-		validateResponse(t, response, device, false)
+		validateResponse(t, response, simulator.Name(), false)
 	case <-time.After(1 * time.Second):
 		assert.FailNow(t, "Expected Update Response")
 	}
@@ -111,13 +108,13 @@ func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
 	// Wait for the Sync response
 	select {
 	case response = <-respChan:
-		validateResponse(t, response, device, false)
+		validateResponse(t, response, simulator.Name(), false)
 	case <-time.After(1 * time.Second):
 		assert.FailNow(t, "Expected Sync Response")
 	}
 
 	// Check that the value was set correctly
-	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(device, subPath))
+	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(simulator.Name(), subPath))
 	assert.NoError(t, errorAfter)
 	assert.Equal(t, 0, len(extensions))
 	assert.NotEqual(t, "", valueAfter, "Query after set returned an error: %s\n", errorAfter)
@@ -125,7 +122,7 @@ func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
 		"Query after set returned the wrong value: %s\n", valueAfter)
 
 	// Remove the path we added
-	_, extensions, errorDelete := GNMISet(MakeContext(), c, noPaths, makeDevicePath(device, subPath))
+	_, extensions, errorDelete := GNMISet(MakeContext(), c, noPaths, makeDevicePath(simulator.Name(), subPath))
 	assert.NoError(t, errorDelete)
 	assert.Equal(t, 1, len(extensions))
 	extension := extensions[0].GetRegisteredExt()
@@ -134,7 +131,7 @@ func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
 	// Wait for the Update response with delete
 	select {
 	case response = <-respChan:
-		validateResponse(t, response, device, true)
+		validateResponse(t, response, simulator.Name(), true)
 	case <-time.After(1 * time.Second):
 		assert.FailNow(t, "Expected Delete Response")
 	}
@@ -142,13 +139,13 @@ func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
 	// Wait for the Sync response
 	select {
 	case response = <-respChan:
-		validateResponse(t, response, device, false)
+		validateResponse(t, response, simulator.Name(), false)
 	case <-time.After(1 * time.Second):
 		assert.FailNow(t, "Expected Sync Response")
 	}
 
 	//  Make sure it got removed
-	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, subPath))
+	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(simulator.Name(), subPath))
 	assert.NoError(t, errorAfterDelete)
 	assert.Equal(t, 0, len(extensions))
 	assert.Equal(t, valueAfterDelete[0].pathDataValue, "",

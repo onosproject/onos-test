@@ -17,7 +17,6 @@ package config
 import (
 	"testing"
 
-	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,34 +32,35 @@ const (
 // TestUpdateDelete tests update and delete paths in a single GNMI request
 func (s *SmokeTestSuite) TestUpdateDelete(t *testing.T) {
 	// Get the first configured device from the environment.
-	device := env.GetDevices()[0]
+	device := s.addSimulator(t)
 
 	// Make a GNMI client to use for requests
-	c, err := env.NewGnmiClient(MakeContext(), "")
+	env := s.Env()
+	c, err := env.Config().NewGNMIClient()
 	assert.NoError(t, err)
 	assert.True(t, c != nil, "Fetching client returned nil")
 
 	// Create interface tree using gNMI client
 	setNamePath := []DevicePath{
-		{deviceName: device, path: udtestNamePath, pathDataValue: udtestNameValue, pathDataType: StringVal},
+		{deviceName: device.Name(), path: udtestNamePath, pathDataValue: udtestNameValue, pathDataType: StringVal},
 	}
 	_, _, errorSet := GNMISet(MakeContext(), c, setNamePath, noPaths)
 	assert.NoError(t, errorSet)
 
 	// Set initial values for Enabled and Description using gNMI client
 	setInitialValuesPath := []DevicePath{
-		{deviceName: device, path: udtestEnabledPath, pathDataValue: "true", pathDataType: BoolVal},
-		{deviceName: device, path: udtestDescriptionPath, pathDataValue: udtestDescriptionValue, pathDataType: StringVal},
+		{deviceName: device.Name(), path: udtestEnabledPath, pathDataValue: "true", pathDataType: BoolVal},
+		{deviceName: device.Name(), path: udtestDescriptionPath, pathDataValue: udtestDescriptionValue, pathDataType: StringVal},
 	}
 	_, _, errorSet = GNMISet(MakeContext(), c, setInitialValuesPath, noPaths)
 	assert.NoError(t, errorSet)
 
 	// Update Enabled, delete Description using gNMI client
 	updateEnabledPath := []DevicePath{
-		{deviceName: device, path: udtestEnabledPath, pathDataValue: "false", pathDataType: BoolVal},
+		{deviceName: device.Name(), path: udtestEnabledPath, pathDataValue: "false", pathDataType: BoolVal},
 	}
 	deleteDescriptionPath := []DevicePath{
-		{deviceName: device, path: udtestDescriptionPath},
+		{deviceName: device.Name(), path: udtestDescriptionPath},
 	}
 	_, _, errorSet = GNMISet(MakeContext(), c, updateEnabledPath, deleteDescriptionPath)
 	assert.NoError(t, errorSet)
@@ -73,7 +73,7 @@ func (s *SmokeTestSuite) TestUpdateDelete(t *testing.T) {
 	assert.Equal(t, "false", valueAfter[0].pathDataValue, "Query name after set returned the wrong value: %s\n", valueAfter)
 
 	//  Make sure Description got removed
-	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, udtestDescriptionPath))
+	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device.Name(), udtestDescriptionPath))
 	assert.NoError(t, errorAfterDelete)
 	assert.Equal(t, valueAfterDelete[0].pathDataValue, "", "New child was not removed")
 	assert.Equal(t, 0, len(extensions))

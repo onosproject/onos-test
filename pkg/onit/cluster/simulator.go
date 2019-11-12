@@ -34,7 +34,7 @@ var (
 
 func newSimulator(name string, client *client) *Simulator {
 	return &Simulator{
-		Node: newNode(name, simulatorImage, client),
+		Node: newNode(name, 5150, simulatorImage, client),
 	}
 }
 

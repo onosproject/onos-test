@@ -14,12 +14,25 @@
 
 package env
 
-import "github.com/onosproject/onos-test/pkg/onit/cluster"
+import (
+	"crypto/tls"
+	"github.com/onosproject/onos-test/pkg/onit/cluster"
+	"google.golang.org/grpc"
+)
 
 // Node provides the environment for a single node
 type Node interface {
 	// Name returns the name of the node
 	Name() string
+
+	// Address returns the node address
+	Address() string
+
+	// Credentials returns the node credentials
+	Credentials() *tls.Config
+
+	// Connect connects to the node
+	Connect() (*grpc.ClientConn, error)
 
 	// Kill kills the node
 	Kill() error
@@ -35,6 +48,22 @@ type clusterNode struct {
 
 func (e *clusterNode) Name() string {
 	return e.node.Name()
+}
+
+func (e *clusterNode) Address() string {
+	return e.node.Address()
+}
+
+func (e *clusterNode) Credentials() *tls.Config {
+	config, err := e.node.Credentials()
+	if err != nil {
+		panic(err)
+	}
+	return config
+}
+
+func (e *clusterNode) Connect() (*grpc.ClientConn, error) {
+	return e.node.Connect()
 }
 
 func (e *clusterNode) Kill() error {

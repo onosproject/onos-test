@@ -16,9 +16,10 @@ package cluster
 
 import "time"
 
-func newNodes(labels map[string]string, client *client) *Nodes {
+func newNodes(port int, labels map[string]string, client *client) *Nodes {
 	return &Nodes{
 		client: client,
+		port:   port,
 		labels: labels,
 	}
 }
@@ -26,12 +27,13 @@ func newNodes(labels map[string]string, client *client) *Nodes {
 // Nodes is a collection of nodes
 type Nodes struct {
 	*client
+	port   int
 	labels map[string]string
 }
 
 // Get gets a node by name
 func (n *Nodes) Get(name string) *Node {
-	return newNode(name, "", n.client)
+	return newNode(name, n.port, "", n.client)
 }
 
 // List returns a list of nodes in the service

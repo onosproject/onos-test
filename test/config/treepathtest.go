@@ -18,7 +18,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,24 +33,25 @@ const (
 // TestTreePath tests create/set/delete of a tree of GNMI paths to a single device
 func (s *SmokeTestSuite) TestTreePath(t *testing.T) {
 	// Get the first configured device from the environment.
-	device := env.GetDevices()[0]
+	device := s.addSimulator(t)
 
 	// Make a GNMI client to use for requests
-	c, err := env.NewGnmiClient(MakeContext(), "")
+	env := s.Env()
+	c, err := env.Config().NewGNMIClient()
 	assert.NoError(t, err)
 	assert.True(t, c != nil, "Fetching client returned nil")
 
 	// Set name of new root using gNMI client
 	setNamePath := []DevicePath{
-		{deviceName: device, path: newRootConfigNamePath, pathDataValue: newRootName, pathDataType: StringVal},
+		{deviceName: device.Name(), path: newRootConfigNamePath, pathDataValue: newRootName, pathDataType: StringVal},
 	}
 	_, _, errorSet := GNMISet(MakeContext(), c, setNamePath, noPaths)
 	assert.NoError(t, errorSet)
 
 	// Set values using gNMI client
 	setPath := []DevicePath{
-		{deviceName: device, path: newRootDescriptionPath, pathDataValue: newDescription, pathDataType: StringVal},
-		{deviceName: device, path: newRootEnabledPath, pathDataValue: "false", pathDataType: BoolVal},
+		{deviceName: device.Name(), path: newRootDescriptionPath, pathDataValue: newDescription, pathDataType: StringVal},
+		{deviceName: device.Name(), path: newRootEnabledPath, pathDataValue: "false", pathDataType: BoolVal},
 	}
 	_, _, errorSet = GNMISet(MakeContext(), c, setPath, noPaths)
 	assert.NoError(t, errorSet)
@@ -64,27 +64,27 @@ func (s *SmokeTestSuite) TestTreePath(t *testing.T) {
 	assert.Equal(t, newRootName, valueAfter[0].pathDataValue, "Query name after set returned the wrong value: %s\n", valueAfter)
 
 	// Check that the enabled value was set correctly
-	valueAfter, extensions, errorAfter = GNMIGet(MakeContext(), c, makeDevicePath(device, newRootEnabledPath))
+	valueAfter, extensions, errorAfter = GNMIGet(MakeContext(), c, makeDevicePath(device.Name(), newRootEnabledPath))
 	assert.NoError(t, errorAfter)
 	assert.NotEqual(t, "", valueAfter, "Query enabled after set returned an error: %s\n", errorAfter)
 	assert.Equal(t, "false", valueAfter[0].pathDataValue, "Query enabled after set returned the wrong value: %s\n", valueAfter)
 	assert.Equal(t, 0, len(extensions))
 
 	// Remove the root path we added
-	_, extensions, errorDelete := GNMISet(MakeContext(), c, noPaths, makeDevicePath(device, newRootPath))
+	_, extensions, errorDelete := GNMISet(MakeContext(), c, noPaths, makeDevicePath(device.Name(), newRootPath))
 	assert.NoError(t, errorDelete)
 	assert.Equal(t, 1, len(extensions))
 	extension := extensions[0].GetRegisteredExt()
 	assert.Equal(t, extension.Id.String(), strconv.Itoa(100))
 
 	//  Make sure child got removed
-	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, newRootConfigNamePath))
+	valueAfterDelete, extensions, errorAfterDelete := GNMIGet(MakeContext(), c, makeDevicePath(device.Name(), newRootConfigNamePath))
 	assert.NoError(t, errorAfterDelete)
 	assert.Equal(t, valueAfterDelete[0].pathDataValue, "", "New child was not removed")
 	assert.Equal(t, 0, len(extensions))
 
 	//  Make sure new root got removed
-	valueAfterRootDelete, extensions, errorAfterRootDelete := GNMIGet(MakeContext(), c, makeDevicePath(device, newRootPath))
+	valueAfterRootDelete, extensions, errorAfterRootDelete := GNMIGet(MakeContext(), c, makeDevicePath(device.Name(), newRootPath))
 	assert.NoError(t, errorAfterRootDelete)
 	assert.Equal(t, valueAfterRootDelete[0].pathDataValue, "",
 		"New root was not removed")

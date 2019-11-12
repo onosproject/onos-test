@@ -41,12 +41,13 @@ func (d TopoType) String() string {
 
 func newNetwork(name string, client *client) *Network {
 	return &Network{
-		Node: newNode(name, networkImage, client),
+		Node: newNode(name, 0, networkImage, client),
 	}
 }
 
 // Network is an implementation of the Network interface
 type Network struct {
+	// TODO: Network should be a Service with a Node per device
 	*Node
 	topoType TopoType
 	topo     string
@@ -64,7 +65,7 @@ func (s *Network) Devices() []*Node {
 
 	devices := make([]*Node, len(services.Items))
 	for i, service := range services.Items {
-		devices[i] = newNode(service.Name, "", s.client)
+		devices[i] = newNode(service.Name, 50001+i, "", s.client)
 	}
 	return devices
 }

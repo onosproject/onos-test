@@ -16,7 +16,6 @@ package config
 
 import (
 	"context"
-	"github.com/onosproject/onos-test/test/env"
 	"github.com/onosproject/onos-topo/pkg/northbound/device"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -25,19 +24,20 @@ import (
 
 // TestDeviceState tests that a device is connected and available.
 func (s *SmokeTestSuite) TestDeviceState(t *testing.T) {
-	// Get the first configured device from the environment.
-	envDevice := env.GetDevices()[0]
-	conn, errConn := env.GetTopoConn()
-	assert.NoError(t, errConn)
+	simulator := s.addSimulator(t)
+
+	conn, err := s.Env().Topo().Connect()
+	assert.NoError(t, err)
+	client := device.NewDeviceServiceClient(conn)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	client := device.NewDeviceServiceClient(conn)
 	response, errGet := client.Get(ctx, &device.GetRequest{
-		ID: device.ID(envDevice),
+		ID: device.ID(simulator.Name()),
 	})
 	assert.NoError(t, errGet)
 	responseDevice := response.Device
-	assert.Equal(t, responseDevice.ID, device.ID(envDevice), "Wrong Device")
+	assert.Equal(t, responseDevice.ID, device.ID(simulator.Name()), "Wrong Device")
 	assert.Equal(t, responseDevice.Protocols[0].Protocol, device.Protocol_GNMI)
 	assert.Equal(t, responseDevice.Protocols[0].ConnectivityState, device.ConnectivityState_REACHABLE)
 	assert.Equal(t, responseDevice.Protocols[0].ChannelState, device.ChannelState_CONNECTED)

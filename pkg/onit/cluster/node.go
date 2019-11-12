@@ -15,16 +15,21 @@
 package cluster
 
 import (
+	"crypto/tls"
 	"errors"
+	"fmt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
 
-func newNode(name string, image string, client *client) *Node {
+func newNode(name string, port int, image string, client *client) *Node {
 	return &Node{
 		client: client,
 		name:   name,
+		port:   port,
 		image:  image,
 	}
 }
@@ -33,6 +38,7 @@ func newNode(name string, image string, client *client) *Node {
 type Node struct {
 	*client
 	name       string
+	port       int
 	image      string
 	pullPolicy corev1.PullPolicy
 }
@@ -45,6 +51,11 @@ func (n *Node) Name() string {
 // SetName sets the node name
 func (n *Node) SetName(name string) {
 	n.name = name
+}
+
+// Address returns the service address
+func (n *Node) Address() string {
+	return fmt.Sprintf("%s:%d", n.name, n.port)
 }
 
 // Image returns the image configured for the node
@@ -65,6 +76,27 @@ func (n *Node) PullPolicy() corev1.PullPolicy {
 // SetPullPolicy sets the image pull policy for the node
 func (n *Node) SetPullPolicy(pullPolicy corev1.PullPolicy) {
 	n.pullPolicy = pullPolicy
+}
+
+// Credentials returns the TLS credentials
+func (n *Node) Credentials() (*tls.Config, error) {
+	cert, err := tls.X509KeyPair([]byte(clientCert), []byte(clientKey))
+	if err != nil {
+		return nil, err
+	}
+	return &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		InsecureSkipVerify: true,
+	}, nil
+}
+
+// Connect creates a gRPC client connection to the node
+func (n *Node) Connect() (*grpc.ClientConn, error) {
+	tlsConfig, err := n.Credentials()
+	if err != nil {
+		return nil, err
+	}
+	return grpc.Dial(n.Address(), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 }
 
 // AwaitReady waits for the node to become ready

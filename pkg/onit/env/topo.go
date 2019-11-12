@@ -14,9 +14,20 @@
 
 package env
 
+import (
+	"github.com/onosproject/onos-topo/pkg/northbound/admin"
+	"github.com/onosproject/onos-topo/pkg/northbound/device"
+)
+
 // Topo provides the topo environment
 type Topo interface {
 	Service
+
+	// NewAdminServiceClient returns the topo AdminService client
+	NewAdminServiceClient() (admin.TopoAdminServiceClient, error)
+
+	// NewDeviceServiceClient returns a topo device service client
+	NewDeviceServiceClient() (device.DeviceServiceClient, error)
 }
 
 var _ Topo = &clusterTopo{}
@@ -24,4 +35,20 @@ var _ Topo = &clusterTopo{}
 // clusterTopo is an implementation of the Topo interface
 type clusterTopo struct {
 	*clusterService
+}
+
+func (e *clusterTopo) NewAdminServiceClient() (admin.TopoAdminServiceClient, error) {
+	conn, err := e.Connect()
+	if err != nil {
+		return nil, err
+	}
+	return admin.NewTopoAdminServiceClient(conn), nil
+}
+
+func (e *clusterTopo) NewDeviceServiceClient() (device.DeviceServiceClient, error) {
+	conn, err := e.Connect()
+	if err != nil {
+		return nil, err
+	}
+	return device.NewDeviceServiceClient(conn), err
 }

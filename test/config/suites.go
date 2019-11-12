@@ -14,7 +14,15 @@
 
 package config
 
-import "github.com/onosproject/onos-test/pkg/onit"
+import (
+	"context"
+	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/env"
+	"github.com/onosproject/onos-topo/pkg/northbound/device"
+	"github.com/stretchr/testify/assert"
+	"testing"
+	"time"
+)
 
 // SmokeTestSuite is the primary onos-config test suite
 type SmokeTestSuite struct {
@@ -27,6 +35,30 @@ func (s *SmokeTestSuite) SetupTestSuite() {
 	setup.Topo().Nodes(2)
 	setup.Config().Nodes(2)
 	setup.SetupOrDie()
+}
+
+// addSimulator adds a device to the network
+func (s *SmokeTestSuite) addSimulator(t *testing.T) env.Simulator {
+	env := s.Env()
+	simulator := env.Simulators().New().AddOrDie()
+
+	conn, err := env.Topo().Connect()
+	assert.NoError(t, err)
+
+	client := device.NewDeviceServiceClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	response, err := client.Add(ctx, &device.AddRequest{
+		Device: &device.Device{
+			ID:      device.ID(simulator.Name()),
+			Address: simulator.Address(),
+			Type:    "Simulator",
+			Version: "1.0.0",
+		},
+	})
+	cancel()
+	assert.NoError(t, err)
+	return simulator
 }
 
 // CLITestSuite is the onos-config CLI test suite

@@ -16,11 +16,11 @@ package config
 
 import (
 	"context"
+	"github.com/onosproject/onos-test/pkg/onit/env"
 	"strconv"
 	"testing"
 
 	"github.com/onosproject/onos-config/pkg/northbound/admin"
-	"github.com/onosproject/onos-test/test/env"
 	"github.com/openconfig/gnmi/client"
 	"github.com/stretchr/testify/assert"
 )
@@ -70,8 +70,8 @@ func checkDeviceValue(t *testing.T, deviceGnmiClient client.Impl, devicePaths []
 	assert.Equal(t, 0, len(extensions))
 }
 
-func getDeviceGNMIClient(t *testing.T, device string) client.Impl {
-	deviceGnmiClient, deviceGnmiClientError := env.NewGnmiClientForDevice(MakeContext(), device+":11161", "gnmi")
+func getDeviceGNMIClient(t *testing.T, simulator env.Simulator) client.Impl {
+	deviceGnmiClient, deviceGnmiClientError := simulator.NewGNMIClient()
 	assert.NoError(t, deviceGnmiClientError)
 	assert.True(t, deviceGnmiClient != nil, "Fetching device client returned nil")
 	return deviceGnmiClient
@@ -80,14 +80,15 @@ func getDeviceGNMIClient(t *testing.T, device string) client.Impl {
 // TestTransaction tests setting multiple paths in a single request and rolling it back
 func (s *SmokeTestSuite) TestTransaction(t *testing.T) {
 	// Get the configured devices from the environment.
-	device1 := env.GetDevices()[0]
-	device2 := env.GetDevices()[1]
+	device1 := s.addSimulator(t)
+	device2 := s.addSimulator(t)
 	devices := make([]string, 2)
-	devices[0] = device1
-	devices[1] = device2
+	devices[0] = device1.Name()
+	devices[1] = device2.Name()
 
 	// Make a GNMI client to use for requests
-	gnmiClient, gnmiClientError := env.NewGnmiClient(MakeContext(), "gnmi")
+	env := s.Env()
+	gnmiClient, gnmiClientError := env.Config().NewGNMIClient()
 	assert.NoError(t, gnmiClientError)
 	assert.True(t, gnmiClient != nil, "Fetching client returned nil")
 
@@ -119,7 +120,8 @@ func (s *SmokeTestSuite) TestTransaction(t *testing.T) {
 	checkDeviceValue(t, device2GnmiClient, devicePathsForGet[3:4], value2)
 
 	// Now rollback the change
-	_, adminClient := env.GetAdminClient()
+	adminClient, err := env.Config().NewAdminServiceClient()
+	assert.NoError(t, err)
 	rollbackResponse, rollbackError := adminClient.RollbackNetworkChange(
 		context.Background(), &admin.RollbackRequest{Name: changeID})
 

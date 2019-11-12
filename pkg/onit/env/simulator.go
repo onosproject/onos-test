@@ -15,8 +15,13 @@
 package env
 
 import (
+	"context"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
+	"github.com/openconfig/gnmi/client"
+	gnmi "github.com/openconfig/gnmi/client/gnmi"
+	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
+	"time"
 )
 
 // SimulatorSetup is an interface for setting up a simulator
@@ -83,6 +88,12 @@ func (s *clusterSimulatorSetup) AddOrDie() Simulator {
 type Simulator interface {
 	Node
 
+	// Destination returns the gNMI client destination
+	Destination() client.Destination
+
+	// NewGNMIClient returns the gNMI client
+	NewGNMIClient() (*gnmi.Client, error)
+
 	// Remove removes the simulator
 	Remove() error
 
@@ -96,6 +107,30 @@ var _ Simulator = &clusterSimulator{}
 type clusterSimulator struct {
 	*clusterNode
 	simulator *cluster.Simulator
+}
+
+func (e *clusterSimulator) Connect() (*grpc.ClientConn, error) {
+	return grpc.Dial(e.Address(), grpc.WithInsecure())
+}
+
+func (e *clusterSimulator) Destination() client.Destination {
+	return client.Destination{
+		Addrs:   []string{e.Address()},
+		Target:  e.Name(),
+		TLS:     e.Credentials(),
+		Timeout: 10 * time.Second,
+	}
+}
+
+func (e *clusterSimulator) NewGNMIClient() (*gnmi.Client, error) {
+	conn, err := e.Connect()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := gnmi.NewFromConn(ctx, conn, e.Destination())
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
 }
 
 func (e *clusterSimulator) Remove() error {

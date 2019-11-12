@@ -15,11 +15,9 @@
 package config
 
 import (
+	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/status"
 	"testing"
-
-	"github.com/onosproject/onos-test/test/env"
-	"github.com/stretchr/testify/assert"
 )
 
 // TestModels tests GNMI operation involving unknown or illegal paths
@@ -31,8 +29,8 @@ func (s *SmokeTestSuite) TestModels(t *testing.T) {
 		clockTimeZonePath = "/system/clock/config/timezone-name"
 	)
 
-	// Get the configured device from the environment.
-	device := env.GetDevices()[0]
+	env := s.Env()
+	simulator := s.addSimulator(t)
 
 	// Data to run the test cases
 	testCases := []struct {
@@ -49,7 +47,7 @@ func (s *SmokeTestSuite) TestModels(t *testing.T) {
 	}
 
 	// Make a GNMI client to use for requests
-	gnmiClient, gnmiClientError := env.NewGnmiClient(MakeContext(), "gnmi")
+	gnmiClient, gnmiClientError := env.Config().NewGNMIClient()
 	assert.NoError(t, gnmiClientError)
 	assert.True(t, gnmiClient != nil, "Fetching client returned nil")
 
@@ -67,7 +65,7 @@ func (s *SmokeTestSuite) TestModels(t *testing.T) {
 
 				t.Logf("testing %q", description)
 
-				setResult := makeDevicePath(device, path)
+				setResult := makeDevicePath(simulator.Name(), path)
 				setResult[0].pathDataValue = value
 				setResult[0].pathDataType = valueType
 				msg, _, errorSet := GNMISet(MakeContext(), gnmiClient, setResult, noPaths)

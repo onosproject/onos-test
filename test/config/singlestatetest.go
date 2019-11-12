@@ -18,7 +18,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/onosproject/onos-test/test/env"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,16 +28,17 @@ const (
 
 // TestSingleState tests query of a single GNMI path of a read/only value to a single device
 func (s *SmokeTestSuite) TestSingleState(t *testing.T) {
-	// Get the first configured device from the environment.
-	device := env.GetDevices()[0]
+	env := s.Env()
+
+	simulator := s.addSimulator(t)
 
 	// Make a GNMI client to use for requests
-	c, err := env.NewGnmiClient(MakeContext(), "")
+	c, err := env.Config().NewGNMIClient()
 	assert.NoError(t, err)
 	assert.True(t, c != nil, "Fetching client returned nil")
 
 	// Check that the value was correctly retrieved from the device and store in the state cache
-	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(device, stateControllersPath))
+	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(simulator.Name(), stateControllersPath))
 	assert.NoError(t, errorAfter)
 	assert.NotEqual(t, "", valueAfter, "Query after state returned an error: %s\n", errorAfter)
 	re := regexp.MustCompile(stateValueRegexp)

@@ -15,7 +15,10 @@
 package cluster
 
 import (
+	"crypto/tls"
 	"fmt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -67,7 +70,7 @@ func (s *Service) Address() string {
 
 // Nodes returns the collection of nodes in the service
 func (s *Service) Nodes() *Nodes {
-	return newNodes(s.labels, s.client)
+	return newNodes(s.port, s.labels, s.client)
 }
 
 // Replicas returns the number of nodes in the service
@@ -103,4 +106,25 @@ func (s *Service) SetPullPolicy(pullPolicy corev1.PullPolicy) {
 // AwaitReady waits for the service to become ready
 func (s *Service) AwaitReady() error {
 	return s.Nodes().AwaitReady()
+}
+
+// Credentials returns the TLS credentials
+func (s *Service) Credentials() (*tls.Config, error) {
+	cert, err := tls.X509KeyPair([]byte(clientCert), []byte(clientKey))
+	if err != nil {
+		return nil, err
+	}
+	return &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		InsecureSkipVerify: true,
+	}, nil
+}
+
+// Connect creates a gRPC client connection to the service
+func (s *Service) Connect() (*grpc.ClientConn, error) {
+	tlsConfig, err := s.Credentials()
+	if err != nil {
+		return nil, err
+	}
+	return grpc.Dial(s.Address(), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 }
