@@ -14,6 +14,8 @@
 
 package cluster
 
+import "time"
+
 func newNodes(labels map[string]string, client *client) *Nodes {
 	return &Nodes{
 		client: client,
@@ -28,16 +30,40 @@ type Nodes struct {
 }
 
 // Get gets a node by name
-func (s *Nodes) Get(name string) *Node {
-	return newNode(name, "", s.client)
+func (n *Nodes) Get(name string) *Node {
+	return newNode(name, "", n.client)
 }
 
 // List returns a list of nodes in the service
-func (s *Nodes) List() []*Node {
-	names := s.listPods(s.labels)
+func (n *Nodes) List() []*Node {
+	names := n.listPods(n.labels)
 	nodes := make([]*Node, len(names))
 	for i, name := range names {
-		nodes[i] = s.Get(name)
+		nodes[i] = n.Get(name)
 	}
 	return nodes
+}
+
+// AwaitReady waits for the nodes to become ready
+func (n *Nodes) AwaitReady() error {
+	for {
+		ready, err := n.isReady()
+		if err != nil {
+			return err
+		} else if ready {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// isReady returns a bool indicating whether all nodes are ready
+func (n *Nodes) isReady() (bool, error) {
+	nodes := n.List()
+	for _, node := range nodes {
+		if ready, err := node.isReady(); err != nil || !ready {
+			return ready, err
+		}
+	}
+	return true, nil
 }

@@ -122,7 +122,10 @@ func (s *AtomixTestSuite) TestRaftHA(t *testing.T) {
 		}
 
 		t.Log("Waiting for pods to recover")
-		time.Sleep(10 * time.Second)
+		for _, partition := range partitions.List() {
+			err = partition.AwaitReady()
+			assert.NoError(t, err)
+		}
 		i++
 	}
 }

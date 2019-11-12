@@ -91,6 +91,9 @@ type Service interface {
 	// Node returns a specific node environment
 	Node(name string) Node
 
+	// AwaitReady waits for all nodes in the service to become ready
+	AwaitReady() error
+
 	// Connect connects to the service
 	Connect() (*grpc.ClientConn, error)
 }
@@ -127,6 +130,10 @@ func (e *clusterService) Node(name string) Node {
 	return &clusterNode{
 		e.service.Nodes().Get(name),
 	}
+}
+
+func (e *clusterService) AwaitReady() error {
+	return e.service.AwaitReady()
 }
 
 func (e *clusterService) Connect() (*grpc.ClientConn, error) {

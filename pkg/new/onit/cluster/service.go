@@ -99,3 +99,8 @@ func (s *Service) PullPolicy() corev1.PullPolicy {
 func (s *Service) SetPullPolicy(pullPolicy corev1.PullPolicy) {
 	s.pullPolicy = pullPolicy
 }
+
+// AwaitReady waits for the service to become ready
+func (s *Service) AwaitReady() error {
+	return s.Nodes().AwaitReady()
+}

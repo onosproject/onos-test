@@ -1,7 +1,7 @@
 cmd/onos-test/onit
 cmd/onos-test/onit-k8s
 vendor
-build/_output
+**/_output
 *.DS_Store
 coverage.txt
 *.coverprofile

@@ -15,8 +15,10 @@
 package cluster
 
 import (
+	"errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 func newNode(name string, image string, client *client) *Node {
@@ -63,6 +65,36 @@ func (n *Node) PullPolicy() corev1.PullPolicy {
 // SetPullPolicy sets the image pull policy for the node
 func (n *Node) SetPullPolicy(pullPolicy corev1.PullPolicy) {
 	n.pullPolicy = pullPolicy
+}
+
+// AwaitReady waits for the node to become ready
+func (n *Node) AwaitReady() error {
+	for {
+		ready, err := n.isReady()
+		if err != nil {
+			return err
+		} else if ready {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// isReady returns a bool indicating whether the node is ready
+func (n *Node) isReady() (bool, error) {
+	pod, err := n.kubeClient.CoreV1().Pods(n.namespace).Get(n.name, metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	} else if pod == nil {
+		return false, errors.New("node not found")
+	}
+
+	for _, status := range pod.Status.ContainerStatuses {
+		if !status.Ready {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 // Delete deletes the node
