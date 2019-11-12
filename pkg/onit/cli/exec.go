@@ -19,6 +19,7 @@ import (
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -50,7 +51,7 @@ func runExecCommand(cmd *cobra.Command, args []string) error {
 	cluster, _ := cmd.Flags().GetString("cluster")
 	kubeAPI := kube.GetAPI(cluster)
 	env := env.New(kubeAPI)
-	output, code, err := env.CLI().Execute(args...)
+	output, code, err := env.CLI().Execute(strings.Join(args, " "))
 	if err != nil {
 		return err
 	}

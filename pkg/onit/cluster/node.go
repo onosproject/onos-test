@@ -91,6 +91,7 @@ func (n *Node) Execute(command ...string) ([]string, int, error) {
 	}
 	container := pod.Spec.Containers[0]
 
+	fullCommand := append([]string{"/bin/bash", "-c"}, command...)
 	req := n.kubeClient.CoreV1().RESTClient().Post().
 		Resource("pods").
 		Name(n.Name()).
@@ -99,7 +100,7 @@ func (n *Node) Execute(command ...string) ([]string, int, error) {
 		Param("container", container.Name)
 	req.VersionedParams(&corev1.PodExecOptions{
 		Container: container.Name,
-		Command:   command,
+		Command:   fullCommand,
 		Stdout:    true,
 		Stderr:    true,
 		Stdin:     false,
