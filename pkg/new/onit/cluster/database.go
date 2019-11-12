@@ -32,7 +32,7 @@ func (s *Database) Partitions(group string) *Partitions {
 	if partitions, ok := s.groups[group]; ok {
 		return partitions
 	}
-	partitions := newPartitions(group, databaseImage, s.client)
+	partitions := newPartitions(group, raftImage, s.client)
 	s.groups[group] = partitions
 	return partitions
 }

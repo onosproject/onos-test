@@ -26,8 +26,11 @@ import (
 )
 
 func newTopo(client *client) *Topo {
+	labels := map[string]string{
+		typeLabel: topoType.name(),
+	}
 	return &Topo{
-		Service: newService("onos-topo", 5150, topoType, topoImage, client),
+		Service: newService("onos-topo", 5150, labels, topoImage, client),
 	}
 }
 

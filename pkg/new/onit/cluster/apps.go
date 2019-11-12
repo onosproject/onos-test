@@ -39,7 +39,9 @@ func (s *Apps) Get(name string) *App {
 
 // List lists the networks in the cluster
 func (s *Apps) List() []*App {
-	names := s.listDeployments(appType)
+	names := s.listDeployments(map[string]string{
+		typeLabel: appType.name(),
+	})
 	apps := make([]*App, len(names))
 	for i, name := range names {
 		apps[i] = s.Get(name)

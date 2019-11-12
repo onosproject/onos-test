@@ -14,19 +14,17 @@
 
 package cluster
 
-func newNodes(name string, serviceType serviceType, client *client) *Nodes {
+func newNodes(labels map[string]string, client *client) *Nodes {
 	return &Nodes{
-		client:      client,
-		name:        name,
-		serviceType: serviceType,
+		client: client,
+		labels: labels,
 	}
 }
 
 // Nodes is a collection of nodes
 type Nodes struct {
 	*client
-	name        string
-	serviceType serviceType
+	labels map[string]string
 }
 
 // Get gets a node by name
@@ -36,7 +34,7 @@ func (s *Nodes) Get(name string) *Node {
 
 // List returns a list of nodes in the service
 func (s *Nodes) List() []*Node {
-	names := s.listPods(s.serviceType)
+	names := s.listPods(s.labels)
 	nodes := make([]*Node, len(names))
 	for i, name := range names {
 		nodes[i] = s.Get(name)

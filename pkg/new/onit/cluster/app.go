@@ -25,8 +25,11 @@ import (
 )
 
 func newApp(name string, client *client) *App {
+	labels := map[string]string{
+		typeLabel: appType.name(),
+	}
 	return &App{
-		Service: newService(name, 5150, appType, "", client),
+		Service: newService(name, 5150, labels, "", client),
 	}
 }
 

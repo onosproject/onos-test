@@ -30,8 +30,8 @@ type client struct {
 	extensionsClient *apiextension.Clientset
 }
 
-func (c *client) listPods(serviceType serviceType) []string {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{typeLabel: serviceType.name()}}
+func (c *client) listPods(matchLabels map[string]string) []string {
+	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
 	pods, err := c.kubeClient.CoreV1().Pods(c.namespace).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
 	if err != nil {
@@ -45,8 +45,8 @@ func (c *client) listPods(serviceType serviceType) []string {
 	return names
 }
 
-func (c *client) listServices(serviceType serviceType) []string {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{typeLabel: serviceType.name()}}
+func (c *client) listServices(matchLabels map[string]string) []string {
+	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
 	services, err := c.kubeClient.CoreV1().Services(c.namespace).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
 	if err != nil {
@@ -60,8 +60,8 @@ func (c *client) listServices(serviceType serviceType) []string {
 	return names
 }
 
-func (c *client) listDeployments(serviceType serviceType) []string {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{typeLabel: serviceType.name()}}
+func (c *client) listDeployments(matchLabels map[string]string) []string {
+	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
 	deps, err := c.kubeClient.AppsV1().Deployments(c.namespace).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
 	if err != nil {

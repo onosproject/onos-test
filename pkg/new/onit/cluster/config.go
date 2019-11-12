@@ -27,8 +27,11 @@ import (
 )
 
 func newConfig(client *client) *Config {
+	labels := map[string]string{
+		typeLabel: configType.name(),
+	}
 	return &Config{
-		Service: newService("onos-config", 5150, configType, configImage, client),
+		Service: newService("onos-config", 5150, labels, configImage, client),
 	}
 }
 

@@ -39,7 +39,9 @@ func (s *Networks) Get(name string) *Network {
 
 // List lists the networks in the cluster
 func (s *Networks) List() []*Network {
-	names := s.listPods(networkType)
+	names := s.listPods(map[string]string{
+		typeLabel: networkType.name(),
+	})
 	networks := make([]*Network, len(names))
 	for i, name := range names {
 		networks[i] = s.Get(name)

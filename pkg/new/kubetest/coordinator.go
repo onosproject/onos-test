@@ -16,7 +16,6 @@ package kubetest
 
 import (
 	"fmt"
-	"github.com/dustinkirkland/golang-petname"
 	"github.com/onosproject/onos-test/pkg/new/util/k8s"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -70,7 +69,7 @@ func (c *TestCoordinator) Run() error {
 	if c.test.Suite == "" {
 		for suite := range Registry.tests {
 			config := &TestConfig{
-				TestID:     newJobID(c.test.TestID),
+				TestID:     newJobID(c.test.TestID, suite),
 				Type:       c.test.Type,
 				Image:      c.test.Image,
 				Suite:      suite,
@@ -88,7 +87,7 @@ func (c *TestCoordinator) Run() error {
 		}
 	} else {
 		config := &TestConfig{
-			TestID:     newJobID(c.test.TestID),
+			TestID:     newJobID(c.test.TestID, c.test.Suite),
 			Type:       c.test.Type,
 			Image:      c.test.Image,
 			Suite:      c.test.Suite,
@@ -124,7 +123,7 @@ func (c *BenchmarkCoordinator) Run() error {
 	if c.test.Suite == "" {
 		for suite := range Registry.benchmarks {
 			config := &TestConfig{
-				TestID:     newJobID(c.test.TestID),
+				TestID:     newJobID(c.test.TestID, suite),
 				Type:       c.test.Type,
 				Image:      c.test.Image,
 				Suite:      suite,
@@ -142,7 +141,7 @@ func (c *BenchmarkCoordinator) Run() error {
 		}
 	} else {
 		config := &TestConfig{
-			TestID:     newJobID(c.test.TestID),
+			TestID:     newJobID(c.test.TestID, c.test.Suite),
 			Type:       c.test.Type,
 			Image:      c.test.Image,
 			Suite:      c.test.Suite,
@@ -205,6 +204,6 @@ func runJobs(jobs []*TestJob) error {
 }
 
 // newJobID returns a new unique test job ID
-func newJobID(testID string) string {
-	return fmt.Sprintf("%s-%s", testID, petname.Generate(2, "-"))
+func newJobID(testID, suite string) string {
+	return fmt.Sprintf("%s-%s", testID, suite)
 }

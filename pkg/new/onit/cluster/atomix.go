@@ -25,8 +25,11 @@ import (
 )
 
 func newAtomix(client *client) *Atomix {
+	labels := map[string]string{
+		typeLabel: atomixType.name(),
+	}
 	return &Atomix{
-		Service: newService("atomix-controller", 5679, atomixType, atomixImage, client),
+		Service: newService("atomix-controller", 5679, labels, atomixImage, client),
 	}
 }
 

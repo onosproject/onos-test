@@ -33,7 +33,7 @@ const (
 
 const (
 	atomixImage    = "atomix/atomix-k8s-controller:latest"
-	databaseImage  = "atomix/atomix-raft-node:latest"
+	raftImage      = "atomix/atomix-raft-node:latest"
 	topoImage      = "onosproject/onos-topo:latest"
 	configImage    = "onosproject/onos-config:latest"
 	simulatorImage = "onosproject/device-simulator:latest"

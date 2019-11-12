@@ -19,25 +19,25 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func newService(name string, port int, serviceType serviceType, image string, client *client) *Service {
+func newService(name string, port int, labels map[string]string, image string, client *client) *Service {
 	return &Service{
-		client:      client,
-		name:        name,
-		port:        port,
-		serviceType: serviceType,
-		image:       image,
+		client: client,
+		name:   name,
+		port:   port,
+		labels: labels,
+		image:  image,
 	}
 }
 
 // Service is the base type for multi-node services
 type Service struct {
 	*client
-	name        string
-	port        int
-	replicas    int
-	serviceType serviceType
-	image       string
-	pullPolicy  corev1.PullPolicy
+	name       string
+	port       int
+	replicas   int
+	labels     map[string]string
+	image      string
+	pullPolicy corev1.PullPolicy
 }
 
 // Name returns the name of the service
@@ -67,7 +67,7 @@ func (s *Service) Address() string {
 
 // Nodes returns the collection of nodes in the service
 func (s *Service) Nodes() *Nodes {
-	return newNodes(s.name, s.serviceType, s.client)
+	return newNodes(s.labels, s.client)
 }
 
 // Replicas returns the number of nodes in the service

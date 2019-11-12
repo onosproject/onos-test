@@ -14,9 +14,18 @@
 
 package cluster
 
+import "strings"
+
 func newPartition(name string, client *client) *Partition {
+	group := name[:strings.LastIndex(name, "-")]
+	partition := name[strings.LastIndex(name, "-")+1:]
+	labels := map[string]string{
+		typeLabel:   partitionType.name(),
+		"group":     group,
+		"partition": partition,
+	}
 	return &Partition{
-		Service: newService(name, 5678, databaseType, databaseImage, client),
+		Service: newService(name, 5678, labels, raftImage, client),
 	}
 }
 
