@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"bytes"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -22,6 +23,10 @@ import (
 	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/tools/remotecommand"
+	executil "k8s.io/client-go/util/exec"
+	"strings"
 	"time"
 )
 
@@ -76,6 +81,53 @@ func (n *Node) PullPolicy() corev1.PullPolicy {
 // SetPullPolicy sets the image pull policy for the node
 func (n *Node) SetPullPolicy(pullPolicy corev1.PullPolicy) {
 	n.pullPolicy = pullPolicy
+}
+
+// Execute executes the given command on the node
+func (n *Node) Execute(command ...string) ([]string, int, error) {
+	pod, err := n.kubeClient.CoreV1().Pods(n.namespace).Get(n.Name(), metav1.GetOptions{})
+	if err != nil {
+		panic(err)
+	}
+	container := pod.Spec.Containers[0]
+
+	req := n.kubeClient.CoreV1().RESTClient().Post().
+		Resource("pods").
+		Name(n.Name()).
+		Namespace(n.namespace).
+		SubResource("exec").
+		Param("container", container.Name)
+	req.VersionedParams(&corev1.PodExecOptions{
+		Container: container.Name,
+		Command:   command,
+		Stdout:    true,
+		Stderr:    true,
+		Stdin:     false,
+	}, scheme.ParameterCodec)
+
+	exec, err := remotecommand.NewSPDYExecutor(n.config, "POST", req.URL())
+	if err != nil {
+		if execErr, ok := err.(executil.ExitError); ok && execErr.Exited() {
+			return []string{}, execErr.ExitStatus(), nil
+		}
+		return nil, 0, err
+	}
+
+	var stdout, stderr bytes.Buffer
+	err = exec.Stream(remotecommand.StreamOptions{
+		Stdout: &stdout,
+		Stderr: &stderr,
+		Tty:    false,
+	})
+
+	if err != nil {
+		if execErr, ok := err.(executil.ExitError); ok && execErr.Exited() {
+			return []string{}, execErr.ExitStatus(), nil
+		}
+		return nil, 0, err
+	}
+
+	return strings.Split(strings.Trim(stdout.String(), "\n"), "\n"), 0, nil
 }
 
 // Credentials returns the TLS credentials

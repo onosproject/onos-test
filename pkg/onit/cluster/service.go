@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -106,6 +107,15 @@ func (s *Service) SetPullPolicy(pullPolicy corev1.PullPolicy) {
 // AwaitReady waits for the service to become ready
 func (s *Service) AwaitReady() error {
 	return s.Nodes().AwaitReady()
+}
+
+// Execute executes the given command on one of the service nodes
+func (s *Service) Execute(command ...string) ([]string, int, error) {
+	nodes := s.Nodes().List()
+	if len(nodes) == 0 {
+		return nil, 0, errors.New("no service nodes found")
+	}
+	return nodes[0].Execute(command...)
 }
 
 // Credentials returns the TLS credentials

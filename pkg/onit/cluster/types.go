@@ -24,6 +24,7 @@ const (
 	atomixType    serviceType = "atomix"
 	databaseType  serviceType = "database"
 	partitionType serviceType = "partition"
+	cliType       serviceType = "cli"
 	topoType      serviceType = "topo"
 	configType    serviceType = "config"
 	appType       serviceType = "app"
@@ -34,6 +35,7 @@ const (
 const (
 	atomixImage    = "atomix/atomix-k8s-controller:latest"
 	raftImage      = "atomix/atomix-raft-node:latest"
+	cliImage       = "onosproject/onos-cli:latest"
 	topoImage      = "onosproject/onos-topo:latest"
 	configImage    = "onosproject/onos-config:latest"
 	simulatorImage = "onosproject/device-simulator:latest"

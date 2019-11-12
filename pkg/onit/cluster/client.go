@@ -20,11 +20,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 // client is the base for all Kubernetes cluster objects
 type client struct {
 	namespace        string
+	config           *rest.Config
 	kubeClient       *kubernetes.Clientset
 	atomixClient     *atomixcontroller.Clientset
 	extensionsClient *apiextension.Clientset

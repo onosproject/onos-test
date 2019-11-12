@@ -34,6 +34,9 @@ type Env interface {
 	// Database returns the database environment
 	Database() Database
 
+	// CLI returns the CLI environment
+	CLI() CLI
+
 	// Topo returns the topo environment
 	Topo() Topo
 
@@ -84,6 +87,14 @@ func (e *clusterEnv) Atomix() Atomix {
 func (e *clusterEnv) Database() Database {
 	return &clusterDatabase{
 		database: e.cluster.Database(),
+	}
+}
+
+func (e *clusterEnv) CLI() CLI {
+	return &clusterCLI{
+		clusterService: &clusterService{
+			service: e.cluster.CLI().Service,
+		},
 	}
 }
 

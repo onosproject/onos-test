@@ -36,6 +36,9 @@ type Setup interface {
 	// Database returns the setup configuration for the key-value store
 	Database() Database
 
+	// CLI returns the setup configuration for the ONSO CLI service
+	CLI() CLI
+
 	// Topo returns the setup configuration for the ONOS topo service
 	Topo() Topo
 
@@ -77,6 +80,12 @@ func (s *clusterSetup) Database() Database {
 	}
 }
 
+func (s *clusterSetup) CLI() CLI {
+	return &clusterCLI{
+		cli: s.cluster.CLI(),
+	}
+}
+
 func (s *clusterSetup) Topo() Topo {
 	return &clusterTopo{
 		topo: s.cluster.Topo(),
@@ -99,6 +108,9 @@ func (s *clusterSetup) Setup() error {
 	if err := s.Database().(concurrentSetup).create(); err != nil {
 		return err
 	}
+	if err := s.CLI().(concurrentSetup).create(); err != nil {
+		return err
+	}
 	if err := s.Topo().(concurrentSetup).create(); err != nil {
 		return err
 	}
@@ -108,6 +120,9 @@ func (s *clusterSetup) Setup() error {
 
 	// Wait for the database and services to start up
 	if err := s.Database().(concurrentSetup).waitForStart(); err != nil {
+		return err
+	}
+	if err := s.CLI().(concurrentSetup).waitForStart(); err != nil {
 		return err
 	}
 	if err := s.Topo().(concurrentSetup).waitForStart(); err != nil {

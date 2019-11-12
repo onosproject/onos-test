@@ -38,6 +38,9 @@ type Service interface {
 	// AwaitReady waits for all nodes in the service to become ready
 	AwaitReady() error
 
+	// Execute executes the given command and returns the output
+	Execute(command ...string) ([]string, int, error)
+
 	// Credentials returns the service credentials
 	Credentials() *tls.Config
 
@@ -81,6 +84,10 @@ func (e *clusterService) Node(name string) Node {
 
 func (e *clusterService) AwaitReady() error {
 	return e.service.AwaitReady()
+}
+
+func (e *clusterService) Execute(command ...string) ([]string, int, error) {
+	return e.service.Execute(command...)
 }
 
 func (e *clusterService) Credentials() *tls.Config {

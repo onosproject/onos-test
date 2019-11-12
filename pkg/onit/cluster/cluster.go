@@ -27,6 +27,7 @@ import (
 func New(kube kube.API) *Cluster {
 	client := &client{
 		namespace:        kube.Namespace(),
+		config:           kube.Config(),
 		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
 		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
 		extensionsClient: apiextension.NewForConfigOrDie(kube.Config()),
@@ -35,6 +36,7 @@ func New(kube kube.API) *Cluster {
 		client:     client,
 		atomix:     newAtomix(client),
 		database:   newDatabase(client),
+		cli:        newCLI(client),
 		topo:       newTopo(client),
 		config:     newConfig(client),
 		apps:       newApps(client),
@@ -48,6 +50,7 @@ type Cluster struct {
 	*client
 	atomix     *Atomix
 	database   *Database
+	cli        *CLI
 	topo       *Topo
 	config     *Config
 	apps       *Apps
@@ -63,6 +66,11 @@ func (c *Cluster) Atomix() *Atomix {
 // Database returns the database service
 func (c *Cluster) Database() *Database {
 	return c.database
+}
+
+// CLI returns the CLI service
+func (c *Cluster) CLI() *CLI {
+	return c.cli
 }
 
 // Topo returns the topo service

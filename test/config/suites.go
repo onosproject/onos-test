@@ -24,21 +24,12 @@ import (
 	"time"
 )
 
-// SmokeTestSuite is the primary onos-config test suite
-type SmokeTestSuite struct {
+type testSuite struct {
 	onit.TestSuite
 }
 
-// SetupTestSuite sets up the onos-config test suite
-func (s *SmokeTestSuite) SetupTestSuite() {
-	setup := s.Setup()
-	setup.Topo().Nodes(2)
-	setup.Config().Nodes(2)
-	setup.SetupOrDie()
-}
-
 // addSimulator adds a device to the network
-func (s *SmokeTestSuite) addSimulator(t *testing.T) env.Simulator {
+func (s *testSuite) addSimulator(t *testing.T) env.Simulator {
 	env := s.Env()
 	simulator := env.Simulators().New().AddOrDie()
 
@@ -48,7 +39,7 @@ func (s *SmokeTestSuite) addSimulator(t *testing.T) env.Simulator {
 	client := device.NewDeviceServiceClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	response, err := client.Add(ctx, &device.AddRequest{
+	_, err = client.Add(ctx, &device.AddRequest{
 		Device: &device.Device{
 			ID:      device.ID(simulator.Name()),
 			Address: simulator.Address(),
@@ -61,9 +52,22 @@ func (s *SmokeTestSuite) addSimulator(t *testing.T) env.Simulator {
 	return simulator
 }
 
+// SmokeTestSuite is the primary onos-config test suite
+type SmokeTestSuite struct {
+	testSuite
+}
+
+// SetupTestSuite sets up the onos-config test suite
+func (s *SmokeTestSuite) SetupTestSuite() {
+	setup := s.Setup()
+	setup.Topo().Nodes(2)
+	setup.Config().Nodes(2)
+	setup.SetupOrDie()
+}
+
 // CLITestSuite is the onos-config CLI test suite
 type CLITestSuite struct {
-	onit.TestSuite
+	testSuite
 }
 
 // SetupTestSuite sets up the onos-config CLI test suite
@@ -76,7 +80,7 @@ func (s *CLITestSuite) SetupTestSuite() {
 
 // HATestSuite is the onos-config HA test suite
 type HATestSuite struct {
-	onit.TestSuite
+	testSuite
 }
 
 // SetupTestSuite sets up the onos-config CLI test suite

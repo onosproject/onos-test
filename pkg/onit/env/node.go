@@ -28,6 +28,9 @@ type Node interface {
 	// Address returns the node address
 	Address() string
 
+	// Execute executes the given command and returns the output
+	Execute(command ...string) ([]string, int, error)
+
 	// Credentials returns the node credentials
 	Credentials() *tls.Config
 
@@ -52,6 +55,10 @@ func (e *clusterNode) Name() string {
 
 func (e *clusterNode) Address() string {
 	return e.node.Address()
+}
+
+func (e *clusterNode) Execute(command ...string) ([]string, int, error) {
+	return e.node.Execute(command...)
 }
 
 func (e *clusterNode) Credentials() *tls.Config {
