@@ -23,7 +23,7 @@ import (
 )
 
 // TestAtomixList : integration test
-func (s *AtomixTestSuite) TestAtomixList(t *testing.T) {
+func (s *TestSuite) TestAtomixList(t *testing.T) {
 	env := s.Env()
 
 	group, err := env.Database().Partitions("raft").Connect()

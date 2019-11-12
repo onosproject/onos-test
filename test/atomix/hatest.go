@@ -25,7 +25,7 @@ import (
 )
 
 // TestRaftHA : integration test
-func (s *AtomixTestSuite) TestRaftHA(t *testing.T) {
+func (s *TestSuite) TestRaftHA(t *testing.T) {
 	env := s.Env()
 
 	partitions := env.Database().Partitions("raft")

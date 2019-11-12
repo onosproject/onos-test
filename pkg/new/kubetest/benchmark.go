@@ -24,8 +24,6 @@ import (
 	"testing"
 )
 
-var allBenchmarksFilter = func(_, _ string) (bool, error) { return true, nil }
-
 // BenchmarkingSuite is a suite of benchmarks
 type BenchmarkingSuite interface{}
 

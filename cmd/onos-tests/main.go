@@ -21,11 +21,11 @@ import (
 )
 
 func main() {
-	onit.RegisterTests("atomix", &atomix.AtomixTestSuite{})
-	onit.RegisterTests("topo", &topo.TopoTestSuite{})
+	onit.RegisterTests("atomix", &atomix.TestSuite{})
+	onit.RegisterTests("topo", &topo.TestSuite{})
 
-	onit.RegisterBenchmarks("atomix", &atomix.AtomixBenchmarkSuite{})
-	onit.RegisterBenchmarks("topo", &topo.TopoBenchmarkSuite{})
+	onit.RegisterBenchmarks("atomix", &atomix.BenchmarkSuite{})
+	onit.RegisterBenchmarks("topo", &topo.BenchmarkSuite{})
 
 	onit.Main()
 }

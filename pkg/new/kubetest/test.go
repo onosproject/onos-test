@@ -24,8 +24,6 @@ import (
 	"testing"
 )
 
-var allTestsFilter = func(_, _ string) (bool, error) { return true, nil }
-
 // TestingSuite is a suite of tests
 type TestingSuite interface{}
 

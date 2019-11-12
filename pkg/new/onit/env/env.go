@@ -19,8 +19,6 @@ import (
 	"github.com/onosproject/onos-test/pkg/new/onit/cluster"
 )
 
-const raftGroup = "raft"
-
 // New returns a new onit Env
 func New(kube kube.API) Env {
 	return &clusterEnv{

@@ -29,12 +29,15 @@ func (j *TestJob) Run() (string, int, error) {
 		_ = j.tearDown()
 		return "", 0, err
 	}
-	message, code, err := j.getResult()
+	_, code, err := j.getResult()
+	if err != nil {
+		return "", 0, err
+	}
 	bytes, err := j.cluster.GetTestOutput(j.test)
 	if err != nil {
 		return "", 0, err
 	}
-	message = string(bytes)
+	message := string(bytes)
 	_ = j.tearDown()
 	return message, code, err
 }

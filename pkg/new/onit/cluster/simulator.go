@@ -28,7 +28,7 @@ import (
 )
 
 var (
-	_, path, _, _ = runtime.Caller(0)
+	_, path, _, _     = runtime.Caller(0)
 	deviceConfigsPath = filepath.Join(filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(filepath.Dir(path))))), "configs"), "device")
 )
 

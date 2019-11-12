@@ -20,8 +20,8 @@ import (
 	"testing"
 )
 
-// BenchAtomixMap : benchmark
-func (s *AtomixBenchmarkSuite) BenchmarkAtomixMap(b *testing.B) {
+// BenchmarkAtomixMap : benchmark
+func (s *BenchmarkSuite) BenchmarkAtomixMap(b *testing.B) {
 	env := s.Env()
 
 	group, err := env.Database().Partitions("raft").Connect()

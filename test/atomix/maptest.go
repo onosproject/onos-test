@@ -25,7 +25,7 @@ import (
 )
 
 // TestAtomixMap : integration test
-func (s *AtomixTestSuite) TestAtomixMap(t *testing.T) {
+func (s *TestSuite) TestAtomixMap(t *testing.T) {
 	env := s.Env()
 
 	group, err := env.Database().Partitions("raft").Connect()

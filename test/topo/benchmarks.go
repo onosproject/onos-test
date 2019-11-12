@@ -24,12 +24,13 @@ import (
 	"testing"
 )
 
-// TopoBenchmarkSuite is a benchmark suite for the topo service
-type TopoBenchmarkSuite struct {
+// BenchmarkSuite is a benchmark suite for the topo service
+type BenchmarkSuite struct {
 	onit.BenchmarkSuite
 }
 
-func (s *TopoBenchmarkSuite) SetupBenchmarkSuite() {
+// SetupBenchmarkSuite sets up the topo benchmark suite
+func (s *BenchmarkSuite) SetupBenchmarkSuite() {
 	setup := s.Setup()
 	setup.Database().
 		Partitions(3).
@@ -38,7 +39,8 @@ func (s *TopoBenchmarkSuite) SetupBenchmarkSuite() {
 	setup.SetupOrDie()
 }
 
-func (s *TopoBenchmarkSuite) BenchmarkDeviceService(b *testing.B) {
+// BenchmarkDeviceService : benchmark
+func (s *BenchmarkSuite) BenchmarkDeviceService(b *testing.B) {
 	env := s.Env()
 	conn, err := env.Topo().Connect()
 	assert.NoError(b, err)

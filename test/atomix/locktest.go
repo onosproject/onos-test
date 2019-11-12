@@ -25,7 +25,7 @@ import (
 )
 
 // TestAtomixLock : integration test
-func (s *AtomixTestSuite) TestAtomixLock(t *testing.T) {
+func (s *TestSuite) TestAtomixLock(t *testing.T) {
 	env := s.Env()
 
 	group, err := env.Database().Partitions("raft").Connect()
