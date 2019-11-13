@@ -69,7 +69,7 @@ func (w *TestWorker) Run() error {
 		{
 			Name: w.test.Suite,
 			F: func(t *testing.T) {
-				RunTests(t, test)
+				RunTests(t, test, w.test)
 			},
 		},
 	}
@@ -101,7 +101,7 @@ func (w *BenchmarkWorker) Run() error {
 		{
 			Name: w.test.Suite,
 			F: func(b *testing.B) {
-				RunBenchmarks(b, benchmark)
+				RunBenchmarks(b, benchmark, w.test)
 			},
 		},
 	}

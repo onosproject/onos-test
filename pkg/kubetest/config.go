@@ -42,6 +42,7 @@ type TestConfig struct {
 	Type       TestType
 	Image      string
 	Suite      string
+	Test       string
 	Timeout    time.Duration
 	PullPolicy corev1.PullPolicy
 }

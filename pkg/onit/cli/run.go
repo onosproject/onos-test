@@ -98,15 +98,17 @@ func runTest(cmd *cobra.Command, testType kubetest.TestType) error {
 	clusterID, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")
 	suite, _ := cmd.Flags().GetString("suite")
+	test, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	test := &kubetest.TestConfig{
+	config := &kubetest.TestConfig{
 		TestID:     random.NewPetName(2),
 		Type:       testType,
 		Image:      image,
 		Suite:      suite,
+		Test:       test,
 		Timeout:    timeout,
 		PullPolicy: pullPolicy,
 	}
@@ -114,7 +116,7 @@ func runTest(cmd *cobra.Command, testType kubetest.TestType) error {
 	// If the cluster ID was not specified, create a new cluster to run the test
 	// Otherwise, deploy the test in the existing cluster
 	if clusterID == "" {
-		runner, err := kubetest.NewTestRunner(test)
+		runner, err := kubetest.NewTestRunner(config)
 		if err != nil {
 			return err
 		}
@@ -122,13 +124,13 @@ func runTest(cmd *cobra.Command, testType kubetest.TestType) error {
 	}
 
 	cluster := kubetest.NewTestCluster(clusterID)
-	if err := cluster.StartTest(test); err != nil {
+	if err := cluster.StartTest(config); err != nil {
 		return err
 	}
-	if err := cluster.AwaitTestComplete(test); err != nil {
+	if err := cluster.AwaitTestComplete(config); err != nil {
 		return err
 	}
-	_, code, err := cluster.GetTestResult(test)
+	_, code, err := cluster.GetTestResult(config)
 	if err != nil {
 		return err
 	}

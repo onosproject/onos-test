@@ -91,6 +91,7 @@ func (c *TestCoordinator) Run() error {
 			Type:       c.test.Type,
 			Image:      c.test.Image,
 			Suite:      c.test.Suite,
+			Test:       c.test.Test,
 			Timeout:    c.test.Timeout,
 			PullPolicy: c.test.PullPolicy,
 		}
@@ -145,6 +146,7 @@ func (c *BenchmarkCoordinator) Run() error {
 			Type:       c.test.Type,
 			Image:      c.test.Image,
 			Suite:      c.test.Suite,
+			Test:       c.test.Test,
 			Timeout:    c.test.Timeout,
 			PullPolicy: c.test.PullPolicy,
 		}

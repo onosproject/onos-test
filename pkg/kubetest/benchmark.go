@@ -68,7 +68,7 @@ func failBenchmarkOnPanic(b *testing.B) {
 }
 
 // RunBenchmarks runs a benchmark suite
-func RunBenchmarks(b *testing.B, suite BenchmarkingSuite) {
+func RunBenchmarks(b *testing.B, suite BenchmarkingSuite, config *TestConfig) {
 	defer failBenchmarkOnPanic(b)
 
 	suiteSetupDone := false
@@ -77,7 +77,7 @@ func RunBenchmarks(b *testing.B, suite BenchmarkingSuite) {
 	benchmarks := []testing.InternalBenchmark{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
-		ok, err := benchmarkFilter(method.Name)
+		ok, err := benchmarkFilter(method.Name, config)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "invalid regexp for -m: %s\n", err)
 			os.Exit(1)
@@ -131,9 +131,12 @@ func runBenchmarks(b *testing.B, benchmarks []testing.InternalBenchmark) {
 }
 
 // benchmarkFilter filters benchmark method names
-func benchmarkFilter(name string) (bool, error) {
+func benchmarkFilter(name string, config *TestConfig) (bool, error) {
 	if ok, _ := regexp.MatchString("^Benchmark", name); !ok {
 		return false, nil
+	}
+	if config.Test != "" {
+		return config.Test == name, nil
 	}
 	return true, nil
 }
