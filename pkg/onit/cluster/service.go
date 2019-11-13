@@ -25,11 +25,12 @@ import (
 
 func newService(name string, port int, labels map[string]string, image string, client *client) *Service {
 	return &Service{
-		client: client,
-		name:   name,
-		port:   port,
-		labels: labels,
-		image:  image,
+		client:     client,
+		name:       name,
+		port:       port,
+		labels:     labels,
+		image:      image,
+		pullPolicy: corev1.PullIfNotPresent,
 	}
 }
 

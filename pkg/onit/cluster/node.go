@@ -32,10 +32,11 @@ import (
 
 func newNode(name string, port int, image string, client *client) *Node {
 	return &Node{
-		client: client,
-		name:   name,
-		port:   port,
-		image:  image,
+		client:     client,
+		name:       name,
+		port:       port,
+		image:      image,
+		pullPolicy: corev1.PullIfNotPresent,
 	}
 }
 
