@@ -75,6 +75,7 @@ func (c *TestCoordinator) Run() error {
 				Suite:      suite,
 				Timeout:    c.test.Timeout,
 				PullPolicy: c.test.PullPolicy,
+				Teardown:   c.test.Teardown,
 			}
 			job := &TestJob{
 				cluster: &TestCluster{
@@ -94,6 +95,7 @@ func (c *TestCoordinator) Run() error {
 			Test:       c.test.Test,
 			Timeout:    c.test.Timeout,
 			PullPolicy: c.test.PullPolicy,
+			Teardown:   c.test.Teardown,
 		}
 		job := &TestJob{
 			cluster: &TestCluster{
@@ -130,6 +132,7 @@ func (c *BenchmarkCoordinator) Run() error {
 				Suite:      suite,
 				Timeout:    c.test.Timeout,
 				PullPolicy: c.test.PullPolicy,
+				Teardown:   c.test.Teardown,
 			}
 			job := &TestJob{
 				cluster: &TestCluster{
@@ -149,6 +152,7 @@ func (c *BenchmarkCoordinator) Run() error {
 			Test:       c.test.Test,
 			Timeout:    c.test.Timeout,
 			PullPolicy: c.test.PullPolicy,
+			Teardown:   c.test.Teardown,
 		}
 		job := &TestJob{
 			cluster: &TestCluster{

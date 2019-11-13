@@ -60,6 +60,7 @@ func getRunTestCommand() *cobra.Command {
 	cmd.Flags().StringP("suite", "s", "", "the test suite to run")
 	cmd.Flags().StringP("test", "t", "", "the name of the test method to run")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "test timeout")
+	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
 	return cmd
 }
 
@@ -84,6 +85,7 @@ func getRunBenchCommand() *cobra.Command {
 	cmd.Flags().StringP("suite", "s", "", "the benchmark suite to run")
 	cmd.Flags().StringP("benchmark", "t", "", "the name of the benchmark method to run")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "benchmark timeout")
+	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
 	return cmd
 }
 
@@ -100,6 +102,7 @@ func runTest(cmd *cobra.Command, testType kubetest.TestType) error {
 	suite, _ := cmd.Flags().GetString("suite")
 	test, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
+	noTeardown, _ := cmd.Flags().GetBool("no-teardown")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
@@ -111,6 +114,7 @@ func runTest(cmd *cobra.Command, testType kubetest.TestType) error {
 		Test:       test,
 		Timeout:    timeout,
 		PullPolicy: pullPolicy,
+		Teardown:   !noTeardown,
 	}
 
 	// If the cluster ID was not specified, create a new cluster to run the test

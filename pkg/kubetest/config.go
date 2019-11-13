@@ -45,6 +45,7 @@ type TestConfig struct {
 	Test       string
 	Timeout    time.Duration
 	PullPolicy corev1.PullPolicy
+	Teardown   bool
 }
 
 // loadTestConfig loads the test configuration

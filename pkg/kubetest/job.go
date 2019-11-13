@@ -38,7 +38,9 @@ func (j *TestJob) Run() (string, int, error) {
 		return "", 0, err
 	}
 	message := string(bytes)
-	_ = j.tearDown()
+	if j.test.Teardown {
+		_ = j.tearDown()
+	}
 	return message, code, err
 }
 
