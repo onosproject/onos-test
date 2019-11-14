@@ -49,7 +49,11 @@ func getExecCommand() *cobra.Command {
 // runExecCommand runs the "exec" command
 func runExecCommand(cmd *cobra.Command, args []string) error {
 	cluster, _ := cmd.Flags().GetString("cluster")
-	kubeAPI := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(cluster)
+	if err != nil {
+		return err
+	}
+
 	env := env.New(kubeAPI)
 	output, code, err := env.CLI().Execute(strings.Join(args, " "))
 	if err != nil {

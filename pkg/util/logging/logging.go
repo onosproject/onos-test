@@ -95,11 +95,11 @@ func Print(line string) {
 	if line == "" {
 		return
 	}
-	if line[:len(start)] == start {
+	if len(line) >= len(start) && line[:len(start)] == start {
 		fmt.Fprintln(writer, color.CyanString(line))
-	} else if line[:len(success)] == success {
+	} else if len(line) >= len(success) && line[:len(success)] == success {
 		fmt.Fprintln(writer, color.GreenString(line))
-	} else if line[:len(failure)] == failure {
+	} else if len(line) >= len(failure) && line[:len(failure)] == failure {
 		fmt.Fprintln(writer, color.RedString(line))
 	} else {
 		fmt.Fprintln(writer, line)

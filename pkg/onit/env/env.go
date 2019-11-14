@@ -31,7 +31,7 @@ var env ClusterEnv
 // getEnv gets the current environment
 func getEnv() ClusterEnv {
 	if env == nil {
-		env = New(kube.GetAPIFromEnv())
+		env = New(kube.GetAPIFromEnvOrDie())
 	}
 	return env
 }

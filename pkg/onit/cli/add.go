@@ -89,9 +89,13 @@ func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 	topo, _ := cmd.Flags().GetString("topo")
 	devices, _ := cmd.Flags().GetInt("devices")
 
-	kubeAPI := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(cluster)
+	if err != nil {
+		return err
+	}
+
 	env := env.New(kubeAPI)
-	_, err := env.Networks().
+	_, err = env.Networks().
 		New().
 		Name(networkID).
 		Image(image).
@@ -136,9 +140,13 @@ func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	kubeAPI := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(cluster)
+	if err != nil {
+		return err
+	}
+
 	env := env.New(kubeAPI)
-	_, err := env.Simulators().
+	_, err = env.Simulators().
 		New().
 		Name(deviceID).
 		Image(image).
@@ -185,9 +193,13 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	kubeAPI := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(cluster)
+	if err != nil {
+		return err
+	}
+
 	env := env.New(kubeAPI)
-	_, err := env.Apps().
+	_, err = env.Apps().
 		New().
 		Name(appID).
 		Nodes(nodes).

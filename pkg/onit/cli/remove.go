@@ -69,7 +69,11 @@ func runRemoveNetworkCommand(cmd *cobra.Command, args []string) error {
 	networkID := args[0]
 	cluster, _ := cmd.Flags().GetString("cluster")
 
-	kubeAPI := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(cluster)
+	if err != nil {
+		return err
+	}
+
 	env := env.New(kubeAPI)
 	network := env.Simulator(networkID)
 	if network == nil {
@@ -101,7 +105,11 @@ func runRemoveSimulatorCommand(cmd *cobra.Command, args []string) error {
 	deviceID := args[0]
 	cluster, _ := cmd.Flags().GetString("cluster")
 
-	kubeAPI := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(cluster)
+	if err != nil {
+		return err
+	}
+
 	env := env.New(kubeAPI)
 	simulator := env.Simulator(deviceID)
 	if simulator == nil {
@@ -133,7 +141,11 @@ func runRemoveAppCommand(cmd *cobra.Command, args []string) error {
 	appID := args[0]
 	cluster, _ := cmd.Flags().GetString("cluster")
 
-	kubeAPI := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(cluster)
+	if err != nil {
+		return err
+	}
+
 	env := env.New(kubeAPI)
 	app := env.App(appID)
 	if app == nil {

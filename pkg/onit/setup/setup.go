@@ -33,7 +33,7 @@ var setup ClusterSetup
 // getSetup gets the current setup
 func getSetup() ClusterSetup {
 	if setup == nil {
-		setup = New(kube.GetAPIFromEnv())
+		setup = New(kube.GetAPIFromEnvOrDie())
 	}
 	return setup
 }

@@ -16,7 +16,7 @@ package kubetest
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/util/k8s"
+	"github.com/onosproject/onos-test/pkg/kube"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
@@ -24,26 +24,26 @@ import (
 
 // newTestWorker returns a new test worker
 func newTestWorker(test *TestConfig) (Worker, error) {
-	client, err := k8s.GetClient()
-	if err != nil {
+	if kubeAPI, err := kube.GetAPI(test.TestID); err != nil {
 		return nil, err
+	} else {
+		return &TestWorker{
+			client: kubeAPI.Client(),
+			test:   test,
+		}, nil
 	}
-	return &TestWorker{
-		client: client,
-		test:   test,
-	}, nil
 }
 
 // newBenchmarkWorker returns a new test worker
 func newBenchmarkWorker(test *TestConfig) (Worker, error) {
-	client, err := k8s.GetClient()
-	if err != nil {
+	if kubeAPI, err := kube.GetAPI(test.TestID); err != nil {
 		return nil, err
+	} else {
+		return &BenchmarkWorker{
+			client: kubeAPI.Client(),
+			test:   test,
+		}, nil
 	}
-	return &BenchmarkWorker{
-		client: client,
-		test:   test,
-	}, nil
 }
 
 // Worker runs a single test suite

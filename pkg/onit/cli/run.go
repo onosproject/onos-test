@@ -127,7 +127,10 @@ func runTest(cmd *cobra.Command, testType kubetest.TestType) error {
 		return runner.Run()
 	}
 
-	cluster := kubetest.NewTestCluster(clusterID)
+	cluster, err := kubetest.NewTestCluster(clusterID)
+	if err != nil {
+		return err
+	}
 	if err := cluster.StartTest(config); err != nil {
 		return err
 	}

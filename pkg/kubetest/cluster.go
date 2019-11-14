@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/ghodss/yaml"
-	"github.com/onosproject/onos-test/pkg/util/k8s"
+	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -31,12 +31,12 @@ import (
 
 // GetTestClusters returns a list of test clusters
 func GetTestClusters() ([]string, error) {
-	client, err := k8s.GetClientset()
+	kubeAPI, err := kube.GetAPIFromEnv()
 	if err != nil {
 		return nil, err
 	}
 
-	namespaces, err := client.CoreV1().Namespaces().List(metav1.ListOptions{})
+	namespaces, err := kubeAPI.Clientset().CoreV1().Namespaces().List(metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -51,15 +51,15 @@ func GetTestClusters() ([]string, error) {
 }
 
 // NewTestCluster returns a new test cluster for the given Kubernetes API
-func NewTestCluster(namespace string) *TestCluster {
-	client, err := k8s.GetClientset()
+func NewTestCluster(namespace string) (*TestCluster, error) {
+	kubeAPI, err := kube.GetAPIFromEnv()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return &TestCluster{
-		client:    client,
+		client:    kubeAPI.Clientset(),
 		namespace: namespace,
-	}
+	}, nil
 }
 
 // TestCluster manages a test cluster

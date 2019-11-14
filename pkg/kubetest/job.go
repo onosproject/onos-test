@@ -14,34 +14,14 @@
 
 package kubetest
 
+import (
+	"k8s.io/api/core/v1"
+)
+
 // TestJob manages a single test job for a suite
 type TestJob struct {
 	cluster *TestCluster
 	test    *TestConfig
-}
-
-// Run runs the test job
-func (j *TestJob) Run() (string, int, error) {
-	if err := j.start(); err != nil {
-		return "", 0, err
-	}
-	if err := j.waitForComplete(); err != nil {
-		_ = j.tearDown()
-		return "", 0, err
-	}
-	_, code, err := j.getResult()
-	if err != nil {
-		return "", 0, err
-	}
-	bytes, err := j.cluster.GetTestOutput(j.test)
-	if err != nil {
-		return "", 0, err
-	}
-	message := string(bytes)
-	if j.test.Teardown {
-		_ = j.tearDown()
-	}
-	return message, code, err
 }
 
 // start starts the test job
@@ -52,20 +32,20 @@ func (j *TestJob) start() error {
 	if err := j.cluster.StartTest(j.test); err != nil {
 		return err
 	}
-	return nil
-}
-
-// waitForComplete waits for the test job to finish running
-func (j *TestJob) waitForComplete() error {
-	if err := j.cluster.AwaitTestComplete(j.test); err != nil {
+	if err := j.cluster.awaitTestJobRunning(j.test); err != nil {
 		return err
 	}
 	return nil
 }
 
-// getResult gets the job result
-func (j *TestJob) getResult() (string, int, error) {
+// getStatus gets the status message and exit code of the given pod
+func (j *TestJob) getStatus() (string, int, error) {
 	return j.cluster.GetTestResult(j.test)
+}
+
+// getPod finds the Pod for the given test
+func (j *TestJob) getPod() (*v1.Pod, error) {
+	return j.cluster.getPod(j.test)
 }
 
 // tearDown tears down the job

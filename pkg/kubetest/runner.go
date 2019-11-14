@@ -18,7 +18,7 @@ import (
 	"bufio"
 	"errors"
 	"github.com/ghodss/yaml"
-	"github.com/onosproject/onos-test/pkg/util/k8s"
+	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -62,14 +62,14 @@ type TestRecord struct {
 
 // NewTestRunner returns a new test runner
 func NewTestRunner(test *TestConfig) (*TestRunner, error) {
-	client, err := k8s.GetClientset()
-	if err != nil {
+	if kubeAPI, err := kube.GetAPI(test.TestID); err != nil {
 		return nil, err
+	} else {
+		return &TestRunner{
+			client: kubeAPI.Clientset(),
+			test:   test,
+		}, nil
 	}
-	return &TestRunner{
-		client: client,
-		test:   test,
-	}, nil
 }
 
 // TestRunner is a kubetest runner

@@ -102,7 +102,10 @@ func (c *Cluster) Networks() *Networks {
 func (c *Cluster) Create() error {
 	step := logging.NewStep(c.namespace, "Setup ONOS cluster")
 	step.Start()
-	cluster := kubetest.NewTestCluster(c.namespace)
+	cluster, err := kubetest.NewTestCluster(c.namespace)
+	if err != nil {
+		return err
+	}
 	if err := cluster.Create(); err != nil {
 		step.Fail(err)
 		return err
@@ -115,7 +118,10 @@ func (c *Cluster) Create() error {
 func (c *Cluster) Delete() error {
 	step := logging.NewStep(c.namespace, "Tear down ONOS cluster")
 	step.Start()
-	cluster := kubetest.NewTestCluster(c.namespace)
+	cluster, err := kubetest.NewTestCluster(c.namespace)
+	if err != nil {
+		return err
+	}
 	if err := cluster.Delete(); err != nil {
 		step.Fail(err)
 		return err

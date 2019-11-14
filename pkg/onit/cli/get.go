@@ -90,7 +90,11 @@ func getGetNetworksCommand() *cobra.Command {
 
 func runGetNetworksCommand(cmd *cobra.Command, _ []string) error {
 	cluster, _ := cmd.Flags().GetString("cluster")
-	kubeAPI := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(cluster)
+	if err != nil {
+		return err
+	}
+
 	env := env.New(kubeAPI)
 	for _, network := range env.Networks().List() {
 		fmt.Println(network.Name())
@@ -116,7 +120,11 @@ func getGetSimulatorsCommand() *cobra.Command {
 
 func runGetSimulatorsCommand(cmd *cobra.Command, _ []string) error {
 	cluster, _ := cmd.Flags().GetString("cluster")
-	kubeAPI := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(cluster)
+	if err != nil {
+		return err
+	}
+
 	env := env.New(kubeAPI)
 	for _, simulator := range env.Simulators().List() {
 		fmt.Println(simulator.Name())
@@ -142,7 +150,11 @@ func getGetAppsCommand() *cobra.Command {
 
 func runGetAppsCommand(cmd *cobra.Command, _ []string) error {
 	cluster, _ := cmd.Flags().GetString("cluster")
-	kubeAPI := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(cluster)
+	if err != nil {
+		return err
+	}
+
 	env := env.New(kubeAPI)
 	for _, app := range env.Apps().List() {
 		fmt.Println(app.Name())

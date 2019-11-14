@@ -103,7 +103,10 @@ func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	kubeAPI := kube.GetAPI(clusterID)
+	kubeAPI, err := kube.GetAPI(clusterID)
+	if err != nil {
+		return err
+	}
 	cluster := cluster.New(kubeAPI)
 	if err := cluster.Create(); err != nil {
 		return err

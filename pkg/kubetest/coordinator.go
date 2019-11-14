@@ -15,35 +15,39 @@
 package kubetest
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/util/k8s"
+	"github.com/onosproject/onos-test/pkg/kube"
+	"github.com/onosproject/onos-test/pkg/util/logging"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sync"
 )
 
 // newTestCoordinator returns a new test coordinator
 func newTestCoordinator(test *TestConfig) (Coordinator, error) {
-	client, err := k8s.GetClient()
-	if err != nil {
+	if kubeAPI, err := kube.GetAPI(test.TestID); err != nil {
 		return nil, err
+	} else {
+		return &TestCoordinator{
+			client: kubeAPI.Clientset(),
+			test:   test,
+		}, nil
 	}
-	return &TestCoordinator{
-		client: client,
-		test:   test,
-	}, nil
 }
 
 // newBenchmarkCoordinator returns a new benchmark coordinator
 func newBenchmarkCoordinator(test *TestConfig) (Coordinator, error) {
-	client, err := k8s.GetClient()
-	if err != nil {
+	if kubeAPI, err := kube.GetAPI(test.TestID); err != nil {
 		return nil, err
+	} else {
+		return &BenchmarkCoordinator{
+			client: kubeAPI.Clientset(),
+			test:   test,
+		}, nil
 	}
-	return &BenchmarkCoordinator{
-		client: client,
-		test:   test,
-	}, nil
 }
 
 // Coordinator coordinates workers for tests and benchmarks
@@ -54,17 +58,12 @@ type Coordinator interface {
 
 // TestCoordinator coordinates workers for suites of tests
 type TestCoordinator struct {
-	client client.Client
+	client *kubernetes.Clientset
 	test   *TestConfig
 }
 
 // Run runs the tests
 func (c *TestCoordinator) Run() error {
-	client, err := k8s.GetClientset()
-	if err != nil {
-		return err
-	}
-
 	jobs := make([]*TestJob, 0)
 	if c.test.Suite == "" {
 		for suite := range Registry.tests {
@@ -79,7 +78,7 @@ func (c *TestCoordinator) Run() error {
 			}
 			job := &TestJob{
 				cluster: &TestCluster{
-					client:    client,
+					client:    c.client,
 					namespace: config.TestID,
 				},
 				test: config,
@@ -99,29 +98,24 @@ func (c *TestCoordinator) Run() error {
 		}
 		job := &TestJob{
 			cluster: &TestCluster{
-				client:    client,
+				client:    c.client,
 				namespace: config.TestID,
 			},
 			test: config,
 		}
 		jobs = append(jobs, job)
 	}
-	return runJobs(jobs)
+	return runJobs(jobs, c.client)
 }
 
 // BenchmarkCoordinator coordinates workers for suites of benchmarks
 type BenchmarkCoordinator struct {
-	client client.Client
+	client *kubernetes.Clientset
 	test   *TestConfig
 }
 
 // Run runs the tests
 func (c *BenchmarkCoordinator) Run() error {
-	client, err := k8s.GetClientset()
-	if err != nil {
-		return err
-	}
-
 	jobs := make([]*TestJob, 0)
 	if c.test.Suite == "" {
 		for suite := range Registry.benchmarks {
@@ -136,7 +130,7 @@ func (c *BenchmarkCoordinator) Run() error {
 			}
 			job := &TestJob{
 				cluster: &TestCluster{
-					client:    client,
+					client:    c.client,
 					namespace: config.TestID,
 				},
 				test: config,
@@ -156,18 +150,18 @@ func (c *BenchmarkCoordinator) Run() error {
 		}
 		job := &TestJob{
 			cluster: &TestCluster{
-				client:    client,
+				client:    c.client,
 				namespace: config.TestID,
 			},
 			test: config,
 		}
 		jobs = append(jobs, job)
 	}
-	return runJobs(jobs)
+	return runJobs(jobs, c.client)
 }
 
 // runJobs runs the given test jobs
-func runJobs(jobs []*TestJob) error {
+func runJobs(jobs []*TestJob, client *kubernetes.Clientset) error {
 	// Start jobs in separate goroutines
 	wg := &sync.WaitGroup{}
 	mu := &sync.Mutex{}
@@ -176,13 +170,48 @@ func runJobs(jobs []*TestJob) error {
 	for _, job := range jobs {
 		wg.Add(1)
 		go func(job *TestJob) {
-			if output, code, err := job.Run(); err != nil {
+			// Start the job
+			err := job.start()
+			if err != nil {
 				errChan <- err
-			} else {
+				return
+			}
+
+			// Get the stream of logs for the pod
+			pod, err := job.getPod()
+			if err != nil {
+				errChan <- err
+				return
+			} else if pod == nil {
+				errChan <- errors.New("cannot locate test pod")
+				return
+			}
+
+			req := client.CoreV1().Pods(job.test.TestID).GetLogs(pod.Name, &corev1.PodLogOptions{
+				Follow: true,
+			})
+			reader, err := req.Stream()
+			if err != nil {
+				errChan <- err
+				return
+			}
+			defer reader.Close()
+
+			// Stream the logs to stdout
+			scanner := bufio.NewScanner(reader)
+			for scanner.Scan() {
 				mu.Lock()
-				_, _ = os.Stdout.WriteString(output)
-				codeChan <- code
+				logging.Print(scanner.Text())
 				mu.Unlock()
+			}
+
+			// Get the exit message and code
+			_, status, err := job.getStatus()
+			if err != nil {
+				errChan <- err
+				return
+			} else {
+				codeChan <- status
 			}
 			wg.Done()
 		}(job)
