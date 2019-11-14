@@ -116,12 +116,17 @@ func (s *Partitions) Connect() (*atomix.PartitionGroup, error) {
 	return client.GetGroup(context.Background(), s.group)
 }
 
-// Create creates a partition set
-func (s *Partitions) Create() error {
-	step := logging.NewStep(s.namespace, "Create Raft partitions")
+// Setup sets up a partition set
+func (s *Partitions) Setup() error {
+	step := logging.NewStep(s.namespace, "Setup Raft partitions")
 	step.Start()
 	step.Log("Creating Raft PartitionSet")
 	if err := s.createPartitionSet(); err != nil {
+		step.Fail(err)
+		return err
+	}
+	step.Log("Waiting for Raft partitions to become ready")
+	if err := s.AwaitReady(); err != nil {
 		step.Fail(err)
 		return err
 	}

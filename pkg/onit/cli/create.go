@@ -28,19 +28,19 @@ import (
 
 var (
 	createExample = `
-		# Create a cluster with a given name that contains one instance of each subsystem (e.g. onos-config, onos-topo)
+		# Setup a cluster with a given name that contains one instance of each subsystem (e.g. onos-config, onos-topo)
 		onit create cluster onit-cluster-1 
 
-		# Create a cluster that contains two instances of onos-config subsystem and two instances of onos-topo subsystem
+		# Setup a cluster that contains two instances of onos-config subsystem and two instances of onos-topo subsystem
 		onit-create-cluster onit-cluster-2 --topo-nodes 2 --config-nodes 2
 
-		# Create a cluster that has two 3-node raft partitions
+		# Setup a cluster that has two 3-node raft partitions
 		onit create cluster --partitions 2 --partition-size 3
 
-		# Create a cluster that fetches docker images from a private docker registry
+		# Setup a cluster that fetches docker images from a private docker registry
 		onit create cluster --docker-registry <host>:<port>
 	
-		# Create a cluster to deploy topo and config subsystems using the images with custom tags 
+		# Setup a cluster to deploy topo and config subsystems using the images with custom tags 
         onit create cluster --image-tags topo=test-topo-tag,config=test-config-tag`
 )
 
@@ -48,7 +48,7 @@ var (
 func getCreateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "create {cluster} [args]",
-		Short:   "Create a test resource on Kubernetes",
+		Short:   "Setup a test resource on Kubernetes",
 		Example: createExample,
 	}
 	cmd.AddCommand(getCreateClusterCommand())

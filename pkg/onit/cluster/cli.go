@@ -37,8 +37,8 @@ type CLI struct {
 	*Service
 }
 
-// Create creates the CLI subsystem
-func (c *CLI) Create() error {
+// Setup sets up the CLI subsystem
+func (c *CLI) Setup() error {
 	if c.replicas == 0 {
 		return nil
 	}
@@ -50,8 +50,13 @@ func (c *CLI) Create() error {
 		step.Fail(err)
 		return err
 	}
-	step.Log("Creating onos-topo Deployment")
+	step.Log("Creating onos-cli Deployment")
 	if err := c.createDeployment(); err != nil {
+		step.Fail(err)
+		return err
+	}
+	step.Log("Waiting for onos-cli to become ready")
+	if err := c.AwaitReady(); err != nil {
 		step.Fail(err)
 		return err
 	}

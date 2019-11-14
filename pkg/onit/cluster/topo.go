@@ -38,8 +38,8 @@ type Topo struct {
 	*Service
 }
 
-// Create creates the topology subsystem
-func (s *Topo) Create() error {
+// Setup sets up the topology subsystem
+func (s *Topo) Setup() error {
 	if s.replicas == 0 {
 		return nil
 	}
@@ -58,6 +58,11 @@ func (s *Topo) Create() error {
 	}
 	step.Log("Creating onos-topo Deployment")
 	if err := s.createDeployment(); err != nil {
+		step.Fail(err)
+		return err
+	}
+	step.Log("Waiting for onos-topo to become ready")
+	if err := s.AwaitReady(); err != nil {
 		step.Fail(err)
 		return err
 	}

@@ -39,8 +39,8 @@ type Config struct {
 	*Service
 }
 
-// Create creates the config service
-func (s *Config) Create() error {
+// Setup sets up the config service
+func (s *Config) Setup() error {
 	if s.replicas == 0 {
 		return nil
 	}
@@ -59,6 +59,11 @@ func (s *Config) Create() error {
 	}
 	step.Log("Creating onos-config Deployment")
 	if err := s.createDeployment(); err != nil {
+		step.Fail(err)
+		return err
+	}
+	step.Log("Waiting for onos-config to become ready")
+	if err := s.AwaitReady(); err != nil {
 		step.Fail(err)
 		return err
 	}

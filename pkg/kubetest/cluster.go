@@ -88,7 +88,7 @@ func (c *TestCluster) setupNamespace() error {
 			},
 		},
 	}
-	step := logging.NewStep(c.namespace, "Create namespace")
+	step := logging.NewStep(c.namespace, "Setup namespace")
 	step.Start()
 	_, err := c.client.CoreV1().Namespaces().Create(ns)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {

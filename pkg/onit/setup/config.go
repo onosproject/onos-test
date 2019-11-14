@@ -53,10 +53,6 @@ func (s *clusterConfigSetup) PullPolicy(pullPolicy corev1.PullPolicy) ConfigSetu
 	return s
 }
 
-func (s *clusterConfigSetup) create() error {
-	return s.config.Create()
-}
-
-func (s *clusterConfigSetup) waitForStart() error {
-	return s.config.AwaitReady()
+func (s *clusterConfigSetup) setup() error {
+	return s.config.Setup()
 }

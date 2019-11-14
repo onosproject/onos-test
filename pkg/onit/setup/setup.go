@@ -17,6 +17,7 @@ package setup
 import (
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
+	"sync"
 )
 
 const raftGroup = "raft"
@@ -97,15 +98,9 @@ type ClusterSetup interface {
 	SetupOrDie()
 }
 
-// sequentialSetup is a setup step that must run sequentially
-type sequentialSetup interface {
+// serviceSetup is a setup step for a single service
+type serviceSetup interface {
 	setup() error
-}
-
-// concurrentSetup is a setup step that can run concurrently with other steps
-type concurrentSetup interface {
-	create() error
-	waitForStart() error
 }
 
 // clusterSetup is an implementation of the Setup interface
@@ -145,38 +140,38 @@ func (s *clusterSetup) Config() ConfigSetup {
 
 func (s *clusterSetup) Setup() error {
 	// Set up the Atomix controller
-	if err := s.Atomix().(sequentialSetup).setup(); err != nil {
+	if err := s.Atomix().(serviceSetup).setup(); err != nil {
 		return err
 	}
 
 	// Create the database and services concurrently
-	if err := s.Database().(concurrentSetup).create(); err != nil {
-		return err
-	}
-	if err := s.CLI().(concurrentSetup).create(); err != nil {
-		return err
-	}
-	if err := s.Topo().(concurrentSetup).create(); err != nil {
-		return err
-	}
-	if err := s.Config().(concurrentSetup).create(); err != nil {
-		return err
-	}
+	wg := &sync.WaitGroup{}
+	errCh := make(chan error)
 
-	// Wait for the database and services to start up
-	if err := s.Database().(concurrentSetup).waitForStart(); err != nil {
-		return err
-	}
-	if err := s.CLI().(concurrentSetup).waitForStart(); err != nil {
-		return err
-	}
-	if err := s.Topo().(concurrentSetup).waitForStart(); err != nil {
-		return err
-	}
-	if err := s.Config().(concurrentSetup).waitForStart(); err != nil {
+	setupService(s.Database().(serviceSetup), wg, errCh)
+	setupService(s.CLI().(serviceSetup), wg, errCh)
+	setupService(s.Topo().(serviceSetup), wg, errCh)
+	setupService(s.Config().(serviceSetup), wg, errCh)
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	for err := range errCh {
 		return err
 	}
 	return nil
+}
+
+func setupService(setup serviceSetup, wg *sync.WaitGroup, errCh chan<- error) {
+	wg.Add(1)
+	go func() {
+		if err := setup.setup(); err != nil {
+			errCh <- err
+		}
+		wg.Done()
+	}()
 }
 
 func (s *clusterSetup) SetupOrDie() {

@@ -53,11 +53,6 @@ func (s *clusterTopoSetup) PullPolicy(pullPolicy corev1.PullPolicy) TopoSetup {
 	return s
 }
 
-func (s *clusterTopoSetup) create() error {
-	return s.topo.Create()
-}
-
-// waitForStart waits for the onos-topo pods to complete startup
-func (s *clusterTopoSetup) waitForStart() error {
-	return s.topo.AwaitReady()
+func (s *clusterTopoSetup) setup() error {
+	return s.topo.Setup()
 }

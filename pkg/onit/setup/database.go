@@ -61,10 +61,6 @@ func (s *clusterDatabaseSetup) PullPolicy(pullPolicy corev1.PullPolicy) Database
 	return s
 }
 
-func (s *clusterDatabaseSetup) create() error {
-	return s.group.Create()
-}
-
-func (s *clusterDatabaseSetup) waitForStart() error {
-	return s.group.AwaitReady()
+func (s *clusterDatabaseSetup) setup() error {
+	return s.group.Setup()
 }

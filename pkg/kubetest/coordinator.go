@@ -174,6 +174,7 @@ func runJobs(jobs []*TestJob, client *kubernetes.Clientset) error {
 			err := job.start()
 			if err != nil {
 				errChan <- err
+				_ = job.tearDown()
 				return
 			}
 
@@ -181,9 +182,11 @@ func runJobs(jobs []*TestJob, client *kubernetes.Clientset) error {
 			pod, err := job.getPod()
 			if err != nil {
 				errChan <- err
+				_ = job.tearDown()
 				return
 			} else if pod == nil {
 				errChan <- errors.New("cannot locate test pod")
+				_ = job.tearDown()
 				return
 			}
 
@@ -193,6 +196,9 @@ func runJobs(jobs []*TestJob, client *kubernetes.Clientset) error {
 			reader, err := req.Stream()
 			if err != nil {
 				errChan <- err
+				if job.test.Teardown {
+					_ = job.tearDown()
+				}
 				return
 			}
 			defer reader.Close()
@@ -209,10 +215,19 @@ func runJobs(jobs []*TestJob, client *kubernetes.Clientset) error {
 			_, status, err := job.getStatus()
 			if err != nil {
 				errChan <- err
+				if job.test.Teardown {
+					_ = job.tearDown()
+				}
 				return
 			} else {
 				codeChan <- status
 			}
+
+			// Tear down the cluster if necessary
+			if job.test.Teardown {
+				_ = job.tearDown()
+			}
+
 			wg.Done()
 		}(job)
 	}

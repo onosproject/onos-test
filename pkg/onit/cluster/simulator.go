@@ -144,6 +144,7 @@ func (s *Simulator) Add() error {
 		step.Fail(err)
 		return err
 	}
+	step.Complete()
 	return nil
 }
 
