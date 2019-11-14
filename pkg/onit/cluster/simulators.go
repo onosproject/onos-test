@@ -14,7 +14,10 @@
 
 package cluster
 
-import "github.com/onosproject/onos-test/pkg/util/random"
+import (
+	"fmt"
+	"github.com/onosproject/onos-test/pkg/util/random"
+)
 
 func newSimulators(client *client) *Simulators {
 	return &Simulators{
@@ -29,7 +32,7 @@ type Simulators struct {
 
 // New returns a new simulator
 func (s *Simulators) New() *Simulator {
-	return newSimulator(random.NewPetName(2), s.client)
+	return newSimulator(fmt.Sprintf("devicesim-%s", random.NewPetName(2)), s.client)
 }
 
 // Get gets a simulator by name

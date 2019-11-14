@@ -25,8 +25,7 @@ import (
 )
 
 func (s *SmokeTestSuite) TestSnapshot(t *testing.T) {
-	simulator1 := s.addSimulator(t)
-	simulator2 := s.addSimulator(t)
+	simulators := s.addSimulators(25, t)
 
 	// Make a GNMI client to use for requests
 	c, err := env.Config().NewGNMIClient()
@@ -34,21 +33,15 @@ func (s *SmokeTestSuite) TestSnapshot(t *testing.T) {
 	assert.True(t, c != nil, "Fetching client returned nil")
 
 	for i := 0; i < 100; i++ {
-		setPath := makeDevicePath(simulator1.Name(), "/system/config/motd-banner")
-		setPath[0].pathDataValue = uuid.New().String()
-		setPath[0].pathDataType = StringVal
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		_, _, err := GNMISet(ctx, c, setPath, noPaths)
-		cancel()
-		assert.NoError(t, err)
-
-		setPath = makeDevicePath(simulator2.Name(), "/system/config/motd-banner")
-		setPath[0].pathDataValue = uuid.New().String()
-		setPath[0].pathDataType = StringVal
-		ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
-		_, _, err = GNMISet(ctx, c, setPath, noPaths)
-		cancel()
-		assert.NoError(t, err)
+		for _, simulator := range simulators {
+			setPath := makeDevicePath(simulator.Name(), "/system/config/motd-banner")
+			setPath[0].pathDataValue = uuid.New().String()
+			setPath[0].pathDataType = StringVal
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			_, _, err := GNMISet(ctx, c, setPath, noPaths)
+			cancel()
+			assert.NoError(t, err)
+		}
 	}
 
 	time.Sleep(10 * time.Second)

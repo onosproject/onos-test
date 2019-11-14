@@ -76,6 +76,11 @@ func NewSimulator() SimulatorSetup {
 	return getEnv().NewSimulator()
 }
 
+// AddSimulators returns a new SimulatorsSetup for adding multiple simulators concurrently
+func AddSimulators(simulators ...SimulatorSetup) SimulatorsSetup {
+	return getEnv().AddSimulators(simulators...)
+}
+
 // Networks returns the networks environment
 func Networks() NetworksEnv {
 	return getEnv().Networks()
@@ -131,6 +136,9 @@ type ClusterEnv interface {
 
 	// NewSimulator returns a new SimulatorSetup for adding a simulator to the cluster
 	NewSimulator() SimulatorSetup
+
+	// AddSimulators returns a new SimulatorsSetup for adding multiple simulators concurrently
+	AddSimulators(simulators ...SimulatorSetup) SimulatorsSetup
 
 	// Networks returns the networks environment
 	Networks() NetworksEnv
@@ -206,6 +214,13 @@ func (e *clusterEnv) Simulator(name string) SimulatorEnv {
 
 func (e *clusterEnv) NewSimulator() SimulatorSetup {
 	return e.Simulators().New()
+}
+
+func (e *clusterEnv) AddSimulators(simulators ...SimulatorSetup) SimulatorsSetup {
+	return &clusterSimulatorsSetup{
+		simulators: e.cluster.Simulators(),
+		setups:     make([]SimulatorSetup, 0),
+	}
 }
 
 func (e *clusterEnv) Networks() NetworksEnv {
