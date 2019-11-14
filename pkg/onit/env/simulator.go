@@ -124,6 +124,9 @@ func (e *clusterSimulatorEnv) Destination() client.Destination {
 
 func (e *clusterSimulatorEnv) NewGNMIClient() (*gnmi.Client, error) {
 	conn, err := e.Connect()
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	client, err := gnmi.NewFromConn(ctx, conn, e.Destination())

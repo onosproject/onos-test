@@ -62,14 +62,14 @@ type TestRecord struct {
 
 // NewTestRunner returns a new test runner
 func NewTestRunner(test *TestConfig) (*TestRunner, error) {
-	if kubeAPI, err := kube.GetAPI(test.TestID); err != nil {
+	kubeAPI, err := kube.GetAPI(test.TestID)
+	if err != nil {
 		return nil, err
-	} else {
-		return &TestRunner{
-			client: kubeAPI.Clientset(),
-			test:   test,
-		}, nil
 	}
+	return &TestRunner{
+		client: kubeAPI.Clientset(),
+		test:   test,
+	}, nil
 }
 
 // TestRunner is a kubetest runner

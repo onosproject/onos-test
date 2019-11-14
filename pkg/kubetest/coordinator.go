@@ -28,26 +28,26 @@ import (
 
 // newTestCoordinator returns a new test coordinator
 func newTestCoordinator(test *TestConfig) (Coordinator, error) {
-	if kubeAPI, err := kube.GetAPI(test.TestID); err != nil {
+	kubeAPI, err := kube.GetAPI(test.TestID)
+	if err != nil {
 		return nil, err
-	} else {
-		return &TestCoordinator{
-			client: kubeAPI.Clientset(),
-			test:   test,
-		}, nil
 	}
+	return &TestCoordinator{
+		client: kubeAPI.Clientset(),
+		test:   test,
+	}, nil
 }
 
 // newBenchmarkCoordinator returns a new benchmark coordinator
 func newBenchmarkCoordinator(test *TestConfig) (Coordinator, error) {
-	if kubeAPI, err := kube.GetAPI(test.TestID); err != nil {
+	kubeAPI, err := kube.GetAPI(test.TestID)
+	if err != nil {
 		return nil, err
-	} else {
-		return &BenchmarkCoordinator{
-			client: kubeAPI.Clientset(),
-			test:   test,
-		}, nil
 	}
+	return &BenchmarkCoordinator{
+		client: kubeAPI.Clientset(),
+		test:   test,
+	}, nil
 }
 
 // Coordinator coordinates workers for tests and benchmarks
@@ -219,9 +219,8 @@ func runJobs(jobs []*TestJob, client *kubernetes.Clientset) error {
 					_ = job.tearDown()
 				}
 				return
-			} else {
-				codeChan <- status
 			}
+			codeChan <- status
 
 			// Tear down the cluster if necessary
 			if job.test.Teardown {

@@ -24,6 +24,7 @@ import (
 	"time"
 )
 
+// TestSnapshot : test
 func (s *SmokeTestSuite) TestSnapshot(t *testing.T) {
 	simulators := s.addSimulators(25, t)
 
