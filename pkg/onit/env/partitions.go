@@ -41,8 +41,8 @@ func (e *clusterPartitionsEnv) List() []PartitionEnv {
 	partitions := make([]PartitionEnv, len(clusterPartitions))
 	for i, partition := range clusterPartitions {
 		partitions[i] = &clusterPartitionEnv{
-			clusterServiceEnv: &clusterServiceEnv{
-				service: partition.Service,
+			clusterDeploymentEnv: &clusterDeploymentEnv{
+				deployment: partition.Deployment,
 			},
 		}
 	}
@@ -51,8 +51,8 @@ func (e *clusterPartitionsEnv) List() []PartitionEnv {
 
 func (e *clusterPartitionsEnv) Get(name string) PartitionEnv {
 	return &clusterPartitionEnv{
-		clusterServiceEnv: &clusterServiceEnv{
-			service: e.partitions.Partition(name).Service,
+		clusterDeploymentEnv: &clusterDeploymentEnv{
+			deployment: e.partitions.Partition(name).Deployment,
 		},
 	}
 }

@@ -14,6 +14,8 @@
 
 package cluster
 
+import "crypto/tls"
+
 const caCert = `
 -----BEGIN CERTIFICATE-----
 MIIDYDCCAkgCCQDe99fSN9qxSTANBgkqhkiG9w0BAQsFADByMQswCQYDVQQGEwJV
@@ -202,3 +204,15 @@ g5NVOIsDpB1OqjQRb9PjipANkHQRKgrYFB20ZQUoaOMckhlVyqE6WcanGpUxJ0xg
 1F0itWrqPGEs83BRQI/aLlsj
 -----END PRIVATE KEY-----
 `
+
+// getClientCredentials returns the credentials for a service client
+func getClientCredentials() (*tls.Config, error) {
+	cert, err := tls.X509KeyPair([]byte(clientCert), []byte(clientKey))
+	if err != nil {
+		return nil, err
+	}
+	return &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		InsecureSkipVerify: true,
+	}, nil
+}

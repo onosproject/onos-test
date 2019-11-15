@@ -16,20 +16,22 @@ package cluster
 
 import "strings"
 
+const (
+	partitionType  = "partition"
+	groupLabel     = "group"
+	partitionLabel = "partition"
+)
+
 func newPartition(name string, client *client) *Partition {
-	group := name[:strings.LastIndex(name, "-")]
-	partition := name[strings.LastIndex(name, "-")+1:]
-	labels := map[string]string{
-		typeLabel:   partitionType.name(),
-		"group":     group,
-		"partition": partition,
-	}
+	labels := getLabels(partitionType)
+	labels[groupLabel] = name[:strings.LastIndex(name, "-")]
+	labels[partitionLabel] = name[strings.LastIndex(name, "-")+1:]
 	return &Partition{
-		Service: newService(name, 5678, labels, raftImage, client),
+		Deployment: newDeployment(name, labels, raftImage, client),
 	}
 }
 
 // Partition provides methods for querying a database partition
 type Partition struct {
-	*Service
+	*Deployment
 }

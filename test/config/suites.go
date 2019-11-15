@@ -110,7 +110,7 @@ type CLITestSuite struct {
 
 // SetupTestSuite sets up the onos-config CLI test suite
 func (s *CLITestSuite) SetupTestSuite() {
-	setup.CLI().Nodes(1)
+	setup.CLI().Enable()
 	setup.Topo().Nodes(2)
 	setup.Config().Nodes(2)
 	setup.SetupOrDie()

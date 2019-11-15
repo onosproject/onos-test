@@ -35,6 +35,15 @@ type SimulatorSetup interface {
 	// PullPolicy sets the image pull policy
 	PullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup
 
+	// DeviceType sets the device type
+	DeviceType(deviceType string) SimulatorSetup
+
+	// DeviceVersion sets the device version
+	DeviceVersion(version string) SimulatorSetup
+
+	// DeviceTimeout sets the device timeout
+	DeviceTimeout(timeout time.Duration) SimulatorSetup
+
 	// Add deploys the simulator in the cluster
 	Add() (SimulatorEnv, error)
 
@@ -64,8 +73,23 @@ func (s *clusterSimulatorSetup) PullPolicy(pullPolicy corev1.PullPolicy) Simulat
 	return s
 }
 
+func (s *clusterSimulatorSetup) DeviceType(deviceType string) SimulatorSetup {
+	s.simulator.SetDeviceType(deviceType)
+	return s
+}
+
+func (s *clusterSimulatorSetup) DeviceVersion(version string) SimulatorSetup {
+	s.simulator.SetDeviceVersion(version)
+	return s
+}
+
+func (s *clusterSimulatorSetup) DeviceTimeout(timeout time.Duration) SimulatorSetup {
+	s.simulator.SetDeviceTimeout(timeout)
+	return s
+}
+
 func (s *clusterSimulatorSetup) Add() (SimulatorEnv, error) {
-	if err := s.simulator.Add(); err != nil {
+	if err := s.simulator.Setup(); err != nil {
 		return nil, err
 	}
 	return &clusterSimulatorEnv{
@@ -137,7 +161,7 @@ func (e *clusterSimulatorEnv) NewGNMIClient() (*gnmi.Client, error) {
 }
 
 func (e *clusterSimulatorEnv) Remove() error {
-	return e.simulator.Remove()
+	return e.simulator.TearDown()
 }
 
 func (e *clusterSimulatorEnv) RemoveOrDie() {

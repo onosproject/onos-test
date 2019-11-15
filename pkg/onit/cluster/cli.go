@@ -23,23 +23,37 @@ import (
 	"time"
 )
 
+const (
+	cliType    = "cli"
+	cliImage   = "onosproject/onos-cli:latest"
+	cliService = "onos-cli"
+)
+
 func newCLI(client *client) *CLI {
-	labels := map[string]string{
-		typeLabel: cliType.name(),
-	}
 	return &CLI{
-		Service: newService("onos-cli", 0, labels, cliImage, client),
+		Deployment: newDeployment(cliService, getLabels(cliType), cliImage, client),
 	}
 }
 
 // CLI provides methods for managing the onos-cli service
 type CLI struct {
-	*Service
+	*Deployment
+	enabled bool
+}
+
+// Enabled indicates whether the CLI is enabled
+func (c *CLI) Enabled() bool {
+	return c.enabled
+}
+
+// SetEnabled sets whether the CLI is enabled
+func (c *CLI) SetEnabled(enabled bool) {
+	c.enabled = enabled
 }
 
 // Setup sets up the CLI subsystem
 func (c *CLI) Setup() error {
-	if c.replicas == 0 {
+	if !c.enabled {
 		return nil
 	}
 
@@ -75,8 +89,9 @@ app: default
 
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-cli",
+			Name:      cliService,
 			Namespace: c.namespace,
+			Labels:    getLabels(cliType),
 		},
 		Data: map[string]string{
 			"atomix.yaml": config,
@@ -88,24 +103,21 @@ app: default
 
 // createDeployment creates an onos-topo Deployment
 func (c *CLI) createDeployment() error {
-	nodes := int32(c.replicas)
+	nodes := int32(1)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-cli",
+			Name:      cliService,
 			Namespace: c.namespace,
+			Labels:    getLabels(cliType),
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &nodes,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					"type": cliType.name(),
-				},
+				MatchLabels: getLabels(cliType),
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"type": cliType.name(),
-					},
+					Labels: getLabels(cliType),
 					Annotations: map[string]string{
 						"seccomp.security.alpha.kubernetes.io/pod": "unconfined",
 					},
@@ -113,9 +125,9 @@ func (c *CLI) createDeployment() error {
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:            "onos-cli",
-							Image:           c.image,
-							ImagePullPolicy: c.pullPolicy,
+							Name:            cliService,
+							Image:           c.Image(),
+							ImagePullPolicy: c.PullPolicy(),
 							Stdin:           true,
 							VolumeMounts: []corev1.VolumeMount{
 								{
@@ -133,7 +145,7 @@ func (c *CLI) createDeployment() error {
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
-										Name: "onos-cli",
+										Name: cliService,
 									},
 								},
 							},
@@ -149,19 +161,19 @@ func (c *CLI) createDeployment() error {
 
 // AwaitReady waits for the onos-cli pods to complete startup
 func (c *CLI) AwaitReady() error {
-	if c.replicas == 0 {
+	if !c.enabled {
 		return nil
 	}
 
 	for {
 		// Get the onos-topo deployment
-		dep, err := c.kubeClient.AppsV1().Deployments(c.namespace).Get("onos-cli", metav1.GetOptions{})
+		dep, err := c.kubeClient.AppsV1().Deployments(c.namespace).Get(cliService, metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
 
 		// Return once the all replicas in the deployment are ready
-		if int(dep.Status.ReadyReplicas) == c.replicas {
+		if dep.Status.ReadyReplicas > 0 {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)

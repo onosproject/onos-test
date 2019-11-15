@@ -100,7 +100,7 @@ func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 		Name(networkID).
 		Image(image).
 		PullPolicy(pullPolicy).
-		Topo(topo, devices).
+		Custom(topo, devices).
 		Add()
 	return err
 }

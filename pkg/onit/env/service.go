@@ -22,20 +22,10 @@ import (
 
 // ServiceEnv is a base interface for service environments
 type ServiceEnv interface {
+	DeploymentEnv
+
 	// Address returns the service address
 	Address() string
-
-	// Name is the name of the service
-	Name() string
-
-	// Nodes returns the service nodes
-	Nodes() []NodeEnv
-
-	// Node returns a specific node environment
-	Node(name string) NodeEnv
-
-	// AwaitReady waits for all nodes in the service to become ready
-	AwaitReady() error
 
 	// Execute executes the given command and returns the output
 	Execute(command ...string) ([]string, int, error)
@@ -49,34 +39,12 @@ type ServiceEnv interface {
 
 // clusterServiceEnv is an implementation of the Service interface
 type clusterServiceEnv struct {
+	*clusterDeploymentEnv
 	service *cluster.Service
-}
-
-func (e *clusterServiceEnv) Name() string {
-	return e.service.Name()
 }
 
 func (e *clusterServiceEnv) Address() string {
 	return e.service.Address()
-}
-
-func (e *clusterServiceEnv) Nodes() []NodeEnv {
-	clusterNodes := e.service.Nodes().List()
-	nodes := make([]NodeEnv, len(clusterNodes))
-	for i, node := range clusterNodes {
-		nodes[i] = e.Node(node.Name())
-	}
-	return nodes
-}
-
-func (e *clusterServiceEnv) Node(name string) NodeEnv {
-	return &clusterNodeEnv{
-		e.service.Nodes().Get(name),
-	}
-}
-
-func (e *clusterServiceEnv) AwaitReady() error {
-	return e.service.AwaitReady()
 }
 
 func (e *clusterServiceEnv) Execute(command ...string) ([]string, int, error) {

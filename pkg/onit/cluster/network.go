@@ -15,12 +15,26 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/util/logging"
+	"github.com/onosproject/onos-topo/pkg/northbound/device"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"time"
+)
+
+const (
+	networkType          = "network"
+	networkLabel         = "network"
+	networkImage         = "opennetworking/mn-stratum:latest"
+	networkDeviceType    = "Stratum"
+	networkDeviceVersion = "1.0.0"
+	stratumPortName      = "stratum"
+	stratumPort          = 28000
 )
 
 // TopoType topology type
@@ -41,7 +55,10 @@ func (d TopoType) String() string {
 
 func newNetwork(name string, client *client) *Network {
 	return &Network{
-		Node: newNode(name, 0, networkImage, client),
+		Node:          newNode(name, 0, networkImage, client),
+		add:           true,
+		deviceType:    networkDeviceType,
+		deviceVersion: networkDeviceVersion,
 	}
 }
 
@@ -49,25 +66,69 @@ func newNetwork(name string, client *client) *Network {
 type Network struct {
 	// TODO: Network should be a Service with a Node per device
 	*Node
-	topoType TopoType
-	topo     string
-	devices  int
+	topoType      TopoType
+	topo          string
+	devices       int
+	add           bool
+	deviceType    string
+	deviceVersion string
+	deviceTimeout *time.Duration
 }
 
 // Devices returns a list of devices in the network
-func (s *Network) Devices() []*Node {
+func (s *Network) Devices() ([]*Node, error) {
 	services, err := s.kubeClient.CoreV1().Services(s.namespace).List(metav1.ListOptions{
 		LabelSelector: "type=network,network=" + s.name,
 	})
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	devices := make([]*Node, len(services.Items))
 	for i, service := range services.Items {
-		devices[i] = newNode(service.Name, 50001+i, "", s.client)
+		devices[i] = newNode(service.Name, stratumPort, "", s.client)
 	}
-	return devices
+	return devices, nil
+}
+
+// AddDevices returns whether to add the devices to the topo service
+func (s *Network) AddDevices() bool {
+	return s.add
+}
+
+// SetAddDevices sets whether to add the devices to the topo service
+func (s *Network) SetAddDevices(add bool) {
+	s.add = add
+}
+
+// DeviceType returns the device type
+func (s *Network) DeviceType() string {
+	return s.deviceType
+}
+
+// SetDeviceType sets the device type
+func (s *Network) SetDeviceType(deviceType string) {
+	s.deviceType = deviceType
+}
+
+// DeviceVersion returns the device version
+func (s *Network) DeviceVersion() string {
+	return s.deviceVersion
+}
+
+// SetDeviceVersion sets the device version
+func (s *Network) SetDeviceVersion(version string) {
+	s.deviceVersion = version
+}
+
+// DeviceTimeout returns the device timeout
+func (s *Network) DeviceTimeout() *time.Duration {
+	return s.deviceTimeout
+}
+
+// SetDeviceTimeout sets the device timeout
+func (s *Network) SetDeviceTimeout(timeout time.Duration) {
+	s.deviceTimeout = &timeout
 }
 
 // SetSingle sets the network topology to single
@@ -91,8 +152,8 @@ func (s *Network) SetTopo(topo string, devices int) *Network {
 	return s
 }
 
-// Add adds the network to the cluster
-func (s *Network) Add() error {
+// Setup sets up the network
+func (s *Network) Setup() error {
 	step := logging.NewStep(s.namespace, fmt.Sprintf("Add network %s", s.Name()))
 	step.Start()
 	step.Logf("Creating %s Pod", s.Name())
@@ -110,8 +171,44 @@ func (s *Network) Add() error {
 		step.Fail(err)
 		return err
 	}
+	if s.add {
+		step.Logf("Adding %s devices to topo service", s.Name())
+		if err := s.addDevices(); err != nil {
+			step.Fail(err)
+			return err
+		}
+	}
 	step.Complete()
 	return nil
+}
+
+// getLabels gets the network labels
+func (s *Network) getLabels() map[string]string {
+	labels := getLabels(networkType)
+	labels[networkLabel] = s.name
+	return labels
+}
+
+// getDeviceNames returns a list of device names
+func (s *Network) getDeviceNames() []string {
+	numDevices := s.getNumDevices()
+	names := make([]string, numDevices)
+	for i := 0; i < numDevices; i++ {
+		names[i] = fmt.Sprintf("%s-%d", s.name, i)
+	}
+	return names
+}
+
+// getDevicePorts returns a map of device names and ports
+func (s *Network) getDevicePorts() map[string]int32 {
+	names := s.getDeviceNames()
+	ports := make(map[string]int32)
+	var port int32 = 50001
+	for _, name := range names {
+		ports[name] = port
+		port++
+	}
+	return ports
 }
 
 // createPod creates a stratum Network pod
@@ -126,15 +223,21 @@ func (s *Network) createPod() error {
 		topoSpec = s.topo
 	}
 
+	devices := s.getDevicePorts()
+	ports := make([]corev1.ContainerPort, 0, len(devices))
+	for device, port := range s.getDevicePorts() {
+		ports = append(ports, corev1.ContainerPort{
+			Name:          device,
+			ContainerPort: port,
+		})
+	}
+
 	var isPrivileged = true
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.name,
 			Namespace: s.namespace,
-			Labels: map[string]string{
-				"type":    string(networkType),
-				"Network": s.name,
-			},
+			Labels:    s.getLabels(),
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
@@ -144,12 +247,7 @@ func (s *Network) createPod() error {
 					ImagePullPolicy: s.pullPolicy,
 					Stdin:           true,
 					Args:            []string{"--topo", topoSpec},
-					Ports: []corev1.ContainerPort{
-						{
-							Name:          "stratum",
-							ContainerPort: 50001,
-						},
-					},
+					Ports:           ports,
 					ReadinessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
 							TCPSocket: &corev1.TCPSocketAction{
@@ -206,28 +304,20 @@ func (s *Network) getNumDevices() int {
 
 // createService creates a Network service
 func (s *Network) createService() error {
-	var port int32 = 50001
-	for i := 0; i < s.getNumDevices(); i++ {
-		serviceName := fmt.Sprintf("%s-%d", s.name, i)
+	for device, port := range s.getDevicePorts() {
 		service := &corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      serviceName,
+				Name:      device,
 				Namespace: s.namespace,
-				Labels: map[string]string{
-					"type":    string(networkType),
-					"network": s.name,
-					"device":  serviceName,
-				},
+				Labels:    s.getLabels(),
 			},
 			Spec: corev1.ServiceSpec{
-				Selector: map[string]string{
-					"type":    string(networkType),
-					"network": s.name,
-				},
+				Selector: s.getLabels(),
 				Ports: []corev1.ServicePort{
 					{
-						Name: "stratum",
-						Port: port,
+						Name:       stratumPortName,
+						Port:       stratumPort,
+						TargetPort: intstr.FromInt(int(port)),
 					},
 				},
 			},
@@ -236,46 +326,116 @@ func (s *Network) createService() error {
 		if err != nil {
 			return err
 		}
-		port = port + 1
 	}
-
 	return nil
 }
 
-// Remove removes the network from the cluster
-func (s *Network) Remove() error {
-	step := logging.NewStep(s.namespace, fmt.Sprintf("Remove network %s", s.Name()))
-	pods, err := s.kubeClient.CoreV1().Pods(s.namespace).List(metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("type=network,network=%s", s.name),
-	})
+// addDevices adds the network's devices to the topo service
+func (s *Network) addDevices() error {
+	tlsConfig, err := s.Credentials()
 	if err != nil {
 		return err
-	} else if len(pods.Items) == 0 {
-		return fmt.Errorf("no resources matching '%s' found", s.name)
 	}
 
-	total := len(pods.Items)
+	conn, err := grpc.Dial(topoAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	if err != nil {
+		return err
+	}
 
+	client := device.NewDeviceServiceClient(conn)
+	devices, err := s.Devices()
+	if err != nil {
+		return err
+	}
+	for _, device := range devices {
+		if err := s.addDevice(client, device); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// addDevice adds the given device to the topo service
+func (s *Network) addDevice(client device.DeviceServiceClient, node *Node) error {
+	ctx, cancel := context.WithTimeout(context.Background(), topoTimeout)
+	defer cancel()
+	_, err := client.Add(ctx, &device.AddRequest{
+		Device: &device.Device{
+			ID:      device.ID(node.Name()),
+			Address: node.Address(),
+			Type:    device.Type(s.deviceType),
+			Version: s.deviceVersion,
+			Timeout: s.deviceTimeout,
+			TLS: device.TlsConfig{
+				Plain: true,
+			},
+		},
+	})
+	return err
+}
+
+// TearDown removes the network from the cluster
+func (s *Network) TearDown() error {
+	step := logging.NewStep(s.namespace, fmt.Sprintf("Remove network %s", s.Name()))
+
+	var err error
+	step.Logf("Removing %s devices", s.Name())
+	if e := s.removeDevices(); e != nil {
+		err = e
+	}
 	step.Logf("Deleting %s Pod", s.Name())
 	if e := s.deletePod(); e != nil {
 		err = e
 	}
+	step.Logf("Deleting %s Service", s.Name())
 	if e := s.deleteService(); e != nil {
 		err = e
 	}
+	step.Complete()
+	return err
+}
 
-	for total > 0 {
-		time.Sleep(50 * time.Millisecond)
-		pods, err = s.kubeClient.CoreV1().Pods(s.namespace).List(metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("type=network,network=%s", s.name),
-		})
-		if err != nil {
-			return err
-		}
-
-		total = len(pods.Items)
-
+// removeDevices removes the devices from the topo service
+func (s *Network) removeDevices() error {
+	tlsConfig, err := s.Credentials()
+	if err != nil {
+		return err
 	}
+
+	conn, err := grpc.Dial(topoAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	if err != nil {
+		return err
+	}
+
+	client := device.NewDeviceServiceClient(conn)
+	devices, err := s.Devices()
+	if err != nil {
+		return err
+	}
+	for _, device := range devices {
+		if e := s.removeDevice(client, device); e != nil {
+			err = e
+		}
+	}
+	return err
+}
+
+// removeDevice removes the given device from the topo service
+func (s *Network) removeDevice(client device.DeviceServiceClient, node *Node) error {
+	ctx, cancel := context.WithTimeout(context.Background(), topoTimeout)
+	response, err := client.Get(ctx, &device.GetRequest{
+		ID: device.ID(node.Name()),
+	})
+	cancel()
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel = context.WithTimeout(context.Background(), topoTimeout)
+	_, err = client.Remove(ctx, &device.RemoveRequest{
+		Device: response.Device,
+	})
+	cancel()
 	return err
 }
 

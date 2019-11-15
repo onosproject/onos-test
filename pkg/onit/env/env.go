@@ -167,7 +167,9 @@ type clusterEnv struct {
 func (e *clusterEnv) Atomix() AtomixEnv {
 	return &clusterAtomixEnv{
 		clusterServiceEnv: &clusterServiceEnv{
-			service: e.cluster.Atomix().Service,
+			clusterDeploymentEnv: &clusterDeploymentEnv{
+				deployment: e.cluster.Atomix().Deployment,
+			},
 		},
 	}
 }
@@ -181,7 +183,9 @@ func (e *clusterEnv) Database() DatabaseEnv {
 func (e *clusterEnv) CLI() CLIEnv {
 	return &clusterCLIEnv{
 		clusterServiceEnv: &clusterServiceEnv{
-			service: e.cluster.CLI().Service,
+			clusterDeploymentEnv: &clusterDeploymentEnv{
+				deployment: e.cluster.CLI().Deployment,
+			},
 		},
 	}
 }

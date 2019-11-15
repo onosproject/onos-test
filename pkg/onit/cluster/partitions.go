@@ -91,9 +91,16 @@ func (s *Partitions) Partition(name string) *Partition {
 	return newPartition(name, s.client)
 }
 
+// getLabels returns the labels for the partition group
+func (s *Partitions) getLabels() map[string]string {
+	labels := getLabels(partitionType)
+	labels[groupLabel] = s.group
+	return labels
+}
+
 // Partitions lists the partitions in the group
 func (s *Partitions) Partitions() []*Partition {
-	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{typeLabel: partitionType.name(), "group": s.group}}
+	labelSelector := metav1.LabelSelector{MatchLabels: s.getLabels()}
 	list, err := s.atomixClient.K8sV1alpha1().Partitions(s.namespace).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
 	if err != nil {
@@ -150,10 +157,7 @@ func (s *Partitions) createPartitionSet() error {
 			Partitions: s.partitions,
 			Template: v1alpha1.PartitionTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"type":  databaseType.name(),
-						"group": s.group,
-					},
+					Labels: s.getLabels(),
 				},
 				Spec: v1alpha1.PartitionSpec{
 					Size:            int32(s.nodes),

@@ -17,6 +17,7 @@ package env
 import (
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 	corev1 "k8s.io/api/core/v1"
+	"time"
 )
 
 // NetworkSetup is an interface for deploying up a network
@@ -30,14 +31,23 @@ type NetworkSetup interface {
 	// Linear creates a linear topology with the given number of devices
 	Linear(devices int) NetworkSetup
 
-	// Topo creates a custom topology
-	Topo(topo string, devices int) NetworkSetup
+	// Custom creates a custom topology
+	Custom(topo string, devices int) NetworkSetup
 
 	// Image sets the image to deploy
 	Image(image string) NetworkSetup
 
 	// PullPolicy sets the image pull policy
 	PullPolicy(pullPolicy corev1.PullPolicy) NetworkSetup
+
+	// DeviceType sets the device type
+	DeviceType(deviceType string) NetworkSetup
+
+	// DeviceVersion sets the device version
+	DeviceVersion(version string) NetworkSetup
+
+	// DeviceTimeout sets the device timeout
+	DeviceTimeout(timeout time.Duration) NetworkSetup
 
 	// Add adds the network to the cluster
 	Add() (NetworkEnv, error)
@@ -68,6 +78,21 @@ func (s *clusterNetworkSetup) PullPolicy(pullPolicy corev1.PullPolicy) NetworkSe
 	return s
 }
 
+func (s *clusterNetworkSetup) DeviceType(deviceType string) NetworkSetup {
+	s.network.SetDeviceType(deviceType)
+	return s
+}
+
+func (s *clusterNetworkSetup) DeviceVersion(version string) NetworkSetup {
+	s.network.SetDeviceVersion(version)
+	return s
+}
+
+func (s *clusterNetworkSetup) DeviceTimeout(timeout time.Duration) NetworkSetup {
+	s.network.SetDeviceTimeout(timeout)
+	return s
+}
+
 func (s *clusterNetworkSetup) Single() NetworkSetup {
 	s.network.SetSingle()
 	return s
@@ -78,13 +103,13 @@ func (s *clusterNetworkSetup) Linear(devices int) NetworkSetup {
 	return s
 }
 
-func (s *clusterNetworkSetup) Topo(topo string, devices int) NetworkSetup {
+func (s *clusterNetworkSetup) Custom(topo string, devices int) NetworkSetup {
 	s.network.SetTopo(topo, devices)
 	return s
 }
 
 func (s *clusterNetworkSetup) Add() (NetworkEnv, error) {
-	if err := s.network.Add(); err != nil {
+	if err := s.network.Setup(); err != nil {
 		return nil, err
 	}
 	return &clusterNetworkEnv{
@@ -126,7 +151,11 @@ type clusterNetworkEnv struct {
 }
 
 func (e *clusterNetworkEnv) Devices() []NodeEnv {
-	clusterDevices := e.network.Devices()
+	clusterDevices, err := e.network.Devices()
+	if err != nil {
+		panic(err)
+	}
+
 	devices := make([]NodeEnv, len(clusterDevices))
 	for i, node := range clusterDevices {
 		devices[i] = &clusterNodeEnv{
@@ -137,7 +166,7 @@ func (e *clusterNetworkEnv) Devices() []NodeEnv {
 }
 
 func (e *clusterNetworkEnv) Remove() error {
-	return e.network.Remove()
+	return e.network.TearDown()
 }
 
 func (e *clusterNetworkEnv) RemoveOrDie() {

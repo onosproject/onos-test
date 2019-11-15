@@ -42,9 +42,7 @@ func (s *Simulators) Get(name string) *Simulator {
 
 // List lists the simulators in the cluster
 func (s *Simulators) List() []*Simulator {
-	names := s.listServices(map[string]string{
-		typeLabel: simulatorType.name(),
-	})
+	names := s.listServices(getLabels(simulatorType))
 	simulators := make([]*Simulator, len(names))
 	for i, name := range names {
 		simulators[i] = s.Get(name)

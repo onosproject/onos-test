@@ -15,12 +15,31 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/util/logging"
+	"github.com/onosproject/onos-topo/pkg/northbound/device"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"time"
+)
+
+const (
+	simulatorType             = "simulator"
+	simulatorLabel            = "simulator"
+	simulatorImage            = "onosproject/device-simulator:latest"
+	simulatorService          = "device-simulator"
+	simulatorDeviceType       = "Devicesim"
+	simulatorDeviceVersion    = "1.0.0"
+	simulatorSecurePortName   = "secure"
+	simulatorSecurePort       = 10161
+	simulatorInsecurePortName = "insecure"
+	simulatorInsecurePort     = 11161
+	gnmiPortEnv               = "GNMI_PORT"
+	gnmiInsecurePortEnv       = "GNMI_INSECURE_PORT"
 )
 
 const simulatorConfig = `
@@ -111,17 +130,64 @@ const simulatorConfig = `
 
 func newSimulator(name string, client *client) *Simulator {
 	return &Simulator{
-		Node: newNode(name, 11161, simulatorImage, client),
+		Node:          newNode(name, 11161, simulatorImage, client),
+		add:           true,
+		deviceType:    simulatorDeviceType,
+		deviceVersion: simulatorDeviceVersion,
 	}
 }
 
 // Simulator provides methods for adding and modifying simulators
 type Simulator struct {
 	*Node
+	add           bool
+	deviceType    string
+	deviceVersion string
+	deviceTimeout *time.Duration
 }
 
-// Add adds the simulator to the cluster
-func (s *Simulator) Add() error {
+// AddDevice returns whether to add the device to the topo service
+func (s *Simulator) AddDevice() bool {
+	return s.add
+}
+
+// SetAddDevice sets whether to add the device to the topo service
+func (s *Simulator) SetAddDevice(add bool) {
+	s.add = add
+}
+
+// DeviceType returns the device type
+func (s *Simulator) DeviceType() string {
+	return s.deviceType
+}
+
+// SetDeviceType sets the device type
+func (s *Simulator) SetDeviceType(deviceType string) {
+	s.deviceType = deviceType
+}
+
+// DeviceVersion returns the device version
+func (s *Simulator) DeviceVersion() string {
+	return s.deviceVersion
+}
+
+// SetDeviceVersion sets the device version
+func (s *Simulator) SetDeviceVersion(version string) {
+	s.deviceVersion = version
+}
+
+// DeviceTimeout returns the device timeout
+func (s *Simulator) DeviceTimeout() *time.Duration {
+	return s.deviceTimeout
+}
+
+// SetDeviceTimeout sets the device timeout
+func (s *Simulator) SetDeviceTimeout(timeout time.Duration) {
+	s.deviceTimeout = &timeout
+}
+
+// Setup adds the simulator to the cluster
+func (s *Simulator) Setup() error {
 	step := logging.NewStep(s.namespace, fmt.Sprintf("Add simulator %s", s.Name()))
 	step.Start()
 	step.Logf("Creating %s ConfigMap", s.Name())
@@ -144,8 +210,22 @@ func (s *Simulator) Add() error {
 		step.Fail(err)
 		return err
 	}
+	if s.add {
+		step.Logf("Adding %s to onos-topo", s.Name())
+		if err := s.addDevice(); err != nil {
+			step.Fail(err)
+			return err
+		}
+	}
 	step.Complete()
 	return nil
+}
+
+// getLabels gets the simulator labels
+func (s *Simulator) getLabels() map[string]string {
+	labels := getLabels(simulatorType)
+	labels[simulatorLabel] = s.name
+	return labels
 }
 
 // createConfigMap creates a simulator configuration
@@ -154,6 +234,7 @@ func (s *Simulator) createConfigMap() error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.name,
 			Namespace: s.namespace,
+			Labels:    s.getLabels(),
 		},
 		Data: map[string]string{
 			"config.json": simulatorConfig,
@@ -169,41 +250,38 @@ func (s *Simulator) createPod() error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.name,
 			Namespace: s.namespace,
-			Labels: map[string]string{
-				"type":      "simulator",
-				"simulator": s.name,
-			},
+			Labels:    s.getLabels(),
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:            "onos-device-simulator",
+					Name:            simulatorService,
 					Image:           s.image,
 					ImagePullPolicy: s.pullPolicy,
 					Env: []corev1.EnvVar{
 						{
-							Name:  "GNMI_PORT",
-							Value: "10161",
+							Name:  gnmiPortEnv,
+							Value: fmt.Sprintf("%d", simulatorSecurePort),
 						},
 						{
-							Name:  "GNMI_INSECURE_PORT",
-							Value: "11161",
+							Name:  gnmiInsecurePortEnv,
+							Value: fmt.Sprintf("%d", simulatorInsecurePort),
 						},
 					},
 					Ports: []corev1.ContainerPort{
 						{
-							Name:          "secure",
-							ContainerPort: 10161,
+							Name:          simulatorSecurePortName,
+							ContainerPort: simulatorSecurePort,
 						},
 						{
-							Name:          "insecure",
-							ContainerPort: 11161,
+							Name:          simulatorInsecurePortName,
+							ContainerPort: simulatorInsecurePort,
 						},
 					},
 					ReadinessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
 							TCPSocket: &corev1.TCPSocketAction{
-								Port: intstr.FromInt(11161),
+								Port: intstr.FromInt(simulatorInsecurePort),
 							},
 						},
 						InitialDelaySeconds: 5,
@@ -212,7 +290,7 @@ func (s *Simulator) createPod() error {
 					LivenessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
 							TCPSocket: &corev1.TCPSocketAction{
-								Port: intstr.FromInt(11161),
+								Port: intstr.FromInt(simulatorInsecurePort),
 							},
 						},
 						InitialDelaySeconds: 15,
@@ -252,24 +330,18 @@ func (s *Simulator) createService() error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.name,
 			Namespace: s.namespace,
-			Labels: map[string]string{
-				"type":      "simulator",
-				"simulator": s.name,
-			},
+			Labels:    s.getLabels(),
 		},
 		Spec: corev1.ServiceSpec{
-			Selector: map[string]string{
-				"type":      "simulator",
-				"simulator": s.name,
-			},
+			Selector: s.getLabels(),
 			Ports: []corev1.ServicePort{
 				{
-					Name: "secure",
-					Port: 10161,
+					Name: simulatorSecurePortName,
+					Port: simulatorSecurePort,
 				},
 				{
-					Name: "insecure",
-					Port: 11161,
+					Name: simulatorInsecurePortName,
+					Port: simulatorInsecurePort,
 				},
 			},
 		},
@@ -293,23 +365,52 @@ func (s *Simulator) awaitReady() error {
 	}
 }
 
-// Remove removes the simulator from the cluster
-func (s *Simulator) Remove() error {
-	return s.teardownSimulator()
-}
-
-// teardownSimulator tears down a simulator by name
-func (s *Simulator) teardownSimulator() error {
-	pods, err := s.kubeClient.CoreV1().Pods(s.namespace).List(metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("type=simulator,simulator=%s", s.name),
-	})
+// addDevice adds the device to the topo service
+func (s *Simulator) addDevice() error {
+	tlsConfig, err := s.Credentials()
 	if err != nil {
 		return err
-	} else if len(pods.Items) == 0 {
-		return fmt.Errorf("no resources matching '%s' found", s.name)
 	}
-	total := len(pods.Items)
 
+	conn, err := grpc.Dial(topoAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	if err != nil {
+		return err
+	}
+
+	client := device.NewDeviceServiceClient(conn)
+
+	deviceType := s.deviceType
+	if deviceType == "" {
+		deviceType = simulatorDeviceType
+	}
+	version := s.deviceVersion
+	if version == "" {
+		version = simulatorDeviceVersion
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), topoTimeout)
+	defer cancel()
+	_, err = client.Add(ctx, &device.AddRequest{
+		Device: &device.Device{
+			ID:      device.ID(s.Name()),
+			Address: s.Address(),
+			Type:    device.Type(deviceType),
+			Version: version,
+			Timeout: s.deviceTimeout,
+			TLS: device.TlsConfig{
+				Plain: true,
+			},
+		},
+	})
+	return err
+}
+
+// TearDown removes the simulator from the cluster
+func (s *Simulator) TearDown() error {
+	var err error
+	if e := s.removeDevice(); e != nil {
+		err = e
+	}
 	if e := s.deletePod(); e != nil {
 		err = e
 	}
@@ -319,19 +420,37 @@ func (s *Simulator) teardownSimulator() error {
 	if e := s.deleteConfigMap(); e != nil {
 		err = e
 	}
+	return err
+}
 
-	for total > 0 {
-		time.Sleep(50 * time.Millisecond)
-		pods, err = s.kubeClient.CoreV1().Pods(s.namespace).List(metav1.ListOptions{
-			LabelSelector: fmt.Sprintf("type=simulator,simulator=%s", s.name),
-		})
-		if err != nil {
-			return err
-		}
-
-		total = len(pods.Items)
-
+// removeDevice removes the device from the topo service
+func (s *Simulator) removeDevice() error {
+	tlsConfig, err := s.Credentials()
+	if err != nil {
+		return err
 	}
+
+	conn, err := grpc.Dial(topoAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	if err != nil {
+		return err
+	}
+
+	client := device.NewDeviceServiceClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), topoTimeout)
+	response, err := client.Get(ctx, &device.GetRequest{
+		ID: device.ID(s.Name()),
+	})
+	cancel()
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel = context.WithTimeout(context.Background(), topoTimeout)
+	_, err = client.Remove(ctx, &device.RemoveRequest{
+		Device: response.Device,
+	})
+	cancel()
 	return err
 }
 

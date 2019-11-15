@@ -123,7 +123,7 @@ func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 		PullPolicy(pullPolicy)
 	if nodes[cliService] > 0 {
 		setup.CLI().
-			Nodes(nodes[cliService]).
+			Enable().
 			Image(images[cliService]).
 			PullPolicy(pullPolicy)
 	}

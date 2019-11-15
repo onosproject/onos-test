@@ -66,7 +66,7 @@ func (s *clusterAppSetup) PullPolicy(pullPolicy corev1.PullPolicy) AppSetup {
 }
 
 func (s *clusterAppSetup) Add() (AppEnv, error) {
-	if err := s.app.Add(); err != nil {
+	if err := s.app.Setup(); err != nil {
 		return nil, err
 	}
 	return &clusterAppEnv{
@@ -105,7 +105,7 @@ type clusterAppEnv struct {
 }
 
 func (e *clusterAppEnv) Remove() error {
-	return e.app.Remove()
+	return e.app.TearDown()
 }
 
 func (e *clusterAppEnv) RemoveOrDie() {

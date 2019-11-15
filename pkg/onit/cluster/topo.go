@@ -15,244 +15,37 @@
 package cluster
 
 import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/util/logging"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"time"
 )
 
+const (
+	topoType    = "topo"
+	topoImage   = "onosproject/onos-topo:latest"
+	topoService = "onos-topo"
+	topoPort    = 5150
+	topoAddress = "onos-topo:5150"
+	topoTimeout = 30 * time.Second
+)
+
+var topoSecrets = map[string]string{
+	"onf.cacrt":     caCert,
+	"onos-topo.crt": topoCert,
+	"onos-topo.key": topoKey,
+}
+
+var topoArgs = []string{
+	"-caPath=/certs/onf.cacrt",
+	"-keyPath=/certs/onos-topo.key",
+	"-certPath=/certs/onos-topo.crt",
+}
+
 func newTopo(client *client) *Topo {
-	labels := map[string]string{
-		typeLabel: topoType.name(),
-	}
 	return &Topo{
-		Service: newService("onos-topo", 5150, labels, topoImage, client),
+		Service: newService(topoService, topoPort, getLabels(topoType), topoImage, topoSecrets, topoArgs, client),
 	}
 }
 
 // Topo provides methods for managing the onos-topo service
 type Topo struct {
 	*Service
-}
-
-// Setup sets up the topology subsystem
-func (s *Topo) Setup() error {
-	if s.replicas == 0 {
-		return nil
-	}
-
-	step := logging.NewStep(s.namespace, "Setup onos-topo service")
-	step.Start()
-	step.Log("Creating onos-topo Service")
-	if err := s.createService(); err != nil {
-		step.Fail(err)
-		return err
-	}
-	step.Log("Creating onos-topo Secret")
-	if err := s.createSecret(); err != nil {
-		step.Fail(err)
-		return err
-	}
-	step.Log("Creating onos-topo Deployment")
-	if err := s.createDeployment(); err != nil {
-		step.Fail(err)
-		return err
-	}
-	step.Log("Waiting for onos-topo to become ready")
-	if err := s.AwaitReady(); err != nil {
-		step.Fail(err)
-		return err
-	}
-	step.Complete()
-	return nil
-}
-
-// createSecret creates the onos-config Secret
-func (s *Topo) createSecret() error {
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-topo",
-			Namespace: s.namespace,
-		},
-		StringData: map[string]string{
-			"onf.cacrt":     caCert,
-			"onos-topo.crt": topoCert,
-			"onos-topo.key": topoKey,
-		},
-	}
-	_, err := s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
-	return err
-}
-
-// createService creates a Service to expose the onos-topo Deployment to other pods
-func (s *Topo) createService() error {
-	service := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-topo",
-			Namespace: s.namespace,
-			Labels: map[string]string{
-				"type": "topo",
-			},
-		},
-		Spec: corev1.ServiceSpec{
-			Selector: map[string]string{
-				"type": "topo",
-			},
-			Ports: []corev1.ServicePort{
-				{
-					Name: "grpc",
-					Port: 5150,
-				},
-			},
-		},
-	}
-	_, err := s.kubeClient.CoreV1().Services(s.namespace).Create(service)
-	return err
-}
-
-// createDeployment creates an onos-topo Deployment
-func (s *Topo) createDeployment() error {
-	nodes := int32(s.replicas)
-	zero := int64(0)
-	dep := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "onos-topo",
-			Namespace: s.namespace,
-			Labels: map[string]string{
-				"type": "topo",
-			},
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &nodes,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					"type": "topo",
-				},
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"type": "topo",
-					},
-					Annotations: map[string]string{
-						"seccomp.security.alpha.kubernetes.io/pod": "unconfined",
-					},
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:            "onos-topo",
-							Image:           s.image,
-							ImagePullPolicy: s.pullPolicy,
-							Env: []corev1.EnvVar{
-								{
-									Name:  "ATOMIX_CONTROLLER",
-									Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", s.namespace),
-								},
-								{
-									Name:  "ATOMIX_APP",
-									Value: "onos-topo",
-								},
-								{
-									Name:  "ATOMIX_NAMESPACE",
-									Value: s.namespace,
-								},
-								{
-									Name:  "ATOMIX_RAFT_GROUP",
-									Value: "raft",
-								},
-							},
-							Args: []string{
-								"-caPath=/etc/onos-topo/certs/onf.cacrt",
-								"-keyPath=/etc/onos-topo/certs/onos-topo.key",
-								"-certPath=/etc/onos-topo/certs/onos-topo.crt",
-							},
-							Ports: []corev1.ContainerPort{
-								{
-									Name:          "grpc",
-									ContainerPort: 5150,
-								},
-								{
-									Name:          "debug",
-									ContainerPort: 40000,
-									Protocol:      corev1.ProtocolTCP,
-								},
-							},
-							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									TCPSocket: &corev1.TCPSocketAction{
-										Port: intstr.FromInt(5150),
-									},
-								},
-								InitialDelaySeconds: 5,
-								PeriodSeconds:       10,
-							},
-							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									TCPSocket: &corev1.TCPSocketAction{
-										Port: intstr.FromInt(5150),
-									},
-								},
-								InitialDelaySeconds: 15,
-								PeriodSeconds:       20,
-							},
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "secret",
-									MountPath: "/etc/onos-topo/certs",
-									ReadOnly:  true,
-								},
-							},
-							SecurityContext: &corev1.SecurityContext{
-								Capabilities: &corev1.Capabilities{
-									Add: []corev1.Capability{
-										"SYS_PTRACE",
-									},
-								},
-							},
-						},
-					},
-					SecurityContext: &corev1.PodSecurityContext{
-						RunAsUser: &zero,
-					},
-					Volumes: []corev1.Volume{
-						{
-							Name: "secret",
-							VolumeSource: corev1.VolumeSource{
-								Secret: &corev1.SecretVolumeSource{
-									SecretName: "onos-topo",
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-	_, err := s.kubeClient.AppsV1().Deployments(s.namespace).Create(dep)
-	return err
-}
-
-// AwaitReady waits for the onos-topo pods to complete startup
-func (s *Topo) AwaitReady() error {
-	if s.replicas == 0 {
-		return nil
-	}
-
-	for {
-		// Get the onos-topo deployment
-		dep, err := s.kubeClient.AppsV1().Deployments(s.namespace).Get("onos-topo", metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-
-		// Return once the all replicas in the deployment are ready
-		if int(dep.Status.ReadyReplicas) == s.replicas {
-			return nil
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
 }

@@ -46,10 +46,10 @@ func SetVerbose(verbose bool) {
 }
 
 // NewStep returns a new step
-func NewStep(test, name string) *Step {
+func NewStep(test, name string, args ...interface{}) *Step {
 	return &Step{
 		test:    test,
-		name:    name,
+		name:    fmt.Sprintf(name, args...),
 		verbose: GetVerbose(),
 	}
 }

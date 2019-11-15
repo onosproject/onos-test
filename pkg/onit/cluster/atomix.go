@@ -24,18 +24,22 @@ import (
 	"time"
 )
 
+const (
+	atomixType    = "atomix"
+	atomixImage   = "atomix/atomix-k8s-controller:latest"
+	atomixService = "atomix-controller"
+	atomixPort    = 5679
+)
+
 func newAtomix(client *client) *Atomix {
-	labels := map[string]string{
-		typeLabel: atomixType.name(),
-	}
 	return &Atomix{
-		Service: newService("atomix-controller", 5679, labels, atomixImage, client),
+		Deployment: newDeployment(atomixService, getLabels(atomixType), atomixImage, client),
 	}
 }
 
 // Atomix provides methods for managing the Atomix controller
 type Atomix struct {
-	*Service
+	*Deployment
 }
 
 // Setup sets up the Atomix controller and associated resources
@@ -134,38 +138,31 @@ func (s *Atomix) createDeployment() error {
 	replicas := int32(1)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "atomix-controller",
+			Name:      s.name,
 			Namespace: s.namespace,
-			Labels: map[string]string{
-				"type": "atomix",
-			},
+			Labels:    getLabels(atomixType),
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					"name": "atomix-controller",
-				},
+				MatchLabels: getLabels(atomixType),
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"name": "atomix-controller",
-						"type": "atomix",
-					},
+					Labels: getLabels(atomixType),
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: s.namespace,
 					Containers: []corev1.Container{
 						{
-							Name:            "atomix-controller",
+							Name:            s.name,
 							Image:           s.image,
 							ImagePullPolicy: s.pullPolicy,
 							Command:         []string{"atomix-controller"},
 							Env: []corev1.EnvVar{
 								{
 									Name:  "CONTROLLER_NAME",
-									Value: "atomix-controller",
+									Value: s.name,
 								},
 								{
 									Name: "CONTROLLER_NAMESPACE",
@@ -195,7 +192,7 @@ func (s *Atomix) createDeployment() error {
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "control",
-									ContainerPort: 5679,
+									ContainerPort: atomixPort,
 								},
 							},
 							ReadinessProbe: &corev1.Probe{
@@ -225,20 +222,16 @@ func (s *Atomix) createDeployment() error {
 func (s *Atomix) createService() error {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "atomix-controller",
+			Name:      s.name,
 			Namespace: s.namespace,
-			Labels: map[string]string{
-				"type": "atomix",
-			},
+			Labels:    getLabels(atomixType),
 		},
 		Spec: corev1.ServiceSpec{
-			Selector: map[string]string{
-				"name": "atomix-controller",
-			},
+			Selector: getLabels(atomixType),
 			Ports: []corev1.ServicePort{
 				{
 					Name: "control",
-					Port: 5679,
+					Port: atomixPort,
 				},
 			},
 		},
@@ -250,7 +243,7 @@ func (s *Atomix) createService() error {
 // awaitReady blocks until the Atomix controller is ready
 func (s *Atomix) awaitReady() error {
 	for {
-		dep, err := s.kubeClient.AppsV1().Deployments(s.namespace).Get("atomix-controller", metav1.GetOptions{})
+		dep, err := s.kubeClient.AppsV1().Deployments(s.namespace).Get(s.name, metav1.GetOptions{})
 		if err != nil {
 			return err
 		} else if dep.Status.ReadyReplicas == 1 {

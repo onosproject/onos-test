@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package env
+package cluster
 
-// PartitionEnv provides the environment for a partition
-type PartitionEnv interface {
-	DeploymentEnv
-}
+const (
+	typeLabel = "type"
+)
 
-// clusterPartitionEnv is an implementation of the Partition interface
-type clusterPartitionEnv struct {
-	*clusterDeploymentEnv
+func getLabels(typeName string) map[string]string {
+	return map[string]string{
+		typeLabel: typeName,
+	}
 }
