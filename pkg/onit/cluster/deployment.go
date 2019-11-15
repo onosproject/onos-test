@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
@@ -122,4 +123,16 @@ func (d *Deployment) isReady() (bool, error) {
 		}
 	}
 	return true, nil
+}
+
+// Execute executes the given command on one of the service nodes
+func (d *Deployment) Execute(command ...string) ([]string, int, error) {
+	nodes, err := d.Nodes()
+	if err != nil {
+		return nil, 0, err
+	}
+	if len(nodes) == 0 {
+		return nil, 0, errors.New("no nodes found")
+	}
+	return nodes[0].Execute(command...)
 }

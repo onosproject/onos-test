@@ -182,10 +182,8 @@ func (e *clusterEnv) Database() DatabaseEnv {
 
 func (e *clusterEnv) CLI() CLIEnv {
 	return &clusterCLIEnv{
-		clusterServiceEnv: &clusterServiceEnv{
-			clusterDeploymentEnv: &clusterDeploymentEnv{
-				deployment: e.cluster.CLI().Deployment,
-			},
+		clusterDeploymentEnv: &clusterDeploymentEnv{
+			deployment: e.cluster.CLI().Deployment,
 		},
 	}
 }
@@ -193,6 +191,9 @@ func (e *clusterEnv) CLI() CLIEnv {
 func (e *clusterEnv) Topo() TopoEnv {
 	return &clusterTopoEnv{
 		clusterServiceEnv: &clusterServiceEnv{
+			clusterDeploymentEnv: &clusterDeploymentEnv{
+				deployment: e.cluster.Topo().Deployment,
+			},
 			service: e.cluster.Topo().Service,
 		},
 	}
@@ -201,6 +202,9 @@ func (e *clusterEnv) Topo() TopoEnv {
 func (e *clusterEnv) Config() ConfigEnv {
 	return &clusterConfigEnv{
 		clusterServiceEnv: &clusterServiceEnv{
+			clusterDeploymentEnv: &clusterDeploymentEnv{
+				deployment: e.cluster.Topo().Deployment,
+			},
 			service: e.cluster.Config().Service,
 		},
 	}

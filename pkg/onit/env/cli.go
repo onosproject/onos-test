@@ -16,12 +16,12 @@ package env
 
 // CLIEnv provides the CLI environment
 type CLIEnv interface {
-	ServiceEnv
+	DeploymentEnv
 }
 
 var _ CLIEnv = &clusterCLIEnv{}
 
 // clusterCLIEnv is an implementation of the CLI interface
 type clusterCLIEnv struct {
-	*clusterServiceEnv
+	*clusterDeploymentEnv
 }

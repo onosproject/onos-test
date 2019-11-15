@@ -50,6 +50,9 @@ func (e *clusterAppsEnv) Get(name string) AppEnv {
 	app := e.apps.Get(name)
 	return &clusterAppEnv{
 		clusterServiceEnv: &clusterServiceEnv{
+			clusterDeploymentEnv: &clusterDeploymentEnv{
+				deployment: app.Deployment,
+			},
 			service: app.Service,
 		},
 		app: app,

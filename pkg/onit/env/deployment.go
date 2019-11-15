@@ -31,6 +31,9 @@ type DeploymentEnv interface {
 
 	// AwaitReady waits for all nodes in the deployment to become ready
 	AwaitReady() error
+
+	// Execute executes the given command and returns the output
+	Execute(command ...string) ([]string, int, error)
 }
 
 // clusterDeploymentEnv is an implementation of the Deployment interface
@@ -66,4 +69,8 @@ func (e *clusterDeploymentEnv) Node(name string) NodeEnv {
 
 func (e *clusterDeploymentEnv) AwaitReady() error {
 	return e.deployment.AwaitReady()
+}
+
+func (e *clusterDeploymentEnv) Execute(command ...string) ([]string, int, error) {
+	return e.deployment.Execute(command...)
 }

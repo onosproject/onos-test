@@ -27,9 +27,6 @@ type ServiceEnv interface {
 	// Address returns the service address
 	Address() string
 
-	// Execute executes the given command and returns the output
-	Execute(command ...string) ([]string, int, error)
-
 	// Credentials returns the service credentials
 	Credentials() *tls.Config
 
@@ -45,10 +42,6 @@ type clusterServiceEnv struct {
 
 func (e *clusterServiceEnv) Address() string {
 	return e.service.Address()
-}
-
-func (e *clusterServiceEnv) Execute(command ...string) ([]string, int, error) {
-	return e.service.Execute(command...)
 }
 
 func (e *clusterServiceEnv) Credentials() *tls.Config {

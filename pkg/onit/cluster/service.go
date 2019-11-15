@@ -16,7 +16,6 @@ package cluster
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
@@ -338,18 +337,6 @@ func (s *Service) deleteService() error {
 func (s *Service) deleteSecret() error {
 	_ = s.kubeClient.CoreV1().Secrets(s.namespace).Delete(s.name, &metav1.DeleteOptions{})
 	return nil
-}
-
-// Execute executes the given command on one of the service nodes
-func (s *Service) Execute(command ...string) ([]string, int, error) {
-	nodes, err := s.Nodes()
-	if err != nil {
-		return nil, 0, err
-	}
-	if len(nodes) == 0 {
-		return nil, 0, errors.New("no service nodes found")
-	}
-	return nodes[0].Execute(command...)
 }
 
 // Credentials returns the TLS credentials
