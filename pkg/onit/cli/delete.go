@@ -53,13 +53,7 @@ func getDeleteClusterCommand() *cobra.Command {
 
 func runDeleteClusterCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
-
-	clusterID := getCluster(cmd)
-	if len(args) > 0 {
-		clusterID = args[0]
-	}
-
-	kubeAPI, err := kube.GetAPI(clusterID)
+	kubeAPI, err := kube.GetAPI(getClusterArgOrFlag(cmd, args))
 	if err != nil {
 		return err
 	}

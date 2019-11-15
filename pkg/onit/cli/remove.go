@@ -55,7 +55,7 @@ func getRemoveNetworkCommand() *cobra.Command {
 		RunE:  runRemoveNetworkCommand,
 	}
 	cmd.Flags().StringP("name", "n", "", "the name of the network to remove")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+	cmd.Flags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_networks"},
 	}
 	return cmd
@@ -91,7 +91,7 @@ func getRemoveSimulatorCommand() *cobra.Command {
 		RunE:  runRemoveSimulatorCommand,
 	}
 	cmd.Flags().StringP("name", "n", "", "the name of the simulator to remove")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+	cmd.Flags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_simulators"},
 	}
 	return cmd
@@ -127,7 +127,7 @@ func getRemoveAppCommand() *cobra.Command {
 		RunE:  runRemoveAppCommand,
 	}
 	cmd.Flags().StringP("name", "n", "", "the name of the app to remove")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+	cmd.Flags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_apps"},
 	}
 	return cmd

@@ -53,6 +53,14 @@ func getCluster(cmd *cobra.Command) string {
 	return cluster
 }
 
+// getClusterArgOrFlag returns the cluster from the given command flags and arguments
+func getClusterArgOrFlag(cmd *cobra.Command, args []string) string {
+	if len(args) > 0 {
+		return args[0]
+	}
+	return getCluster(cmd)
+}
+
 func runCommand(cmd *cobra.Command) {
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	logging.SetVerbose(verbose)

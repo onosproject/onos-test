@@ -17,8 +17,6 @@ package cli
 import (
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
-	"github.com/onosproject/onos-test/pkg/util/random"
-
 	"github.com/onosproject/onos-test/pkg/onit/setup"
 
 	corev1 "k8s.io/api/core/v1"
@@ -71,15 +69,15 @@ func getCreateClusterCommand() *cobra.Command {
 	images[configService] = defaultConfigImage
 	images[topoService] = defaultTopoImage
 
-	nodes := make(map[string]int)
-	nodes[atomixService] = 1
-	nodes[raftService] = 1
-	nodes[cliService] = 1
-	nodes[configService] = 1
-	nodes[topoService] = 1
+	replicas := make(map[string]int)
+	replicas[atomixService] = 1
+	replicas[raftService] = 1
+	replicas[cliService] = 1
+	replicas[configService] = 1
+	replicas[topoService] = 1
 
 	cmd.Flags().StringToStringP("image", "i", images, "override the image to deploy for a subsystem")
-	cmd.Flags().StringToIntP("nodes", "n", nodes, "set the number of nodes to deploy for a subsystem")
+	cmd.Flags().StringToIntP("replicas", "r", replicas, "set the number of replicas to deploy for a subsystem")
 	cmd.Flags().IntP("partitions", "p", 1, "the number of Raft partitions to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 
@@ -89,21 +87,13 @@ func getCreateClusterCommand() *cobra.Command {
 func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
-	clusterID := getCluster(cmd)
-	if len(args) > 0 {
-		clusterID = args[0]
-	}
-	if clusterID == "" {
-		clusterID = random.NewPetName(2)
-	}
-
 	images, _ := cmd.Flags().GetStringToString("image")
-	nodes, _ := cmd.Flags().GetStringToInt("nodes")
+	replicas, _ := cmd.Flags().GetStringToInt("replicas")
 	partitions, _ := cmd.Flags().GetInt("partitions")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	kubeAPI, err := kube.GetAPI(clusterID)
+	kubeAPI, err := kube.GetAPI(getClusterArgOrFlag(cmd, args))
 	if err != nil {
 		return err
 	}
@@ -118,24 +108,24 @@ func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 		SetPullPolicy(pullPolicy)
 	setup.Database().
 		SetPartitions(partitions).
-		SetNodesPerPartition(nodes[raftService]).
+		SetNodesPerPartition(replicas[raftService]).
 		SetImage(images[raftService]).
 		SetPullPolicy(pullPolicy)
-	if nodes[cliService] > 0 {
+	if replicas[cliService] > 0 {
 		setup.CLI().
 			SetEnabled().
 			SetImage(images[cliService]).
 			SetPullPolicy(pullPolicy)
 	}
-	if nodes[configService] > 0 {
+	if replicas[configService] > 0 {
 		setup.Config().
-			SetNodes(nodes[configService]).
+			SetNodes(replicas[configService]).
 			SetImage(images[configService]).
 			SetPullPolicy(pullPolicy)
 	}
-	if nodes[topoService] > 0 {
+	if replicas[topoService] > 0 {
 		setup.Topo().
-			SetNodes(nodes[topoService]).
+			SetNodes(replicas[topoService]).
 			SetImage(images[topoService]).
 			SetPullPolicy(pullPolicy)
 	}

@@ -67,11 +67,14 @@ __onit_get_cluster() {
     do
         if [[ ${words[i]} -eq "-c" ]]; then
             echo ${words[i+1]}
+            return 0
         fi
         if [[ ${words[i]} -eq "--cluster" ]]; then
             echo ${words[i+1]}
+            return 0
         fi
     done
+    echo "onos"
 }
 
 __onit_custom_func() {

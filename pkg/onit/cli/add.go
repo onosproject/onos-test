@@ -148,7 +148,7 @@ func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
 // getAddSimulatorCommand returns a cobra command for deploying a device simulator
 func getAddAppCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "app image-name [args]",
+		Use:   "app [args]",
 		Short: "Add an app to the test cluster",
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  runAddAppCommand,
@@ -157,7 +157,7 @@ func getAddAppCommand() *cobra.Command {
 	cmd.Flags().StringP("name", "n", "", "the name of the app to add")
 	cmd.Flags().StringP("image", "i", "", "the image to deploy")
 	_ = cmd.MarkFlagRequired("image")
-	cmd.Flags().IntP("nodes", "n", 1, "the number of nodes to deploy")
+	cmd.Flags().IntP("replicas", "r", 1, "the number of replicas to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	return cmd
 }
@@ -174,7 +174,7 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	image, _ := cmd.Flags().GetString("image")
-	nodes, _ := cmd.Flags().GetInt("nodes")
+	replicas, _ := cmd.Flags().GetInt("replicas")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
@@ -187,7 +187,7 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	_, err = env.Apps().
 		New().
 		SetName(appID).
-		SetNodes(nodes).
+		SetNodes(replicas).
 		SetImage(image).
 		SetPullPolicy(pullPolicy).
 		Add()
