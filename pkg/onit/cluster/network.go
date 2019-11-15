@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"github.com/onosproject/onos-topo/pkg/northbound/device"
@@ -332,6 +333,48 @@ func (s *Network) createService() error {
 
 // addDevices adds the network's devices to the topo service
 func (s *Network) addDevices() error {
+	devices, err := s.Devices()
+	if err != nil {
+		return err
+	}
+	for _, device := range devices {
+		if err := s.addDevice(device); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// addDevice adds the given device to the topo service
+func (s *Network) addDevice(node *Node) error {
+	if err := s.addDeviceByCLI(node); err == nil {
+		return nil
+	}
+	return s.addDeviceByAPI(node)
+}
+
+func (s *Network) addDeviceByCLI(node *Node) error {
+	// Determine whether any CLI nodes are deployed and use the CLI to add the device if possible
+	cli := newCLI(s.client)
+	nodes, err := cli.Nodes()
+	if err != nil {
+		return err
+	}
+
+	if len(nodes) == 0 {
+		return errors.New("onos-cli is not available")
+	}
+
+	timeout := s.DeviceTimeout()
+	if timeout == nil {
+		t := topoTimeout
+		timeout = &t
+	}
+	_, _, err = nodes[0].Execute(fmt.Sprintf("onos topo add device %s --address %s --type %s --version %s --timeout %s --plain", node.Name(), node.Address(), s.DeviceType(), s.DeviceVersion(), timeout))
+	return err
+}
+
+func (s *Network) addDeviceByAPI(node *Node) error {
 	tlsConfig, err := s.Credentials()
 	if err != nil {
 		return err
@@ -341,54 +384,23 @@ func (s *Network) addDevices() error {
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 
+	ctx, cancel := context.WithTimeout(context.Background(), topoTimeout)
+	defer cancel()
 	client := device.NewDeviceServiceClient(conn)
-	devices, err := s.Devices()
-	if err != nil {
-		return err
-	}
-	for _, device := range devices {
-		if err := s.addDevice(client, device); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// addDevice adds the given device to the topo service
-func (s *Network) addDevice(client device.DeviceServiceClient, node *Node) error {
-	// Determine whether any CLI nodes are deployed and use the CLI to add the device if possible
-	cli := newCLI(s.client)
-	nodes, err := cli.Nodes()
-	if err != nil {
-		return err
-	}
-
-	// If the CLI is available, use it to add the device. Otherwise use the northbound API. This is necessary
-	// to allow devices to be added when the northbound API is unreachable (e.g. from outside the cluster).
-	if len(nodes) > 0 {
-		timeout := s.DeviceTimeout()
-		if timeout == nil {
-			t := topoTimeout
-			timeout = &t
-		}
-		_, _, err = nodes[0].Execute(fmt.Sprintf("onos topo add device %s --address %s --type %s --version %s --timeout %s --plain", node.Name(), node.Address(), s.DeviceType(), s.DeviceVersion(), timeout))
-	} else {
-		ctx, cancel := context.WithTimeout(context.Background(), topoTimeout)
-		defer cancel()
-		_, err = client.Add(ctx, &device.AddRequest{
-			Device: &device.Device{
-				ID:      device.ID(node.Name()),
-				Address: node.Address(),
-				Type:    device.Type(s.deviceType),
-				Version: s.deviceVersion,
-				Timeout: s.deviceTimeout,
-				TLS: device.TlsConfig{
-					Plain: true,
-				},
+	_, err = client.Add(ctx, &device.AddRequest{
+		Device: &device.Device{
+			ID:      device.ID(node.Name()),
+			Address: node.Address(),
+			Type:    device.Type(s.deviceType),
+			Version: s.deviceVersion,
+			Timeout: s.deviceTimeout,
+			TLS: device.TlsConfig{
+				Plain: true,
 			},
-		})
-	}
+		},
+	})
 	return err
 }
 
@@ -415,6 +427,42 @@ func (s *Network) TearDown() error {
 
 // removeDevices removes the devices from the topo service
 func (s *Network) removeDevices() error {
+	devices, err := s.Devices()
+	if err != nil {
+		return err
+	}
+	for _, device := range devices {
+		if e := s.removeDevice(device); e != nil {
+			err = e
+		}
+	}
+	return err
+}
+
+// removeDevice removes the given device from the topo service
+func (s *Network) removeDevice(node *Node) error {
+	if err := s.removeDeviceByCLI(node); err == nil {
+		return nil
+	}
+	return s.removeDeviceByAPI(node)
+}
+
+func (s *Network) removeDeviceByCLI(node *Node) error {
+	// Determine whether any CLI nodes are deployed and use the CLI to add the device if possible
+	cli := newCLI(s.client)
+	nodes, err := cli.Nodes()
+	if err != nil {
+		return err
+	}
+
+	if len(nodes) == 0 {
+		return errors.New("onos-cli is not available")
+	}
+	_, _, err = nodes[0].Execute(fmt.Sprintf("onos topo remove device %s", node.Name()))
+	return err
+}
+
+func (s *Network) removeDeviceByAPI(node *Node) error {
 	tlsConfig, err := s.Credentials()
 	if err != nil {
 		return err
@@ -424,22 +472,10 @@ func (s *Network) removeDevices() error {
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 
 	client := device.NewDeviceServiceClient(conn)
-	devices, err := s.Devices()
-	if err != nil {
-		return err
-	}
-	for _, device := range devices {
-		if e := s.removeDevice(client, device); e != nil {
-			err = e
-		}
-	}
-	return err
-}
 
-// removeDevice removes the given device from the topo service
-func (s *Network) removeDevice(client device.DeviceServiceClient, node *Node) error {
 	ctx, cancel := context.WithTimeout(context.Background(), topoTimeout)
 	response, err := client.Get(ctx, &device.GetRequest{
 		ID: device.ID(node.Name()),
