@@ -379,29 +379,38 @@ func (s *Simulator) addDevice() error {
 
 	client := device.NewDeviceServiceClient(conn)
 
-	deviceType := s.deviceType
-	if deviceType == "" {
-		deviceType = simulatorDeviceType
-	}
-	version := s.deviceVersion
-	if version == "" {
-		version = simulatorDeviceVersion
+	// Determine whether any CLI nodes are deployed and use the CLI to add the device if possible
+	cli := newCLI(s.client)
+	nodes, err := cli.Nodes()
+	if err != nil {
+		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), topoTimeout)
-	defer cancel()
-	_, err = client.Add(ctx, &device.AddRequest{
-		Device: &device.Device{
-			ID:      device.ID(s.Name()),
-			Address: s.Address(),
-			Type:    device.Type(deviceType),
-			Version: version,
-			Timeout: s.deviceTimeout,
-			TLS: device.TlsConfig{
-				Plain: true,
+	// If the CLI is available, use it to add the device. Otherwise use the northbound API. This is necessary
+	// to allow devices to be added when the northbound API is unreachable (e.g. from outside the cluster).
+	if len(nodes) > 0 {
+		timeout := s.DeviceTimeout()
+		if timeout == nil {
+			t := topoTimeout
+			timeout = &t
+		}
+		_, _, err = nodes[0].Execute(fmt.Sprintf("onos topo add device %s --address %s --type %s --version %s --timeout %s --plain", s.Name(), s.Address(), s.DeviceType(), s.DeviceVersion(), timeout))
+	} else {
+		ctx, cancel := context.WithTimeout(context.Background(), topoTimeout)
+		defer cancel()
+		_, err = client.Add(ctx, &device.AddRequest{
+			Device: &device.Device{
+				ID:      device.ID(s.Name()),
+				Address: s.Address(),
+				Type:    device.Type(s.DeviceType()),
+				Version: s.DeviceVersion(),
+				Timeout: s.deviceTimeout,
+				TLS: device.TlsConfig{
+					Plain: true,
+				},
 			},
-		},
-	})
+		})
+	}
 	return err
 }
 
