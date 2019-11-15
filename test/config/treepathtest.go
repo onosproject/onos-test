@@ -34,7 +34,7 @@ const (
 // TestTreePath tests create/set/delete of a tree of GNMI paths to a single device
 func (s *SmokeTestSuite) TestTreePath(t *testing.T) {
 	// Get the first configured device from the environment.
-	device := s.addSimulator(t)
+	device := env.NewSimulator().AddOrDie()
 
 	// Make a GNMI client to use for requests
 	c, err := env.Config().NewGNMIClient()

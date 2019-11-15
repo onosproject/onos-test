@@ -21,17 +21,17 @@ import (
 
 // AppSetup is an interface for setting up an application
 type AppSetup interface {
-	// Name sets the application name
-	Name(name string) AppSetup
+	// SetName sets the application name
+	SetName(name string) AppSetup
 
-	// Nodes sets the number of application nodes
-	Nodes(nodes int) AppSetup
+	// SetNodes sets the number of application nodes
+	SetNodes(nodes int) AppSetup
 
-	// Image sets the image to deploy
-	Image(image string) AppSetup
+	// SetImage sets the image to deploy
+	SetImage(image string) AppSetup
 
-	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) AppSetup
+	// SetPullPolicy sets the image pull policy
+	SetPullPolicy(pullPolicy corev1.PullPolicy) AppSetup
 
 	// Add adds the application to the cluster
 	Add() (AppEnv, error)
@@ -45,22 +45,22 @@ type clusterAppSetup struct {
 	app *cluster.App
 }
 
-func (s *clusterAppSetup) Name(name string) AppSetup {
+func (s *clusterAppSetup) SetName(name string) AppSetup {
 	s.app.SetName(name)
 	return s
 }
 
-func (s *clusterAppSetup) Nodes(nodes int) AppSetup {
+func (s *clusterAppSetup) SetNodes(nodes int) AppSetup {
 	s.app.SetReplicas(nodes)
 	return s
 }
 
-func (s *clusterAppSetup) Image(image string) AppSetup {
+func (s *clusterAppSetup) SetImage(image string) AppSetup {
 	s.app.SetImage(image)
 	return s
 }
 
-func (s *clusterAppSetup) PullPolicy(pullPolicy corev1.PullPolicy) AppSetup {
+func (s *clusterAppSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) AppSetup {
 	s.app.SetPullPolicy(pullPolicy)
 	return s
 }

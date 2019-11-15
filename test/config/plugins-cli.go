@@ -87,7 +87,7 @@ func parsePluginsCommandOutput(t *testing.T, output []string) map[string]map[str
 
 // TestPluginsGetCLI tests the config service's plugin CLI commands
 func (s *CLITestSuite) TestPluginsGetCLI(t *testing.T) {
-	device1 := s.addSimulator(t)
+	device1 := env.NewSimulator().AddOrDie()
 
 	output, code, err := env.CLI().Execute(fmt.Sprintf("onos config get plugins %s", device1.Name()))
 	assert.NoError(t, err)

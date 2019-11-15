@@ -26,7 +26,11 @@ import (
 
 // TestSnapshot : test
 func (s *SmokeTestSuite) TestSnapshot(t *testing.T) {
-	simulators := s.addSimulators(25, t)
+	add := env.AddSimulators()
+	for i := 0; i < 20; i++ {
+		add.With(env.NewSimulator())
+	}
+	simulators := add.AddAllOrDie()
 
 	// Make a GNMI client to use for requests
 	c, err := env.Config().NewGNMIClient()

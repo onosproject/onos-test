@@ -36,7 +36,7 @@ func makeDevicePath(device string, path string) []DevicePath {
 
 // TestSinglePath tests query/set/delete of a single GNMI path to a single device
 func (s *SmokeTestSuite) TestSinglePath(t *testing.T) {
-	simulator := s.addSimulator(t)
+	simulator := env.NewSimulator().AddOrDie()
 
 	// Make a GNMI client to use for requests
 	c, err := env.Config().NewGNMIClient()

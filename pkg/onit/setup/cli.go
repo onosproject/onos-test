@@ -21,14 +21,14 @@ import (
 
 // CLISetup is an interface for setting up CLI nodes
 type CLISetup interface {
-	// Enable enables the CLI
-	Enable() CLISetup
+	// SetEnabled enables the CLI
+	SetEnabled() CLISetup
 
-	// Image sets the onos-cli image to deploy
-	Image(image string) CLISetup
+	// SetImage sets the onos-cli image to deploy
+	SetImage(image string) CLISetup
 
-	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) CLISetup
+	// SetPullPolicy sets the image pull policy
+	SetPullPolicy(pullPolicy corev1.PullPolicy) CLISetup
 }
 
 var _ CLISetup = &clusterCLISetup{}
@@ -38,17 +38,17 @@ type clusterCLISetup struct {
 	cli *cluster.CLI
 }
 
-func (s *clusterCLISetup) Enable() CLISetup {
+func (s *clusterCLISetup) SetEnabled() CLISetup {
 	s.cli.SetEnabled(true)
 	return s
 }
 
-func (s *clusterCLISetup) Image(image string) CLISetup {
+func (s *clusterCLISetup) SetImage(image string) CLISetup {
 	s.cli.SetImage(image)
 	return s
 }
 
-func (s *clusterCLISetup) PullPolicy(pullPolicy corev1.PullPolicy) CLISetup {
+func (s *clusterCLISetup) SetPullPolicy(pullPolicy corev1.PullPolicy) CLISetup {
 	s.cli.SetPullPolicy(pullPolicy)
 	return s
 }

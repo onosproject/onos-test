@@ -29,7 +29,7 @@ const (
 
 // TestSingleState tests query of a single GNMI path of a read/only value to a single device
 func (s *SmokeTestSuite) TestSingleState(t *testing.T) {
-	simulator := s.addSimulator(t)
+	simulator := env.NewSimulator().AddOrDie()
 
 	// Make a GNMI client to use for requests
 	c, err := env.Config().NewGNMIClient()

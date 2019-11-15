@@ -34,9 +34,9 @@ type BenchmarkSuite struct {
 // SetupBenchmarkSuite sets up the topo benchmark suite
 func (s *BenchmarkSuite) SetupBenchmarkSuite() {
 	setup.Database().
-		Partitions(3).
-		Nodes(3)
-	setup.Topo().Nodes(2)
+		SetPartitions(3).
+		SetNodesPerPartition(3)
+	setup.Topo().SetNodes(2)
 	setup.SetupOrDie()
 }
 

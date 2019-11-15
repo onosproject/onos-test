@@ -15,80 +15,12 @@
 package config
 
 import (
-	"context"
 	"github.com/onosproject/onos-test/pkg/onit"
-	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
-	"github.com/onosproject/onos-topo/pkg/northbound/device"
-	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 type testSuite struct {
 	onit.TestSuite
-}
-
-// addSimulators adds multiple simulators to the network
-func (s *testSuite) addSimulators(count int, t *testing.T) []env.SimulatorEnv {
-	setup := env.AddSimulators()
-	for i := 0; i < count; i++ {
-		setup.With(env.NewSimulator())
-	}
-	simulators := setup.AddAllOrDie()
-
-	conn, err := env.Topo().Connect()
-	assert.NoError(t, err)
-
-	client := device.NewDeviceServiceClient(conn)
-
-	for _, simulator := range simulators {
-		timeout := 15 * time.Second
-		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		_, err = client.Add(ctx, &device.AddRequest{
-			Device: &device.Device{
-				ID:      device.ID(simulator.Name()),
-				Address: simulator.Address(),
-				Type:    "Devicesim",
-				Version: "1.0.0",
-				Timeout: &timeout,
-				TLS: device.TlsConfig{
-					Plain: true,
-				},
-			},
-		})
-		cancel()
-		assert.NoError(t, err)
-	}
-	return simulators
-}
-
-// addSimulator adds a device to the network
-func (s *testSuite) addSimulator(t *testing.T) env.SimulatorEnv {
-	simulator := env.Simulators().New().AddOrDie()
-
-	conn, err := env.Topo().Connect()
-	assert.NoError(t, err)
-
-	client := device.NewDeviceServiceClient(conn)
-
-	timeout := 15 * time.Second
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	_, err = client.Add(ctx, &device.AddRequest{
-		Device: &device.Device{
-			ID:      device.ID(simulator.Name()),
-			Address: simulator.Address(),
-			Type:    "Devicesim",
-			Version: "1.0.0",
-			Timeout: &timeout,
-			TLS: device.TlsConfig{
-				Plain: true,
-			},
-		},
-	})
-	cancel()
-	assert.NoError(t, err)
-	return simulator
 }
 
 // SmokeTestSuite is the primary onos-config test suite
@@ -98,8 +30,8 @@ type SmokeTestSuite struct {
 
 // SetupTestSuite sets up the onos-config test suite
 func (s *SmokeTestSuite) SetupTestSuite() {
-	setup.Topo().Nodes(2)
-	setup.Config().Nodes(2)
+	setup.Topo().SetNodes(2)
+	setup.Config().SetNodes(2)
 	setup.SetupOrDie()
 }
 
@@ -110,9 +42,9 @@ type CLITestSuite struct {
 
 // SetupTestSuite sets up the onos-config CLI test suite
 func (s *CLITestSuite) SetupTestSuite() {
-	setup.CLI().Enable()
-	setup.Topo().Nodes(2)
-	setup.Config().Nodes(2)
+	setup.CLI().SetEnabled()
+	setup.Topo().SetNodes(2)
+	setup.Config().SetNodes(2)
 	setup.SetupOrDie()
 }
 
@@ -123,7 +55,7 @@ type HATestSuite struct {
 
 // SetupTestSuite sets up the onos-config CLI test suite
 func (s *HATestSuite) SetupTestSuite() {
-	setup.Topo().Nodes(2)
-	setup.Config().Nodes(2)
+	setup.Topo().SetNodes(2)
+	setup.Config().SetNodes(2)
 	setup.SetupOrDie()
 }

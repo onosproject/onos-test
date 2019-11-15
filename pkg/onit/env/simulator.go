@@ -26,23 +26,23 @@ import (
 
 // SimulatorSetup is an interface for setting up a simulator
 type SimulatorSetup interface {
-	// Name sets the simulator name
-	Name(name string) SimulatorSetup
+	// SetName sets the simulator name
+	SetName(name string) SimulatorSetup
 
-	// Image sets the image to deploy
-	Image(image string) SimulatorSetup
+	// SetImage sets the image to deploy
+	SetImage(image string) SimulatorSetup
 
-	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup
+	// SetPullPolicy sets the image pull policy
+	SetPullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup
 
-	// DeviceType sets the device type
-	DeviceType(deviceType string) SimulatorSetup
+	// SetDeviceType sets the device type
+	SetDeviceType(deviceType string) SimulatorSetup
 
-	// DeviceVersion sets the device version
-	DeviceVersion(version string) SimulatorSetup
+	// SetDeviceVersion sets the device version
+	SetDeviceVersion(version string) SimulatorSetup
 
-	// DeviceTimeout sets the device timeout
-	DeviceTimeout(timeout time.Duration) SimulatorSetup
+	// SetDeviceTimeout sets the device timeout
+	SetDeviceTimeout(timeout time.Duration) SimulatorSetup
 
 	// Add deploys the simulator in the cluster
 	Add() (SimulatorEnv, error)
@@ -58,32 +58,32 @@ type clusterSimulatorSetup struct {
 	simulator *cluster.Simulator
 }
 
-func (s *clusterSimulatorSetup) Name(name string) SimulatorSetup {
+func (s *clusterSimulatorSetup) SetName(name string) SimulatorSetup {
 	s.simulator.SetName(name)
 	return s
 }
 
-func (s *clusterSimulatorSetup) Image(image string) SimulatorSetup {
+func (s *clusterSimulatorSetup) SetImage(image string) SimulatorSetup {
 	s.simulator.SetImage(image)
 	return s
 }
 
-func (s *clusterSimulatorSetup) PullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup {
+func (s *clusterSimulatorSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) SimulatorSetup {
 	s.simulator.SetPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterSimulatorSetup) DeviceType(deviceType string) SimulatorSetup {
+func (s *clusterSimulatorSetup) SetDeviceType(deviceType string) SimulatorSetup {
 	s.simulator.SetDeviceType(deviceType)
 	return s
 }
 
-func (s *clusterSimulatorSetup) DeviceVersion(version string) SimulatorSetup {
+func (s *clusterSimulatorSetup) SetDeviceVersion(version string) SimulatorSetup {
 	s.simulator.SetDeviceVersion(version)
 	return s
 }
 
-func (s *clusterSimulatorSetup) DeviceTimeout(timeout time.Duration) SimulatorSetup {
+func (s *clusterSimulatorSetup) SetDeviceTimeout(timeout time.Duration) SimulatorSetup {
 	s.simulator.SetDeviceTimeout(timeout)
 	return s
 }

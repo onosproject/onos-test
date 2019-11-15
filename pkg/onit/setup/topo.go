@@ -21,14 +21,14 @@ import (
 
 // TopoSetup is an interface for setting up topo nodes
 type TopoSetup interface {
-	// Nodes sets the number of clusterTopo nodes to deploy
-	Nodes(nodes int) TopoSetup
+	// SetNodes sets the number of clusterTopo nodes to deploy
+	SetNodes(nodes int) TopoSetup
 
-	// Image sets the onos-topo image to deploy
-	Image(image string) TopoSetup
+	// SetImage sets the onos-topo image to deploy
+	SetImage(image string) TopoSetup
 
-	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) TopoSetup
+	// SetPullPolicy sets the image pull policy
+	SetPullPolicy(pullPolicy corev1.PullPolicy) TopoSetup
 }
 
 var _ TopoSetup = &clusterTopoSetup{}
@@ -38,17 +38,17 @@ type clusterTopoSetup struct {
 	topo *cluster.Topo
 }
 
-func (s *clusterTopoSetup) Nodes(nodes int) TopoSetup {
+func (s *clusterTopoSetup) SetNodes(nodes int) TopoSetup {
 	s.topo.SetReplicas(nodes)
 	return s
 }
 
-func (s *clusterTopoSetup) Image(image string) TopoSetup {
+func (s *clusterTopoSetup) SetImage(image string) TopoSetup {
 	s.topo.SetImage(image)
 	return s
 }
 
-func (s *clusterTopoSetup) PullPolicy(pullPolicy corev1.PullPolicy) TopoSetup {
+func (s *clusterTopoSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) TopoSetup {
 	s.topo.SetPullPolicy(pullPolicy)
 	return s
 }

@@ -36,7 +36,7 @@ const (
 
 // TestSubscribe tests a stream subscription to updates to a device
 func (s *SmokeTestSuite) TestSubscribe(t *testing.T) {
-	simulator := s.addSimulator(t)
+	simulator := env.NewSimulator().AddOrDie()
 
 	// Make a GNMI client to use for subscribe
 	subC := client.BaseClient{}

@@ -97,10 +97,10 @@ func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 	env := env.New(kubeAPI)
 	_, err = env.Networks().
 		New().
-		Name(networkID).
-		Image(image).
-		PullPolicy(pullPolicy).
-		Custom(topo, devices).
+		SetName(networkID).
+		SetImage(image).
+		SetPullPolicy(pullPolicy).
+		SetCustom(topo, devices).
 		Add()
 	return err
 }
@@ -148,9 +148,9 @@ func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
 	env := env.New(kubeAPI)
 	_, err = env.Simulators().
 		New().
-		Name(deviceID).
-		Image(image).
-		PullPolicy(pullPolicy).
+		SetName(deviceID).
+		SetImage(image).
+		SetPullPolicy(pullPolicy).
 		Add()
 	return err
 }
@@ -201,10 +201,10 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	env := env.New(kubeAPI)
 	_, err = env.Apps().
 		New().
-		Name(appID).
-		Nodes(nodes).
-		Image(image).
-		PullPolicy(pullPolicy).
+		SetName(appID).
+		SetNodes(nodes).
+		SetImage(image).
+		SetPullPolicy(pullPolicy).
 		Add()
 	return err
 }

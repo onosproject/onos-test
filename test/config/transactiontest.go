@@ -80,8 +80,8 @@ func getDeviceGNMIClient(t *testing.T, simulator env.SimulatorEnv) client.Impl {
 // TestTransaction tests setting multiple paths in a single request and rolling it back
 func (s *SmokeTestSuite) TestTransaction(t *testing.T) {
 	// Get the configured devices from the environment.
-	device1 := s.addSimulator(t)
-	device2 := s.addSimulator(t)
+	device1 := env.NewSimulator().AddOrDie()
+	device2 := env.NewSimulator().AddOrDie()
 	devices := make([]string, 2)
 	devices[0] = device1.Name()
 	devices[1] = device2.Name()

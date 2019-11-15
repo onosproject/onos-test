@@ -25,7 +25,7 @@ import (
 
 // TestDeviceState tests that a device is connected and available.
 func (s *SmokeTestSuite) TestDeviceState(t *testing.T) {
-	simulator := s.addSimulator(t)
+	simulator := env.NewSimulator().AddOrDie()
 
 	conn, err := env.Topo().Connect()
 	assert.NoError(t, err)

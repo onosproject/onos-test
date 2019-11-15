@@ -27,8 +27,8 @@ type testSuite struct {
 // SetupTestSuite sets up the Atomix test suite
 func (s *testSuite) SetupTestSuite() {
 	setup.Database().
-		Partitions(3).
-		Nodes(3)
+		SetPartitions(3).
+		SetNodesPerPartition(3)
 	setup.SetupOrDie()
 }
 
@@ -50,7 +50,7 @@ type BenchmarkSuite struct {
 // SetupBenchmarkSuite sets up the Atomix benchmark suite
 func (s *BenchmarkSuite) SetupBenchmarkSuite() {
 	setup.Database().
-		Partitions(3).
-		Nodes(3)
+		SetPartitions(3).
+		SetNodesPerPartition(3)
 	setup.SetupOrDie()
 }

@@ -21,11 +21,11 @@ import (
 
 // AtomixSetup is an interface for setting up the Atomix controller
 type AtomixSetup interface {
-	// Image sets the Atomix controller image to deploy
-	Image(image string) AtomixSetup
+	// SetImage sets the Atomix controller image to deploy
+	SetImage(image string) AtomixSetup
 
-	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) AtomixSetup
+	// SetPullPolicy sets the image pull policy
+	SetPullPolicy(pullPolicy corev1.PullPolicy) AtomixSetup
 }
 
 var _ AtomixSetup = &clusterAtomixSetup{}
@@ -35,12 +35,12 @@ type clusterAtomixSetup struct {
 	atomix *cluster.Atomix
 }
 
-func (s *clusterAtomixSetup) Image(image string) AtomixSetup {
+func (s *clusterAtomixSetup) SetImage(image string) AtomixSetup {
 	s.atomix.SetImage(image)
 	return s
 }
 
-func (s *clusterAtomixSetup) PullPolicy(pullPolicy corev1.PullPolicy) AtomixSetup {
+func (s *clusterAtomixSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) AtomixSetup {
 	s.atomix.SetPullPolicy(pullPolicy)
 	return s
 }

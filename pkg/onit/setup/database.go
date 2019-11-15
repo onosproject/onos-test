@@ -21,17 +21,17 @@ import (
 
 // DatabaseSetup is an interface for setting up Raft partitions
 type DatabaseSetup interface {
-	// Partitions sets the number of partitions to deploy
-	Partitions(partitions int) DatabaseSetup
+	// SetPartitions sets the number of partitions to deploy
+	SetPartitions(partitions int) DatabaseSetup
 
-	// Nodes sets the number of nodes per partition
-	Nodes(nodes int) DatabaseSetup
+	// SetNodesPerPartition sets the number of nodes per partition
+	SetNodesPerPartition(nodes int) DatabaseSetup
 
-	// Image sets the Raft image to deploy
-	Image(image string) DatabaseSetup
+	// SetImage sets the Raft image to deploy
+	SetImage(image string) DatabaseSetup
 
-	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) DatabaseSetup
+	// SetPullPolicy sets the image pull policy
+	SetPullPolicy(pullPolicy corev1.PullPolicy) DatabaseSetup
 }
 
 var _ DatabaseSetup = &clusterDatabaseSetup{}
@@ -41,22 +41,22 @@ type clusterDatabaseSetup struct {
 	group *cluster.Partitions
 }
 
-func (s *clusterDatabaseSetup) Partitions(partitions int) DatabaseSetup {
+func (s *clusterDatabaseSetup) SetPartitions(partitions int) DatabaseSetup {
 	s.group.SetPartitions(partitions)
 	return s
 }
 
-func (s *clusterDatabaseSetup) Nodes(nodes int) DatabaseSetup {
+func (s *clusterDatabaseSetup) SetNodesPerPartition(nodes int) DatabaseSetup {
 	s.group.SetNodes(nodes)
 	return s
 }
 
-func (s *clusterDatabaseSetup) Image(image string) DatabaseSetup {
+func (s *clusterDatabaseSetup) SetImage(image string) DatabaseSetup {
 	s.group.SetImage(image)
 	return s
 }
 
-func (s *clusterDatabaseSetup) PullPolicy(pullPolicy corev1.PullPolicy) DatabaseSetup {
+func (s *clusterDatabaseSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) DatabaseSetup {
 	s.group.SetPullPolicy(pullPolicy)
 	return s
 }

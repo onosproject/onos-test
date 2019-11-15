@@ -114,30 +114,30 @@ func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 
 	setup := setup.New(kubeAPI)
 	setup.Atomix().
-		Image(images[atomixService]).
-		PullPolicy(pullPolicy)
+		SetImage(images[atomixService]).
+		SetPullPolicy(pullPolicy)
 	setup.Database().
-		Partitions(partitions).
-		Nodes(nodes[raftService]).
-		Image(images[raftService]).
-		PullPolicy(pullPolicy)
+		SetPartitions(partitions).
+		SetNodesPerPartition(nodes[raftService]).
+		SetImage(images[raftService]).
+		SetPullPolicy(pullPolicy)
 	if nodes[cliService] > 0 {
 		setup.CLI().
-			Enable().
-			Image(images[cliService]).
-			PullPolicy(pullPolicy)
+			SetEnabled().
+			SetImage(images[cliService]).
+			SetPullPolicy(pullPolicy)
 	}
 	if nodes[configService] > 0 {
 		setup.Config().
-			Nodes(nodes[configService]).
-			Image(images[configService]).
-			PullPolicy(pullPolicy)
+			SetNodes(nodes[configService]).
+			SetImage(images[configService]).
+			SetPullPolicy(pullPolicy)
 	}
 	if nodes[topoService] > 0 {
 		setup.Topo().
-			Nodes(nodes[topoService]).
-			Image(images[topoService]).
-			PullPolicy(pullPolicy)
+			SetNodes(nodes[topoService]).
+			SetImage(images[topoService]).
+			SetPullPolicy(pullPolicy)
 	}
 	return setup.Setup()
 }

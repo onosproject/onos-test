@@ -21,14 +21,14 @@ import (
 
 // ConfigSetup is an interface for setting up config nodes
 type ConfigSetup interface {
-	// Nodes sets the number of nodes to deploy
-	Nodes(nodes int) ConfigSetup
+	// SetNodes sets the number of nodes to deploy
+	SetNodes(nodes int) ConfigSetup
 
-	// Image sets the onos-config image to deploy
-	Image(image string) ConfigSetup
+	// SetImage sets the onos-config image to deploy
+	SetImage(image string) ConfigSetup
 
-	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) ConfigSetup
+	// SetPullPolicy sets the image pull policy
+	SetPullPolicy(pullPolicy corev1.PullPolicy) ConfigSetup
 }
 
 var _ ConfigSetup = &clusterConfigSetup{}
@@ -38,17 +38,17 @@ type clusterConfigSetup struct {
 	config *cluster.Config
 }
 
-func (s *clusterConfigSetup) Nodes(nodes int) ConfigSetup {
+func (s *clusterConfigSetup) SetNodes(nodes int) ConfigSetup {
 	s.config.SetReplicas(nodes)
 	return s
 }
 
-func (s *clusterConfigSetup) Image(image string) ConfigSetup {
+func (s *clusterConfigSetup) SetImage(image string) ConfigSetup {
 	s.config.SetImage(image)
 	return s
 }
 
-func (s *clusterConfigSetup) PullPolicy(pullPolicy corev1.PullPolicy) ConfigSetup {
+func (s *clusterConfigSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) ConfigSetup {
 	s.config.SetPullPolicy(pullPolicy)
 	return s
 }

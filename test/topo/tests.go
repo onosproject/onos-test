@@ -32,7 +32,7 @@ type TestSuite struct {
 
 // SetupTestSuite sets up the topo test suite
 func (s *TestSuite) SetupTestSuite() {
-	setup.Topo().Nodes(2)
+	setup.Topo().SetNodes(2)
 	setup.SetupOrDie()
 }
 

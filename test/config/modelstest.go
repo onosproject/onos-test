@@ -30,7 +30,7 @@ func (s *SmokeTestSuite) TestModels(t *testing.T) {
 		clockTimeZonePath = "/system/clock/config/timezone-name"
 	)
 
-	simulator := s.addSimulator(t)
+	simulator := env.NewSimulator().AddOrDie()
 
 	// Data to run the test cases
 	testCases := []struct {

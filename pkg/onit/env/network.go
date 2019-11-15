@@ -22,32 +22,32 @@ import (
 
 // NetworkSetup is an interface for deploying up a network
 type NetworkSetup interface {
-	// Name sets the network name
-	Name(name string) NetworkSetup
+	// SetName sets the network name
+	SetName(name string) NetworkSetup
 
-	// Single creates a single node topology
-	Single() NetworkSetup
+	// SetSingle creates a single node topology
+	SetSingle() NetworkSetup
 
-	// Linear creates a linear topology with the given number of devices
-	Linear(devices int) NetworkSetup
+	// SetLinear creates a linear topology with the given number of devices
+	SetLinear(devices int) NetworkSetup
 
-	// Custom creates a custom topology
-	Custom(topo string, devices int) NetworkSetup
+	// SetCustom creates a custom topology
+	SetCustom(topo string, devices int) NetworkSetup
 
-	// Image sets the image to deploy
-	Image(image string) NetworkSetup
+	// SetImage sets the image to deploy
+	SetImage(image string) NetworkSetup
 
-	// PullPolicy sets the image pull policy
-	PullPolicy(pullPolicy corev1.PullPolicy) NetworkSetup
+	// SetPullPolicy sets the image pull policy
+	SetPullPolicy(pullPolicy corev1.PullPolicy) NetworkSetup
 
-	// DeviceType sets the device type
-	DeviceType(deviceType string) NetworkSetup
+	// SetDeviceType sets the device type
+	SetDeviceType(deviceType string) NetworkSetup
 
-	// DeviceVersion sets the device version
-	DeviceVersion(version string) NetworkSetup
+	// SetDeviceVersion sets the device version
+	SetDeviceVersion(version string) NetworkSetup
 
-	// DeviceTimeout sets the device timeout
-	DeviceTimeout(timeout time.Duration) NetworkSetup
+	// SetDeviceTimeout sets the device timeout
+	SetDeviceTimeout(timeout time.Duration) NetworkSetup
 
 	// Add adds the network to the cluster
 	Add() (NetworkEnv, error)
@@ -63,47 +63,47 @@ type clusterNetworkSetup struct {
 	network *cluster.Network
 }
 
-func (s *clusterNetworkSetup) Name(name string) NetworkSetup {
+func (s *clusterNetworkSetup) SetName(name string) NetworkSetup {
 	s.network.SetName(name)
 	return s
 }
 
-func (s *clusterNetworkSetup) Image(image string) NetworkSetup {
+func (s *clusterNetworkSetup) SetImage(image string) NetworkSetup {
 	s.network.SetImage(image)
 	return s
 }
 
-func (s *clusterNetworkSetup) PullPolicy(pullPolicy corev1.PullPolicy) NetworkSetup {
+func (s *clusterNetworkSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) NetworkSetup {
 	s.network.SetPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterNetworkSetup) DeviceType(deviceType string) NetworkSetup {
+func (s *clusterNetworkSetup) SetDeviceType(deviceType string) NetworkSetup {
 	s.network.SetDeviceType(deviceType)
 	return s
 }
 
-func (s *clusterNetworkSetup) DeviceVersion(version string) NetworkSetup {
+func (s *clusterNetworkSetup) SetDeviceVersion(version string) NetworkSetup {
 	s.network.SetDeviceVersion(version)
 	return s
 }
 
-func (s *clusterNetworkSetup) DeviceTimeout(timeout time.Duration) NetworkSetup {
+func (s *clusterNetworkSetup) SetDeviceTimeout(timeout time.Duration) NetworkSetup {
 	s.network.SetDeviceTimeout(timeout)
 	return s
 }
 
-func (s *clusterNetworkSetup) Single() NetworkSetup {
+func (s *clusterNetworkSetup) SetSingle() NetworkSetup {
 	s.network.SetSingle()
 	return s
 }
 
-func (s *clusterNetworkSetup) Linear(devices int) NetworkSetup {
+func (s *clusterNetworkSetup) SetLinear(devices int) NetworkSetup {
 	s.network.SetLinear(devices)
 	return s
 }
 
-func (s *clusterNetworkSetup) Custom(topo string, devices int) NetworkSetup {
+func (s *clusterNetworkSetup) SetCustom(topo string, devices int) NetworkSetup {
 	s.network.SetTopo(topo, devices)
 	return s
 }
