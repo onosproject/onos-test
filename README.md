@@ -11,10 +11,10 @@ running end-to-end tests on [Kubernetes]. This document describes the process fo
 a development/test environment and running integration tests with `onit`.
 
 ## Additional Documents
-* [How to install and run onit](docs/setup.md)
-* [How to use onit](docs/run.md)
-* [How to test onos subsystems](docs/testing.md)
-
+* [Overview](docs/overview.md)
+* [Getting started](docs/getting-started.md)
+* [Testing with onit](docs/testing.md)
+* [Debugging with onit](docs/debugging.md)
 
 [Kubernetes]: https://kubernetes.io
 [onos project]: https://github.com/onosproject
