@@ -59,11 +59,6 @@ func getAddNetworkCommand() *cobra.Command {
 
 	cmd.Flags().StringP("image", "i", defaultMininetImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
-	cmd.Flags().StringP("cluster", "c", "", "the cluster to which to add the simulator")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
-	_ = cmd.MarkFlagRequired("cluster")
 	cmd.Flags().StringP("topo", "t", "", "the topology to create")
 	_ = cmd.MarkFlagRequired("topo")
 	cmd.Flags().IntP("devices", "d", 0, "the number of devices in the topology")
@@ -82,14 +77,13 @@ func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 		networkID = random.NewPetName(2)
 	}
 
-	cluster, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 	topo, _ := cmd.Flags().GetString("topo")
 	devices, _ := cmd.Flags().GetInt("devices")
 
-	kubeAPI, err := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}
@@ -116,11 +110,6 @@ func getAddSimulatorCommand() *cobra.Command {
 
 	cmd.Flags().StringP("image", "i", defaultSimulatorImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
-	cmd.Flags().StringP("cluster", "c", "", "the cluster to which to add the simulator")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
-	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 
@@ -135,12 +124,11 @@ func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
 		deviceID = random.NewPetName(2)
 	}
 
-	cluster, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	kubeAPI, err := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}
@@ -168,11 +156,6 @@ func getAddAppCommand() *cobra.Command {
 	_ = cmd.MarkFlagRequired("image")
 	cmd.Flags().IntP("nodes", "n", 1, "the number of nodes to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
-	cmd.Flags().StringP("cluster", "c", "", "the cluster to which to add the app")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
-	_ = cmd.MarkFlagRequired("cluster")
 	return cmd
 }
 
@@ -187,13 +170,12 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 		appID = random.NewPetName(2)
 	}
 
-	cluster, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")
 	nodes, _ := cmd.Flags().GetInt("nodes")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	kubeAPI, err := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}

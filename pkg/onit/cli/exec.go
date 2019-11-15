@@ -32,24 +32,17 @@ var (
 
 // getExecCommand returns a cobra "exec" command for executing CLI commands
 func getExecCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:     "exec {command}",
 		Short:   "Execute an ONOS CLI command",
 		Example: execExample,
 		RunE:    runExecCommand,
 	}
-	cmd.Flags().StringP("cluster", "c", "", "the cluster to which to add the simulator")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
-	_ = cmd.MarkFlagRequired("cluster")
-	return cmd
 }
 
 // runExecCommand runs the "exec" command
 func runExecCommand(cmd *cobra.Command, args []string) error {
-	cluster, _ := cmd.Flags().GetString("cluster")
-	kubeAPI, err := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}

@@ -19,6 +19,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const defaultCluster = "onos"
+
 // GetRootCommand returns the root onit command
 func GetRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -35,7 +37,20 @@ func GetRootCommand() *cobra.Command {
 	cmd.AddCommand(getExecCommand())
 	cmd.AddCommand(getCompletionCommand())
 	cmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose output")
+	cmd.PersistentFlags().StringP("cluster", "c", "", "the cluster on which to execute the command")
+	cmd.PersistentFlags().Lookup("cluster").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_clusters"},
+	}
 	return cmd
+}
+
+// getCluster returns the cluster from the given command flags
+func getCluster(cmd *cobra.Command) string {
+	cluster, _ := cmd.Flags().GetString("cluster")
+	if cluster == "" {
+		cluster = defaultCluster
+	}
+	return cluster
 }
 
 func runCommand(cmd *cobra.Command) {

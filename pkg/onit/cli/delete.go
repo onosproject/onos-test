@@ -32,7 +32,7 @@ var (
 // getDeleteCommand returns a cobra "teardown" command for tearing down Kubernetes test resources
 func getDeleteCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "delete",
+		Use:     "delete {cluster} [args]",
 		Short:   "Delete Kubernetes test resources",
 		Example: deleteExample,
 	}
@@ -43,9 +43,9 @@ func getDeleteCommand() *cobra.Command {
 // getDeleteClusterCommand returns a cobra "teardown" command for tearing down a test cluster
 func getDeleteClusterCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cluster <id>",
+		Use:   "cluster [args]",
 		Short: "Delete a test cluster on Kubernetes",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		RunE:  runDeleteClusterCommand,
 	}
 	return cmd
@@ -53,7 +53,12 @@ func getDeleteClusterCommand() *cobra.Command {
 
 func runDeleteClusterCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
-	clusterID := args[0]
+
+	clusterID := getCluster(cmd)
+	if len(args) > 0 {
+		clusterID = args[0]
+	}
+
 	kubeAPI, err := kube.GetAPI(clusterID)
 	if err != nil {
 		return err

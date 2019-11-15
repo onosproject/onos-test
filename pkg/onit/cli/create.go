@@ -58,7 +58,7 @@ func getCreateCommand() *cobra.Command {
 // getCreateClusterCommand returns a cobra command for deploying a test cluster
 func getCreateClusterCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cluster [id]",
+		Use:   "cluster [args]",
 		Short: "Setup a test cluster on Kubernetes",
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  runCreateClusterCommand,
@@ -89,7 +89,7 @@ func getCreateClusterCommand() *cobra.Command {
 func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
-	var clusterID string
+	clusterID := getCluster(cmd)
 	if len(args) > 0 {
 		clusterID = args[0]
 	}

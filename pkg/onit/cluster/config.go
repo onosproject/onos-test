@@ -28,9 +28,9 @@ var configSecrets = map[string]string{
 }
 
 var configArgs = []string{
-	"-caPath=/etc/onos-config/certs/onf.cacrt",
-	"-keyPath=/etc/onos-config/certs/onos-config.key",
-	"-certPath=/etc/onos-config/certs/onos-config.crt",
+	"-caPath=/certs/onf.cacrt",
+	"-keyPath=/certs/onos-config.key",
+	"-certPath=/certs/onos-config.crt",
 	"-modelPlugin=/usr/local/lib/testdevice.so.1.0.0",
 	"-modelPlugin=/usr/local/lib/testdevice.so.2.0.0",
 	"-modelPlugin=/usr/local/lib/devicesim.so.1.0.0",

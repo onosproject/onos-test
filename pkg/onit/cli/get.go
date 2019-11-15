@@ -60,7 +60,7 @@ func getGetClustersCommand() *cobra.Command {
 	}
 }
 
-func runGetClustersCommand(cmd *cobra.Command, args []string) error {
+func runGetClustersCommand(_ *cobra.Command, _ []string) error {
 	clusters, err := kubetest.GetTestClusters()
 	if err != nil {
 		return err
@@ -74,23 +74,15 @@ func runGetClustersCommand(cmd *cobra.Command, args []string) error {
 
 // getGetNetworksCommand returns a cobra command to get the list of networks deployed in the current cluster context
 func getGetNetworksCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "networks",
 		Short: "Get the currently configured cluster's networks",
 		RunE:  runGetNetworksCommand,
 	}
-
-	cmd.Flags().StringP("cluster", "c", "", "the cluster to query")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
-	_ = cmd.MarkFlagRequired("cluster")
-	return cmd
 }
 
 func runGetNetworksCommand(cmd *cobra.Command, _ []string) error {
-	cluster, _ := cmd.Flags().GetString("cluster")
-	kubeAPI, err := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}
@@ -104,23 +96,15 @@ func runGetNetworksCommand(cmd *cobra.Command, _ []string) error {
 
 // getGetSimulatorsCommand returns a cobra command to get the list of simulators deployed in the current cluster context
 func getGetSimulatorsCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "simulators",
 		Short: "Get the currently configured cluster's simulators",
 		RunE:  runGetSimulatorsCommand,
 	}
-
-	cmd.Flags().StringP("cluster", "c", "", "the cluster to query")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
-	_ = cmd.MarkFlagRequired("cluster")
-	return cmd
 }
 
 func runGetSimulatorsCommand(cmd *cobra.Command, _ []string) error {
-	cluster, _ := cmd.Flags().GetString("cluster")
-	kubeAPI, err := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}
@@ -134,23 +118,15 @@ func runGetSimulatorsCommand(cmd *cobra.Command, _ []string) error {
 
 // getGetAppsCommand returns a cobra command to get the list of apps deployed in the current cluster context
 func getGetAppsCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "apps",
 		Short: "Get the currently configured cluster's apps",
 		RunE:  runGetAppsCommand,
 	}
-
-	cmd.Flags().StringP("cluster", "c", "", "the cluster to query")
-	cmd.Flags().Lookup("cluster").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__onit_get_clusters"},
-	}
-	_ = cmd.MarkFlagRequired("cluster")
-	return cmd
 }
 
 func runGetAppsCommand(cmd *cobra.Command, _ []string) error {
-	cluster, _ := cmd.Flags().GetString("cluster")
-	kubeAPI, err := kube.GetAPI(cluster)
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}
