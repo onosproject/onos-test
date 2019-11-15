@@ -24,26 +24,26 @@ import (
 
 // newTestWorker returns a new test worker
 func newTestWorker(test *TestConfig) (Worker, error) {
-	if kubeAPI, err := kube.GetAPI(test.TestID); err != nil {
+	kubeAPI, err := kube.GetAPI(test.TestID)
+	if err != nil {
 		return nil, err
-	} else {
-		return &TestWorker{
-			client: kubeAPI.Client(),
-			test:   test,
-		}, nil
 	}
+	return &TestWorker{
+		client: kubeAPI.Client(),
+		test:   test,
+	}, nil
 }
 
 // newBenchmarkWorker returns a new test worker
 func newBenchmarkWorker(test *TestConfig) (Worker, error) {
-	if kubeAPI, err := kube.GetAPI(test.TestID); err != nil {
+	kubeAPI, err := kube.GetAPI(test.TestID)
+	if err != nil {
 		return nil, err
-	} else {
-		return &BenchmarkWorker{
-			client: kubeAPI.Client(),
-			test:   test,
-		}, nil
 	}
+	return &BenchmarkWorker{
+		client: kubeAPI.Client(),
+		test:   test,
+	}, nil
 }
 
 // Worker runs a single test suite

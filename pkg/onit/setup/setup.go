@@ -70,7 +70,7 @@ func Setup() error {
 }
 
 // SetupOrDie sets up the cluster and panics if setup fails
-func SetupOrDie() {
+func SetupOrDie() { //nolint:golint
 	getSetup().SetupOrDie()
 }
 

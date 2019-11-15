@@ -23,8 +23,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-const debugPort = 40000
-
 // New returns a new onit Env
 func New(kube kube.API) *Cluster {
 	client := &client{

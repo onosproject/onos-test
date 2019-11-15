@@ -15,8 +15,7 @@
 package cluster
 
 const (
-	databaseType = "database"
-	raftImage    = "atomix/atomix-raft-node:latest"
+	raftImage = "atomix/atomix-raft-node:latest"
 )
 
 func newDatabase(client *client) *Database {
