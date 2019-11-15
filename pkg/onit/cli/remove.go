@@ -48,18 +48,27 @@ func getRemoveCommand() *cobra.Command {
 
 // getRemoveNetworkCommand returns a cobra command for tearing down a stratum network
 func getRemoveNetworkCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "network [name]",
+	cmd := &cobra.Command{
+		Use:   "network [args]",
 		Short: "Remove a stratum network from the cluster",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		RunE:  runRemoveNetworkCommand,
 	}
+	cmd.Flags().StringP("name", "n", "", "the name of the network to remove")
+	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_networks"},
+	}
+	return cmd
 }
 
 func runRemoveNetworkCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
-	networkID := args[0]
+	networkID, _ := cmd.Flags().GetString("name")
+	if len(args) > 0 {
+		networkID = args[0]
+	}
+
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
@@ -75,18 +84,27 @@ func runRemoveNetworkCommand(cmd *cobra.Command, args []string) error {
 
 // getRemoveSimulatorCommand returns a cobra command for tearing down a device simulator
 func getRemoveSimulatorCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "simulator <name>",
+	cmd := &cobra.Command{
+		Use:   "simulator [args]",
 		Short: "Remove a device simulator from the cluster",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		RunE:  runRemoveSimulatorCommand,
 	}
+	cmd.Flags().StringP("name", "n", "", "the name of the simulator to remove")
+	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_simulators"},
+	}
+	return cmd
 }
 
 func runRemoveSimulatorCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
-	deviceID := args[0]
+	deviceID, _ := cmd.Flags().GetString("name")
+	if len(args) > 0 {
+		deviceID = args[0]
+	}
+
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
@@ -102,18 +120,27 @@ func runRemoveSimulatorCommand(cmd *cobra.Command, args []string) error {
 
 // getRemoveAppCommand returns a cobra command for tearing down an app
 func getRemoveAppCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "app <name>",
+	cmd := &cobra.Command{
+		Use:   "app [args]",
 		Short: "Remove an app from the cluster",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		RunE:  runRemoveAppCommand,
 	}
+	cmd.Flags().StringP("name", "n", "", "the name of the app to remove")
+	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__onit_get_apps"},
+	}
+	return cmd
 }
 
 func runRemoveAppCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
-	appID := args[0]
+	appID, _ := cmd.Flags().GetString("name")
+	if len(args) > 0 {
+		appID = args[0]
+	}
+
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err

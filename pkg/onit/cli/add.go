@@ -51,12 +51,13 @@ func getAddCommand() *cobra.Command {
 // getAddNetworkCommand returns a cobra command for deploying a stratum network
 func getAddNetworkCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "network [name]",
+		Use:   "network [args]",
 		Short: "Add a stratum network to the test cluster",
 		Args:  cobra.MaximumNArgs(10),
 		RunE:  runAddNetworkCommand,
 	}
 
+	cmd.Flags().StringP("name", "n", "", "the name of the network to add")
 	cmd.Flags().StringP("image", "i", defaultMininetImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringP("topo", "t", "", "the topology to create")
@@ -69,7 +70,7 @@ func getAddNetworkCommand() *cobra.Command {
 func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
-	var networkID string
+	networkID, _ := cmd.Flags().GetString("name")
 	if len(args) > 0 {
 		networkID = args[0]
 	}
@@ -102,12 +103,13 @@ func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 // getAddSimulatorCommand returns a cobra command for deploying a device simulator
 func getAddSimulatorCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "simulator [name]",
+		Use:   "simulator [args]",
 		Short: "Add a device simulator to the test cluster",
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  runAddSimulatorCommand,
 	}
 
+	cmd.Flags().StringP("name", "n", "", "the name to assign to the device simulator")
 	cmd.Flags().StringP("image", "i", defaultSimulatorImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	return cmd
@@ -116,7 +118,7 @@ func getAddSimulatorCommand() *cobra.Command {
 func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
-	var deviceID string
+	deviceID, _ := cmd.Flags().GetString("name")
 	if len(args) > 0 {
 		deviceID = args[0]
 	}
@@ -146,12 +148,13 @@ func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
 // getAddSimulatorCommand returns a cobra command for deploying a device simulator
 func getAddAppCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "app image-name [name]",
+		Use:   "app image-name [args]",
 		Short: "Add an app to the test cluster",
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  runAddAppCommand,
 	}
 
+	cmd.Flags().StringP("name", "n", "", "the name of the app to add")
 	cmd.Flags().StringP("image", "i", "", "the image to deploy")
 	_ = cmd.MarkFlagRequired("image")
 	cmd.Flags().IntP("nodes", "n", 1, "the number of nodes to deploy")
@@ -162,7 +165,7 @@ func getAddAppCommand() *cobra.Command {
 func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
-	var appID string
+	appID, _ := cmd.Flags().GetString("name")
 	if len(args) > 0 {
 		appID = args[0]
 	}
