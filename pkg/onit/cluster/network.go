@@ -195,7 +195,7 @@ func (s *Network) getDeviceNames() []string {
 	numDevices := s.getNumDevices()
 	names := make([]string, numDevices)
 	for i := 0; i < numDevices; i++ {
-		names[i] = fmt.Sprintf("%s-%d", s.name, i)
+		names[i] = fmt.Sprintf("%.12s-%d", s.name, i)
 	}
 	return names
 }
