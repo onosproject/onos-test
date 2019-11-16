@@ -1,4 +1,4 @@
-## How To Use ONIT?
+# How To Use ONIT?
 
 The primary interface for setting up test clusters and running tests is the `onit` command,
 which provides a suite of commands for setting up and tearing down test clusters, adding
@@ -300,14 +300,14 @@ cluster's IP address 10.128.100.91 at port 31214.
 
 To access the GUI however it must be accessed by hostname **onos-gui** and so can
 be accessed at
-http://onos-gui:31214
+<http://onos-gui:31214>
 
 #### Gui access for Development - Microk8s
 > This following procedure has only been proven only on Microk8s on Ubuntu.
 
 Additionally for [GUI](../../onos-gui/docs/README.md) development
 (only) the browser running under Angular CLI will need to access
-http://onos-config-envoy:8080 and http://onos-topo-envoy:8080.
+<http://onos-config-envoy:8080> and <http://onos-topo-envoy:8080>.
 On Microk8s to allow either of these it is necessary to further open the firewall
 (on Ubuntu) with
 ```bash
@@ -349,7 +349,7 @@ onit-1        onos-gui-67b867c7c7-cpm5w                    1/1     Running   0  
 > This port forwarding arrangement must stay active as lone as the GUI is being
 > accessed.
 
-This makes the GUI available at ~~http://localhost:8080~~ but it will not connect
+This makes the GUI available at <http://localhost:8080> but it will not connect
 properly to the gRPC services in the **onos-config-envoy** proxy unless the GUI
 is accessed with the hostname "onos-gui".
 
@@ -358,7 +358,7 @@ To make this work add onos-gui to the line with localhost in your /etc/hosts fil
 127.0.0.1	localhost onos-gui
 ```
 
-Then the GUI will then be available at http://onos-gui:8080
+Then the GUI will then be available at <http://onos-gui:8080>
 
 
 
