@@ -75,7 +75,7 @@ func runRemoveNetworkCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	env := env.New(kubeAPI)
-	network := env.Simulator(networkID)
+	network := env.Network(networkID)
 	if network == nil {
 		return fmt.Errorf("unknown network: %s", networkID)
 	}
