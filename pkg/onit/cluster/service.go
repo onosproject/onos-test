@@ -24,26 +24,36 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"path"
+	"strings"
 	"time"
 )
 
-func newService(name string, port int, labels map[string]string, image string, secrets map[string]string, args []string, client *client) *Service {
+func newService(name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string, client *client) *Service {
 	return &Service{
 		Deployment: newDeployment(name, labels, image, client),
-		port:       port,
+		ports:      ports,
 		secrets:    secrets,
 		args:       args,
 	}
 }
 
+// Port is a service port
+type Port struct {
+	Name string
+	Port int
+}
+
 // Service is the base type for multi-node services
 type Service struct {
 	*Deployment
-	port      int
-	debugPort int
-	replicas  int
-	secrets   map[string]string
-	args      []string
+	ports      []Port
+	replicas   int
+	debug      bool
+	user       *int
+	privileged bool
+	secrets    map[string]string
+	args       []string
 }
 
 // SetName sets the service name
@@ -51,29 +61,51 @@ func (s *Service) SetName(name string) {
 	s.name = name
 }
 
-// Port returns the service port
-func (s *Service) Port() int {
-	return s.port
+// Ports returns the service ports
+func (s *Service) Ports() []Port {
+	return s.ports
 }
 
-// SetPort sets the service port
-func (s *Service) SetPort(port int) {
-	s.port = port
+// SetPorts sets the service ports
+func (s *Service) SetPorts(ports []Port) {
+	s.ports = ports
 }
 
-// DebugPort returns the service debug port
-func (s *Service) DebugPort() int {
-	return s.debugPort
+// AddPort adds a port to the service
+func (s *Service) AddPort(name string, port int) {
+	s.ports = append(s.ports, Port{
+		Name: name,
+		Port: port,
+	})
 }
 
-// SetDebugPort sets the service debug port
-func (s *Service) SetDebugPort(port int) {
-	s.debugPort = port
+// Debug returns whether debug is enabled
+func (s *Service) Debug() bool {
+	return s.debug
 }
 
-// Address returns the service address
-func (s *Service) Address() string {
-	return fmt.Sprintf("%s:%d", s.name, s.port)
+// SetDebug sets whether debug is enabled
+func (s *Service) SetDebug(debug bool) {
+	s.debug = debug
+}
+
+// getPort gets a port by name
+func (s *Service) getPortByName(name string) *Port {
+	for _, port := range s.ports {
+		if port.Name == name {
+			return &port
+		}
+	}
+	return nil
+}
+
+// Address returns the service address for the given port
+func (s *Service) Address(port string) string {
+	info := s.getPortByName(port)
+	if info == nil {
+		panic(fmt.Errorf("unknown port %s", port))
+	}
+	return fmt.Sprintf("%s:%d", s.name, info.Port)
 }
 
 // Replicas returns the number of nodes in the service
@@ -84,6 +116,51 @@ func (s *Service) Replicas() int {
 // SetReplicas sets the number of nodes in the service
 func (s *Service) SetReplicas(replicas int) {
 	s.replicas = replicas
+}
+
+// User returns the user with which to run the service
+func (s *Service) User() *int {
+	return s.user
+}
+
+// SetUser sets the user with which to run the service
+func (s *Service) SetUser(user int) {
+	s.user = &user
+}
+
+// Privileged returns whether to run the service in privileged mode
+func (s *Service) Privileged() bool {
+	return s.privileged
+}
+
+// SetPrivileged sets whether to run the service in privileged mode
+func (s *Service) SetPrivileged(privileged bool) {
+	s.privileged = privileged
+}
+
+// Secrets returns the service secrets
+func (s *Service) Secrets() map[string]string {
+	return s.secrets
+}
+
+// SetSecrets sets the service secrets
+func (s *Service) SetSecrets(secrets map[string]string) {
+	s.secrets = secrets
+}
+
+// AddSecret adds a secret to the service
+func (s *Service) AddSecret(name, secret string) {
+	s.secrets[name] = secret
+}
+
+// Args returns the service arguments
+func (s *Service) Args() []string {
+	return s.args
+}
+
+// SetArgs sets the service arguments
+func (s *Service) SetArgs(args ...string) {
+	s.args = args
 }
 
 // Setup sets up the service
@@ -118,18 +195,28 @@ func (s *Service) Setup() error {
 	return nil
 }
 
+func getKey(key string) string {
+	return strings.ReplaceAll(path.Base(key), "/", "-")
+}
+
 // createSecret creates the service Secret
 func (s *Service) createSecret() error {
 	if len(s.secrets) == 0 {
 		return nil
 	}
+
+	secrets := make(map[string]string)
+	for key, value := range s.secrets {
+		secrets[getKey(key)] = value
+	}
+
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),
 			Namespace: s.namespace,
 			Labels:    s.labels,
 		},
-		StringData: s.secrets,
+		StringData: secrets,
 	}
 	_, err := s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
 	return err
@@ -137,6 +224,14 @@ func (s *Service) createSecret() error {
 
 // createService creates a Service to expose the Deployment to other pods
 func (s *Service) createService() error {
+	ports := make([]corev1.ServicePort, len(s.ports))
+	for i, port := range s.ports {
+		ports[i] = corev1.ServicePort{
+			Name: port.Name,
+			Port: int32(port.Port),
+		}
+	}
+
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),
@@ -145,12 +240,7 @@ func (s *Service) createService() error {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: s.labels,
-			Ports: []corev1.ServicePort{
-				{
-					Name: "grpc",
-					Port: int32(s.Port()),
-				},
-			},
+			Ports:    ports,
 		},
 	}
 	_, err := s.kubeClient.CoreV1().Services(s.namespace).Create(service)
@@ -160,25 +250,39 @@ func (s *Service) createService() error {
 // createDeployment creates a Deployment
 func (s *Service) createDeployment() error {
 	nodes := int32(s.Replicas())
-	zero := int64(0)
 
-	// Default to exposing only a single port
-	ports := []corev1.ContainerPort{
-		{
-			Name:          "grpc",
-			ContainerPort: int32(s.Port()),
-		},
+	// Expose all provided ports
+	ports := make([]corev1.ContainerPort, len(s.ports))
+	for i, port := range s.ports {
+		ports[i] = corev1.ContainerPort{
+			Name:          port.Name,
+			ContainerPort: int32(port.Port),
+		}
 	}
 
 	// If the debug port is set, assume debugging is enabled and set the security contexts appropriately
 	var securityContext *corev1.SecurityContext
 	var podSecurityContext *corev1.PodSecurityContext
-	if s.DebugPort() != 0 {
-		ports = append(ports, corev1.ContainerPort{
-			Name:          "debug",
-			ContainerPort: int32(s.DebugPort()),
-			Protocol:      corev1.ProtocolTCP,
-		})
+
+	if s.Privileged() {
+		privileged := true
+		securityContext = &corev1.SecurityContext{
+			Privileged: &privileged,
+		}
+	}
+
+	if s.user != nil {
+		user := int64(*s.user)
+		podSecurityContext = &corev1.PodSecurityContext{
+			RunAsUser: &user,
+		}
+	}
+
+	if s.Debug() {
+		zero := int64(0)
+		podSecurityContext = &corev1.PodSecurityContext{
+			RunAsUser: &zero,
+		}
 		securityContext = &corev1.SecurityContext{
 			Capabilities: &corev1.Capabilities{
 				Add: []corev1.Capability{
@@ -186,8 +290,19 @@ func (s *Service) createDeployment() error {
 				},
 			},
 		}
+	}
+
+	if s.Privileged() {
+		privileged := true
+		securityContext = &corev1.SecurityContext{
+			Privileged: &privileged,
+		}
+	}
+
+	if s.user != nil {
+		user := int64(*s.user)
 		podSecurityContext = &corev1.PodSecurityContext{
-			RunAsUser: &zero,
+			RunAsUser: &user,
 		}
 	}
 
@@ -205,12 +320,47 @@ func (s *Service) createDeployment() error {
 				},
 			},
 		}
+
+		volumeMounts = make([]corev1.VolumeMount, 0, len(s.secrets))
+		for filepath := range s.secrets {
+			filename := path.Dir(filepath)
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      filename,
+				MountPath: filepath,
+				SubPath:   getKey(filepath),
+				ReadOnly:  true,
+			})
+		}
 		volumeMounts = []corev1.VolumeMount{
 			{
 				Name:      "secret",
 				MountPath: "/certs",
 				ReadOnly:  true,
 			},
+		}
+	}
+
+	var readinessProbe *corev1.Probe
+	var livenessProbe *corev1.Probe
+	if len(s.ports) > 0 {
+		port := s.ports[0]
+		readinessProbe = &corev1.Probe{
+			Handler: corev1.Handler{
+				TCPSocket: &corev1.TCPSocketAction{
+					Port: intstr.FromInt(port.Port),
+				},
+			},
+			InitialDelaySeconds: 5,
+			PeriodSeconds:       10,
+		}
+		livenessProbe = &corev1.Probe{
+			Handler: corev1.Handler{
+				TCPSocket: &corev1.TCPSocketAction{
+					Port: intstr.FromInt(port.Port),
+				},
+			},
+			InitialDelaySeconds: 15,
+			PeriodSeconds:       20,
 		}
 	}
 
@@ -253,26 +403,10 @@ func (s *Service) createDeployment() error {
 									Value: "raft",
 								},
 							},
-							Args:  s.args,
-							Ports: ports,
-							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									TCPSocket: &corev1.TCPSocketAction{
-										Port: intstr.FromInt(s.Port()),
-									},
-								},
-								InitialDelaySeconds: 5,
-								PeriodSeconds:       10,
-							},
-							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									TCPSocket: &corev1.TCPSocketAction{
-										Port: intstr.FromInt(s.Port()),
-									},
-								},
-								InitialDelaySeconds: 15,
-								PeriodSeconds:       20,
-							},
+							Args:            s.args,
+							Ports:           ports,
+							ReadinessProbe:  readinessProbe,
+							LivenessProbe:   livenessProbe,
 							VolumeMounts:    volumeMounts,
 							SecurityContext: securityContext,
 						},
@@ -345,10 +479,10 @@ func (s *Service) Credentials() (*tls.Config, error) {
 }
 
 // Connect creates a gRPC client connection to the service
-func (s *Service) Connect() (*grpc.ClientConn, error) {
+func (s *Service) Connect(port string) (*grpc.ClientConn, error) {
 	tlsConfig, err := s.Credentials()
 	if err != nil {
 		return nil, err
 	}
-	return grpc.Dial(s.Address(), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	return grpc.Dial(s.Address(port), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 }

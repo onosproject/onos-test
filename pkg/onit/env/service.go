@@ -41,7 +41,7 @@ type clusterServiceEnv struct {
 }
 
 func (e *clusterServiceEnv) Address() string {
-	return e.service.Address()
+	return e.service.Address(e.service.Ports()[0].Name)
 }
 
 func (e *clusterServiceEnv) Credentials() *tls.Config {
@@ -53,5 +53,5 @@ func (e *clusterServiceEnv) Credentials() *tls.Config {
 }
 
 func (e *clusterServiceEnv) Connect() (*grpc.ClientConn, error) {
-	return e.service.Connect()
+	return e.service.Connect(e.service.Ports()[0].Name)
 }

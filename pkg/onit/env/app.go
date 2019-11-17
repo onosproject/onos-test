@@ -33,6 +33,30 @@ type AppSetup interface {
 	// SetPullPolicy sets the image pull policy
 	SetPullPolicy(pullPolicy corev1.PullPolicy) AppSetup
 
+	// AddPort adds a port to expose
+	AddPort(name string, port int) AppSetup
+
+	// SetPorts sets the ports to expose
+	SetPorts(ports map[string]int) AppSetup
+
+	// SetDebug sets whether to enable debug mode
+	SetDebug(debug bool) AppSetup
+
+	// SetUser sets the user with which to run the application
+	SetUser(user int) AppSetup
+
+	// SetPrivileged sets the application to run in privileged mode
+	SetPrivileged(privileged bool) AppSetup
+
+	// SetSecrets sets the app secrets
+	SetSecrets(secrets map[string]string) AppSetup
+
+	// AddSecret adds a secret to the app
+	AddSecret(name string, secret string) AppSetup
+
+	// SetArgs sets the application arguments
+	SetArgs(args ...string) AppSetup
+
 	// Add adds the application to the cluster
 	Add() (AppEnv, error)
 
@@ -62,6 +86,50 @@ func (s *clusterAppSetup) SetImage(image string) AppSetup {
 
 func (s *clusterAppSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) AppSetup {
 	s.app.SetPullPolicy(pullPolicy)
+	return s
+}
+
+func (s *clusterAppSetup) AddPort(name string, port int) AppSetup {
+	s.app.AddPort(name, port)
+	return s
+}
+
+func (s *clusterAppSetup) SetPorts(ports map[string]int) AppSetup {
+	clusterPorts := make([]cluster.Port, 0, len(ports))
+	for name, port := range ports {
+		clusterPorts = append(clusterPorts, cluster.Port{Name: name, Port: port})
+	}
+	s.app.SetPorts(clusterPorts)
+	return s
+}
+
+func (s *clusterAppSetup) SetDebug(debug bool) AppSetup {
+	s.app.SetDebug(debug)
+	return s
+}
+
+func (s *clusterAppSetup) SetUser(user int) AppSetup {
+	s.app.SetUser(user)
+	return s
+}
+
+func (s *clusterAppSetup) SetPrivileged(privileged bool) AppSetup {
+	s.app.SetPrivileged(privileged)
+	return s
+}
+
+func (s *clusterAppSetup) SetSecrets(secrets map[string]string) AppSetup {
+	s.app.SetSecrets(secrets)
+	return s
+}
+
+func (s *clusterAppSetup) AddSecret(name string, secret string) AppSetup {
+	s.app.AddSecret(name, secret)
+	return s
+}
+
+func (s *clusterAppSetup) SetArgs(args ...string) AppSetup {
+	s.app.SetArgs(args...)
 	return s
 }
 

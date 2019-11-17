@@ -29,7 +29,7 @@ func newApp(name string, client *client) *App {
 	labels := getLabels(appType)
 	labels[appLabel] = name
 	return &App{
-		Service: newService(name, 0, labels, "", appSecrets, []string{}, client),
+		Service: newService(name, []Port{}, labels, "", appSecrets, []string{}, client),
 	}
 }
 

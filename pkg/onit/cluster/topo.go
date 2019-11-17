@@ -28,9 +28,9 @@ const (
 )
 
 var topoSecrets = map[string]string{
-	"onf.cacrt":     caCert,
-	"onos-topo.crt": topoCert,
-	"onos-topo.key": topoKey,
+	"/certs/onf.cacrt":     caCert,
+	"/certs/onos-topo.crt": topoCert,
+	"/certs/onos-topo.key": topoKey,
 }
 
 var topoArgs = []string{
@@ -41,7 +41,7 @@ var topoArgs = []string{
 
 func newTopo(client *client) *Topo {
 	return &Topo{
-		Service: newService(topoService, topoPort, getLabels(topoType), topoImage, topoSecrets, topoArgs, client),
+		Service: newService(topoService, []Port{{Name: "grpc", Port: topoPort}}, getLabels(topoType), topoImage, topoSecrets, topoArgs, client),
 	}
 }
 

@@ -22,9 +22,9 @@ const (
 )
 
 var configSecrets = map[string]string{
-	"onf.cacrt":       caCert,
-	"onos-config.crt": configCert,
-	"onos-config.key": configKey,
+	"/certs/onf.cacrt":       caCert,
+	"/certs/onos-config.crt": configCert,
+	"/certs/onos-config.key": configKey,
 }
 
 var configArgs = []string{
@@ -39,7 +39,7 @@ var configArgs = []string{
 
 func newConfig(client *client) *Config {
 	return &Config{
-		Service: newService(configService, configPort, getLabels(configType), configImage, configSecrets, configArgs, client),
+		Service: newService(configService, []Port{{Name: "grpc", Port: configPort}}, getLabels(configType), configImage, configSecrets, configArgs, client),
 	}
 }
 

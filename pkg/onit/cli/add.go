@@ -18,6 +18,7 @@ import (
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-test/pkg/util/random"
+	"io/ioutil"
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -150,7 +151,7 @@ func getAddAppCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app [args]",
 		Short: "Add an app to the test cluster",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.ArbitraryArgs,
 		RunE:  runAddAppCommand,
 	}
 
@@ -159,6 +160,11 @@ func getAddAppCommand() *cobra.Command {
 	_ = cmd.MarkFlagRequired("image")
 	cmd.Flags().IntP("replicas", "r", 1, "the number of replicas to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	cmd.Flags().StringToIntP("port", "p", map[string]int{}, "ports to expose")
+	cmd.Flags().BoolP("debug", "d", false, "enable debug mode")
+	cmd.Flags().StringToStringP("secret", "s", map[string]string{}, "secrets to add to the application")
+	cmd.Flags().Bool("privileged", false, "run the application in privileged mode")
+	cmd.Flags().IntP("user", "u", -1, "set the user with which to run the application")
 	return cmd
 }
 
@@ -166,9 +172,6 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
 	appID, _ := cmd.Flags().GetString("name")
-	if len(args) > 0 {
-		appID = args[0]
-	}
 	if appID == "" {
 		appID = random.NewPetName(2)
 	}
@@ -177,6 +180,21 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	replicas, _ := cmd.Flags().GetInt("replicas")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
+	ports, _ := cmd.Flags().GetStringToInt("port")
+	debug, _ := cmd.Flags().GetBool("debug")
+	privileged, _ := cmd.Flags().GetBool("privileged")
+	user, _ := cmd.Flags().GetInt("user")
+	secretValues, _ := cmd.Flags().GetStringToString("secret")
+
+	secrets := make(map[string]string)
+	for name, value := range secretValues {
+		secret, err := ioutil.ReadFile(value)
+		if err != nil {
+			secrets[name] = value
+		} else {
+			secrets[name] = string(secret)
+		}
+	}
 
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
@@ -184,12 +202,19 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	env := env.New(kubeAPI)
-	_, err = env.Apps().
-		New().
+	setup := env.NewApp().
 		SetName(appID).
 		SetNodes(replicas).
 		SetImage(image).
 		SetPullPolicy(pullPolicy).
-		Add()
+		SetPorts(ports).
+		SetDebug(debug).
+		SetSecrets(secrets).
+		SetPrivileged(privileged).
+		SetArgs(args...)
+	if user >= 0 {
+		setup.SetUser(user)
+	}
+	_, err = setup.Add()
 	return err
 }

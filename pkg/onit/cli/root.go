@@ -27,6 +27,7 @@ func GetRootCommand() *cobra.Command {
 		Use:                    "onit <command> [args]",
 		Short:                  "Setup test clusters and run integration tests on Kubernetes",
 		BashCompletionFunction: bashCompletion,
+		SilenceUsage:           true,
 	}
 	cmd.AddCommand(getGetCommand())
 	cmd.AddCommand(getCreateCommand())
