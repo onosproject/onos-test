@@ -61,7 +61,7 @@ func (s *Partitions) Nodes() int {
 	return s.nodes
 }
 
-// SetNodes sets the number of nodes in each partition
+// SetReplicas sets the number of nodes in each partition
 func (s *Partitions) SetNodes(nodes int) {
 	s.nodes = nodes
 }

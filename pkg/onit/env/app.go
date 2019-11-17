@@ -24,8 +24,8 @@ type AppSetup interface {
 	// SetName sets the application name
 	SetName(name string) AppSetup
 
-	// SetNodes sets the number of application nodes
-	SetNodes(nodes int) AppSetup
+	// SetReplicas sets the number of application replicas
+	SetReplicas(replicas int) AppSetup
 
 	// SetImage sets the image to deploy
 	SetImage(image string) AppSetup
@@ -74,8 +74,8 @@ func (s *clusterAppSetup) SetName(name string) AppSetup {
 	return s
 }
 
-func (s *clusterAppSetup) SetNodes(nodes int) AppSetup {
-	s.app.SetReplicas(nodes)
+func (s *clusterAppSetup) SetReplicas(replicas int) AppSetup {
+	s.app.SetReplicas(replicas)
 	return s
 }
 

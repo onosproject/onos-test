@@ -21,8 +21,8 @@ import (
 
 // TopoSetup is an interface for setting up topo nodes
 type TopoSetup interface {
-	// SetNodes sets the number of clusterTopo nodes to deploy
-	SetNodes(nodes int) TopoSetup
+	// SetReplicas sets the number of topo replicas to deploy
+	SetReplicas(replicas int) TopoSetup
 
 	// SetImage sets the onos-topo image to deploy
 	SetImage(image string) TopoSetup
@@ -38,8 +38,8 @@ type clusterTopoSetup struct {
 	topo *cluster.Topo
 }
 
-func (s *clusterTopoSetup) SetNodes(nodes int) TopoSetup {
-	s.topo.SetReplicas(nodes)
+func (s *clusterTopoSetup) SetReplicas(replicas int) TopoSetup {
+	s.topo.SetReplicas(replicas)
 	return s
 }
 

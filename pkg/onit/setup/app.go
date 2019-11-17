@@ -21,8 +21,8 @@ import (
 
 // AppSetup is an interface for setting up an application
 type AppSetup interface {
-	// SetNodes sets the number of application nodes
-	SetNodes(nodes int) AppSetup
+	// SetReplicas sets the number of application nodes
+	SetReplicas(replicas int) AppSetup
 
 	// SetImage sets the image to deploy
 	SetImage(image string) AppSetup
@@ -60,8 +60,8 @@ type clusterAppSetup struct {
 	app *cluster.App
 }
 
-func (s *clusterAppSetup) SetNodes(nodes int) AppSetup {
-	s.app.SetReplicas(nodes)
+func (s *clusterAppSetup) SetReplicas(replicas int) AppSetup {
+	s.app.SetReplicas(replicas)
 	return s
 }
 

@@ -119,13 +119,13 @@ func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 	}
 	if replicas[configService] > 0 {
 		setup.Config().
-			SetNodes(replicas[configService]).
+			SetReplicas(replicas[configService]).
 			SetImage(images[configService]).
 			SetPullPolicy(pullPolicy)
 	}
 	if replicas[topoService] > 0 {
 		setup.Topo().
-			SetNodes(replicas[topoService]).
+			SetReplicas(replicas[topoService]).
 			SetImage(images[topoService]).
 			SetPullPolicy(pullPolicy)
 	}

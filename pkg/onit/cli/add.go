@@ -204,7 +204,7 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	env := env.New(kubeAPI)
 	setup := env.NewApp().
 		SetName(appID).
-		SetNodes(replicas).
+		SetReplicas(replicas).
 		SetImage(image).
 		SetPullPolicy(pullPolicy).
 		SetPorts(ports).

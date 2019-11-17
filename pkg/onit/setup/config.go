@@ -21,8 +21,8 @@ import (
 
 // ConfigSetup is an interface for setting up config nodes
 type ConfigSetup interface {
-	// SetNodes sets the number of nodes to deploy
-	SetNodes(nodes int) ConfigSetup
+	// SetReplicas sets the number of replicas to deploy
+	SetReplicas(replicas int) ConfigSetup
 
 	// SetImage sets the onos-config image to deploy
 	SetImage(image string) ConfigSetup
@@ -38,8 +38,8 @@ type clusterConfigSetup struct {
 	config *cluster.Config
 }
 
-func (s *clusterConfigSetup) SetNodes(nodes int) ConfigSetup {
-	s.config.SetReplicas(nodes)
+func (s *clusterConfigSetup) SetReplicas(replicas int) ConfigSetup {
+	s.config.SetReplicas(replicas)
 	return s
 }
 
