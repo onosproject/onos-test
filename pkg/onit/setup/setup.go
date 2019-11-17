@@ -26,6 +26,7 @@ const raftGroup = "raft"
 func New(kube kube.API) ClusterSetup {
 	return &clusterSetup{
 		cluster: cluster.New(kube),
+		apps:    make(map[string]AppSetup),
 	}
 }
 
@@ -52,6 +53,11 @@ func Database() DatabaseSetup {
 // CLI returns the setup configuration for the CLI service
 func CLI() CLISetup {
 	return getSetup().CLI()
+}
+
+// App returns the setup configuration for an application
+func App(name string) AppSetup {
+	return getSetup().App(name)
 }
 
 // Topo returns the setup configuration for the topo service
@@ -91,6 +97,9 @@ type ClusterSetup interface {
 	// Config returns the setup configuration for the ONOS config service
 	Config() ConfigSetup
 
+	// App returns the setup configuration for an application
+	App(name string) AppSetup
+
 	// Setup sets up the cluster
 	Setup() error
 
@@ -106,6 +115,7 @@ type serviceSetup interface {
 // clusterSetup is an implementation of the Setup interface
 type clusterSetup struct {
 	cluster *cluster.Cluster
+	apps    map[string]AppSetup
 }
 
 func (s *clusterSetup) Atomix() AtomixSetup {
@@ -138,6 +148,20 @@ func (s *clusterSetup) Config() ConfigSetup {
 	}
 }
 
+func (s *clusterSetup) App(name string) AppSetup {
+	if app, ok := s.apps[name]; ok {
+		return app
+	}
+
+	app := s.cluster.Apps().New()
+	app.SetName(name)
+	setup := &clusterAppSetup{
+		app: app,
+	}
+	s.apps[name] = setup
+	return setup
+}
+
 func (s *clusterSetup) Setup() error {
 	// Set up the Atomix controller
 	if err := s.Atomix().(serviceSetup).setup(); err != nil {
@@ -152,6 +176,9 @@ func (s *clusterSetup) Setup() error {
 	setupService(s.CLI().(serviceSetup), wg, errCh)
 	setupService(s.Topo().(serviceSetup), wg, errCh)
 	setupService(s.Config().(serviceSetup), wg, errCh)
+	for _, app := range s.apps {
+		setupService(app.(serviceSetup), wg, errCh)
+	}
 
 	go func() {
 		wg.Wait()
