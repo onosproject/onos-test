@@ -16,7 +16,7 @@ package env
 
 import (
 	"context"
-	"github.com/onosproject/onos-config/pkg/northbound/admin"
+	"github.com/onosproject/onos-config/api/admin"
 	"github.com/openconfig/gnmi/client"
 	gnmi "github.com/openconfig/gnmi/client/gnmi"
 	"time"

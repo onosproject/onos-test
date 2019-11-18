@@ -17,7 +17,7 @@ package config
 import (
 	"context"
 	"github.com/google/uuid"
-	"github.com/onosproject/onos-config/pkg/northbound/admin"
+	"github.com/onosproject/onos-config/api/admin"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/stretchr/testify/assert"
 	"testing"

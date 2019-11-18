@@ -17,7 +17,7 @@ package config
 import (
 	"context"
 	"github.com/onosproject/onos-test/pkg/onit/env"
-	"github.com/onosproject/onos-topo/pkg/northbound/device"
+	"github.com/onosproject/onos-topo/api/device"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"

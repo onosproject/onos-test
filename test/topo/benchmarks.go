@@ -21,7 +21,7 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
-	"github.com/onosproject/onos-topo/pkg/northbound/device"
+	"github.com/onosproject/onos-topo/api/device"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

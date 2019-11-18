@@ -15,8 +15,8 @@
 package env
 
 import (
-	"github.com/onosproject/onos-topo/pkg/northbound/admin"
-	"github.com/onosproject/onos-topo/pkg/northbound/device"
+	"github.com/onosproject/onos-topo/api/admin"
+	"github.com/onosproject/onos-topo/api/device"
 )
 
 // TopoEnv provides the topo environment

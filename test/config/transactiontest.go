@@ -16,11 +16,11 @@ package config
 
 import (
 	"context"
+	"github.com/onosproject/onos-config/api/admin"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"strconv"
 	"testing"
 
-	"github.com/onosproject/onos-config/pkg/northbound/admin"
 	"github.com/openconfig/gnmi/client"
 	"github.com/stretchr/testify/assert"
 )

@@ -19,7 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/util/logging"
-	"github.com/onosproject/onos-topo/pkg/northbound/device"
+	"github.com/onosproject/onos-topo/api/device"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
