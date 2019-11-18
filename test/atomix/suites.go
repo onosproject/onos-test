@@ -28,7 +28,7 @@ type testSuite struct {
 func (s *testSuite) SetupTestSuite() {
 	setup.Database().
 		SetPartitions(3).
-		SetNodesPerPartition(3)
+		SetReplicasPerPartition(3)
 	setup.SetupOrDie()
 }
 
@@ -51,6 +51,6 @@ type BenchmarkSuite struct {
 func (s *BenchmarkSuite) SetupBenchmarkSuite() {
 	setup.Database().
 		SetPartitions(3).
-		SetNodesPerPartition(3)
+		SetReplicasPerPartition(3)
 	setup.SetupOrDie()
 }

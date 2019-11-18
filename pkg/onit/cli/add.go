@@ -17,7 +17,6 @@ package cli
 import (
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/env"
-	"github.com/onosproject/onos-test/pkg/util/random"
 	"io/ioutil"
 
 	"github.com/spf13/cobra"
@@ -68,16 +67,8 @@ func getAddNetworkCommand() *cobra.Command {
 	return cmd
 }
 
-func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
+func runAddNetworkCommand(cmd *cobra.Command, _ []string) error {
 	runCommand(cmd)
-
-	networkID, _ := cmd.Flags().GetString("name")
-	if len(args) > 0 {
-		networkID = args[0]
-	}
-	if networkID == "" {
-		networkID = random.NewPetName(2)
-	}
 
 	image, _ := cmd.Flags().GetString("image")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
@@ -93,7 +84,7 @@ func runAddNetworkCommand(cmd *cobra.Command, args []string) error {
 	env := env.New(kubeAPI)
 	_, err = env.Networks().
 		New().
-		SetName(networkID).
+		SetName(getName(cmd)).
 		SetImage(image).
 		SetPullPolicy(pullPolicy).
 		SetCustom(topo, devices).
@@ -106,7 +97,7 @@ func getAddSimulatorCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "simulator [args]",
 		Short: "Add a device simulator to the test cluster",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		RunE:  runAddSimulatorCommand,
 	}
 
@@ -116,16 +107,8 @@ func getAddSimulatorCommand() *cobra.Command {
 	return cmd
 }
 
-func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
+func runAddSimulatorCommand(cmd *cobra.Command, _ []string) error {
 	runCommand(cmd)
-
-	deviceID, _ := cmd.Flags().GetString("name")
-	if len(args) > 0 {
-		deviceID = args[0]
-	}
-	if deviceID == "" {
-		deviceID = random.NewPetName(2)
-	}
 
 	image, _ := cmd.Flags().GetString("image")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
@@ -139,7 +122,7 @@ func runAddSimulatorCommand(cmd *cobra.Command, args []string) error {
 	env := env.New(kubeAPI)
 	_, err = env.Simulators().
 		New().
-		SetName(deviceID).
+		SetName(getName(cmd)).
 		SetImage(image).
 		SetPullPolicy(pullPolicy).
 		Add()
@@ -165,16 +148,12 @@ func getAddAppCommand() *cobra.Command {
 	cmd.Flags().StringToStringP("secret", "s", map[string]string{}, "secrets to add to the application")
 	cmd.Flags().Bool("privileged", false, "run the application in privileged mode")
 	cmd.Flags().IntP("user", "u", -1, "set the user with which to run the application")
+	cmd.Flags().StringToStringP("env", "e", map[string]string{}, "set environment variables")
 	return cmd
 }
 
 func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
-
-	appID, _ := cmd.Flags().GetString("name")
-	if appID == "" {
-		appID = random.NewPetName(2)
-	}
 
 	image, _ := cmd.Flags().GetString("image")
 	replicas, _ := cmd.Flags().GetInt("replicas")
@@ -184,6 +163,7 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	debug, _ := cmd.Flags().GetBool("debug")
 	privileged, _ := cmd.Flags().GetBool("privileged")
 	user, _ := cmd.Flags().GetInt("user")
+	envVars, _ := cmd.Flags().GetStringToString("env")
 	secretValues, _ := cmd.Flags().GetStringToString("secret")
 
 	secrets := make(map[string]string)
@@ -203,7 +183,7 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 
 	env := env.New(kubeAPI)
 	setup := env.NewApp().
-		SetName(appID).
+		SetName(getName(cmd)).
 		SetReplicas(replicas).
 		SetImage(image).
 		SetPullPolicy(pullPolicy).
@@ -211,6 +191,7 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 		SetDebug(debug).
 		SetSecrets(secrets).
 		SetPrivileged(privileged).
+		SetEnv(envVars).
 		SetArgs(args...)
 	if user >= 0 {
 		setup.SetUser(user)

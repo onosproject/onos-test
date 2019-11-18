@@ -24,8 +24,8 @@ type DatabaseSetup interface {
 	// SetPartitions sets the number of partitions to deploy
 	SetPartitions(partitions int) DatabaseSetup
 
-	// SetNodesPerPartition sets the number of nodes per partition
-	SetNodesPerPartition(nodes int) DatabaseSetup
+	// SetReplicasPerPartition sets the number of replicas per partition
+	SetReplicasPerPartition(replicas int) DatabaseSetup
 
 	// SetImage sets the Raft image to deploy
 	SetImage(image string) DatabaseSetup
@@ -46,8 +46,8 @@ func (s *clusterDatabaseSetup) SetPartitions(partitions int) DatabaseSetup {
 	return s
 }
 
-func (s *clusterDatabaseSetup) SetNodesPerPartition(nodes int) DatabaseSetup {
-	s.group.SetNodes(nodes)
+func (s *clusterDatabaseSetup) SetReplicasPerPartition(replicas int) DatabaseSetup {
+	s.group.SetReplicas(replicas)
 	return s
 }
 

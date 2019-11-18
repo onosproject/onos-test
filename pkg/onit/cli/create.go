@@ -58,7 +58,7 @@ func getCreateClusterCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster [args]",
 		Short: "Setup a test cluster on Kubernetes",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		RunE:  runCreateClusterCommand,
 	}
 
@@ -84,7 +84,7 @@ func getCreateClusterCommand() *cobra.Command {
 	return cmd
 }
 
-func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
+func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
 	runCommand(cmd)
 
 	images, _ := cmd.Flags().GetStringToString("image")
@@ -93,7 +93,7 @@ func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	kubeAPI, err := kube.GetAPI(getClusterArgOrFlag(cmd, args))
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func runCreateClusterCommand(cmd *cobra.Command, args []string) error {
 		SetPullPolicy(pullPolicy)
 	setup.Database().
 		SetPartitions(partitions).
-		SetNodesPerPartition(replicas[raftService]).
+		SetReplicasPerPartition(replicas[raftService]).
 		SetImage(images[raftService]).
 		SetPullPolicy(pullPolicy)
 	if replicas[cliService] > 0 {

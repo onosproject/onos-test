@@ -41,7 +41,7 @@ type Partitions struct {
 	*client
 	group      string
 	partitions int
-	nodes      int
+	replicas   int
 	image      string
 	pullPolicy corev1.PullPolicy
 }
@@ -56,14 +56,14 @@ func (s *Partitions) SetPartitions(partitions int) {
 	s.partitions = partitions
 }
 
-// Nodes returns the number of nodes in each partition
-func (s *Partitions) Nodes() int {
-	return s.nodes
+// Replicas returns the number of replicas in each partition
+func (s *Partitions) Replicas() int {
+	return s.replicas
 }
 
 // SetReplicas sets the number of nodes in each partition
-func (s *Partitions) SetNodes(nodes int) {
-	s.nodes = nodes
+func (s *Partitions) SetReplicas(replicas int) {
+	s.replicas = replicas
 }
 
 // Image returns the image for the partition group
@@ -160,7 +160,7 @@ func (s *Partitions) createPartitionSet() error {
 					Labels: s.getLabels(),
 				},
 				Spec: v1alpha1.PartitionSpec{
-					Size:            int32(s.nodes),
+					Size:            int32(s.replicas),
 					Protocol:        "raft",
 					Image:           s.image,
 					ImagePullPolicy: s.pullPolicy,

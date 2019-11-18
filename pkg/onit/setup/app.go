@@ -49,7 +49,13 @@ type AppSetup interface {
 	SetSecrets(secrets map[string]string) AppSetup
 
 	// AddSecret adds a secret to the app
-	AddSecret(name string, secret string) AppSetup
+	AddSecret(path, value string) AppSetup
+
+	// SetEnv sets the environment variables
+	SetEnv(env map[string]string) AppSetup
+
+	// AddEnv adds an environment variable
+	AddEnv(name, value string) AppSetup
 
 	// SetArgs sets the application arguments
 	SetArgs(args ...string) AppSetup
@@ -109,8 +115,18 @@ func (s *clusterAppSetup) SetSecrets(secrets map[string]string) AppSetup {
 	return s
 }
 
-func (s *clusterAppSetup) AddSecret(name string, secret string) AppSetup {
-	s.app.AddSecret(name, secret)
+func (s *clusterAppSetup) AddSecret(path, value string) AppSetup {
+	s.app.AddSecret(path, value)
+	return s
+}
+
+func (s *clusterAppSetup) SetEnv(env map[string]string) AppSetup {
+	s.app.SetEnv(env)
+	return s
+}
+
+func (s *clusterAppSetup) AddEnv(name, value string) AppSetup {
+	s.app.AddEnv(name, value)
 	return s
 }
 

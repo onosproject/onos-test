@@ -35,8 +35,8 @@ type BenchmarkSuite struct {
 func (s *BenchmarkSuite) SetupBenchmarkSuite() {
 	setup.Database().
 		SetPartitions(3).
-		SetNodesPerPartition(3)
-	setup.Topo().SetNodes(2)
+		SetReplicasPerPartition(3)
+	setup.Topo().SetReplicas(2)
 	setup.SetupOrDie()
 }
 

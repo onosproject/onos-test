@@ -45,15 +45,15 @@ func getDeleteClusterCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster [args]",
 		Short: "Delete a test cluster on Kubernetes",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		RunE:  runDeleteClusterCommand,
 	}
 	return cmd
 }
 
-func runDeleteClusterCommand(cmd *cobra.Command, args []string) error {
+func runDeleteClusterCommand(cmd *cobra.Command, _ []string) error {
 	runCommand(cmd)
-	kubeAPI, err := kube.GetAPI(getClusterArgOrFlag(cmd, args))
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}

@@ -16,6 +16,7 @@ package cli
 
 import (
 	"github.com/onosproject/onos-test/pkg/util/logging"
+	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 )
 
@@ -54,12 +55,13 @@ func getCluster(cmd *cobra.Command) string {
 	return cluster
 }
 
-// getClusterArgOrFlag returns the cluster from the given command flags and arguments
-func getClusterArgOrFlag(cmd *cobra.Command, args []string) string {
-	if len(args) > 0 {
-		return args[0]
+// getName returns the name of a resource from the given command flags
+func getName(cmd *cobra.Command) string {
+	name, _ := cmd.Flags().GetString("name")
+	if name == "" {
+		name = random.NewPetName(2)
 	}
-	return getCluster(cmd)
+	return name
 }
 
 func runCommand(cmd *cobra.Command) {

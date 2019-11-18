@@ -78,38 +78,7 @@ __onit_get_cluster() {
 }
 
 __onit_custom_func() {
-    case ${last_command} in
-        onit_delete_cluster)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __onit_get_clusters
-            fi
-            return
-            ;;
 
-		onit_remove_app)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __onit_get_apps
-            fi
-            return
-			;;
-		
-		onit_remove_simulator)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __onit_get_simulators
-            fi
-            return
-			;;
-		
-		onit_remove_network)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __onit_get_networks
-            fi
-            return
-            ;;
-
-        *)
-            ;;
-    esac
 }
 `
 

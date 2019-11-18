@@ -107,11 +107,11 @@ To facilitate setting up test clusters, the setup API provides configuration int
 func (s *MyTestSuite) SetupTestSuite() {
 	setup.Database().
 		SetPartitions(3).
-		SetNodesPerPartition(3)
+		SetReplicasPerPartition(3)
 	setup.Topo().
-		SetNodes(2)
+		SetReplicas(2)
 	setup.Config().
-		SetNodes(1)
+		SetReplicas(1)
 	...
 }
 ```
@@ -122,11 +122,11 @@ Once the desired subsystems have been configured, set up the cluster by calling 
 func (s *MyTestSuite) SetupTestSuite() {
 	setup.Database().
 		SetPartitions(3).
-		SetNodesPerPartition(3)
+		SetReplicasPerPartition(3)
 	setup.Topo().
-		SetNodes(2)
+		SetReplicas(2)
 	setup.Config().
-		SetNodes(1)
+		SetReplicas(1)
 	setup.SetupOrDie()
 }
 ``` 
@@ -196,12 +196,45 @@ func (s *MyTestSuite) TestZTP(t *testing.T) {
 	ztp := env.NewApp().
 		SetName("ztp").
 		SetImage("onosproject/onos-ztp:latest").
-		SetNodes(2).
+		SetReplicas(2).
 		AddOrDie()
 }
 ```
 
-Applications must be configured with an image and may specify the number of nodes to deploy.
+Applications must be configured with an image and may specify the number of nodes to deploy. Additionally, application
+configurations can be used to expose ports, add secrets, specify container arguments, and set other options:
+
+* `SetReplicas` sets the number of replicas to deploy
+* `SetImage` sets the image to deploy
+* `SetPullPolicy` sets the image pull policy
+* `AddPort` adds a named port to the application deployment. Note: the first port added to the application will be
+used for health checking.
+* `SetPorts` sets the named ports to expose for the application
+* `SetDebug` sets whether to enable debug mode. When debug mode is enabled, containers will be deployed with the 
+`SYS_PTRACE` ability enabled
+* `AddSecret` adds a secret to the application deployment. The `path` is the path at which the secret will be mounted
+inside the app pods. The `value` is the value of the secret to add.
+* `SetSecrets` sets the secrets to attach to the application deployment
+* `SetUser` overrides the user with which to run the application containers
+* `SetPrivileged` sets whether to run the application in privileged mode
+* `AddEnv` adds an environment variable to the application
+* `SetEnv` sets the environment variables to pass to the containers
+* `SetArgs` sets the arguments to pass to the containers
+
+```go
+func (s *MyTestSuite) TestZTP(t *testing.T) {
+	ztp := env.NewApp().
+		SetName("ztp").
+		SetImage("onosproject/onos-ztp:latest").
+		SetReplicas(2).
+		AddPort("grpc", 5150).
+		AddSecret("/certs/onf.cacrt", caCert).
+		AddSecret("/certs/onos-ztp.cert", ztpCert).
+		AddSecret("/certs/onos-ztp.key", ztpKey).
+		SetArgs("-caPath=/certs/onf.cacrt", "-certPath=/certs/onos-ztp.cert", "-keyPath=/certs/onos-ztp.key").
+		AddOrDie()
+}
+```
 
 Once an application has been deployed, tests can query the application nodes, execute commands within the application's
 pod, kill nodes, and more:
@@ -211,7 +244,9 @@ func (s *MyTestSuite) TestZTP(t *testing.T) {
 	ztp := env.NewApp().
 		SetName("ztp").
 		SetImage("onosproject/onos-ztp:latest").
-		SetNodes(2).
+		AddPort("grpc", 5150).
+		SetUser(0).
+		SetReplicas(2).
 		AddOrDie()  
 	
 	// Execute a command on a ztp node to add a role

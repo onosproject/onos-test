@@ -34,6 +34,7 @@ func newService(name string, ports []Port, labels map[string]string, image strin
 		Deployment: newDeployment(name, labels, image, client),
 		ports:      ports,
 		secrets:    secrets,
+		env:        make(map[string]string),
 		args:       args,
 	}
 }
@@ -53,6 +54,7 @@ type Service struct {
 	user       *int
 	privileged bool
 	secrets    map[string]string
+	env        map[string]string
 	args       []string
 }
 
@@ -151,6 +153,21 @@ func (s *Service) SetSecrets(secrets map[string]string) {
 // AddSecret adds a secret to the service
 func (s *Service) AddSecret(name, secret string) {
 	s.secrets[name] = secret
+}
+
+// Env returns the service environment
+func (s *Service) Env() map[string]string {
+	return s.env
+}
+
+// SetEnv sets the service environment
+func (s *Service) SetEnv(env map[string]string) {
+	s.env = env
+}
+
+// AddEnv adds an environment variable
+func (s *Service) AddEnv(name, value string) {
+	s.env[name] = value
 }
 
 // Args returns the service arguments
@@ -364,6 +381,31 @@ func (s *Service) createDeployment() error {
 		}
 	}
 
+	env := []corev1.EnvVar{
+		{
+			Name:  "ATOMIX_CONTROLLER",
+			Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", s.namespace),
+		},
+		{
+			Name:  "ATOMIX_APP",
+			Value: s.Name(),
+		},
+		{
+			Name:  "ATOMIX_NAMESPACE",
+			Value: s.namespace,
+		},
+		{
+			Name:  "ATOMIX_RAFT_GROUP",
+			Value: "raft",
+		},
+	}
+	for name, value := range s.env {
+		env = append(env, corev1.EnvVar{
+			Name:  name,
+			Value: value,
+		})
+	}
+
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),
@@ -385,24 +427,7 @@ func (s *Service) createDeployment() error {
 							Name:            s.Name(),
 							Image:           s.Image(),
 							ImagePullPolicy: s.PullPolicy(),
-							Env: []corev1.EnvVar{
-								{
-									Name:  "ATOMIX_CONTROLLER",
-									Value: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", s.namespace),
-								},
-								{
-									Name:  "ATOMIX_APP",
-									Value: s.Name(),
-								},
-								{
-									Name:  "ATOMIX_NAMESPACE",
-									Value: s.namespace,
-								},
-								{
-									Name:  "ATOMIX_RAFT_GROUP",
-									Value: "raft",
-								},
-							},
+							Env:             env,
 							Args:            s.args,
 							Ports:           ports,
 							ReadinessProbe:  readinessProbe,

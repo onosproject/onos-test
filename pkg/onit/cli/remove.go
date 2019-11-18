@@ -51,23 +51,19 @@ func getRemoveNetworkCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "network [args]",
 		Short: "Remove a stratum network from the cluster",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		RunE:  runRemoveNetworkCommand,
 	}
 	cmd.Flags().StringP("name", "n", "", "the name of the network to remove")
+	_ = cmd.MarkFlagRequired("name")
 	cmd.Flags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_networks"},
 	}
 	return cmd
 }
 
-func runRemoveNetworkCommand(cmd *cobra.Command, args []string) error {
+func runRemoveNetworkCommand(cmd *cobra.Command, _ []string) error {
 	runCommand(cmd)
-
-	networkID, _ := cmd.Flags().GetString("name")
-	if len(args) > 0 {
-		networkID = args[0]
-	}
 
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
@@ -75,9 +71,9 @@ func runRemoveNetworkCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	env := env.New(kubeAPI)
-	network := env.Network(networkID)
+	network := env.Network(getName(cmd))
 	if network == nil {
-		return fmt.Errorf("unknown network: %s", networkID)
+		return fmt.Errorf("unknown network: %s", getName(cmd))
 	}
 	return network.Remove()
 }
@@ -87,10 +83,11 @@ func getRemoveSimulatorCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "simulator [args]",
 		Short: "Remove a device simulator from the cluster",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		RunE:  runRemoveSimulatorCommand,
 	}
 	cmd.Flags().StringP("name", "n", "", "the name of the simulator to remove")
+	_ = cmd.MarkFlagRequired("name")
 	cmd.Flags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_simulators"},
 	}
@@ -100,20 +97,15 @@ func getRemoveSimulatorCommand() *cobra.Command {
 func runRemoveSimulatorCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
-	deviceID, _ := cmd.Flags().GetString("name")
-	if len(args) > 0 {
-		deviceID = args[0]
-	}
-
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}
 
 	env := env.New(kubeAPI)
-	simulator := env.Simulator(deviceID)
+	simulator := env.Simulator(getName(cmd))
 	if simulator == nil {
-		return fmt.Errorf("unknown device: %s", deviceID)
+		return fmt.Errorf("unknown device: %s", getName(cmd))
 	}
 	return simulator.Remove()
 }
@@ -123,10 +115,11 @@ func getRemoveAppCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app [args]",
 		Short: "Remove an app from the cluster",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.NoArgs,
 		RunE:  runRemoveAppCommand,
 	}
 	cmd.Flags().StringP("name", "n", "", "the name of the app to remove")
+	_ = cmd.MarkFlagRequired("name")
 	cmd.Flags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__onit_get_apps"},
 	}
@@ -136,20 +129,15 @@ func getRemoveAppCommand() *cobra.Command {
 func runRemoveAppCommand(cmd *cobra.Command, args []string) error {
 	runCommand(cmd)
 
-	appID, _ := cmd.Flags().GetString("name")
-	if len(args) > 0 {
-		appID = args[0]
-	}
-
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}
 
 	env := env.New(kubeAPI)
-	app := env.App(appID)
+	app := env.App(getName(cmd))
 	if app == nil {
-		return fmt.Errorf("unknown application: %s", appID)
+		return fmt.Errorf("unknown application: %s", getName(cmd))
 	}
 	return app.Remove()
 }
