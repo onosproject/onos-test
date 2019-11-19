@@ -179,11 +179,13 @@ onit create cluster --image-tags="topo=latest,config=latest"
 
 By default MicroK8s will pull docker images from docker hub, and not the local
 machine. To load a local image in to Microk8s:
+
 ```bash
 docker save mynginx > myimage.tar
 microk8s.ctr -n k8s.io image import myimage.tar
 ```
-(see https://microk8s.io/docs/working for more details).
+
+(see <https://microk8s.io/docs/working> for more details).
 
 [Kubernetes]: https://kubernetes.io
 [Minikube]: https://kubernetes.io/docs/setup/learning-environment/minikube/
