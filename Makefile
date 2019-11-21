@@ -42,7 +42,8 @@ deps: # @HELP ensure that the required dependencies are in place
 
 
 license_check: # @HELP examine and ensure license headers exist
-	./build/licensing/boilerplate.py -v
+	@if [ ! -d "../build-tools" ]; then cd .. && git clone https://github.com/onosproject/build-tools.git; fi
+	./../build-tools/licensing/boilerplate.py -v --rootdir=${CURDIR}
 
 # integration: @HELP build and run integration tests
 integration: kind
