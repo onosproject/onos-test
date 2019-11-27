@@ -10,14 +10,11 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
-	github.com/go-playground/overalls v0.0.0-20180201144345-22ec1a223b7c // indirect
-	github.com/gofrs/flock v0.7.1 // indirect
 	github.com/golang/protobuf v1.3.2
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.3.0 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
-	github.com/mattn/goveralls v0.0.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onosproject/onos-config v0.0.0-20191021200741-e74483537b8a
 	github.com/onosproject/onos-topo v0.0.0-20191009212759-73d0cb9dfc91
@@ -25,7 +22,6 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.4.0
-	github.com/yookoala/realpath v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	google.golang.org/grpc v1.23.1
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0

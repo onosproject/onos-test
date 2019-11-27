@@ -15,9 +15,9 @@
 package setup
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
-	"strings"
 	"sync"
 
 	"github.com/onosproject/onos-test/pkg/onit/console"
@@ -136,24 +136,20 @@ func (t *TestSetup) GetNodes() ([]k8s.NodeInfo, error) {
 	}
 
 	// Get the list of nodes based on given type
-	if strings.Compare(t.nodeType, string(k8s.OnosAll)) == 0 {
+	switch k8s.NodeType(t.nodeType) {
+	case k8s.OnosAll:
 		return cluster.GetNodes()
-
-	} else if strings.Compare(t.nodeType, string(k8s.OnosConfig)) == 0 {
+	case k8s.OnosConfig:
 		return cluster.GetOnosConfigNodes()
-
-	} else if strings.Compare(t.nodeType, string(k8s.OnosTopo)) == 0 {
+	case k8s.OnosTopo:
 		return cluster.GetOnosTopoNodes()
-
-	} else if strings.Compare(t.nodeType, string(k8s.OnosCli)) == 0 {
+	case k8s.OnosCli:
 		return cluster.GetOnosCliNodes()
-
-	} else if strings.Compare(t.nodeType, string(k8s.OnosGui)) == 0 {
+	case k8s.OnosGui:
 		return cluster.GetOnosGuiNodes()
 	}
 
-	return nil, nil
-
+	return nil, errors.New("Unsupported node type " + t.nodeType)
 }
 
 // GetHistory return a test history
