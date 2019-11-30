@@ -111,6 +111,7 @@ func (w *BenchmarkWorker) Run() error {
 		os.Args[0],
 		"-test.bench=.",
 		"-test.v",
+		"-test.benchtime=5s",
 	}
 
 	testing.Main(func(_, _ string) (bool, error) { return true, nil }, nil, benchmarks, nil)

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package atomix
+package raft
 
 import (
 	"github.com/onosproject/onos-test/pkg/onit"
@@ -26,7 +26,8 @@ type testSuite struct {
 
 // SetupTestSuite sets up the Atomix test suite
 func (s *testSuite) SetupTestSuite() {
-	setup.Database().
+	setup.Partitions("raft").
+		Raft().
 		SetPartitions(3).
 		SetReplicasPerPartition(3)
 	setup.SetupOrDie()
@@ -49,7 +50,8 @@ type BenchmarkSuite struct {
 
 // SetupBenchmarkSuite sets up the Atomix benchmark suite
 func (s *BenchmarkSuite) SetupBenchmarkSuite() {
-	setup.Database().
+	setup.Partitions("raft").
+		Raft().
 		SetPartitions(3).
 		SetReplicasPerPartition(3)
 	setup.SetupOrDie()

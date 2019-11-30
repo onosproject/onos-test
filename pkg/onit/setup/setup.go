@@ -20,13 +20,12 @@ import (
 	"sync"
 )
 
-const raftGroup = "raft"
-
 // New returns a new onit ClusterSetup
 func New(kube kube.API) ClusterSetup {
 	return &clusterSetup{
-		cluster: cluster.New(kube),
-		apps:    make(map[string]AppSetup),
+		cluster:    cluster.New(kube),
+		partitions: make(map[string]PartitionsSetup),
+		apps:       make(map[string]AppSetup),
 	}
 }
 
@@ -45,9 +44,9 @@ func Atomix() AtomixSetup {
 	return getSetup().Atomix()
 }
 
-// Database returns the setup configuration for the key-value store
-func Database() DatabaseSetup {
-	return getSetup().Database()
+// Partitions returns the setup configuration for a database partition set
+func Partitions(name string) PartitionsSetup {
+	return getSetup().Partitions(name)
 }
 
 // CLI returns the setup configuration for the CLI service
@@ -85,8 +84,8 @@ type ClusterSetup interface {
 	// Atomix returns the setup configuration for the Atomix controller
 	Atomix() AtomixSetup
 
-	// Database returns the setup configuration for the key-value store
-	Database() DatabaseSetup
+	// Partitions returns the setup configuration for a partition set
+	Partitions(name string) PartitionsSetup
 
 	// CLI returns the setup configuration for the ONSO CLI service
 	CLI() CLISetup
@@ -114,8 +113,9 @@ type serviceSetup interface {
 
 // clusterSetup is an implementation of the Setup interface
 type clusterSetup struct {
-	cluster *cluster.Cluster
-	apps    map[string]AppSetup
+	cluster    *cluster.Cluster
+	partitions map[string]PartitionsSetup
+	apps       map[string]AppSetup
 }
 
 func (s *clusterSetup) Atomix() AtomixSetup {
@@ -124,10 +124,16 @@ func (s *clusterSetup) Atomix() AtomixSetup {
 	}
 }
 
-func (s *clusterSetup) Database() DatabaseSetup {
-	return &clusterDatabaseSetup{
-		group: s.cluster.Database().Partitions(raftGroup),
+func (s *clusterSetup) Partitions(name string) PartitionsSetup {
+	if partitions, ok := s.partitions[name]; ok {
+		return partitions
 	}
+
+	partitions := &clusterPartitionsSetup{
+		group: s.cluster.Database().Partitions(name),
+	}
+	s.partitions[name] = partitions
+	return partitions
 }
 
 func (s *clusterSetup) CLI() CLISetup {
@@ -172,7 +178,9 @@ func (s *clusterSetup) Setup() error {
 	wg := &sync.WaitGroup{}
 	errCh := make(chan error)
 
-	setupService(s.Database().(serviceSetup), wg, errCh)
+	for _, partitions := range s.partitions {
+		setupService(partitions.(serviceSetup), wg, errCh)
+	}
 	setupService(s.CLI().(serviceSetup), wg, errCh)
 	setupService(s.Topo().(serviceSetup), wg, errCh)
 	setupService(s.Config().(serviceSetup), wg, errCh)

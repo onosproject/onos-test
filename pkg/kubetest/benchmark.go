@@ -120,6 +120,7 @@ func RunBenchmarks(b *testing.B, suite BenchmarkingSuite, config *TestConfig) {
 		}
 		benchmarks = append(benchmarks, benchmark)
 	}
+	b.ResetTimer()
 	runBenchmarks(b, benchmarks)
 }
 

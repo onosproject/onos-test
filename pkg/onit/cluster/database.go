@@ -14,10 +14,6 @@
 
 package cluster
 
-const (
-	raftImage = "atomix/atomix-raft-node:latest"
-)
-
 func newDatabase(client *client) *Database {
 	return &Database{
 		client: client,
@@ -36,7 +32,7 @@ func (s *Database) Partitions(group string) *Partitions {
 	if partitions, ok := s.groups[group]; ok {
 		return partitions
 	}
-	partitions := newPartitions(group, raftImage, s.client)
+	partitions := newPartitions(group, s.client)
 	s.groups[group] = partitions
 	return partitions
 }

@@ -16,34 +16,25 @@ package cluster
 
 import (
 	"context"
-	"fmt"
-	"github.com/atomix/atomix-api/proto/atomix/protocols/raft"
+	"errors"
 	atomix "github.com/atomix/atomix-go-client/pkg/client"
-	"github.com/atomix/atomix-k8s-controller/pkg/apis/k8s/v1alpha1"
-	"github.com/ghodss/yaml"
-	"github.com/onosproject/onos-test/pkg/util/logging"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"time"
 )
 
-func newPartitions(group string, image string, client *client) *Partitions {
+func newPartitions(group string, client *client) *Partitions {
 	return &Partitions{
 		client: client,
 		group:  group,
-		image:  image,
 	}
 }
 
 // Partitions provides methods for adding and modifying partitions
 type Partitions struct {
 	*client
-	group      string
-	partitions int
-	replicas   int
-	image      string
-	pullPolicy corev1.PullPolicy
+	group   string
+	raft    *RaftPartitions
+	nopaxos *NOPaxosPartitions
 }
 
 // Name returns the partition group name
@@ -51,39 +42,16 @@ func (s *Partitions) Name() string {
 	return s.group
 }
 
-// SetPartitions sets the number of partitions in the group
-func (s *Partitions) SetPartitions(partitions int) {
-	s.partitions = partitions
+// Raft returns new RaftPartitions
+func (s *Partitions) Raft() *RaftPartitions {
+	s.raft = newRaftPartitions(s)
+	return s.raft
 }
 
-// Replicas returns the number of replicas in each partition
-func (s *Partitions) Replicas() int {
-	return s.replicas
-}
-
-// SetReplicas sets the number of nodes in each partition
-func (s *Partitions) SetReplicas(replicas int) {
-	s.replicas = replicas
-}
-
-// Image returns the image for the partition group
-func (s *Partitions) Image() string {
-	return s.image
-}
-
-// SetImage sets the image for the partition group
-func (s *Partitions) SetImage(image string) {
-	s.image = image
-}
-
-// PullPolicy returns the image pull policy for the partition group
-func (s *Partitions) PullPolicy() corev1.PullPolicy {
-	return s.pullPolicy
-}
-
-// SetPullPolicy sets the image pull policy for the partition group
-func (s *Partitions) SetPullPolicy(pullPolicy corev1.PullPolicy) {
-	s.pullPolicy = pullPolicy
+// NOPaxos returns new NOPaxosPartitions
+func (s *Partitions) NOPaxos() *NOPaxosPartitions {
+	s.nopaxos = newNOPaxosPartitions(s)
+	return s.nopaxos
 }
 
 // Partition gets a partition by name
@@ -116,7 +84,7 @@ func (s *Partitions) Partitions() []*Partition {
 
 // Connect connects to the partition group
 func (s *Partitions) Connect() (*atomix.PartitionGroup, error) {
-	client, err := atomix.NewClient(fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", s.namespace), atomix.WithNamespace(s.namespace))
+	client, err := atomix.NewClient("atomix-controller:5679", atomix.WithNamespace(s.namespace))
 	if err != nil {
 		return nil, err
 	}
@@ -125,64 +93,20 @@ func (s *Partitions) Connect() (*atomix.PartitionGroup, error) {
 
 // Setup sets up a partition set
 func (s *Partitions) Setup() error {
-	step := logging.NewStep(s.namespace, "Setup Raft partitions")
-	step.Start()
-	step.Log("Creating Raft PartitionSet")
-	if err := s.createPartitionSet(); err != nil {
-		step.Fail(err)
-		return err
+	if s.raft != nil {
+		return s.raft.Setup()
+	} else if s.nopaxos != nil {
+		return s.nopaxos.Setup()
 	}
-	step.Log("Waiting for Raft partitions to become ready")
-	if err := s.AwaitReady(); err != nil {
-		step.Fail(err)
-		return err
-	}
-	step.Complete()
-	return nil
-}
-
-// createPartitionSet creates a Raft partition set from the configuration
-func (s *Partitions) createPartitionSet() error {
-	bytes, err := yaml.Marshal(&raft.RaftProtocol{})
-	if err != nil {
-		return err
-	}
-
-	set := &v1alpha1.PartitionSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "raft",
-			Namespace: s.namespace,
-		},
-		Spec: v1alpha1.PartitionSetSpec{
-			Partitions: s.partitions,
-			Template: v1alpha1.PartitionTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: s.getLabels(),
-				},
-				Spec: v1alpha1.PartitionSpec{
-					Size:            int32(s.replicas),
-					Protocol:        "raft",
-					Image:           s.image,
-					ImagePullPolicy: s.pullPolicy,
-					Config:          string(bytes),
-				},
-			},
-		},
-	}
-	_, err = s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Create(set)
-	return err
+	return errors.New("unknown partition type")
 }
 
 // AwaitReady waits for partitions to complete startup
 func (s *Partitions) AwaitReady() error {
-	for {
-		set, err := s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Get(s.group, metav1.GetOptions{})
-		if err != nil {
-			return err
-		} else if int(set.Status.ReadyPartitions) == set.Spec.Partitions {
-			return nil
-		} else {
-			time.Sleep(100 * time.Millisecond)
-		}
+	if s.raft != nil {
+		return s.raft.AwaitReady()
+	} else if s.nopaxos != nil {
+		return s.nopaxos.AwaitReady()
 	}
+	return errors.New("unknown partition type")
 }

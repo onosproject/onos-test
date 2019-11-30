@@ -35,11 +35,11 @@ import (
 
 func main() {
 	// Register Atomix tests
-	onit.RegisterTests("atomix", &atomix.SmokeTestSuite{})
-	onit.RegisterTests("atomix-ha", &atomix.HATestSuite{})
+	onit.RegisterTests(raft, &atomix.SmokeTestSuite{})
+	onit.RegisterTests(raft, &atomix.HATestSuite{})
 	
 	// Register Atomix benchmarks
-	onit.RegisterBenchmarks("atomix", &atomix.BenchmarkSuite{})
+	onit.RegisterBenchmarks(raft, &atomix.BenchmarkSuite{})
 
 	onit.Main()
 }

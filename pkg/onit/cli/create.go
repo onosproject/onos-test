@@ -106,7 +106,8 @@ func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
 	setup.Atomix().
 		SetImage(images[atomixService]).
 		SetPullPolicy(pullPolicy)
-	setup.Database().
+	setup.Partitions("raft").
+		Raft().
 		SetPartitions(partitions).
 		SetReplicasPerPartition(replicas[raftService]).
 		SetImage(images[raftService]).

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package atomix
+package nopaxos
 
 import (
 	"context"
@@ -23,13 +23,13 @@ import (
 	"time"
 )
 
-// TestAtomixList : integration test
-func (s *SmokeTestSuite) TestAtomixList(t *testing.T) {
-	group, err := env.Database().Partitions("raft").Connect()
+// TestNOPaxosList : integration test
+func (s *SmokeTestSuite) TestNOPaxosList(t *testing.T) {
+	group, err := env.Database().Partitions("nopaxos").Connect()
 	assert.NoError(t, err)
 	assert.NotNil(t, group)
 
-	list, err := group.GetList(context.Background(), "TestAtomixList", session.WithTimeout(5*time.Second))
+	list, err := group.GetList(context.Background(), "TestNOPaxosList", session.WithTimeout(5*time.Second))
 	assert.NoError(t, err)
 
 	size, err := list.Len(context.Background())

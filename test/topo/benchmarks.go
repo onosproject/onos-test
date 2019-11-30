@@ -33,7 +33,8 @@ type BenchmarkSuite struct {
 
 // SetupBenchmarkSuite sets up the topo benchmark suite
 func (s *BenchmarkSuite) SetupBenchmarkSuite() {
-	setup.Database().
+	setup.Partitions("raft").
+		Raft().
 		SetPartitions(3).
 		SetReplicasPerPartition(3)
 	setup.Topo().SetReplicas(2)

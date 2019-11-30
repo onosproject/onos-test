@@ -12,26 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cluster
+package nopaxos
 
-import "strings"
-
-const (
-	partitionType  = "partition"
-	groupLabel     = "group"
-	partitionLabel = "partition"
+import (
+	"context"
+	"github.com/onosproject/onos-test/pkg/onit/env"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func newPartition(name string, client *client) *Partition {
-	labels := getLabels(partitionType)
-	labels[groupLabel] = name[:strings.LastIndex(name, "-")]
-	labels[partitionLabel] = name[strings.LastIndex(name, "-")+1:]
-	return &Partition{
-		Deployment: newDeployment(name, labels, "", client),
-	}
-}
+// BenchmarkNOPaxosMap : benchmark
+func (s *BenchmarkSuite) BenchmarkNOPaxosMap(b *testing.B) {
+	group, err := env.Database().Partitions("nopaxos").Connect()
+	assert.NoError(b, err)
+	assert.NotNil(b, group)
 
-// Partition provides methods for querying a database partition
-type Partition struct {
-	*Deployment
+	m, err := group.GetMap(context.Background(), "BenchmarkNOPaxosMap")
+	assert.NoError(b, err)
+	assert.NotNil(b, m)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = m.Put(context.Background(), "foo", []byte("bar"))
+	}
 }
