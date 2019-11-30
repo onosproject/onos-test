@@ -15,19 +15,25 @@
 package cli
 
 const (
-	atomixService = "atomix"
-	raftService   = "raft"
-	cliService    = "cli"
-	configService = "config"
-	topoService   = "topo"
+	atomixService    = "atomix"
+	raftService      = "raft"
+	partitionService = "partition"
+	nopaxosService   = "nopaxos"
+	nopaxosSequencer = "nopaxos-sequencer"
+	nopaxosReplica   = "nopaxos-replica"
+	cliService       = "cli"
+	configService    = "config"
+	topoService      = "topo"
 )
 
 const (
-	defaultAtomixImage    = "atomix/atomix-k8s-controller:latest"
-	defaultRaftImage      = "atomix/atomix-raft-node:latest"
-	defaultCLIImage       = "onosproject/onos-cli:latest"
-	defaultConfigImage    = "onosproject/onos-config:latest"
-	defaultTopoImage      = "onosproject/onos-topo:latest"
-	defaultMininetImage   = "opennetworking/mn-stratum:latest"
-	defaultSimulatorImage = "onosproject/device-simulator:latest"
+	defaultAtomixImage           = "atomix/atomix-k8s-controller:latest"
+	defaultRaftImage             = "atomix/atomix-raft-node:latest"
+	defaultNOPaxosSequencerImage = "atomix/atomix-nopaxos-sequencer:latest"
+	defaultNOPaxosReplicaImage   = "atomix/atomix-nopaxos-node:latest"
+	defaultCLIImage              = "onosproject/onos-cli:latest"
+	defaultConfigImage           = "onosproject/onos-config:latest"
+	defaultTopoImage             = "onosproject/onos-topo:latest"
+	defaultMininetImage          = "opennetworking/mn-stratum:latest"
+	defaultSimulatorImage        = "onosproject/device-simulator:latest"
 )

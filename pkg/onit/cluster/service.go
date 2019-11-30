@@ -396,7 +396,7 @@ func (s *Service) createDeployment() error {
 		},
 		{
 			Name:  "ATOMIX_RAFT_GROUP",
-			Value: "raft",
+			Value: "database",
 		},
 	}
 	for name, value := range s.env {

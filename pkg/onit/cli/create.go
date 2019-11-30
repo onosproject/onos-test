@@ -15,6 +15,7 @@
 package cli
 
 import (
+	"fmt"
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
@@ -65,20 +66,23 @@ func getCreateClusterCommand() *cobra.Command {
 	images := make(map[string]string)
 	images[atomixService] = defaultAtomixImage
 	images[raftService] = defaultRaftImage
+	images[nopaxosSequencer] = defaultNOPaxosSequencerImage
+	images[nopaxosReplica] = defaultNOPaxosReplicaImage
 	images[cliService] = defaultCLIImage
 	images[configService] = defaultConfigImage
 	images[topoService] = defaultTopoImage
 
 	replicas := make(map[string]int)
 	replicas[atomixService] = 1
-	replicas[raftService] = 1
+	replicas[partitionService] = 1
 	replicas[cliService] = 1
 	replicas[configService] = 1
 	replicas[topoService] = 1
 
 	cmd.Flags().StringToStringP("image", "i", images, "override the image to deploy for a subsystem")
+	cmd.Flags().StringP("db", "d", "raft", "the database protocol to deploy (e.g. raft or nopaxos)")
 	cmd.Flags().StringToIntP("replicas", "r", replicas, "set the number of replicas to deploy for a subsystem")
-	cmd.Flags().IntP("partitions", "p", 1, "the number of Raft partitions to deploy")
+	cmd.Flags().IntP("partitions", "p", 1, "the number of partitions to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 
 	return cmd
@@ -89,6 +93,7 @@ func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
 
 	images, _ := cmd.Flags().GetStringToString("image")
 	replicas, _ := cmd.Flags().GetStringToInt("replicas")
+	protocol, _ := cmd.Flags().GetString("db")
 	partitions, _ := cmd.Flags().GetInt("partitions")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
@@ -103,31 +108,88 @@ func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
 	}
 
 	setup := setup.New(kubeAPI)
+	atomixImage, ok := images[atomixService]
+	if !ok {
+		atomixImage = defaultAtomixImage
+	}
 	setup.Atomix().
-		SetImage(images[atomixService]).
+		SetImage(atomixImage).
 		SetPullPolicy(pullPolicy)
-	setup.Partitions("raft").
-		Raft().
-		SetPartitions(partitions).
-		SetReplicasPerPartition(replicas[raftService]).
-		SetImage(images[raftService]).
-		SetPullPolicy(pullPolicy)
+
+	partitionReplicas, ok := replicas[partitionService]
+	if !ok {
+		partitionReplicas = 1
+	}
+
+	if protocol == raftService {
+		raftImage, ok := images[raftService]
+		if !ok {
+			raftImage = defaultRaftImage
+		}
+		setup.Partitions().
+			Raft().
+			SetPartitions(partitions).
+			SetReplicasPerPartition(partitionReplicas).
+			SetImage(raftImage).
+			SetPullPolicy(pullPolicy)
+	} else if protocol == nopaxosService {
+		replicaImage, ok := images[nopaxosReplica]
+		if !ok {
+			replicaImage = defaultNOPaxosReplicaImage
+		}
+		sequencerImage, ok := images[nopaxosSequencer]
+		if !ok {
+			sequencerImage = defaultNOPaxosSequencerImage
+		}
+		setup.Partitions().
+			NOPaxos().
+			SetPartitions(partitions).
+			SetReplicasPerPartition(partitionReplicas).
+			SetReplicaImage(replicaImage).
+			SetSequencerImage(sequencerImage).
+			SetPullPolicy(pullPolicy)
+	} else {
+		return fmt.Errorf("unknown database protocol %s", protocol)
+	}
+
+	cliImage, ok := images[cliService]
+	if !ok {
+		cliImage = defaultCLIImage
+	}
 	if replicas[cliService] > 0 {
 		setup.CLI().
 			SetEnabled().
-			SetImage(images[cliService]).
+			SetImage(cliImage).
 			SetPullPolicy(pullPolicy)
 	}
-	if replicas[configService] > 0 {
+
+	configReplicas, ok := replicas[configService]
+	if !ok {
+		configReplicas = 1
+	}
+	configImage, ok := images[configService]
+	if !ok {
+		configImage = defaultConfigImage
+	}
+	if configReplicas > 0 {
 		setup.Config().
-			SetReplicas(replicas[configService]).
-			SetImage(images[configService]).
+			SetReplicas(configReplicas).
+			SetImage(configImage).
 			SetPullPolicy(pullPolicy)
 	}
-	if replicas[topoService] > 0 {
+
+	topoReplicas, ok := replicas[topoService]
+	if !ok {
+		topoReplicas = 1
+	}
+	topoImage, ok := images[topoService]
+	if !ok {
+		topoImage = defaultTopoImage
+	}
+	if topoReplicas > 0 {
 		setup.Topo().
-			SetReplicas(replicas[topoService]).
-			SetImage(images[topoService]).
+			SetReplicas(topoReplicas).
+			SetImage(topoImage).
 			SetPullPolicy(pullPolicy)
 	}
 	return setup.Setup()

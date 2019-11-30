@@ -45,8 +45,8 @@ func Atomix() AtomixSetup {
 }
 
 // Partitions returns the setup configuration for a database partition set
-func Partitions(name string) PartitionsSetup {
-	return getSetup().Partitions(name)
+func Partitions(name ...string) PartitionsSetup {
+	return getSetup().Partitions(name...)
 }
 
 // CLI returns the setup configuration for the CLI service
@@ -85,7 +85,7 @@ type ClusterSetup interface {
 	Atomix() AtomixSetup
 
 	// Partitions returns the setup configuration for a partition set
-	Partitions(name string) PartitionsSetup
+	Partitions(name ...string) PartitionsSetup
 
 	// CLI returns the setup configuration for the ONSO CLI service
 	CLI() CLISetup
@@ -124,15 +124,18 @@ func (s *clusterSetup) Atomix() AtomixSetup {
 	}
 }
 
-func (s *clusterSetup) Partitions(name string) PartitionsSetup {
-	if partitions, ok := s.partitions[name]; ok {
+func (s *clusterSetup) Partitions(name ...string) PartitionsSetup {
+	if len(name) == 0 {
+		name = []string{"database"}
+	}
+	if partitions, ok := s.partitions[name[0]]; ok {
 		return partitions
 	}
 
 	partitions := &clusterPartitionsSetup{
-		group: s.cluster.Database().Partitions(name),
+		group: s.cluster.Database().Partitions(name[0]),
 	}
-	s.partitions[name] = partitions
+	s.partitions[name[0]] = partitions
 	return partitions
 }
 
