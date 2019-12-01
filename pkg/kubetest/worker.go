@@ -46,6 +46,18 @@ func newBenchmarkWorker(test *TestConfig) (Worker, error) {
 	}, nil
 }
 
+// newScriptWorker returns a new script worker
+func newScriptWorker(test *TestConfig) (Worker, error) {
+	kubeAPI, err := kube.GetAPI(test.TestID)
+	if err != nil {
+		return nil, err
+	}
+	return &ScriptWorker{
+		client: kubeAPI.Client(),
+		test:   test,
+	}, nil
+}
+
 // Worker runs a single test suite
 type Worker interface {
 	// Run runs a test suite
@@ -115,5 +127,21 @@ func (w *BenchmarkWorker) Run() error {
 	}
 
 	testing.Main(func(_, _ string) (bool, error) { return true, nil }, nil, benchmarks, nil)
+	return nil
+}
+
+// ScriptWorker runs a script job
+type ScriptWorker struct {
+	client client.Client
+	test   *TestConfig
+}
+
+// Run runs a script
+func (w *ScriptWorker) Run() error {
+	script, ok := Registry.scripts[w.test.Suite]
+	if !ok {
+		return fmt.Errorf("unknown script suite %s", w.test.Suite)
+	}
+	RunScripts(script, w.test)
 	return nil
 }

@@ -18,7 +18,17 @@ import (
 	"github.com/onosproject/onos-test/pkg/kubetest"
 )
 
+// TestSuite is the base type for ONIT test suites
+type TestSuite struct {
+	kubetest.TestSuite
+}
+
 // BenchmarkSuite is the base type for ONIT benchmark suites
 type BenchmarkSuite struct {
 	kubetest.BenchmarkSuite
+}
+
+// ScriptSuite is the base type for ONIT script suites
+type ScriptSuite struct {
+	kubetest.ScriptSuite
 }

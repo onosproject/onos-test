@@ -17,43 +17,35 @@ package cli
 import (
 	"github.com/onosproject/onos-test/pkg/kubetest"
 	"github.com/onosproject/onos-test/pkg/util/random"
+	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	"os"
 	"time"
-
-	"github.com/spf13/cobra"
 )
 
-var (
-	runExample = `
-		# Run a single test on the cluster
-		onit run test <name of a test>
-
-		# Run a benchmark on the cluster
-		onit run bench <name of a benchmark>`
-)
-
-func getRunCommand() *cobra.Command {
+func getBenchCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "run",
-		Short: "Run an image on Kubernetes",
-		RunE:  runRunCommand,
+		Use:     "benchmark",
+		Aliases: []string{"benchmarks", "bench"},
+		Short:   "Run benchmarks on Kubernetes",
+		RunE:    runBenchCommand,
 	}
-	cmd.Flags().StringP("image", "i", "", "the script image to run")
+	cmd.Flags().StringP("image", "i", "", "the benchmark image to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
-	cmd.Flags().StringP("suite", "s", "", "the script suite to run")
-	cmd.Flags().StringP("script", "t", "", "the name of the script method to run")
+	cmd.Flags().StringP("suite", "s", "", "the benchmark suite to run")
+	cmd.Flags().StringP("benchmark", "t", "", "the name of the benchmark method to run")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "benchmark timeout")
+	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
 	return cmd
 }
 
-func runRunCommand(cmd *cobra.Command, _ []string) error {
+func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	runCommand(cmd)
 
 	clusterID, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")
 	suite, _ := cmd.Flags().GetString("suite")
-	script, _ := cmd.Flags().GetString("script")
+	test, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	noTeardown, _ := cmd.Flags().GetBool("no-teardown")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
@@ -61,10 +53,10 @@ func runRunCommand(cmd *cobra.Command, _ []string) error {
 
 	config := &kubetest.TestConfig{
 		TestID:     random.NewPetName(2),
-		Type:       kubetest.TestTypeScript,
+		Type:       kubetest.TestTypeBenchmark,
 		Image:      image,
 		Suite:      suite,
-		Test:       script,
+		Test:       test,
 		Timeout:    timeout,
 		PullPolicy: pullPolicy,
 		Teardown:   !noTeardown,

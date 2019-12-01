@@ -36,5 +36,7 @@ func main() {
 	onit.RegisterBenchmarks("nopaxos", &nopaxos.BenchmarkSuite{})
 	onit.RegisterBenchmarks("topo", &topo.BenchmarkSuite{})
 
+	onit.RegisterScripts("nopaxos", &nopaxos.MapBenchmarkSuite{})
+
 	onit.Main()
 }

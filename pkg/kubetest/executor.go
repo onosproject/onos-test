@@ -72,6 +72,8 @@ func runCoordinator(test *TestConfig) error {
 		coordinator, err = newTestCoordinator(test)
 	case TestTypeBenchmark:
 		coordinator, err = newBenchmarkCoordinator(test)
+	case TestTypeScript:
+		coordinator, err = newScriptCoordinator(test)
 	}
 	if err != nil {
 		return err
@@ -88,6 +90,8 @@ func runWorker(test *TestConfig) error {
 		worker, err = newTestWorker(test)
 	case TestTypeBenchmark:
 		worker, err = newBenchmarkWorker(test)
+	case TestTypeScript:
+		worker, err = newScriptWorker(test)
 	}
 	if err != nil {
 		return err

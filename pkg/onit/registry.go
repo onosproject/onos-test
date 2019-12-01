@@ -25,3 +25,8 @@ func RegisterTests(name string, suite kubetest.TestingSuite) {
 func RegisterBenchmarks(name string, suite kubetest.BenchmarkingSuite) {
 	kubetest.RegisterBenchmarks(name, suite)
 }
+
+// RegisterScripts registers a script suite
+func RegisterScripts(name string, suite kubetest.ScriptingSuite) {
+	kubetest.RegisterScripts(name, suite)
+}

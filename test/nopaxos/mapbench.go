@@ -16,10 +16,61 @@ package nopaxos
 
 import (
 	"context"
+	"github.com/atomix/atomix-go-client/pkg/client/map"
+	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/pkg/onit/benchmark"
 	"github.com/onosproject/onos-test/pkg/onit/env"
+	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+type MapBenchmarkSuite struct {
+	onit.ScriptSuite
+}
+
+func (b *MapBenchmarkSuite) SetupScriptSuite() {
+	setup.Partitions("nopaxos").
+		NOPaxos().
+		SetPartitions(1).
+		SetReplicasPerPartition(3)
+	setup.SetupOrDie()
+}
+
+func (b *MapBenchmarkSuite) getHandler(name string) func() benchmark.Handler {
+	return func() benchmark.Handler {
+		group, err := env.Database().Partitions("nopaxos").Connect()
+		if err != nil {
+			panic(err)
+		}
+		m, err := group.GetMap(context.Background(), name)
+		if err != nil {
+			panic(err)
+		}
+		return &MapBenchmarkPutHandler{
+			m: m,
+		}
+	}
+}
+
+func (b *MapBenchmarkSuite) RunBenchmarkMapPut() {
+	benchmark.New().
+		SetHandlerFactory(b.getHandler("RunBenchmarkMapPut")).
+		SetParallelism(1).
+		SetIterations(10).
+		AddHandlerArg(benchmark.RandomString(1000, 8)).
+		AddHandlerArg(benchmark.RandomBytes(1000, 128)).
+		Run()
+}
+
+type MapBenchmarkPutHandler struct {
+	m _map.Map
+}
+
+func (h *MapBenchmarkPutHandler) Run(args ...interface{}) error {
+	_, err := h.m.Put(context.Background(), args[0].(string), args[1].([]byte))
+	return err
+}
 
 // BenchmarkNOPaxosMap : benchmark
 func (s *BenchmarkSuite) BenchmarkNOPaxosMap(b *testing.B) {

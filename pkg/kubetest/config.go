@@ -34,6 +34,8 @@ const (
 	TestTypeTest TestType = "test"
 	// TestTypeBenchmark is a type indicating a benchmark
 	TestTypeBenchmark TestType = "benchmark"
+	// TestTypeScript is a type indicating a script
+	TestTypeScript TestType = "script"
 )
 
 // TestConfig is a test configuration

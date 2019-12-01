@@ -50,6 +50,18 @@ func newBenchmarkCoordinator(test *TestConfig) (Coordinator, error) {
 	}, nil
 }
 
+// newScriptCoordinator returns a new script coordinator
+func newScriptCoordinator(test *TestConfig) (Coordinator, error) {
+	kubeAPI, err := kube.GetAPI(test.TestID)
+	if err != nil {
+		return nil, err
+	}
+	return &ScriptCoordinator{
+		client: kubeAPI.Clientset(),
+		test:   test,
+	}, nil
+}
+
 // Coordinator coordinates workers for tests and benchmarks
 type Coordinator interface {
 	// Run runs the coordinator
@@ -119,6 +131,58 @@ func (c *BenchmarkCoordinator) Run() error {
 	jobs := make([]*TestJob, 0)
 	if c.test.Suite == "" {
 		for suite := range Registry.benchmarks {
+			config := &TestConfig{
+				TestID:     newJobID(c.test.TestID, suite),
+				Type:       c.test.Type,
+				Image:      c.test.Image,
+				Suite:      suite,
+				Timeout:    c.test.Timeout,
+				PullPolicy: c.test.PullPolicy,
+				Teardown:   c.test.Teardown,
+			}
+			job := &TestJob{
+				cluster: &TestCluster{
+					client:    c.client,
+					namespace: config.TestID,
+				},
+				test: config,
+			}
+			jobs = append(jobs, job)
+		}
+	} else {
+		config := &TestConfig{
+			TestID:     newJobID(c.test.TestID, c.test.Suite),
+			Type:       c.test.Type,
+			Image:      c.test.Image,
+			Suite:      c.test.Suite,
+			Test:       c.test.Test,
+			Timeout:    c.test.Timeout,
+			PullPolicy: c.test.PullPolicy,
+			Teardown:   c.test.Teardown,
+		}
+		job := &TestJob{
+			cluster: &TestCluster{
+				client:    c.client,
+				namespace: config.TestID,
+			},
+			test: config,
+		}
+		jobs = append(jobs, job)
+	}
+	return runJobs(jobs, c.client)
+}
+
+// ScriptCoordinator coordinates workers for suites of scripts
+type ScriptCoordinator struct {
+	client *kubernetes.Clientset
+	test   *TestConfig
+}
+
+// Run runs the tests
+func (c *ScriptCoordinator) Run() error {
+	jobs := make([]*TestJob, 0)
+	if c.test.Suite == "" {
+		for suite := range Registry.scripts {
 			config := &TestConfig{
 				TestID:     newJobID(c.test.TestID, suite),
 				Type:       c.test.Type,
