@@ -131,8 +131,12 @@ func (b *Benchmark) Run() {
 	})
 
 	meanLatency := time.Duration(int64(totalLatency) / int64(len(results)))
-	medianLatency := results[(len(results)/2) - 1]
-	latency90 := results[len(results) - (len(results) / 10) - 1]
+	latency1 := results[(len(results) / 100) - 1]
+	latency5 := results[(len(results) / 20) - 1]
+	latency25 := results[(len(results) / 4) - 1]
+	latency50 := results[(len(results)/2) - 1]
+	latency75 := results[len(results) - (len(results)/4) - 1]
+	latency95 := results[len(results) - (len(results) / 20) - 1]
 	latency99 := results[len(results) - (len(results) / 100) - 1]
 
 	// Output the test results
@@ -140,8 +144,12 @@ func (b *Benchmark) Run() {
 	println(fmt.Sprintf("Operations: %d", b.iterations))
 	println(fmt.Sprintf("Operations/sec: %f", float64(b.iterations)/(float64(duration)/float64(time.Second))))
 	println(fmt.Sprintf("Mean latency: %s", meanLatency.String()))
-	println(fmt.Sprintf("Median latency: %s", medianLatency.String()))
-	println(fmt.Sprintf("90th percentile latency: %s", latency90.String()))
+	println(fmt.Sprintf("1st percentile latency: %s", latency1.String()))
+	println(fmt.Sprintf("5th percentile latency: %s", latency5.String()))
+	println(fmt.Sprintf("25th percentile latency: %s", latency25.String()))
+	println(fmt.Sprintf("50th percentile latency: %s", latency50.String()))
+	println(fmt.Sprintf("75th percentile latency: %s", latency75.String()))
+	println(fmt.Sprintf("90th percentile latency: %s", latency95.String()))
 	println(fmt.Sprintf("99th percentile latency: %s", latency99.String()))
 }
 

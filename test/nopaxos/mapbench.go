@@ -37,29 +37,42 @@ func (b *MapBenchmarkSuite) SetupScriptSuite() {
 	setup.SetupOrDie()
 }
 
-func (b *MapBenchmarkSuite) getHandler(name string) func() benchmark.Handler {
-	return func() benchmark.Handler {
-		group, err := env.Database().Partitions("nopaxos").Connect()
-		if err != nil {
-			panic(err)
-		}
-		m, err := group.GetMap(context.Background(), name)
-		if err != nil {
-			panic(err)
-		}
-		return &MapBenchmarkPutHandler{
-			m: m,
-		}
+func (b *MapBenchmarkSuite) getMap(name string) _map.Map {
+	group, err := env.Database().Partitions("nopaxos").Connect()
+	if err != nil {
+		panic(err)
 	}
+	m, err := group.GetMap(context.Background(), name)
+	if err != nil {
+		panic(err)
+	}
+	return m
 }
 
 func (b *MapBenchmarkSuite) RunBenchmarkMapPut() {
 	benchmark.New().
-		SetHandlerFactory(b.getHandler("RunBenchmarkMapPut")).
+		SetHandlerFactory(func() benchmark.Handler {
+			return &MapBenchmarkPutHandler{
+				m: b.getMap("RunBenchmarkMapPut"),
+			}
+		}).
 		SetParallelism(1).
 		SetIterations(1000).
 		AddHandlerArg(benchmark.RandomString(1000, 8)).
 		AddHandlerArg(benchmark.RandomBytes(1000, 128)).
+		Run()
+}
+
+func (b *MapBenchmarkSuite) RunBenchmarkMapGet() {
+	benchmark.New().
+		SetHandlerFactory(func() benchmark.Handler {
+			return &MapBenchmarkGetHandler{
+				m: b.getMap("RunBenchmarkMapGet"),
+			}
+		}).
+		SetParallelism(1).
+		SetIterations(1000).
+		AddHandlerArg(benchmark.RandomString(1000, 8)).
 		Run()
 }
 
@@ -69,6 +82,15 @@ type MapBenchmarkPutHandler struct {
 
 func (h *MapBenchmarkPutHandler) Run(args ...interface{}) error {
 	_, err := h.m.Put(context.Background(), args[0].(string), args[1].([]byte))
+	return err
+}
+
+type MapBenchmarkGetHandler struct {
+	m _map.Map
+}
+
+func (h *MapBenchmarkGetHandler) Run(args ...interface{}) error {
+	_, err := h.m.Get(context.Background(), args[0].(string))
 	return err
 }
 
