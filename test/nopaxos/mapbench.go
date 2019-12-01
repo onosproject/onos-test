@@ -57,7 +57,7 @@ func (b *MapBenchmarkSuite) RunBenchmarkMapPut() {
 	benchmark.New().
 		SetHandlerFactory(b.getHandler("RunBenchmarkMapPut")).
 		SetParallelism(1).
-		SetIterations(10).
+		SetIterations(1000).
 		AddHandlerArg(benchmark.RandomString(1000, 8)).
 		AddHandlerArg(benchmark.RandomBytes(1000, 128)).
 		Run()

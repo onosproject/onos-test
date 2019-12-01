@@ -3,6 +3,7 @@ package benchmark
 import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"sort"
 	"sync"
 	"time"
 )
@@ -77,21 +78,15 @@ func (b *Benchmark) Run() {
 	// Create an iteration channel and wait group and create a goroutine for each handler
 	wg := &sync.WaitGroup{}
 	itCh := make(chan []interface{}, len(handlers))
-	outCh := make(chan result, len(handlers))
+	outCh := make(chan time.Duration, b.iterations)
 	for _, handler := range handlers {
 		wg.Add(1)
 		go func(handler Handler) {
-			count := 0
-			start := time.Now()
 			for args := range itCh {
+				start := time.Now()
 				_ = handler.Run(args...)
-				count++
-			}
-			end := time.Now()
-			duration := end.Sub(start)
-			outCh <- result{
-				count:    count,
-				duration: duration,
+				end := time.Now()
+				outCh <- end.Sub(start)
 			}
 			wg.Done()
 		}(handler)
@@ -114,40 +109,40 @@ func (b *Benchmark) Run() {
 	}
 	close(itCh)
 
-	// Wait for the tests to finish
-	wg.Wait()
-	close(outCh)
+	// Wait for the tests to finish and close the result channel
+	go func() {
+		wg.Wait()
+		close(outCh)
+	}()
 
 	// Record the end time
 	end := time.Now()
-
-	// Aggregate the results
-	results := make([]result, 0, len(handlers))
-	for r := range outCh {
-		results = append(results, r)
-	}
-
-	// Compute the total test duration
 	duration := end.Sub(start)
 
-	// Aggregate the latencies from each worker
-	// Compute the mean latency
+	// Aggregate the results
 	var totalLatency time.Duration
-	for _, r := range results {
-		totalLatency += time.Duration(int64(r.duration) / int64(r.count))
+	results := make([]time.Duration, 0, b.iterations)
+	for d := range outCh {
+		totalLatency += d
+		results = append(results, d)
 	}
+	sort.Slice(results, func(i, j int) bool {
+		return results[i] < results[j]
+	})
+
 	meanLatency := time.Duration(int64(totalLatency) / int64(len(results)))
+	medianLatency := results[(len(results)/2) - 1]
+	latency90 := results[len(results) - (len(results) / 10) - 1]
+	latency99 := results[len(results) - (len(results) / 100) - 1]
 
 	// Output the test results
 	println(fmt.Sprintf("Duration: %s", duration.String()))
 	println(fmt.Sprintf("Operations: %d", b.iterations))
-	println(fmt.Sprintf("Operations/sec: %f", float64(b.iterations) / (float64(duration) / float64(time.Second))))
-	println(fmt.Sprintf("Avg latency: %s", meanLatency.String()))
-}
-
-type result struct {
-	count    int
-	duration time.Duration
+	println(fmt.Sprintf("Operations/sec: %f", float64(b.iterations)/(float64(duration)/float64(time.Second))))
+	println(fmt.Sprintf("Mean latency: %s", meanLatency.String()))
+	println(fmt.Sprintf("Median latency: %s", medianLatency.String()))
+	println(fmt.Sprintf("90th percentile latency: %s", latency90.String()))
+	println(fmt.Sprintf("99th percentile latency: %s", latency99.String()))
 }
 
 type Arg interface {
