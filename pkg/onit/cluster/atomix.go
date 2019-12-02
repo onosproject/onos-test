@@ -33,7 +33,7 @@ const (
 
 func newAtomix(client *client) *Atomix {
 	return &Atomix{
-		Deployment: newDeployment(atomixService, getLabels(atomixType), atomixImage, client),
+		Deployment: newDeployment(atomixService, getLabels(atomixType), getImage(atomixType, atomixImage), client),
 	}
 }
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubetest
+package test
 
 import (
 	"fmt"
@@ -24,37 +24,25 @@ import (
 
 // newTestWorker returns a new test worker
 func newTestWorker(test *TestConfig) (Worker, error) {
-	kubeAPI, err := kube.GetAPI(test.TestID)
+	kubeAPI, err := kube.GetAPI(test.JobID)
 	if err != nil {
 		return nil, err
 	}
 	return &TestWorker{
 		client: kubeAPI.Client(),
-		test:   test,
+		config: test,
 	}, nil
 }
 
 // newBenchmarkWorker returns a new test worker
-func newBenchmarkWorker(test *TestConfig) (Worker, error) {
-	kubeAPI, err := kube.GetAPI(test.TestID)
+func newBenchmarkWorker(config *BenchmarkConfig) (Worker, error) {
+	kubeAPI, err := kube.GetAPI(config.JobID)
 	if err != nil {
 		return nil, err
 	}
 	return &BenchmarkWorker{
 		client: kubeAPI.Client(),
-		test:   test,
-	}, nil
-}
-
-// newScriptWorker returns a new script worker
-func newScriptWorker(test *TestConfig) (Worker, error) {
-	kubeAPI, err := kube.GetAPI(test.TestID)
-	if err != nil {
-		return nil, err
-	}
-	return &ScriptWorker{
-		client: kubeAPI.Client(),
-		test:   test,
+		config: config,
 	}, nil
 }
 
@@ -67,21 +55,21 @@ type Worker interface {
 // TestWorker runs a test job
 type TestWorker struct {
 	client client.Client
-	test   *TestConfig
+	config *TestConfig
 }
 
 // Run runs a test
 func (w *TestWorker) Run() error {
-	test, ok := Registry.tests[w.test.Suite]
+	test, ok := Registry.tests[w.config.Suite]
 	if !ok {
-		return fmt.Errorf("unknown test suite %s", w.test.Suite)
+		return fmt.Errorf("unknown test suite %s", w.config.Suite)
 	}
 
 	tests := []testing.InternalTest{
 		{
-			Name: w.test.Suite,
+			Name: w.config.Suite,
 			F: func(t *testing.T) {
-				RunTests(t, test, w.test)
+				RunTests(t, test, w.config)
 			},
 		},
 	}
@@ -99,49 +87,15 @@ func (w *TestWorker) Run() error {
 // BenchmarkWorker runs a benchmark job
 type BenchmarkWorker struct {
 	client client.Client
-	test   *TestConfig
+	config *BenchmarkConfig
 }
 
 // Run runs a benchmark
 func (w *BenchmarkWorker) Run() error {
-	benchmark, ok := Registry.benchmarks[w.test.Suite]
+	benchmark, ok := Registry.benchmarks[w.config.Suite]
 	if !ok {
-		return fmt.Errorf("unknown benchmark suite %s", w.test.Suite)
+		return fmt.Errorf("unknown benchmark suite %s", w.config.Suite)
 	}
-
-	benchmarks := []testing.InternalBenchmark{
-		{
-			Name: w.test.Suite,
-			F: func(b *testing.B) {
-				RunBenchmarks(b, benchmark, w.test)
-			},
-		},
-	}
-
-	// Hack to enable verbose testing.
-	os.Args = []string{
-		os.Args[0],
-		"-test.bench=.",
-		"-test.v",
-		"-test.benchtime=5s",
-	}
-
-	testing.Main(func(_, _ string) (bool, error) { return true, nil }, nil, benchmarks, nil)
-	return nil
-}
-
-// ScriptWorker runs a script job
-type ScriptWorker struct {
-	client client.Client
-	test   *TestConfig
-}
-
-// Run runs a script
-func (w *ScriptWorker) Run() error {
-	script, ok := Registry.scripts[w.test.Suite]
-	if !ok {
-		return fmt.Errorf("unknown script suite %s", w.test.Suite)
-	}
-	RunScripts(script, w.test)
+	RunBenchmarks(benchmark, w.config)
 	return nil
 }

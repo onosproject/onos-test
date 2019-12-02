@@ -15,11 +15,13 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/kubetest"
+	"fmt"
+	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -32,6 +34,7 @@ func getTestCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("image", "i", "", "the test image to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	cmd.Flags().StringToStringP("image-override", "o", map[string]string{}, "a mapping of image overrides")
 	cmd.Flags().StringP("suite", "s", "", "the test suite to run")
 	cmd.Flags().StringP("test", "t", "", "the name of the test method to run")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "test timeout")
@@ -44,35 +47,44 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 
 	clusterID, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")
+	images, _ := cmd.Flags().GetStringToString("image-override")
 	suite, _ := cmd.Flags().GetString("suite")
-	test, _ := cmd.Flags().GetString("test")
+	testName, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	noTeardown, _ := cmd.Flags().GetBool("no-teardown")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	config := &kubetest.TestConfig{
-		TestID:     random.NewPetName(2),
-		Type:       kubetest.TestTypeTest,
-		Image:      image,
-		Suite:      suite,
-		Test:       test,
-		Timeout:    timeout,
-		PullPolicy: pullPolicy,
-		Teardown:   !noTeardown,
+	env := make(map[string]string)
+	for name, image := range images {
+		env[fmt.Sprintf("IMAGE_%s", strings.ToUpper(name))] = image
+	}
+
+	config := &test.TestConfig{
+		JobConfig: &test.JobConfig{
+			JobID:      random.NewPetName(2),
+			Type:       test.TestTypeTest,
+			Image:      image,
+			Env:        env,
+			Timeout:    timeout,
+			PullPolicy: corev1.PullPolicy(pullPolicy),
+			Teardown:   !noTeardown,
+		},
+		Suite: suite,
+		Test:  testName,
 	}
 
 	// If the cluster ID was not specified, create a new cluster to run the test
 	// Otherwise, deploy the test in the existing cluster
 	if clusterID == "" {
-		runner, err := kubetest.NewTestRunner(config)
+		runner, err := test.NewTestRunner(config)
 		if err != nil {
 			return err
 		}
 		return runner.Run()
 	}
 
-	cluster, err := kubetest.NewTestCluster(clusterID)
+	cluster, err := test.NewTestCluster(clusterID)
 	if err != nil {
 		return err
 	}

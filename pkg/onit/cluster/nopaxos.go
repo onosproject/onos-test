@@ -25,9 +25,18 @@ import (
 	"time"
 )
 
+const (
+	replicaImageType      = "nopaxos-replica"
+	sequencerImageType    = "nopaxos-sequencer"
+	defaultReplicaImage   = "atomix/atomix-nopaxos-node:latest"
+	defaultSequencerImage = "atomix/atomix-nopaxos-sequencer:latest"
+)
+
 func newNOPaxosPartitions(partitions *Partitions) *NOPaxosPartitions {
 	return &NOPaxosPartitions{
-		Partitions: partitions,
+		Partitions:     partitions,
+		sequencerImage: getImage(sequencerImageType, defaultSequencerImage),
+		replicaImage:   getImage(replicaImageType, defaultReplicaImage),
 	}
 }
 

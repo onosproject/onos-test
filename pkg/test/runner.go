@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubetest
+package test
 
 import (
 	"bufio"
@@ -61,21 +61,21 @@ type TestRecord struct {
 }
 
 // NewTestRunner returns a new test runner
-func NewTestRunner(test *TestConfig) (*TestRunner, error) {
-	kubeAPI, err := kube.GetAPI(test.TestID)
+func NewTestRunner(config Config) (*TestRunner, error) {
+	kubeAPI, err := kube.GetAPI(config.Job().JobID)
 	if err != nil {
 		return nil, err
 	}
 	return &TestRunner{
 		client: kubeAPI.Clientset(),
-		test:   test,
+		config: config,
 	}, nil
 }
 
-// TestRunner is a kubetest runner
+// TestRunner is a test runner
 type TestRunner struct {
 	client *kubernetes.Clientset
-	test   *TestConfig
+	config Config
 }
 
 // Run runs the test
@@ -89,7 +89,7 @@ func (r *TestRunner) Run() error {
 		return err
 	}
 
-	step := logging.NewStep(r.test.TestID, "Run test")
+	step := logging.NewStep(r.config.Job().JobID, "Run test")
 	step.Start()
 
 	// Get the stream of logs for the pod
@@ -299,7 +299,7 @@ func (r *TestRunner) createServiceAccount() error {
 
 // startTests starts running a test job
 func (r *TestRunner) startTest() error {
-	step := logging.NewStep(r.test.TestID, "Starting test")
+	step := logging.NewStep(r.config.Job().JobID, "Starting test")
 	step.Start()
 	if err := r.createTestConfig(); err != nil {
 		step.Fail(err)
@@ -319,7 +319,7 @@ func (r *TestRunner) startTest() error {
 
 // createTestConfig creates a ConfigMap for the test configuration
 func (r *TestRunner) createTestConfig() error {
-	data, err := yaml.Marshal(r.test)
+	data, err := yaml.Marshal(r.config)
 	if err != nil {
 		return err
 	}
@@ -345,7 +345,7 @@ func (r *TestRunner) createTestConfig() error {
 	if cm.Data == nil {
 		cm.Data = make(map[string]string)
 	}
-	cm.Data[r.test.TestID] = string(data)
+	cm.Data[r.config.Job().JobID] = string(data)
 
 	_, err = r.client.CoreV1().ConfigMaps(namespace).Update(cm)
 	return err
@@ -353,18 +353,17 @@ func (r *TestRunner) createTestConfig() error {
 
 // createTestJob creates the job to run tests
 func (r *TestRunner) createTestJob() error {
-	step := logging.NewStep(r.test.TestID, "Deploy test coordinator")
+	step := logging.NewStep(r.config.Job().JobID, "Deploy test coordinator")
 	step.Start()
 
 	zero := int32(0)
 	one := int32(1)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      r.test.TestID,
+			Name:      r.config.Job().JobID,
 			Namespace: namespace,
 			Annotations: map[string]string{
-				"test-id": r.test.TestID,
-				"suite":   r.test.Suite,
+				"test-id": r.config.Job().JobID,
 			},
 		},
 		Spec: batchv1.JobSpec{
@@ -375,7 +374,7 @@ func (r *TestRunner) createTestJob() error {
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"type": testType,
-						"test": r.test.TestID,
+						"test": r.config.Job().JobID,
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -384,19 +383,23 @@ func (r *TestRunner) createTestJob() error {
 					Containers: []corev1.Container{
 						{
 							Name:            "test",
-							Image:           r.test.Image,
-							ImagePullPolicy: r.test.PullPolicy,
+							Image:           r.config.Job().Image,
+							ImagePullPolicy: r.config.Job().PullPolicy,
 							Env: []corev1.EnvVar{
 								{
 									Name:  testContextEnv,
 									Value: string(testContextCoordinator),
+								},
+								{
+									Name:  testTypeEnv,
+									Value: string(r.config.Job().Type),
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "config",
 									MountPath: filepath.Join(configPath, configFile),
-									SubPath:   r.test.TestID,
+									SubPath:   r.config.Job().JobID,
 									ReadOnly:  true,
 								},
 							},
@@ -419,8 +422,8 @@ func (r *TestRunner) createTestJob() error {
 		},
 	}
 
-	if r.test.Timeout > 0 {
-		timeoutSeconds := int64(r.test.Timeout / time.Second)
+	if r.config.Job().Timeout > 0 {
+		timeoutSeconds := int64(r.config.Job().Timeout / time.Second)
 		job.Spec.ActiveDeadlineSeconds = &timeoutSeconds
 	}
 
@@ -466,7 +469,7 @@ func (r *TestRunner) getStatus() (string, int, error) {
 // getPod finds the Pod for the given test
 func (r *TestRunner) getPod() (*corev1.Pod, error) {
 	pods, err := r.client.CoreV1().Pods(namespace).List(metav1.ListOptions{
-		LabelSelector: "test=" + r.test.TestID,
+		LabelSelector: "test=" + r.config.Job().JobID,
 	})
 	if err != nil {
 		return nil, err
@@ -507,7 +510,7 @@ func (r *TestRunner) GetHistory() ([]TestRecord, error) {
 
 // GetRecord returns a single record for the given test
 func (r *TestRunner) GetRecord() (TestRecord, error) {
-	job, err := r.client.BatchV1().Jobs(namespace).Get(r.test.TestID, metav1.GetOptions{})
+	job, err := r.client.BatchV1().Jobs(namespace).Get(r.config.Job().JobID, metav1.GetOptions{})
 	if err != nil {
 		return TestRecord{}, err
 	}

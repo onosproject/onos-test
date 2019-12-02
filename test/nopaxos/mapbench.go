@@ -17,104 +17,55 @@ package nopaxos
 import (
 	"context"
 	"github.com/atomix/atomix-go-client/pkg/client/map"
-	"github.com/onosproject/onos-test/pkg/onit"
-	"github.com/onosproject/onos-test/pkg/onit/benchmark"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
-	"github.com/stretchr/testify/assert"
-	"k8s.io/api/core/v1"
-	"testing"
+	"github.com/onosproject/onos-test/pkg/test"
 )
 
 type MapBenchmarkSuite struct {
-	onit.ScriptSuite
+	test.BenchmarkSuite
+	m _map.Map
 }
 
-func (b *MapBenchmarkSuite) SetupScriptSuite() {
-	setup.Atomix().
-		SetImage("192.168.1.11:30000/atomix/atomix-k8s-controller:latest").
-		SetPullPolicy(v1.PullAlways)
+func (s *MapBenchmarkSuite) SetupBenchmarkSuite(c *test.Context) {
 	setup.Partitions("nopaxos").
 		NOPaxos().
-		SetPartitions(1).
-		SetReplicasPerPartition(3).
-		SetReplicaImage("192.168.1.11:30000/atomix/atomix-nopaxos-node:latest").
-		SetSequencerImage("192.168.1.11:30000/atomix/atomix-nopaxos-sequencer:latest").
-		SetPullPolicy(v1.PullAlways)
+		SetPartitions(c.GetArg("partitions").Int()).
+		SetReplicasPerPartition(c.GetArg("replicas").Int())
 	setup.SetupOrDie()
 }
 
-func (b *MapBenchmarkSuite) getMap(name string) _map.Map {
-	group, err := env.Database().Partitions("nopaxos").Connect()
-	if err != nil {
-		panic(err)
+func (s *MapBenchmarkSuite) SetupBenchmark(b *test.Benchmark) {
+	b.Init(func() (_map.Map, error) {
+		group, err := env.Database().Partitions("nopaxos").Connect()
+		if err != nil {
+			panic(err)
+		}
+		m, err := group.GetMap(context.Background(), b.Name)
+		if err != nil {
+			return nil, err
+		}
+		return m, nil
+	})
+}
+
+func (s *MapBenchmarkSuite) BenchmarkMapPut(b *test.Benchmark) {
+	params := []test.Param{
+		test.RandomString(b.GetArg("key-count").Int(), b.GetArg("key-length").Int()),
+		test.RandomBytes(b.GetArg("value-count").Int(), b.GetArg("value-length").Int()),
 	}
-	m, err := group.GetMap(context.Background(), name)
-	if err != nil {
-		panic(err)
+	b.Run(func(client _map.Map, key string, value []byte) error {
+		_, err := client.Put(context.Background(), key, value)
+		return err
+	}, params...)
+}
+
+func (s *MapBenchmarkSuite) BenchmarkMapGet(b *test.Benchmark) {
+	params := []test.Param{
+		test.RandomString(b.GetArg("key-count").Int(), b.GetArg("key-length").Int()),
 	}
-	return m
-}
-
-func (b *MapBenchmarkSuite) RunBenchmarkMapPut() {
-	benchmark.New().
-		SetHandlerFactory(func() benchmark.Handler {
-			return &MapBenchmarkPutHandler{
-				m: b.getMap("RunBenchmarkMapPut"),
-			}
-		}).
-		SetClients(1).
-		SetParallelism(10).
-		SetRequests(100000).
-		AddHandlerArg(benchmark.RandomString(1000, 8)).
-		AddHandlerArg(benchmark.RandomBytes(1000, 128)).
-		Run()
-}
-
-func (b *MapBenchmarkSuite) RunBenchmarkMapGet() {
-	benchmark.New().
-		SetHandlerFactory(func() benchmark.Handler {
-			return &MapBenchmarkGetHandler{
-				m: b.getMap("RunBenchmarkMapGet"),
-			}
-		}).
-		SetClients(1).
-		SetParallelism(10).
-		SetRequests(100000).
-		AddHandlerArg(benchmark.RandomString(1000, 8)).
-		Run()
-}
-
-type MapBenchmarkPutHandler struct {
-	m _map.Map
-}
-
-func (h *MapBenchmarkPutHandler) Run(args ...interface{}) error {
-	_, err := h.m.Put(context.Background(), args[0].(string), args[1].([]byte))
-	return err
-}
-
-type MapBenchmarkGetHandler struct {
-	m _map.Map
-}
-
-func (h *MapBenchmarkGetHandler) Run(args ...interface{}) error {
-	_, err := h.m.Get(context.Background(), args[0].(string))
-	return err
-}
-
-// BenchmarkNOPaxosMap : benchmark
-func (s *BenchmarkSuite) BenchmarkNOPaxosMap(b *testing.B) {
-	group, err := env.Database().Partitions("nopaxos").Connect()
-	assert.NoError(b, err)
-	assert.NotNil(b, group)
-
-	m, err := group.GetMap(context.Background(), "BenchmarkNOPaxosMap")
-	assert.NoError(b, err)
-	assert.NotNil(b, m)
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, _ = m.Put(context.Background(), "foo", []byte("bar"))
-	}
+	b.Run(func(client _map.Map, key string) error {
+		_, err := client.Get(context.Background(), key)
+		return err
+	}, params...)
 }

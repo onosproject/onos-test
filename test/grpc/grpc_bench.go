@@ -16,55 +16,41 @@ package grpc
 
 import (
 	"context"
-	"github.com/onosproject/onos-test/pkg/onit"
-	"github.com/onosproject/onos-test/pkg/onit/benchmark"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
+	"github.com/onosproject/onos-test/pkg/test"
 	"google.golang.org/grpc"
-	"k8s.io/api/core/v1"
 )
 
 type GRPCBenchmarkSuite struct {
-	onit.ScriptSuite
+	test.BenchmarkSuite
 }
 
-func (b *GRPCBenchmarkSuite) SetupScriptSuite() {
+func (s *GRPCBenchmarkSuite) SetupBenchmarkSuite(c *test.Context) {
 	setup.App("test").
-		SetImage("192.168.1.11:30000/onosproject/grpc-test:latest").
-		SetPullPolicy(v1.PullAlways).
+		SetImage("onosproject/grpc-test:latest").
 		AddPort("grpc", 8080).
 		SetReplicas(1)
 	setup.SetupOrDie()
 }
 
-func (b *GRPCBenchmarkSuite) getClient() TestServiceClient {
-	conn, err := grpc.Dial("test:8080", grpc.WithInsecure())
-	if err != nil {
-		panic(err)
-	}
-	return NewTestServiceClient(conn)
-}
-
-func (b *GRPCBenchmarkSuite) RunBenchmarkRequests() {
-	benchmark.New().
-		SetHandlerFactory(func() benchmark.Handler {
-			return &GRPCBenchmarkRequestHandler{
-				client: b.getClient(),
-			}
-		}).
-		SetClients(1).
-		SetParallelism(10).
-		SetRequests(1000000).
-		AddHandlerArg(benchmark.RandomBytes(1000, 128)).
-		Run()
-}
-
-type GRPCBenchmarkRequestHandler struct {
-	client TestServiceClient
-}
-
-func (h *GRPCBenchmarkRequestHandler) Run(args ...interface{}) error {
-	_, err := h.client.RequestReply(context.Background(), &Message{
-		Value: args[0].([]byte),
+func (s *GRPCBenchmarkSuite) SetupBenchmark(b *test.Benchmark) {
+	b.Init(func() (TestServiceClient, error) {
+		conn, err := grpc.Dial("test:8080", grpc.WithInsecure())
+		if err != nil {
+			panic(err)
+		}
+		return NewTestServiceClient(conn), nil
 	})
-	return err
+}
+
+func (s *GRPCBenchmarkSuite) BenchmarkGRPCRequestReply(b *test.Benchmark) {
+	params := []test.Param{
+		test.RandomBytes(b.GetArg("value-count").Int(), b.GetArg("value-length").Int()),
+	}
+	b.Run(func(client TestServiceClient, value []byte) error {
+		_, err := client.RequestReply(context.Background(), &Message{
+			Value: value,
+		})
+		return err
+	}, params...)
 }

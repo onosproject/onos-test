@@ -16,12 +16,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/kubetest"
+	"github.com/onosproject/onos-test/pkg/test"
 	"os"
 )
 
 func main() {
-	cmd := kubetest.GetCommand()
+	cmd := test.GetCommand()
 	if err := cmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

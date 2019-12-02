@@ -15,12 +15,12 @@
 package config
 
 import (
-	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
+	"github.com/onosproject/onos-test/pkg/test"
 )
 
 type testSuite struct {
-	onit.TestSuite
+	test.TestSuite
 }
 
 // SmokeTestSuite is the primary onos-config test suite

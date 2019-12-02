@@ -16,9 +16,9 @@ package topo
 
 import (
 	"context"
-	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
+	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/onosproject/onos-topo/api/device"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -27,7 +27,7 @@ import (
 
 // TestSuite tests the topo service
 type TestSuite struct {
-	onit.TestSuite
+	test.TestSuite
 }
 
 // SetupTestSuite sets up the topo test suite

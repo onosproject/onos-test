@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubetest
+package test
 
 import (
 	"k8s.io/api/core/v1"
@@ -21,7 +21,7 @@ import (
 // TestJob manages a single test job for a suite
 type TestJob struct {
 	cluster *TestCluster
-	test    *TestConfig
+	config  Config
 }
 
 // start starts the test job
@@ -29,10 +29,10 @@ func (j *TestJob) start() error {
 	if err := j.cluster.Create(); err != nil {
 		return err
 	}
-	if err := j.cluster.StartTest(j.test); err != nil {
+	if err := j.cluster.StartTest(j.config); err != nil {
 		return err
 	}
-	if err := j.cluster.awaitTestJobRunning(j.test); err != nil {
+	if err := j.cluster.awaitTestJobRunning(j.config); err != nil {
 		return err
 	}
 	return nil
@@ -40,12 +40,12 @@ func (j *TestJob) start() error {
 
 // getStatus gets the status message and exit code of the given pod
 func (j *TestJob) getStatus() (string, int, error) {
-	return j.cluster.GetTestResult(j.test)
+	return j.cluster.GetTestResult(j.config)
 }
 
 // getPod finds the Pod for the given test
 func (j *TestJob) getPod() (*v1.Pod, error) {
-	return j.cluster.getPod(j.test)
+	return j.cluster.getPod(j.config)
 }
 
 // tearDown tears down the job

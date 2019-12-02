@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubetest
+package test
 
 // RegisterTests registers a test suite
 func RegisterTests(name string, suite TestingSuite) {
@@ -24,23 +24,16 @@ func RegisterBenchmarks(name string, suite BenchmarkingSuite) {
 	Registry.RegisterBenchmarks(name, suite)
 }
 
-// RegisterScripts registers a script suite
-func RegisterScripts(name string, suite ScriptingSuite) {
-	Registry.RegisterScripts(name, suite)
-}
-
 // Registry is the global test registry
 var Registry = &TestRegistry{
 	tests:      make(map[string]TestingSuite),
 	benchmarks: make(map[string]BenchmarkingSuite),
-	scripts:    make(map[string]ScriptingSuite),
 }
 
 // TestRegistry is a registry of runnable tests
 type TestRegistry struct {
 	tests      map[string]TestingSuite
 	benchmarks map[string]BenchmarkingSuite
-	scripts    map[string]ScriptingSuite
 }
 
 // RegisterTests registers a test suite
@@ -51,9 +44,4 @@ func (s *TestRegistry) RegisterTests(name string, suite TestingSuite) {
 // RegisterBenchmarks registers a benchmark suite
 func (s *TestRegistry) RegisterBenchmarks(name string, suite BenchmarkingSuite) {
 	s.benchmarks[name] = suite
-}
-
-// RegisterScript registers a script
-func (s *TestRegistry) RegisterScripts(name string, suite ScriptingSuite) {
-	s.scripts[name] = suite
 }

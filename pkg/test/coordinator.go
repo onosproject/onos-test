@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubetest
+package test
 
 import (
 	"bufio"
@@ -28,37 +28,25 @@ import (
 
 // newTestCoordinator returns a new test coordinator
 func newTestCoordinator(test *TestConfig) (Coordinator, error) {
-	kubeAPI, err := kube.GetAPI(test.TestID)
+	kubeAPI, err := kube.GetAPI(test.JobID)
 	if err != nil {
 		return nil, err
 	}
 	return &TestCoordinator{
 		client: kubeAPI.Clientset(),
-		test:   test,
+		config: test,
 	}, nil
 }
 
 // newBenchmarkCoordinator returns a new benchmark coordinator
-func newBenchmarkCoordinator(test *TestConfig) (Coordinator, error) {
-	kubeAPI, err := kube.GetAPI(test.TestID)
+func newBenchmarkCoordinator(config *BenchmarkConfig) (Coordinator, error) {
+	kubeAPI, err := kube.GetAPI(config.JobID)
 	if err != nil {
 		return nil, err
 	}
 	return &BenchmarkCoordinator{
 		client: kubeAPI.Clientset(),
-		test:   test,
-	}, nil
-}
-
-// newScriptCoordinator returns a new script coordinator
-func newScriptCoordinator(test *TestConfig) (Coordinator, error) {
-	kubeAPI, err := kube.GetAPI(test.TestID)
-	if err != nil {
-		return nil, err
-	}
-	return &ScriptCoordinator{
-		client: kubeAPI.Clientset(),
-		test:   test,
+		config: config,
 	}, nil
 }
 
@@ -71,49 +59,53 @@ type Coordinator interface {
 // TestCoordinator coordinates workers for suites of tests
 type TestCoordinator struct {
 	client *kubernetes.Clientset
-	test   *TestConfig
+	config *TestConfig
 }
 
 // Run runs the tests
 func (c *TestCoordinator) Run() error {
 	jobs := make([]*TestJob, 0)
-	if c.test.Suite == "" {
+	if c.config.Suite == "" {
 		for suite := range Registry.tests {
 			config := &TestConfig{
-				TestID:     newJobID(c.test.TestID, suite),
-				Type:       c.test.Type,
-				Image:      c.test.Image,
-				Suite:      suite,
-				Timeout:    c.test.Timeout,
-				PullPolicy: c.test.PullPolicy,
-				Teardown:   c.test.Teardown,
+				JobConfig: &JobConfig{
+					JobID:      newJobID(c.config.JobID, suite),
+					Type:       c.config.Type,
+					Image:      c.config.Image,
+					Timeout:    c.config.Timeout,
+					PullPolicy: c.config.PullPolicy,
+					Teardown:   c.config.Teardown,
+				},
+				Suite: suite,
 			}
 			job := &TestJob{
 				cluster: &TestCluster{
 					client:    c.client,
-					namespace: config.TestID,
+					namespace: config.JobID,
 				},
-				test: config,
+				config: config,
 			}
 			jobs = append(jobs, job)
 		}
 	} else {
 		config := &TestConfig{
-			TestID:     newJobID(c.test.TestID, c.test.Suite),
-			Type:       c.test.Type,
-			Image:      c.test.Image,
-			Suite:      c.test.Suite,
-			Test:       c.test.Test,
-			Timeout:    c.test.Timeout,
-			PullPolicy: c.test.PullPolicy,
-			Teardown:   c.test.Teardown,
+			JobConfig: &JobConfig{
+				JobID:      newJobID(c.config.JobID, c.config.Suite),
+				Type:       c.config.Type,
+				Image:      c.config.Image,
+				Timeout:    c.config.Timeout,
+				PullPolicy: c.config.PullPolicy,
+				Teardown:   c.config.Teardown,
+			},
+			Suite: c.config.Suite,
+			Test:  c.config.Test,
 		}
 		job := &TestJob{
 			cluster: &TestCluster{
 				client:    c.client,
-				namespace: config.TestID,
+				namespace: config.JobID,
 			},
-			test: config,
+			config: config,
 		}
 		jobs = append(jobs, job)
 	}
@@ -123,101 +115,61 @@ func (c *TestCoordinator) Run() error {
 // BenchmarkCoordinator coordinates workers for suites of benchmarks
 type BenchmarkCoordinator struct {
 	client *kubernetes.Clientset
-	test   *TestConfig
+	config *BenchmarkConfig
 }
 
 // Run runs the tests
 func (c *BenchmarkCoordinator) Run() error {
 	jobs := make([]*TestJob, 0)
-	if c.test.Suite == "" {
+	if c.config.Suite == "" {
 		for suite := range Registry.benchmarks {
-			config := &TestConfig{
-				TestID:     newJobID(c.test.TestID, suite),
-				Type:       c.test.Type,
-				Image:      c.test.Image,
-				Suite:      suite,
-				Timeout:    c.test.Timeout,
-				PullPolicy: c.test.PullPolicy,
-				Teardown:   c.test.Teardown,
+			config := &BenchmarkConfig{
+				JobConfig: &JobConfig{
+					JobID:      newJobID(c.config.JobID, suite),
+					Type:       c.config.Type,
+					Image:      c.config.Image,
+					Timeout:    c.config.Timeout,
+					PullPolicy: c.config.PullPolicy,
+					Teardown:   c.config.Teardown,
+				},
+				Suite:       suite,
+				Clients:     c.config.Clients,
+				Parallelism: c.config.Parallelism,
+				Requests:    c.config.Requests,
+				Args:        c.config.Args,
 			}
 			job := &TestJob{
 				cluster: &TestCluster{
 					client:    c.client,
-					namespace: config.TestID,
+					namespace: config.JobID,
 				},
-				test: config,
+				config: config,
 			}
 			jobs = append(jobs, job)
 		}
 	} else {
-		config := &TestConfig{
-			TestID:     newJobID(c.test.TestID, c.test.Suite),
-			Type:       c.test.Type,
-			Image:      c.test.Image,
-			Suite:      c.test.Suite,
-			Test:       c.test.Test,
-			Timeout:    c.test.Timeout,
-			PullPolicy: c.test.PullPolicy,
-			Teardown:   c.test.Teardown,
+		config := &BenchmarkConfig{
+			JobConfig: &JobConfig{
+				JobID:      newJobID(c.config.JobID, c.config.Suite),
+				Type:       c.config.Type,
+				Image:      c.config.Image,
+				Timeout:    c.config.Timeout,
+				PullPolicy: c.config.PullPolicy,
+				Teardown:   c.config.Teardown,
+			},
+			Suite:       c.config.Suite,
+			Benchmark:   c.config.Benchmark,
+			Clients:     c.config.Clients,
+			Parallelism: c.config.Parallelism,
+			Requests:    c.config.Requests,
+			Args:        c.config.Args,
 		}
 		job := &TestJob{
 			cluster: &TestCluster{
 				client:    c.client,
-				namespace: config.TestID,
+				namespace: config.JobID,
 			},
-			test: config,
-		}
-		jobs = append(jobs, job)
-	}
-	return runJobs(jobs, c.client)
-}
-
-// ScriptCoordinator coordinates workers for suites of scripts
-type ScriptCoordinator struct {
-	client *kubernetes.Clientset
-	test   *TestConfig
-}
-
-// Run runs the tests
-func (c *ScriptCoordinator) Run() error {
-	jobs := make([]*TestJob, 0)
-	if c.test.Suite == "" {
-		for suite := range Registry.scripts {
-			config := &TestConfig{
-				TestID:     newJobID(c.test.TestID, suite),
-				Type:       c.test.Type,
-				Image:      c.test.Image,
-				Suite:      suite,
-				Timeout:    c.test.Timeout,
-				PullPolicy: c.test.PullPolicy,
-				Teardown:   c.test.Teardown,
-			}
-			job := &TestJob{
-				cluster: &TestCluster{
-					client:    c.client,
-					namespace: config.TestID,
-				},
-				test: config,
-			}
-			jobs = append(jobs, job)
-		}
-	} else {
-		config := &TestConfig{
-			TestID:     newJobID(c.test.TestID, c.test.Suite),
-			Type:       c.test.Type,
-			Image:      c.test.Image,
-			Suite:      c.test.Suite,
-			Test:       c.test.Test,
-			Timeout:    c.test.Timeout,
-			PullPolicy: c.test.PullPolicy,
-			Teardown:   c.test.Teardown,
-		}
-		job := &TestJob{
-			cluster: &TestCluster{
-				client:    c.client,
-				namespace: config.TestID,
-			},
-			test: config,
+			config: config,
 		}
 		jobs = append(jobs, job)
 	}
@@ -254,13 +206,13 @@ func runJobs(jobs []*TestJob, client *kubernetes.Clientset) error {
 				return
 			}
 
-			req := client.CoreV1().Pods(job.test.TestID).GetLogs(pod.Name, &corev1.PodLogOptions{
+			req := client.CoreV1().Pods(job.config.Job().JobID).GetLogs(pod.Name, &corev1.PodLogOptions{
 				Follow: true,
 			})
 			reader, err := req.Stream()
 			if err != nil {
 				errChan <- err
-				if job.test.Teardown {
+				if job.config.Job().Teardown {
 					_ = job.tearDown()
 				}
 				return
@@ -279,7 +231,7 @@ func runJobs(jobs []*TestJob, client *kubernetes.Clientset) error {
 			_, status, err := job.getStatus()
 			if err != nil {
 				errChan <- err
-				if job.test.Teardown {
+				if job.config.Job().Teardown {
 					_ = job.tearDown()
 				}
 				return
@@ -287,7 +239,7 @@ func runJobs(jobs []*TestJob, client *kubernetes.Clientset) error {
 			codeChan <- status
 
 			// Tear down the cluster if necessary
-			if job.test.Teardown {
+			if job.config.Job().Teardown {
 				_ = job.tearDown()
 			}
 

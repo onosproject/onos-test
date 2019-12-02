@@ -17,7 +17,7 @@ package cluster
 import (
 	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/kube"
-	"github.com/onosproject/onos-test/pkg/kubetest"
+	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
@@ -102,7 +102,7 @@ func (c *Cluster) Networks() *Networks {
 func (c *Cluster) Create() error {
 	step := logging.NewStep(c.namespace, "Setup ONOS cluster")
 	step.Start()
-	cluster, err := kubetest.NewTestCluster(c.namespace)
+	cluster, err := test.NewTestCluster(c.namespace)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func (c *Cluster) Create() error {
 func (c *Cluster) Delete() error {
 	step := logging.NewStep(c.namespace, "Tear down ONOS cluster")
 	step.Start()
-	cluster, err := kubetest.NewTestCluster(c.namespace)
+	cluster, err := test.NewTestCluster(c.namespace)
 	if err != nil {
 		return err
 	}

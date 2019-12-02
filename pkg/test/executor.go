@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kubetest
+package test
 
 import (
 	"os"
@@ -27,6 +27,7 @@ type TestContext string
 const (
 	testNamespaceEnv = "TEST_NAMESPACE"
 	testContextEnv   = "TEST_CONTEXT"
+	testTypeEnv      = "TEST_TYPE"
 
 	testContextCoordinator TestContext = "coordinator"
 	testContextWorker      TestContext = "worker"
@@ -34,12 +35,7 @@ const (
 
 // Main runs a test
 func Main() {
-	config, err := loadTestConfig()
-	if err != nil {
-		println("Failed to load configuration")
-		os.Exit(1)
-	}
-	if err := Run(config); err != nil {
+	if err := Run(); err != nil {
 		println("Test run failed " + err.Error())
 		os.Exit(1)
 	}
@@ -47,15 +43,20 @@ func Main() {
 }
 
 // Run runs a test
-func Run(config *TestConfig) error {
+func Run() error {
 	context := getTestContext()
 	switch context {
 	case testContextCoordinator:
-		return runCoordinator(config)
+		return runCoordinator()
 	case testContextWorker:
-		return runWorker(config)
+		return runWorker()
 	}
 	return nil
+}
+
+// getTestType returns the current test type
+func getTestType() JobType {
+	return JobType(os.Getenv(testTypeEnv))
 }
 
 // getTestContext returns the current test context
@@ -64,16 +65,23 @@ func getTestContext() TestContext {
 }
 
 // runCoordinator runs a test image in the coordinator context
-func runCoordinator(test *TestConfig) error {
+func runCoordinator() error {
 	var coordinator Coordinator
 	var err error
-	switch test.Type {
+	testType := getTestType()
+	switch testType {
 	case TestTypeTest:
-		coordinator, err = newTestCoordinator(test)
+		config, err := loadTestConfig()
+		if err != nil {
+			return err
+		}
+		coordinator, err = newTestCoordinator(config)
 	case TestTypeBenchmark:
-		coordinator, err = newBenchmarkCoordinator(test)
-	case TestTypeScript:
-		coordinator, err = newScriptCoordinator(test)
+		config, err := loadBenchmarkConfig()
+		if err != nil {
+			return err
+		}
+		coordinator, err = newBenchmarkCoordinator(config)
 	}
 	if err != nil {
 		return err
@@ -82,16 +90,23 @@ func runCoordinator(test *TestConfig) error {
 }
 
 // runWorker runs a test image in the worker context
-func runWorker(test *TestConfig) error {
+func runWorker() error {
 	var worker Worker
 	var err error
-	switch test.Type {
+	testType := getTestType()
+	switch testType {
 	case TestTypeTest:
-		worker, err = newTestWorker(test)
+		config, err := loadTestConfig()
+		if err != nil {
+			return err
+		}
+		worker, err = newTestWorker(config)
 	case TestTypeBenchmark:
-		worker, err = newBenchmarkWorker(test)
-	case TestTypeScript:
-		worker, err = newScriptWorker(test)
+		config, err := loadBenchmarkConfig()
+		if err != nil {
+			return err
+		}
+		worker, err = newBenchmarkWorker(config)
 	}
 	if err != nil {
 		return err

@@ -31,7 +31,7 @@ const (
 
 func newCLI(client *client) *CLI {
 	return &CLI{
-		Deployment: newDeployment(cliService, getLabels(cliType), cliImage, client),
+		Deployment: newDeployment(cliService, getLabels(cliType), getImage(cliType, cliImage), client),
 	}
 }
 

@@ -35,7 +35,6 @@ func GetRootCommand() *cobra.Command {
 	cmd.AddCommand(getDeleteCommand())
 	cmd.AddCommand(getAddCommand())
 	cmd.AddCommand(getRemoveCommand())
-	cmd.AddCommand(getRunCommand())
 	cmd.AddCommand(getTestCommand())
 	cmd.AddCommand(getBenchCommand())
 	cmd.AddCommand(getExecCommand())

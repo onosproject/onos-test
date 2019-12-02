@@ -15,13 +15,13 @@
 package raft
 
 import (
-	"github.com/onosproject/onos-test/pkg/onit"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
+	"github.com/onosproject/onos-test/pkg/test"
 )
 
 // testSuite is a suite of tests for Atomix primitives
 type testSuite struct {
-	onit.TestSuite
+	test.TestSuite
 }
 
 // SetupTestSuite sets up the Atomix test suite
@@ -41,18 +41,4 @@ type SmokeTestSuite struct {
 // HATestSuite is a suite of HA tests for Atomix primitives
 type HATestSuite struct {
 	testSuite
-}
-
-// BenchmarkSuite is a suite of benchmarks for Atomix primitives
-type BenchmarkSuite struct {
-	onit.BenchmarkSuite
-}
-
-// SetupBenchmarkSuite sets up the Atomix benchmark suite
-func (s *BenchmarkSuite) SetupBenchmarkSuite() {
-	setup.Partitions("raft").
-		Raft().
-		SetPartitions(3).
-		SetReplicasPerPartition(3)
-	setup.SetupOrDie()
 }

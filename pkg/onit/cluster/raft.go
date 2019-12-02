@@ -25,9 +25,15 @@ import (
 	"time"
 )
 
+const (
+	raftImageType    = "raft"
+	defaultRaftImage = "atomix/atomix-raft-node:latest"
+)
+
 func newRaftPartitions(partitions *Partitions) *RaftPartitions {
 	return &RaftPartitions{
 		Partitions: partitions,
+		image:      getImage(raftImageType, defaultRaftImage),
 	}
 }
 
