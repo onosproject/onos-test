@@ -22,6 +22,7 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"github.com/stretchr/testify/assert"
+	"k8s.io/api/core/v1"
 	"testing"
 )
 
@@ -30,10 +31,16 @@ type MapBenchmarkSuite struct {
 }
 
 func (b *MapBenchmarkSuite) SetupScriptSuite() {
+	setup.Atomix().
+		SetImage("192.168.1.11:30000/atomix/atomix-k8s-controller:latest").
+		SetPullPolicy(v1.PullAlways)
 	setup.Partitions("nopaxos").
 		NOPaxos().
 		SetPartitions(1).
-		SetReplicasPerPartition(3)
+		SetReplicasPerPartition(3).
+		SetReplicaImage("192.168.1.11:30000/atomix/atomix-nopaxos-node:latest").
+		SetSequencerImage("192.168.1.11:30000/atomix/atomix-nopaxos-sequencer:latest").
+		SetPullPolicy(v1.PullAlways)
 	setup.SetupOrDie()
 }
 
@@ -56,8 +63,9 @@ func (b *MapBenchmarkSuite) RunBenchmarkMapPut() {
 				m: b.getMap("RunBenchmarkMapPut"),
 			}
 		}).
-		SetParallelism(1).
-		SetIterations(1000).
+		SetClients(20).
+		SetParallelism(10).
+		SetRequests(100000).
 		AddHandlerArg(benchmark.RandomString(1000, 8)).
 		AddHandlerArg(benchmark.RandomBytes(1000, 128)).
 		Run()
@@ -70,8 +78,9 @@ func (b *MapBenchmarkSuite) RunBenchmarkMapGet() {
 				m: b.getMap("RunBenchmarkMapGet"),
 			}
 		}).
-		SetParallelism(1).
-		SetIterations(1000).
+		SetClients(20).
+		SetParallelism(10).
+		SetRequests(100000).
 		AddHandlerArg(benchmark.RandomString(1000, 8)).
 		Run()
 }

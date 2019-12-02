@@ -16,9 +16,10 @@ package main
 
 import (
 	"github.com/onosproject/onos-test/pkg/onit"
+	"github.com/onosproject/onos-test/test/config"
+	"github.com/onosproject/onos-test/test/grpc"
 	"github.com/onosproject/onos-test/test/nopaxos"
 	"github.com/onosproject/onos-test/test/raft"
-	"github.com/onosproject/onos-test/test/config"
 	"github.com/onosproject/onos-test/test/topo"
 )
 
@@ -37,6 +38,7 @@ func main() {
 	onit.RegisterBenchmarks("topo", &topo.BenchmarkSuite{})
 
 	onit.RegisterScripts("nopaxos", &nopaxos.MapBenchmarkSuite{})
+	onit.RegisterScripts("grpc", &grpc.GRPCBenchmarkSuite{})
 
 	onit.Main()
 }

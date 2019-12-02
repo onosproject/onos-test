@@ -48,6 +48,20 @@ integration: kind
 	onit add simulator
 	onit run suite integration-tests
 
+proto: # @HELP build Protobuf/gRPC generated types
+proto:
+	docker run -it -v `pwd`:/go/src/github.com/onosproject/onos-test \
+		-w /go/src/github.com/onosproject/onos-test \
+		--entrypoint build/bin/compile_protos.sh \
+		onosproject/protoc-go:stable
+
+grpc-test-docker: # @HELP build onos-tests Docker image
+grpc-test-docker:
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/grpc-test/_output/bin/grpc-test ./cmd/grpc-test
+	docker build . -f build/grpc-test/Dockerfile \
+		--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
+		-t onosproject/grpc-test:${ONOS_TEST_VERSION}
+
 onos-tests-docker: # @HELP build onos-tests Docker image
 onos-tests-docker:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/onos-tests/_output/bin/onos-tests ./cmd/onos-tests
@@ -56,7 +70,7 @@ onos-tests-docker:
 		-t onosproject/onos-tests:${ONOS_TEST_VERSION}
 
 images: # @HELP build all Docker images
-images: onos-tests-docker
+images: onos-tests-docker grpc-test-docker
 
 kind: # @HELP build Docker images and add them to the currently configured kind cluster
 kind: images
