@@ -63,7 +63,7 @@ func (b *MapBenchmarkSuite) RunBenchmarkMapPut() {
 				m: b.getMap("RunBenchmarkMapPut"),
 			}
 		}).
-		SetClients(20).
+		SetClients(1).
 		SetParallelism(10).
 		SetRequests(100000).
 		AddHandlerArg(benchmark.RandomString(1000, 8)).
@@ -78,7 +78,7 @@ func (b *MapBenchmarkSuite) RunBenchmarkMapGet() {
 				m: b.getMap("RunBenchmarkMapGet"),
 			}
 		}).
-		SetClients(20).
+		SetClients(1).
 		SetParallelism(10).
 		SetRequests(100000).
 		AddHandlerArg(benchmark.RandomString(1000, 8)).

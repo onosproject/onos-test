@@ -33,6 +33,7 @@ type Benchmark struct {
 	parallelism    int
 	handlerFactory func() Handler
 	handlerArgs    []Arg
+	handlers       []Handler
 }
 
 // SetClients sets the number of clients to use
@@ -73,74 +74,22 @@ func (b *Benchmark) AddHandlerArg(arg Arg) *Benchmark {
 
 // Run runs the benchmark
 func (b *Benchmark) Run() {
-	// Prepare the handler arguments
-	for _, arg := range b.handlerArgs {
-		arg.Reset()
-	}
+	// Prepare the benchmark arguments
+	b.prepare()
 
-	// Create the handlers
-	handlers := make([]Handler, b.clients)
-	for i := 0; i < b.clients; i++ {
-		handlers[i] = b.handlerFactory()
-	}
+	// Warm the benchmark
+	b.warm()
 
-	// Create an iteration channel and wait group and create a goroutine for each handler
-	wg := &sync.WaitGroup{}
-	itCh := make(chan []interface{}, len(handlers)*b.parallelism)
-	outCh := make(chan time.Duration, b.requests)
-	for _, handler := range handlers {
-		for i := 0; i < b.parallelism; i++ {
-			wg.Add(1)
-			go func(handler Handler) {
-				for args := range itCh {
-					start := time.Now()
-					_ = handler.Run(args...)
-					end := time.Now()
-					outCh <- end.Sub(start)
-				}
-				wg.Done()
-			}(handler)
-		}
-	}
+	// Run the benchmark
+	runTime, results := b.run()
 
-	// Create the arguments for benchmark calls
-	args := make([][]interface{}, b.requests)
-	for i := 0; i < b.requests; i++ {
-		itArgs := make([]interface{}, len(b.handlerArgs))
-		for j, arg := range b.handlerArgs {
-			itArgs[j] = arg.Next()
-		}
-		args[i] = itArgs
-	}
-
-	// Record the start time and write arguments to the channel
-	start := time.Now()
-	for i := 0; i < len(args); i++ {
-		itCh <- args[i]
-	}
-	close(itCh)
-
-	// Wait for the tests to finish and close the result channel
-	wg.Wait()
-
-	// Record the end time
-	end := time.Now()
-	duration := end.Sub(start)
-
-	// Close the output channel
-	close(outCh)
-
-	// Aggregate the results
+	// Calculate the total latency from latency results
 	var totalLatency time.Duration
-	results := make([]time.Duration, 0, b.requests)
-	for d := range outCh {
-		totalLatency += d
-		results = append(results, d)
+	for _, result := range results {
+		totalLatency += result
 	}
-	sort.Slice(results, func(i, j int) bool {
-		return results[i] < results[j]
-	})
 
+	// Calculate latency percentiles
 	meanLatency := time.Duration(int64(totalLatency) / int64(len(results)))
 	latency1 := results[int(math.Max(float64(len(results)/100)-1, 0))]
 	latency5 := results[int(math.Max(float64(len(results)/20)-1, 0))]
@@ -151,9 +100,9 @@ func (b *Benchmark) Run() {
 	latency99 := results[int(math.Max(float64(len(results)-(len(results)/100)-1), 0))]
 
 	// Output the test results
-	println(fmt.Sprintf("Duration: %s", duration.String()))
+	println(fmt.Sprintf("Duration: %s", runTime.String()))
 	println(fmt.Sprintf("Operations: %d", b.requests))
-	println(fmt.Sprintf("Operations/sec: %f", float64(b.requests)/(float64(duration)/float64(time.Second))))
+	println(fmt.Sprintf("Operations/sec: %f", float64(b.requests)/(float64(runTime)/float64(time.Second))))
 	println(fmt.Sprintf("Mean latency: %s", meanLatency.String()))
 	println(fmt.Sprintf("1st percentile latency: %s", latency1.String()))
 	println(fmt.Sprintf("5th percentile latency: %s", latency5.String()))
@@ -162,6 +111,116 @@ func (b *Benchmark) Run() {
 	println(fmt.Sprintf("75th percentile latency: %s", latency75.String()))
 	println(fmt.Sprintf("90th percentile latency: %s", latency95.String()))
 	println(fmt.Sprintf("99th percentile latency: %s", latency99.String()))
+}
+
+// prepare prepares the benchmark
+func (b *Benchmark) prepare() {
+	// Prepare the handler arguments
+	for _, arg := range b.handlerArgs {
+		arg.Reset()
+	}
+
+	// Create the handlers
+	handlers := make([]Handler, b.clients)
+	for i := 0; i < b.clients; i++ {
+		handlers[i] = b.handlerFactory()
+	}
+	b.handlers = handlers
+}
+
+// getArgs returns the arguments for the given number of requests
+func (b *Benchmark) getArgs(requests int) [][]interface{} {
+	args := make([][]interface{}, requests)
+	for i := 0; i < requests; i++ {
+		requestArgs := make([]interface{}, len(b.handlerArgs))
+		for j, arg := range b.handlerArgs {
+			requestArgs[j] = arg.Next()
+		}
+		args[i] = requestArgs
+	}
+	return args
+}
+
+// warm warms up the benchmark
+func (b *Benchmark) warm() {
+	// Create an iteration channel and wait group and create a goroutine for each handler
+	wg := &sync.WaitGroup{}
+	requestCh := make(chan []interface{}, len(b.handlers)*b.parallelism)
+	for _, handler := range b.handlers {
+		for i := 0; i < b.parallelism; i++ {
+			wg.Add(1)
+			go func(handler Handler) {
+				for args := range requestCh {
+					_ = handler.Run(args...)
+				}
+				wg.Done()
+			}(handler)
+		}
+	}
+
+	// Create the arguments for benchmark calls
+	args := b.getArgs(b.requests)
+
+	// Record the start time and write arguments to the channel
+	for i := 0; i < len(args); i++ {
+		requestCh <- args[i]
+	}
+	close(requestCh)
+
+	// Wait for the tests to finish and close the result channel
+	wg.Wait()
+}
+
+// run runs the benchmark
+func (b *Benchmark) run() (time.Duration, []time.Duration) {
+	// Create an iteration channel and wait group and create a goroutine for each handler
+	wg := &sync.WaitGroup{}
+	requestCh := make(chan []interface{}, len(b.handlers)*b.parallelism)
+	resultCh := make(chan time.Duration, b.requests)
+	for _, handler := range b.handlers {
+		for i := 0; i < b.parallelism; i++ {
+			wg.Add(1)
+			go func(handler Handler) {
+				for args := range requestCh {
+					start := time.Now()
+					_ = handler.Run(args...)
+					end := time.Now()
+					resultCh <- end.Sub(start)
+				}
+				wg.Done()
+			}(handler)
+		}
+	}
+
+	// Create the arguments for benchmark calls
+	args := b.getArgs(b.requests)
+
+	// Record the start time and write arguments to the channel
+	start := time.Now()
+	for i := 0; i < len(args); i++ {
+		requestCh <- args[i]
+	}
+	close(requestCh)
+
+	// Wait for the tests to finish and close the result channel
+	wg.Wait()
+
+	// Record the end time
+	end := time.Now()
+	duration := end.Sub(start)
+
+	// Close the output channel
+	close(resultCh)
+
+	// Aggregate the results
+	results := make([]time.Duration, 0, b.requests)
+	for d := range resultCh {
+		results = append(results, d)
+	}
+	sort.Slice(results, func(i, j int) bool {
+		return results[i] < results[j]
+	})
+	return duration, results
 }
 
 type Arg interface {

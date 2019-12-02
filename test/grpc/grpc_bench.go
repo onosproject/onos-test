@@ -52,8 +52,8 @@ func (b *GRPCBenchmarkSuite) RunBenchmarkRequests() {
 			}
 		}).
 		SetClients(1).
-		SetParallelism(1).
-		SetRequests(1).
+		SetParallelism(10).
+		SetRequests(1000000).
 		AddHandlerArg(benchmark.RandomBytes(1000, 128)).
 		Run()
 }
