@@ -32,6 +32,8 @@ type TestSuite struct {
 
 // SetupTestSuite sets up the topo test suite
 func (s *TestSuite) SetupTestSuite() {
+	setup.Atomix()
+	setup.Partitions().Raft()
 	setup.Topo().SetReplicas(2)
 	setup.SetupOrDie()
 }

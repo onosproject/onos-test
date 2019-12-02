@@ -26,6 +26,7 @@ type testSuite struct {
 
 // SetupTestSuite sets up the Atomix test suite
 func (s *testSuite) SetupTestSuite() {
+	setup.Atomix()
 	setup.Partitions("nopaxos").
 		NOPaxos().
 		SetPartitions(1).

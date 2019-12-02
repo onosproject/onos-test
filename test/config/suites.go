@@ -30,6 +30,8 @@ type SmokeTestSuite struct {
 
 // SetupTestSuite sets up the onos-config test suite
 func (s *SmokeTestSuite) SetupTestSuite() {
+	setup.Atomix()
+	setup.Partitions().Raft()
 	setup.Topo().SetReplicas(2)
 	setup.Config().SetReplicas(2)
 	setup.SetupOrDie()
