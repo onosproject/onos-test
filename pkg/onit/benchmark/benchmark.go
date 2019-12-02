@@ -110,14 +110,13 @@ func (b *Benchmark) Run() {
 	close(itCh)
 
 	// Wait for the tests to finish and close the result channel
-	go func() {
-		wg.Wait()
-		close(outCh)
-	}()
+	wg.Wait()
 
 	// Record the end time
 	end := time.Now()
 	duration := end.Sub(start)
+
+	close(outCh)
 
 	// Aggregate the results
 	var totalLatency time.Duration
