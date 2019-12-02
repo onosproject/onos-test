@@ -29,7 +29,7 @@ func (s *GRPCBenchmarkSuite) SetupBenchmarkSuite(c *test.Context) {
 	setup.App("test").
 		SetImage("onosproject/grpc-test:latest").
 		AddPort("grpc", 8080).
-		SetReplicas(1)
+		SetReplicas(c.GetArg("replicas").Int(1))
 	setup.SetupOrDie()
 }
 
@@ -45,7 +45,7 @@ func (s *GRPCBenchmarkSuite) SetupBenchmark(b *test.Benchmark) {
 
 func (s *GRPCBenchmarkSuite) BenchmarkGRPCRequestReply(b *test.Benchmark) {
 	params := []test.Param{
-		test.RandomBytes(b.GetArg("value-count").Int(), b.GetArg("value-length").Int()),
+		test.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
 	}
 	b.Run(func(client TestServiceClient, value []byte) error {
 		_, err := client.RequestReply(context.Background(), &Message{

@@ -86,7 +86,10 @@ type Arg struct {
 }
 
 // Int returns the argument as an int
-func (a *Arg) Int() int {
+func (a *Arg) Int(def int) int {
+	if a.value == "" {
+		return def
+	}
 	i, err := strconv.Atoi(a.value)
 	if err != nil {
 		panic(err)
@@ -95,7 +98,10 @@ func (a *Arg) Int() int {
 }
 
 // String returns the argument as a string
-func (a *Arg) String() string {
+func (a *Arg) String(def string) string {
+	if a.value == "" {
+		return def
+	}
 	return a.value
 }
 

@@ -30,8 +30,8 @@ type MapBenchmarkSuite struct {
 func (s *MapBenchmarkSuite) SetupBenchmarkSuite(c *test.Context) {
 	setup.Partitions("nopaxos").
 		NOPaxos().
-		SetPartitions(c.GetArg("partitions").Int()).
-		SetReplicasPerPartition(c.GetArg("replicas").Int())
+		SetPartitions(c.GetArg("partitions").Int(1)).
+		SetReplicasPerPartition(c.GetArg("replicas").Int(1))
 	setup.SetupOrDie()
 }
 
@@ -51,8 +51,8 @@ func (s *MapBenchmarkSuite) SetupBenchmark(b *test.Benchmark) {
 
 func (s *MapBenchmarkSuite) BenchmarkMapPut(b *test.Benchmark) {
 	params := []test.Param{
-		test.RandomString(b.GetArg("key-count").Int(), b.GetArg("key-length").Int()),
-		test.RandomBytes(b.GetArg("value-count").Int(), b.GetArg("value-length").Int()),
+		test.RandomString(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
+		test.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
 	}
 	b.Run(func(client _map.Map, key string, value []byte) error {
 		_, err := client.Put(context.Background(), key, value)
@@ -62,7 +62,7 @@ func (s *MapBenchmarkSuite) BenchmarkMapPut(b *test.Benchmark) {
 
 func (s *MapBenchmarkSuite) BenchmarkMapGet(b *test.Benchmark) {
 	params := []test.Param{
-		test.RandomString(b.GetArg("key-count").Int(), b.GetArg("key-length").Int()),
+		test.RandomString(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
 	}
 	b.Run(func(client _map.Map, key string) error {
 		_, err := client.Get(context.Background(), key)
