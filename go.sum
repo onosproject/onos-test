@@ -93,6 +93,8 @@ github.com/atomix/atomix-k8s-controller v0.0.0-20190620084759-d5e65f7fbf68 h1:PC
 github.com/atomix/atomix-k8s-controller v0.0.0-20190620084759-d5e65f7fbf68/go.mod h1:vdmRfGKhgD28STeLKeKoq3tMZOyTR0l3WSG9QCrZWs0=
 github.com/atomix/atomix-k8s-controller v0.0.0-20190905035228-0c2f92a4bc0e h1:YJyjc60GiCyyWttQtVmLutmUJH41Wyqe/i5h7UdLwkc=
 github.com/atomix/atomix-k8s-controller v0.0.0-20190905035228-0c2f92a4bc0e/go.mod h1:SZreuC4qlv2xGjS9FUpwsSHwmuDIr1/xdhsBLdifNrw=
+github.com/atomix/atomix-k8s-controller v0.0.0-20191128003108-7f54c8829b18 h1:dMNp4ltYQoHuJmdKam/yOlBKI14Abo19FaJbP9lt5E8=
+github.com/atomix/atomix-k8s-controller v0.0.0-20191128003108-7f54c8829b18/go.mod h1:nfCaQUuz6VyvpXvcCjre09PLc6vR4tyJ7Vnu7/wt2ZY=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=

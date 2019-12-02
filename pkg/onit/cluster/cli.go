@@ -31,7 +31,7 @@ const (
 
 func newCLI(client *client) *CLI {
 	return &CLI{
-		Deployment: newDeployment(cliService, getLabels(cliType), getImage(cliType, cliImage), client),
+		Deployment: newDeployment(cliService, getLabels(cliType), cliImage, client),
 	}
 }
 
@@ -43,7 +43,7 @@ type CLI struct {
 
 // Enabled indicates whether the CLI is enabled
 func (c *CLI) Enabled() bool {
-	return c.enabled
+	return GetArg(c.name, "enabled").Bool(false)
 }
 
 // SetEnabled sets whether the CLI is enabled
@@ -53,7 +53,7 @@ func (c *CLI) SetEnabled(enabled bool) {
 
 // Setup sets up the CLI subsystem
 func (c *CLI) Setup() error {
-	if !c.enabled {
+	if !c.Enabled() {
 		return nil
 	}
 

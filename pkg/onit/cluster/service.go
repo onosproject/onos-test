@@ -32,6 +32,7 @@ import (
 func newService(name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string, client *client) *Service {
 	return &Service{
 		Deployment: newDeployment(name, labels, image, client),
+		replicas:   GetArg(name, "replicas").Int(1),
 		ports:      ports,
 		secrets:    secrets,
 		env:        make(map[string]string),

@@ -51,7 +51,7 @@ type Node struct {
 
 // Name returns the node name
 func (n *Node) Name() string {
-	return n.name
+	return GetArg(n.name, "service").String(n.name)
 }
 
 // SetName sets the node name
@@ -66,7 +66,7 @@ func (n *Node) Address() string {
 
 // Image returns the image configured for the node
 func (n *Node) Image() string {
-	return n.image
+	return GetArg(n.name, "image").String(n.image)
 }
 
 // SetImage sets the node image
@@ -76,7 +76,7 @@ func (n *Node) SetImage(image string) {
 
 // PullPolicy returns the image pull policy configured for the node
 func (n *Node) PullPolicy() corev1.PullPolicy {
-	return n.pullPolicy
+	return corev1.PullPolicy(GetArg(n.name, "pullPolicy").String(string(n.pullPolicy)))
 }
 
 // SetPullPolicy sets the image pull policy for the node

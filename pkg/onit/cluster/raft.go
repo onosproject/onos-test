@@ -26,14 +26,16 @@ import (
 )
 
 const (
-	raftImageType    = "raft"
 	defaultRaftImage = "atomix/atomix-raft-node:latest"
 )
 
 func newRaftPartitions(partitions *Partitions) *RaftPartitions {
 	return &RaftPartitions{
 		Partitions: partitions,
-		image:      getImage(raftImageType, defaultRaftImage),
+		partitions: 1,
+		replicas:   1,
+		image:      defaultRaftImage,
+		pullPolicy: corev1.PullIfNotPresent,
 	}
 }
 
@@ -46,6 +48,11 @@ type RaftPartitions struct {
 	pullPolicy corev1.PullPolicy
 }
 
+// NumPartitions returns the number of partitions
+func (s *RaftPartitions) NumPartitions() int {
+	return GetArg(s.group, "partitions").Int(1)
+}
+
 // SetPartitions sets the number of partitions in the group
 func (s *RaftPartitions) SetPartitions(partitions int) {
 	s.partitions = partitions
@@ -53,7 +60,7 @@ func (s *RaftPartitions) SetPartitions(partitions int) {
 
 // Replicas returns the number of replicas in each partition
 func (s *RaftPartitions) Replicas() int {
-	return s.replicas
+	return GetArg(s.group, "replicas").Int(s.replicas)
 }
 
 // SetReplicas sets the number of nodes in each partition
@@ -63,7 +70,7 @@ func (s *RaftPartitions) SetReplicas(replicas int) {
 
 // Image returns the image for the partition group
 func (s *RaftPartitions) Image() string {
-	return s.image
+	return GetArg(s.group, "image").String(s.image)
 }
 
 // SetImage sets the image for the partition group
@@ -73,7 +80,7 @@ func (s *RaftPartitions) SetImage(image string) {
 
 // PullPolicy returns the image pull policy for the partition group
 func (s *RaftPartitions) PullPolicy() corev1.PullPolicy {
-	return s.pullPolicy
+	return corev1.PullPolicy(GetArg(s.group, "pullPolicy").String(string(s.pullPolicy)))
 }
 
 // SetPullPolicy sets the image pull policy for the partition group
@@ -119,20 +126,20 @@ func (s *RaftPartitions) Setup() error {
 func (s *RaftPartitions) createPartitionSet() error {
 	set := &v1alpha1.PartitionSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.group,
+			Name:      s.Name(),
 			Namespace: s.namespace,
 		},
 		Spec: v1alpha1.PartitionSetSpec{
-			Partitions: s.partitions,
+			Partitions: s.NumPartitions(),
 			Template: v1alpha1.PartitionTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: s.getLabels(),
 				},
 				Spec: v1alpha1.PartitionSpec{
-					Size: int32(s.replicas),
+					Size: int32(s.Replicas()),
 					Raft: &v1alpha1.RaftProtocol{
-						Image:           s.image,
-						ImagePullPolicy: s.pullPolicy,
+						Image:           s.Image(),
+						ImagePullPolicy: s.PullPolicy(),
 					},
 				},
 			},

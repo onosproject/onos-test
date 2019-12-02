@@ -44,12 +44,12 @@ type Deployment struct {
 
 // Name returns the deployment name
 func (d *Deployment) Name() string {
-	return d.name
+	return GetArg(d.name, "service").String(d.name)
 }
 
 // Image returns the image for the service
 func (d *Deployment) Image() string {
-	return d.image
+	return GetArg(d.name, "image").String(d.image)
 }
 
 // SetImage sets the image for the service
@@ -59,7 +59,7 @@ func (d *Deployment) SetImage(image string) {
 
 // PullPolicy returns the image pull policy for the service
 func (d *Deployment) PullPolicy() corev1.PullPolicy {
-	return d.pullPolicy
+	return corev1.PullPolicy(GetArg(d.name, "pullPolicy").String(string(d.pullPolicy)))
 }
 
 // SetPullPolicy sets the image pull policy for the service

@@ -30,11 +30,14 @@ type NOPaxosPartitionsSetup interface {
 	// SetSequencerImage sets the sequencer image to deploy
 	SetSequencerImage(image string) NOPaxosPartitionsSetup
 
+	// SetSequencerPullPolicy sets the sequencer image pull policy
+	SetSequencerPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosPartitionsSetup
+
 	// SetReplicaImage sets the replica image to deploy
 	SetReplicaImage(image string) NOPaxosPartitionsSetup
 
-	// SetPullPolicy sets the image pull policy
-	SetPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosPartitionsSetup
+	// SetReplicaPullPolicy sets the replica image pull policy
+	SetReplicaPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosPartitionsSetup
 }
 
 var _ NOPaxosPartitionsSetup = &clusterNOPaxosPartitionsSetup{}
@@ -59,13 +62,18 @@ func (s *clusterNOPaxosPartitionsSetup) SetSequencerImage(image string) NOPaxosP
 	return s
 }
 
+func (s *clusterNOPaxosPartitionsSetup) SetSequencerPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosPartitionsSetup {
+	s.nopaxos.SetSequencerPullPolicy(pullPolicy)
+	return s
+}
+
 func (s *clusterNOPaxosPartitionsSetup) SetReplicaImage(image string) NOPaxosPartitionsSetup {
 	s.nopaxos.SetReplicaImage(image)
 	return s
 }
 
-func (s *clusterNOPaxosPartitionsSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosPartitionsSetup {
-	s.nopaxos.SetPullPolicy(pullPolicy)
+func (s *clusterNOPaxosPartitionsSetup) SetReplicaPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosPartitionsSetup {
+	s.nopaxos.SetReplicaPullPolicy(pullPolicy)
 	return s
 }
 

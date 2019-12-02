@@ -34,7 +34,7 @@ func getTestCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("image", "i", "", "the test image to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
-	cmd.Flags().StringToStringP("image-override", "o", map[string]string{}, "a mapping of image overrides")
+	cmd.Flags().StringToString("set", map[string]string{}, "cluster argument overrides")
 	cmd.Flags().StringP("suite", "s", "", "the test suite to run")
 	cmd.Flags().StringP("test", "t", "", "the name of the test method to run")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "test timeout")
@@ -47,7 +47,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 
 	clusterID, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")
-	images, _ := cmd.Flags().GetStringToString("image-override")
+	sets, _ := cmd.Flags().GetStringToString("set")
 	suite, _ := cmd.Flags().GetString("suite")
 	testName, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
@@ -55,9 +55,9 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	env := make(map[string]string)
-	for name, image := range images {
-		env[fmt.Sprintf("IMAGE_%s", strings.ToUpper(name))] = image
+	overrides := []string{}
+	for key, value := range sets {
+		overrides = append(overrides, fmt.Sprintf("%s=%s", key, value))
 	}
 
 	config := &test.TestConfig{
@@ -65,7 +65,9 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 			JobID:      random.NewPetName(2),
 			Type:       test.TestTypeTest,
 			Image:      image,
-			Env:        env,
+			Env: map[string]string{
+				"ARGS": strings.Join(overrides, ","),
+			},
 			Timeout:    timeout,
 			PullPolicy: corev1.PullPolicy(pullPolicy),
 			Teardown:   !noTeardown,

@@ -14,23 +14,9 @@
 
 package cluster
 
-import (
-	"fmt"
-	"os"
-	"strings"
-)
-
 const (
 	typeLabel = "type"
 )
-
-func getImage(imageName, defaultImage string) string {
-	image := os.Getenv(fmt.Sprintf("IMAGE_%s", strings.ToUpper(imageName)))
-	if image != "" {
-		return image
-	}
-	return defaultImage
-}
 
 func getLabels(typeName string) map[string]string {
 	return map[string]string{

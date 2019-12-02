@@ -26,28 +26,36 @@ import (
 )
 
 const (
-	replicaImageType      = "nopaxos-replica"
-	sequencerImageType    = "nopaxos-sequencer"
 	defaultReplicaImage   = "atomix/atomix-nopaxos-node:latest"
 	defaultSequencerImage = "atomix/atomix-nopaxos-sequencer:latest"
 )
 
 func newNOPaxosPartitions(partitions *Partitions) *NOPaxosPartitions {
 	return &NOPaxosPartitions{
-		Partitions:     partitions,
-		sequencerImage: getImage(sequencerImageType, defaultSequencerImage),
-		replicaImage:   getImage(replicaImageType, defaultReplicaImage),
+		Partitions:          partitions,
+		partitions:          1,
+		replicas:            1,
+		sequencerImage:      defaultSequencerImage,
+		sequencerPullPolicy: corev1.PullIfNotPresent,
+		replicaImage:        defaultReplicaImage,
+		replicaPullPolicy:   corev1.PullIfNotPresent,
 	}
 }
 
 // NOPaxosPartitions provides methods for adding and modifying NOPaxos partitions
 type NOPaxosPartitions struct {
 	*Partitions
-	partitions     int
-	replicas       int
-	sequencerImage string
-	replicaImage   string
-	pullPolicy     corev1.PullPolicy
+	partitions          int
+	replicas            int
+	sequencerImage      string
+	sequencerPullPolicy corev1.PullPolicy
+	replicaImage        string
+	replicaPullPolicy   corev1.PullPolicy
+}
+
+// NumPartitions returns the number of partitions
+func (s *NOPaxosPartitions) NumPartitions() int {
+	return GetArg(s.group, "partitions").Int(1)
 }
 
 // SetPartitions sets the number of partitions in the group
@@ -57,7 +65,7 @@ func (s *NOPaxosPartitions) SetPartitions(partitions int) {
 
 // Replicas returns the number of replicas in each partition
 func (s *NOPaxosPartitions) Replicas() int {
-	return s.replicas
+	return GetArg(s.group, "replicas").Int(1)
 }
 
 // SetReplicas sets the number of nodes in each partition
@@ -67,7 +75,7 @@ func (s *NOPaxosPartitions) SetReplicas(replicas int) {
 
 // SequencerImage returns the image for the partition group
 func (s *NOPaxosPartitions) SequencerImage() string {
-	return s.sequencerImage
+	return GetArg(s.group, "sequencer", "image").String(s.sequencerImage)
 }
 
 // SetSequencerImage sets the image for the partition group sequencer
@@ -75,9 +83,19 @@ func (s *NOPaxosPartitions) SetSequencerImage(image string) {
 	s.sequencerImage = image
 }
 
+// SequencerPullPolicy returns the image pull policy for the partition group
+func (s *NOPaxosPartitions) SequencerPullPolicy() corev1.PullPolicy {
+	return corev1.PullPolicy(GetArg(s.group, "sequencer", "pullPolicy").String(string(s.sequencerPullPolicy)))
+}
+
+// SetSequencerPullPolicy sets the image pull policy for the partition group
+func (s *NOPaxosPartitions) SetSequencerPullPolicy(pullPolicy corev1.PullPolicy) {
+	s.sequencerPullPolicy = pullPolicy
+}
+
 // ReplicaImage returns the image for the partition group
 func (s *NOPaxosPartitions) ReplicaImage() string {
-	return s.replicaImage
+	return GetArg(s.group, "replica", "image").String(s.replicaImage)
 }
 
 // SetReplicaImage sets the image for the partition group replicas
@@ -85,14 +103,14 @@ func (s *NOPaxosPartitions) SetReplicaImage(image string) {
 	s.replicaImage = image
 }
 
-// PullPolicy returns the image pull policy for the partition group
-func (s *NOPaxosPartitions) PullPolicy() corev1.PullPolicy {
-	return s.pullPolicy
+// ReplicaPullPolicy returns the image pull policy for the partition group
+func (s *NOPaxosPartitions) ReplicaPullPolicy() corev1.PullPolicy {
+	return corev1.PullPolicy(GetArg(s.group, "replica", "pullPolicy").String(string(s.replicaPullPolicy)))
 }
 
-// SetPullPolicy sets the image pull policy for the partition group
-func (s *NOPaxosPartitions) SetPullPolicy(pullPolicy corev1.PullPolicy) {
-	s.pullPolicy = pullPolicy
+// SetReplicaPullPolicy sets the image pull policy for the partition group
+func (s *NOPaxosPartitions) SetReplicaPullPolicy(pullPolicy corev1.PullPolicy) {
+	s.replicaPullPolicy = pullPolicy
 }
 
 // getLabels returns the labels for the partition group
@@ -132,25 +150,25 @@ func (s *NOPaxosPartitions) Setup() error {
 func (s *NOPaxosPartitions) createPartitionSet() error {
 	set := &v1alpha1.PartitionSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.group,
+			Name:      s.Name(),
 			Namespace: s.namespace,
 		},
 		Spec: v1alpha1.PartitionSetSpec{
-			Partitions: s.partitions,
+			Partitions: s.NumPartitions(),
 			Template: v1alpha1.PartitionTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: s.getLabels(),
 				},
 				Spec: v1alpha1.PartitionSpec{
-					Size: int32(s.replicas),
+					Size: int32(s.Replicas()),
 					NOPaxos: &v1alpha1.NOPaxosProtocol{
 						Sequencer: v1alpha1.NOPaxosSequencerSpec{
-							Image:           s.sequencerImage,
-							ImagePullPolicy: s.pullPolicy,
+							Image:           s.SequencerImage(),
+							ImagePullPolicy: s.SequencerPullPolicy(),
 						},
 						Protocol: v1alpha1.NOPaxosProtocolSpec{
-							Image:           s.replicaImage,
-							ImagePullPolicy: s.pullPolicy,
+							Image:           s.ReplicaImage(),
+							ImagePullPolicy: s.ReplicaPullPolicy(),
 						},
 					},
 				},

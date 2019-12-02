@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/atomix/atomix-api v0.0.0-20191021183656-837bfda65c82
 	github.com/atomix/atomix-go-client v0.0.0-20191127222459-36981d701c6e
-	github.com/atomix/atomix-k8s-controller v0.0.0-20190905035228-0c2f92a4bc0e
+	github.com/atomix/atomix-k8s-controller v0.0.0-20191128003108-7f54c8829b18
 	github.com/dustinkirkland/golang-petname v0.0.0-20190613200456-11339a705ed2
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
@@ -38,5 +38,3 @@ require (
 	k8s.io/klog v0.3.3
 	sigs.k8s.io/controller-runtime v0.1.12
 )
-
-replace github.com/atomix/atomix-k8s-controller => ../atomix-k8s-controller

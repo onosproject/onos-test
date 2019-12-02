@@ -34,7 +34,7 @@ func getBenchCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("image", "i", "", "the benchmark image to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
-	cmd.Flags().StringToStringP("image-override", "o", map[string]string{}, "a mapping of image overrides")
+	cmd.Flags().StringToString("set", map[string]string{}, "cluster argument overrides")
 	cmd.Flags().StringP("suite", "s", "", "the benchmark suite to run")
 	cmd.Flags().StringP("benchmark", "b", "", "the name of the benchmark to run")
 	cmd.Flags().IntP("clients", "p", 1, "the number of clients to run")
@@ -51,29 +51,31 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 
 	clusterID, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")
-	images, _ := cmd.Flags().GetStringToString("image-override")
 	suite, _ := cmd.Flags().GetString("suite")
 	benchmark, _ := cmd.Flags().GetString("benchmark")
 	clients, _ := cmd.Flags().GetInt("clients")
 	parallelism, _ := cmd.Flags().GetInt("parallel")
 	requests, _ := cmd.Flags().GetInt("requests")
+	sets, _ := cmd.Flags().GetStringToString("set")
 	args, _ := cmd.Flags().GetStringToString("arg")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	noTeardown, _ := cmd.Flags().GetBool("no-teardown")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	env := make(map[string]string)
-	for name, image := range images {
-		env[fmt.Sprintf("IMAGE_%s", strings.ToUpper(name))] = image
+	overrides := []string{}
+	for key, value := range sets {
+		overrides = append(overrides, fmt.Sprintf("%s=%s", key, value))
 	}
 
 	config := &test.BenchmarkConfig{
 		JobConfig: &test.JobConfig{
-			JobID:      random.NewPetName(2),
-			Type:       test.TestTypeBenchmark,
-			Image:      image,
-			Env:        env,
+			JobID: random.NewPetName(2),
+			Type:  test.TestTypeBenchmark,
+			Image: image,
+			Env: map[string]string{
+				"ARGS": strings.Join(overrides, ","),
+			},
 			Timeout:    timeout,
 			PullPolicy: pullPolicy,
 			Teardown:   !noTeardown,
