@@ -3,6 +3,7 @@ package benchmark
 import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"math"
 	"sort"
 	"sync"
 	"time"
@@ -13,8 +14,9 @@ const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNNOPQRSTUVWXYZ1234567890"
 // New returns a new benchmark
 func New() *Benchmark {
 	return &Benchmark{
+		clients:     1,
 		parallelism: 1,
-		iterations:  1,
+		requests:    1,
 	}
 }
 
@@ -26,21 +28,28 @@ type Handler interface {
 
 // Benchmark is a benchmark runner
 type Benchmark struct {
+	clients        int
+	requests       int
 	parallelism    int
-	iterations     int
 	handlerFactory func() Handler
 	handlerArgs    []Arg
 }
 
-// SetParallelism sets the number of parallel handlers to use
-func (b *Benchmark) SetParallelism(parallelism int) *Benchmark {
-	b.parallelism = parallelism
+// SetClients sets the number of clients to use
+func (b *Benchmark) SetClients(clients int) *Benchmark {
+	b.clients = clients
 	return b
 }
 
-// SetIterations sets the total number of iterations to run
-func (b *Benchmark) SetIterations(iterations int) *Benchmark {
-	b.iterations = iterations
+// SetRequests sets the total number of requests to run
+func (b *Benchmark) SetRequests(iterations int) *Benchmark {
+	b.requests = iterations
+	return b
+}
+
+// SetParallelism sets the number of parallel requests to allow per client
+func (b *Benchmark) SetParallelism(parallelism int) *Benchmark {
+	b.parallelism = parallelism
 	return b
 }
 
@@ -70,31 +79,33 @@ func (b *Benchmark) Run() {
 	}
 
 	// Create the handlers
-	handlers := make([]Handler, b.parallelism)
-	for i := 0; i < b.parallelism; i++ {
+	handlers := make([]Handler, b.clients)
+	for i := 0; i < b.clients; i++ {
 		handlers[i] = b.handlerFactory()
 	}
 
 	// Create an iteration channel and wait group and create a goroutine for each handler
 	wg := &sync.WaitGroup{}
-	itCh := make(chan []interface{}, len(handlers))
-	outCh := make(chan time.Duration, b.iterations)
+	itCh := make(chan []interface{}, len(handlers)*b.parallelism)
+	outCh := make(chan time.Duration, b.requests)
 	for _, handler := range handlers {
-		wg.Add(1)
-		go func(handler Handler) {
-			for args := range itCh {
-				start := time.Now()
-				_ = handler.Run(args...)
-				end := time.Now()
-				outCh <- end.Sub(start)
-			}
-			wg.Done()
-		}(handler)
+		for i := 0; i < b.parallelism; i++ {
+			wg.Add(1)
+			go func(handler Handler) {
+				for args := range itCh {
+					start := time.Now()
+					_ = handler.Run(args...)
+					end := time.Now()
+					outCh <- end.Sub(start)
+				}
+				wg.Done()
+			}(handler)
+		}
 	}
 
 	// Create the arguments for benchmark calls
-	args := make([][]interface{}, b.iterations)
-	for i := 0; i < b.iterations; i++ {
+	args := make([][]interface{}, b.requests)
+	for i := 0; i < b.requests; i++ {
 		itArgs := make([]interface{}, len(b.handlerArgs))
 		for j, arg := range b.handlerArgs {
 			itArgs[j] = arg.Next()
@@ -116,11 +127,12 @@ func (b *Benchmark) Run() {
 	end := time.Now()
 	duration := end.Sub(start)
 
+	// Close the output channel
 	close(outCh)
 
 	// Aggregate the results
 	var totalLatency time.Duration
-	results := make([]time.Duration, 0, b.iterations)
+	results := make([]time.Duration, 0, b.requests)
 	for d := range outCh {
 		totalLatency += d
 		results = append(results, d)
@@ -130,18 +142,18 @@ func (b *Benchmark) Run() {
 	})
 
 	meanLatency := time.Duration(int64(totalLatency) / int64(len(results)))
-	latency1 := results[(len(results) / 100) - 1]
-	latency5 := results[(len(results) / 20) - 1]
-	latency25 := results[(len(results) / 4) - 1]
-	latency50 := results[(len(results)/2) - 1]
-	latency75 := results[len(results) - (len(results)/4) - 1]
-	latency95 := results[len(results) - (len(results) / 20) - 1]
-	latency99 := results[len(results) - (len(results) / 100) - 1]
+	latency1 := results[int(math.Max(float64(len(results)/100)-1, 0))]
+	latency5 := results[int(math.Max(float64(len(results)/20)-1, 0))]
+	latency25 := results[int(math.Max(float64(len(results)/4)-1, 0))]
+	latency50 := results[int(math.Max(float64(len(results)/2)-1, 0))]
+	latency75 := results[int(math.Max(float64(len(results)-(len(results)/4)-1), 0))]
+	latency95 := results[int(math.Max(float64(len(results)-(len(results)/20)-1), 0))]
+	latency99 := results[int(math.Max(float64(len(results)-(len(results)/100)-1), 0))]
 
 	// Output the test results
 	println(fmt.Sprintf("Duration: %s", duration.String()))
-	println(fmt.Sprintf("Operations: %d", b.iterations))
-	println(fmt.Sprintf("Operations/sec: %f", float64(b.iterations)/(float64(duration)/float64(time.Second))))
+	println(fmt.Sprintf("Operations: %d", b.requests))
+	println(fmt.Sprintf("Operations/sec: %f", float64(b.requests)/(float64(duration)/float64(time.Second))))
 	println(fmt.Sprintf("Mean latency: %s", meanLatency.String()))
 	println(fmt.Sprintf("1st percentile latency: %s", latency1.String()))
 	println(fmt.Sprintf("5th percentile latency: %s", latency5.String()))
