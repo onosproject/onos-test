@@ -15,9 +15,7 @@
 package cluster
 
 import (
-	"github.com/atomix/atomix-api/proto/atomix/protocols/raft"
 	"github.com/atomix/atomix-k8s-controller/pkg/apis/k8s/v1alpha1"
-	"github.com/ghodss/yaml"
 	"github.com/onosproject/onos-test/pkg/new/util/logging"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -113,11 +111,6 @@ func (s *Partitions) Create() error {
 
 // createPartitionSet creates a Raft partition set from the configuration
 func (s *Partitions) createPartitionSet() error {
-	bytes, err := yaml.Marshal(&raft.RaftProtocol{})
-	if err != nil {
-		return err
-	}
-
 	set := &v1alpha1.PartitionSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "raft",
@@ -133,16 +126,16 @@ func (s *Partitions) createPartitionSet() error {
 					},
 				},
 				Spec: v1alpha1.PartitionSpec{
-					Size:            int32(s.nodes),
-					Protocol:        "raft",
-					Image:           s.image,
-					ImagePullPolicy: s.pullPolicy,
-					Config:          string(bytes),
+					Size: int32(s.nodes),
+					Raft: &v1alpha1.RaftProtocol{
+						Image:           s.image,
+						ImagePullPolicy: s.pullPolicy,
+					},
 				},
 			},
 		},
 	}
-	_, err = s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Create(set)
+	_, err := s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Create(set)
 	return err
 }
 
