@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"regexp"
 	"testing"
+	"time"
 )
 
 const (
@@ -30,7 +31,14 @@ const (
 // TestSingleState tests query of a single GNMI path of a read/only value to a single device
 func (s *SmokeTestSuite) TestSingleState(t *testing.T) {
 	simulator := env.NewSimulator().AddOrDie()
-	waitForConnected(device.ID(simulator.Name()), t)
+	err := simulator.Await(func(d *device.Device) bool {
+		return len(d.Protocols) > 0 &&
+			d.Protocols[0].Protocol == device.Protocol_GNMI &&
+			d.Protocols[0].ConnectivityState == device.ConnectivityState_REACHABLE &&
+			d.Protocols[0].ChannelState == device.ChannelState_CONNECTED &&
+			d.Protocols[0].ServiceState == device.ServiceState_AVAILABLE
+	}, 5*time.Second)
+	assert.NoError(t, err)
 
 	// Make a GNMI client to use for requests
 	c, err := env.Config().NewGNMIClient()

@@ -17,12 +17,16 @@ package env
 import (
 	"context"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
+	"github.com/onosproject/onos-topo/api/device"
 	"github.com/openconfig/gnmi/client"
 	gnmi "github.com/openconfig/gnmi/client/gnmi"
 	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
 	"time"
 )
+
+// DevicePredicate is a function for evaluating the state of a device
+type DevicePredicate func(*device.Device) bool
 
 // SimulatorSetup is an interface for setting up a simulator
 type SimulatorSetup interface {
@@ -118,6 +122,9 @@ type SimulatorEnv interface {
 	// NewGNMIClient returns the gNMI client
 	NewGNMIClient() (*gnmi.Client, error)
 
+	// Await waits for the simulator device state to match the given predicate
+	Await(predicate DevicePredicate, timeout time.Duration) error
+
 	// Remove removes the simulator
 	Remove() error
 
@@ -158,6 +165,10 @@ func (e *clusterSimulatorEnv) NewGNMIClient() (*gnmi.Client, error) {
 		return nil, err
 	}
 	return client, nil
+}
+
+func (e *clusterSimulatorEnv) Await(predicate DevicePredicate, timeout time.Duration) error {
+	return e.simulator.AwaitDevicePredicate(predicate, timeout)
 }
 
 func (e *clusterSimulatorEnv) Remove() error {

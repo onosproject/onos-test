@@ -22,6 +22,7 @@ import (
 	"github.com/onosproject/onos-topo/api/device"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"io"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -366,6 +367,15 @@ func (s *Simulator) awaitReady() error {
 	}
 }
 
+// connectTopo connects to the topo service
+func (s *Simulator) connectTopo() (*grpc.ClientConn, error) {
+	tlsConfig, err := s.Credentials()
+	if err != nil {
+		return nil, err
+	}
+	return grpc.Dial(topoAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+}
+
 // addDevice adds the device to the topo service
 func (s *Simulator) addDevice() error {
 	// If the CLI is available, use it to add the device. Otherwise use the northbound API. This is necessary
@@ -429,6 +439,60 @@ func (s *Simulator) addDeviceByAPI() error {
 		},
 	})
 	return err
+}
+
+// AwaitDevicePredicate waits for the given device predicate
+func (s *Simulator) AwaitDevicePredicate(predicate func(*device.Device) bool, timeout time.Duration) error {
+	conn, err := s.connectTopo()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	client := device.NewDeviceServiceClient(conn)
+
+	// Set a timer within which the device must reach the connected/available state
+	errCh := make(chan error)
+	timer := time.NewTimer(5 * time.Second)
+
+	// Open a stream to listen for events from the device service
+	stream, err := client.List(context.Background(), &device.ListRequest{
+		Subscribe: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	// Start a goroutine to listen for device events from the topo service
+	go func() {
+		for {
+			response, err := stream.Recv()
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				errCh <- err
+				close(errCh)
+				return
+			}
+
+			if predicate(response.Device) {
+				timer.Stop()
+				close(errCh)
+				return
+			}
+		}
+	}()
+
+	select {
+	// If the timer fires, return a timeout error
+	case _, ok := <-timer.C:
+		if !ok {
+			return errors.New("device predicate timed out")
+		}
+		return nil
+	// If an error is received on the error channel, return the error. Otherwise, return nil
+	case err := <-errCh:
+		return err
+	}
 }
 
 // TearDown removes the simulator from the cluster

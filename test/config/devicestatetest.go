@@ -15,11 +15,9 @@
 package config
 
 import (
-	"context"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-topo/api/device"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"testing"
 	"time"
 )
@@ -27,48 +25,12 @@ import (
 // TestDeviceState tests that a device is connected and available.
 func (s *SmokeTestSuite) TestDeviceState(t *testing.T) {
 	simulator := env.NewSimulator().AddOrDie()
-	waitForConnected(device.ID(simulator.Name()), t)
-}
-
-// waitForConnected waits for the given device to connect
-func waitForConnected(id device.ID, t *testing.T) {
-	conn, err := env.Topo().Connect()
+	err := simulator.Await(func(d *device.Device) bool {
+		return len(d.Protocols) > 0 &&
+			d.Protocols[0].Protocol == device.Protocol_GNMI &&
+			d.Protocols[0].ConnectivityState == device.ConnectivityState_REACHABLE &&
+			d.Protocols[0].ChannelState == device.ChannelState_CONNECTED &&
+			d.Protocols[0].ServiceState == device.ServiceState_AVAILABLE
+	}, 5*time.Second)
 	assert.NoError(t, err)
-	client := device.NewDeviceServiceClient(conn)
-
-	// Set a timer within which the device must reach the connected/available state
-	timer := time.NewTimer(5 * time.Second)
-	go func() {
-		_, ok := <-timer.C
-		if !ok {
-			t.Fail()
-		}
-	}()
-
-	// Open a stream to listen for events from the device service
-	stream, err := client.List(context.Background(), &device.ListRequest{
-		Subscribe: true,
-	})
-	assert.NoError(t, err)
-
-	// Wait for a device event indicating the device is connected/available
-	for {
-		response, err := stream.Recv()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			t.Error(err)
-		}
-
-		responseDevice := response.Device
-		assert.Equal(t, responseDevice.ID, id, "Wrong Device")
-		if len(responseDevice.Protocols) > 0 &&
-			responseDevice.Protocols[0].Protocol == device.Protocol_GNMI &&
-			responseDevice.Protocols[0].ConnectivityState == device.ConnectivityState_REACHABLE &&
-			responseDevice.Protocols[0].ChannelState == device.ChannelState_CONNECTED &&
-			responseDevice.Protocols[0].ServiceState == device.ServiceState_AVAILABLE {
-			timer.Stop()
-			break
-		}
-	}
 }
