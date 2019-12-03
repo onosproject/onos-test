@@ -67,7 +67,7 @@ func (r *Runner) Run() error {
 		return err
 	}
 
-	err := r.startTest()
+	err := r.startBenchmark()
 	if err != nil {
 		return err
 	}
@@ -280,9 +280,9 @@ func (r *Runner) createServiceAccount() error {
 	return nil
 }
 
-// startTests starts running a test job
-func (r *Runner) startTest() error {
-	step := logging.NewStep(r.config.JobID, "Starting test")
+// startTests starts running a benchmark job
+func (r *Runner) startBenchmark() error {
+	step := logging.NewStep(r.config.JobID, "Starting benchmark")
 	step.Start()
 	if err := r.createConfig(); err != nil {
 		step.Fail(err)
@@ -300,7 +300,7 @@ func (r *Runner) startTest() error {
 	return nil
 }
 
-// createConfig creates a ConfigMap for the test configuration
+// createConfig creates a ConfigMap for the benchmark configuration
 func (r *Runner) createConfig() error {
 	data, err := yaml.Marshal(r.config)
 	if err != nil {
@@ -447,7 +447,7 @@ func (r *Runner) getStatus() (string, int, error) {
 // getPod finds the Pod for the given test
 func (r *Runner) getPod() (*corev1.Pod, error) {
 	pods, err := r.client.CoreV1().Pods(namespace).List(metav1.ListOptions{
-		LabelSelector: "test=" + r.config.JobID,
+		LabelSelector: "job=" + r.config.JobID,
 	})
 	if err != nil {
 		return nil, err
