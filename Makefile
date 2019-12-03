@@ -8,10 +8,13 @@ ONOS_TEST_DEBUG_VERSION := debug
 ONOS_BUILD_VERSION := stable
 
 build: # @HELP build the Go binaries and run all validations (default)
-build: build-kubetest build-onit
+build: build-kube-test build-kube-bench build-onit
 
-build-kubetest:
-	go build -o build/_output/kubetest ./cmd/kubetest
+build-kube-test:
+	go build -o build/_output/kube-test ./cmd/kube-test
+
+build-kube-bench:
+	go build -o build/_output/kube-bench ./cmd/kube-bench
 
 build-onit:
 	go build -o build/_output/onit ./cmd/onit
