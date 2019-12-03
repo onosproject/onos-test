@@ -19,9 +19,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/atomix/atomix-api/proto/atomix/protocols/raft"
 	"github.com/atomix/atomix-k8s-controller/pkg/apis/k8s/v1alpha1"
-	"github.com/ghodss/yaml"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -105,11 +103,6 @@ func (c *ClusterController) setupPartitions() error {
 
 // createPartitionSet creates a Raft partition set from the configuration
 func (c *ClusterController) createPartitionSet() error {
-	bytes, err := yaml.Marshal(&raft.RaftProtocol{})
-	if err != nil {
-		return err
-	}
-
 	set := &v1alpha1.PartitionSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "raft",
@@ -124,16 +117,16 @@ func (c *ClusterController) createPartitionSet() error {
 					},
 				},
 				Spec: v1alpha1.PartitionSpec{
-					Size:            int32(c.config.PartitionSize),
-					Protocol:        "raft",
-					Image:           c.imageName("atomix/atomix-raft-node", c.config.ImageTags["raft"]),
-					ImagePullPolicy: c.config.PullPolicy,
-					Config:          string(bytes),
+					Size: int32(c.config.PartitionSize),
+					Raft: &v1alpha1.RaftProtocol{
+						Image:           c.imageName("atomix/atomix-raft-node", c.config.ImageTags["raft"]),
+						ImagePullPolicy: c.config.PullPolicy,
+					},
 				},
 			},
 		},
 	}
-	_, err = c.atomixclient.K8sV1alpha1().PartitionSets(c.clusterID).Create(set)
+	_, err := c.atomixclient.K8sV1alpha1().PartitionSets(c.clusterID).Create(set)
 	return err
 }
 
