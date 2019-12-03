@@ -16,10 +16,10 @@ package config
 
 import (
 	"github.com/onosproject/onos-test/pkg/onit/env"
+	"github.com/onosproject/onos-topo/api/device"
+	"github.com/stretchr/testify/assert"
 	"regexp"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -30,6 +30,7 @@ const (
 // TestSingleState tests query of a single GNMI path of a read/only value to a single device
 func (s *SmokeTestSuite) TestSingleState(t *testing.T) {
 	simulator := env.NewSimulator().AddOrDie()
+	waitForConnected(device.ID(simulator.Name()), t)
 
 	// Make a GNMI client to use for requests
 	c, err := env.Config().NewGNMIClient()
@@ -42,6 +43,6 @@ func (s *SmokeTestSuite) TestSingleState(t *testing.T) {
 	assert.NotEqual(t, "", valueAfter, "Query after state returned an error: %s\n", errorAfter)
 	re := regexp.MustCompile(stateValueRegexp)
 	match := re.MatchString(valueAfter[0].pathDataValue)
-	assert.Equal(t, match, true, "Query for state returned the wrong value: %s\n", valueAfter)
+	assert.True(t, match, "Query for state returned the wrong value: %s\n", valueAfter)
 	assert.Equal(t, 0, len(extensions))
 }

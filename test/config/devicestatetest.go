@@ -27,7 +27,11 @@ import (
 // TestDeviceState tests that a device is connected and available.
 func (s *SmokeTestSuite) TestDeviceState(t *testing.T) {
 	simulator := env.NewSimulator().AddOrDie()
+	waitForConnected(device.ID(simulator.Name()), t)
+}
 
+// waitForConnected waits for the given device to connect
+func waitForConnected(id device.ID, t *testing.T) {
 	conn, err := env.Topo().Connect()
 	assert.NoError(t, err)
 	client := device.NewDeviceServiceClient(conn)
@@ -57,7 +61,7 @@ func (s *SmokeTestSuite) TestDeviceState(t *testing.T) {
 		}
 
 		responseDevice := response.Device
-		assert.Equal(t, responseDevice.ID, device.ID(simulator.Name()), "Wrong Device")
+		assert.Equal(t, responseDevice.ID, id, "Wrong Device")
 		if len(responseDevice.Protocols) > 0 &&
 			responseDevice.Protocols[0].Protocol == device.Protocol_GNMI &&
 			responseDevice.Protocols[0].ConnectivityState == device.ConnectivityState_REACHABLE &&
