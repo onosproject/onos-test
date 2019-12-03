@@ -32,7 +32,6 @@ import (
 func newService(name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string, client *client) *Service {
 	return &Service{
 		Deployment: newDeployment(name, labels, image, client),
-		replicas:   GetArg(name, "replicas").Int(1),
 		ports:      ports,
 		secrets:    secrets,
 		env:        make(map[string]string),
@@ -84,7 +83,7 @@ func (s *Service) AddPort(name string, port int) {
 
 // Debug returns whether debug is enabled
 func (s *Service) Debug() bool {
-	return s.debug
+	return GetArg(s.name, "debug").Bool(s.debug)
 }
 
 // SetDebug sets whether debug is enabled
@@ -113,7 +112,7 @@ func (s *Service) Address(port string) string {
 
 // Replicas returns the number of nodes in the service
 func (s *Service) Replicas() int {
-	return s.replicas
+	return GetArg(s.name, "replicas").Int(s.replicas)
 }
 
 // SetReplicas sets the number of nodes in the service
@@ -133,7 +132,7 @@ func (s *Service) SetUser(user int) {
 
 // Privileged returns whether to run the service in privileged mode
 func (s *Service) Privileged() bool {
-	return s.privileged
+	return GetArg(s.name, "privileged").Bool(s.privileged)
 }
 
 // SetPrivileged sets whether to run the service in privileged mode
