@@ -29,6 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
+	"math"
 	"os"
 	"sync"
 	"text/tabwriter"
@@ -517,7 +518,7 @@ func (c *Cluster) RunBenchmarks(config *CoordinatorConfig) error {
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	fmt.Fprintln(writer, "BENCHMARK\tREQUESTS\tDURATION\tTHROUGHPUT\tMEAN LATENCY\tMEDIAN LATENCY\t75% LATENCY\t95% LATENCY\t99% LATENCY")
 	for _, result := range results {
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%d\t%s\t%f\t%s\t%s\t%s\t%s\t%s",
+		fmt.Fprintln(writer, fmt.Sprintf("%s\t%d\t%s\t%f/sec\t%s\t%s\t%s\t%s\t%s",
 			result.benchmark, result.requests, result.duration, result.throughput, result.meanLatency,
 			result.latencyPercentiles[.5], result.latencyPercentiles[.75],
 			result.latencyPercentiles[.95], result.latencyPercentiles[.99]))
@@ -561,13 +562,8 @@ func (c *Cluster) runBenchmark(benchmark string, config *CoordinatorConfig) (res
 		return result{}, err
 	}
 
-	results := make([]*Result, 0, len(workers))
-	for result := range resultCh {
-		results = append(results, result)
-	}
-
+	var duration time.Duration
 	var requests uint32
-	var throughputSum float64
 	var latencySum time.Duration
 	var latency50Sum time.Duration
 	var latency75Sum time.Duration
@@ -575,16 +571,15 @@ func (c *Cluster) runBenchmark(benchmark string, config *CoordinatorConfig) (res
 	var latency99Sum time.Duration
 	for result := range resultCh {
 		requests += result.Requests
-		throughputSum += float64(result.Requests) / (float64(result.Duration) / float64(time.Second))
+		duration = time.Duration(math.Max(float64(duration), float64(result.Duration)))
 		latencySum += result.Latency
-		latency50Sum += result.Latency
-		latency75Sum += result.Latency
-		latency95Sum += result.Latency
-		latency99Sum += result.Latency
+		latency50Sum += result.Latency50
+		latency75Sum += result.Latency75
+		latency95Sum += result.Latency95
+		latency99Sum += result.Latency99
 	}
 
-	throughput := throughputSum / float64(len(workers))
-	duration := time.Duration(throughput * float64(requests) * float64(time.Second))
+	throughput := float64(requests) / (float64(duration) / float64(time.Second))
 	meanLatency := time.Duration(float64(latencySum) / float64(len(workers)))
 	latencyPercentiles := make(map[float32]time.Duration)
 	latencyPercentiles[.5] = time.Duration(float64(latency50Sum) / float64(len(workers)))
