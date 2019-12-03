@@ -1,0 +1,54 @@
+/*
+Copyright 2019-present Open Networking Foundation.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package onos.test.benchmark;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+
+// Request is a benchmark request
+message Request {
+    // Benchmark is the benchmark to run
+    string benchmark = 1;
+
+    // Requests is the number of requests to run
+    uint32 requests = 2;
+}
+
+// Result is a benchmark result
+message Result {
+    // requests is the number of requests that were run
+    uint32 requests = 1;
+
+    // duration is the duration of the test run
+    google.protobuf.Duration duration = 2 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+
+    // latency is the mean latency
+    google.protobuf.Duration latency = 3 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+
+    // latency* are latency percentiles
+    google.protobuf.Duration latency50 = 4 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+    google.protobuf.Duration latency75 = 5 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+    google.protobuf.Duration latency95 = 6 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+    google.protobuf.Duration latency99 = 7 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+}
+
+// WorkerService is a benchmark worker service
+service WorkerService {
+    rpc RunBenchmark (Request) returns (Result);
+}

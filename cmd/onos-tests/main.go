@@ -17,24 +17,20 @@ package main
 import (
 	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/onosproject/onos-test/test/config"
-	"github.com/onosproject/onos-test/test/grpc"
 	"github.com/onosproject/onos-test/test/nopaxos"
 	"github.com/onosproject/onos-test/test/raft"
 	"github.com/onosproject/onos-test/test/topo"
 )
 
 func main() {
-	test.RegisterTests("raft", &raft.SmokeTestSuite{})
-	test.RegisterTests("raft-ha", &raft.HATestSuite{})
-	test.RegisterTests("nopaxos", &nopaxos.SmokeTestSuite{})
-	test.RegisterTests("nopaxos-ha", &nopaxos.HATestSuite{})
-	test.RegisterTests("topo", &topo.TestSuite{})
-	test.RegisterTests("config", &config.SmokeTestSuite{})
-	test.RegisterTests("config-cli", &config.CLITestSuite{})
-	test.RegisterTests("config-ha", &config.HATestSuite{})
-
-	test.RegisterBenchmarks("nopaxos", &nopaxos.MapBenchmarkSuite{})
-	test.RegisterBenchmarks("grpc", &grpc.GRPCBenchmarkSuite{})
+	test.Register("raft", &raft.SmokeTestSuite{})
+	test.Register("raft-ha", &raft.HATestSuite{})
+	test.Register("nopaxos", &nopaxos.SmokeTestSuite{})
+	test.Register("nopaxos-ha", &nopaxos.HATestSuite{})
+	test.Register("topo", &topo.TestSuite{})
+	test.Register("config", &config.SmokeTestSuite{})
+	test.Register("config-cli", &config.CLITestSuite{})
+	test.Register("config-ha", &config.HATestSuite{})
 
 	test.Main()
 }

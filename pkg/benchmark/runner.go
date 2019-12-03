@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package test
+package benchmark
 
 import (
 	"bufio"
@@ -32,34 +32,19 @@ import (
 	"time"
 )
 
-const namespace = "kube-test"
-const configName = "tests"
-
-// Status test status
-type Status string
-
-const (
-	// StatusRunning running
-	StatusRunning Status = "RUNNING"
-
-	// StatusPassed passed
-	StatusPassed Status = "PASSED"
-
-	// StatusFailed failed
-	StatusFailed Status = "FAILED"
-)
+const namespace = "kube-bench"
+const configName = "benchmarks"
 
 // Record contains information about a test run
 type Record struct {
 	TestID   string
 	Args     []string
-	Status   Status
 	Message  string
 	ExitCode int
 }
 
 // NewRunner returns a new test runner
-func NewRunner(config *Config) (*Runner, error) {
+func NewRunner(config *CoordinatorConfig) (*Runner, error) {
 	kubeAPI, err := kube.GetAPI(config.JobID)
 	if err != nil {
 		return nil, err
@@ -73,10 +58,10 @@ func NewRunner(config *Config) (*Runner, error) {
 // Runner is a test runner
 type Runner struct {
 	client *kubernetes.Clientset
-	config *Config
+	config *CoordinatorConfig
 }
 
-// Run runs the test
+// Run runs the benchmark
 func (r *Runner) Run() error {
 	if err := r.ensureNamespace(); err != nil {
 		return err
@@ -87,7 +72,7 @@ func (r *Runner) Run() error {
 		return err
 	}
 
-	step := logging.NewStep(r.config.JobID, "Run test")
+	step := logging.NewStep(r.config.JobID, "Run benchmark")
 	step.Start()
 
 	// Get the stream of logs for the pod
@@ -96,7 +81,7 @@ func (r *Runner) Run() error {
 		step.Fail(err)
 		return err
 	} else if pod == nil {
-		return errors.New("cannot locate test pod")
+		return errors.New("cannot locate benchmark pod")
 	}
 
 	req := r.client.CoreV1().Pods(namespace).GetLogs(pod.Name, &corev1.PodLogOptions{
@@ -299,15 +284,15 @@ func (r *Runner) createServiceAccount() error {
 func (r *Runner) startTest() error {
 	step := logging.NewStep(r.config.JobID, "Starting test")
 	step.Start()
-	if err := r.createTestConfig(); err != nil {
+	if err := r.createConfig(); err != nil {
 		step.Fail(err)
 		return err
 	}
-	if err := r.createTestJob(); err != nil {
+	if err := r.createJob(); err != nil {
 		step.Fail(err)
 		return err
 	}
-	if err := r.awaitTestJobRunning(); err != nil {
+	if err := r.awaitRunning(); err != nil {
 		step.Fail(err)
 		return err
 	}
@@ -315,8 +300,8 @@ func (r *Runner) startTest() error {
 	return nil
 }
 
-// createTestConfig creates a ConfigMap for the test configuration
-func (r *Runner) createTestConfig() error {
+// createConfig creates a ConfigMap for the test configuration
+func (r *Runner) createConfig() error {
 	data, err := yaml.Marshal(r.config)
 	if err != nil {
 		return err
@@ -349,8 +334,8 @@ func (r *Runner) createTestConfig() error {
 	return err
 }
 
-// createTestJob creates the job to run tests
-func (r *Runner) createTestJob() error {
+// createJob creates the job to run tests
+func (r *Runner) createJob() error {
 	step := logging.NewStep(r.config.JobID, "Deploy test coordinator")
 	step.Start()
 
@@ -361,7 +346,7 @@ func (r *Runner) createTestJob() error {
 			Name:      r.config.JobID,
 			Namespace: namespace,
 			Annotations: map[string]string{
-				"test-id": r.config.JobID,
+				"job-id": r.config.JobID,
 			},
 		},
 		Spec: batchv1.JobSpec{
@@ -371,7 +356,7 @@ func (r *Runner) createTestJob() error {
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"test": r.config.JobID,
+						"job": r.config.JobID,
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -429,8 +414,8 @@ func (r *Runner) createTestJob() error {
 	return nil
 }
 
-// awaitTestJobRunning blocks until the test job creates a pod in the RUNNING state
-func (r *Runner) awaitTestJobRunning() error {
+// awaitRunning blocks until the test job creates a pod in the RUNNING state
+func (r *Runner) awaitRunning() error {
 	for {
 		pod, err := r.getPod()
 		if err != nil {
@@ -534,13 +519,6 @@ func (r *Runner) getRecord(job batchv1.Job) (Record, error) {
 	if state.Terminated != nil {
 		record.Message = state.Terminated.Message
 		record.ExitCode = int(state.Terminated.ExitCode)
-		if record.ExitCode == 0 {
-			record.Status = StatusPassed
-		} else {
-			record.Status = StatusFailed
-		}
-	} else {
-		record.Status = StatusRunning
 	}
 
 	return record, nil

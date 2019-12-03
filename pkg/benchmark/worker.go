@@ -12,56 +12,53 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package test
+package benchmark
 
 import (
-	"fmt"
+	"context"
+	"errors"
 	"github.com/onosproject/onos-test/pkg/kube"
-	"os"
+	"google.golang.org/grpc"
+	"net"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"testing"
 )
 
-// newWorker returns a new test worker
-func newWorker(test *Config) (*Worker, error) {
-	kubeAPI, err := kube.GetAPI(test.JobID)
+// newWorker returns a new benchmark worker
+func newWorker(config *WorkerConfig) (*Worker, error) {
+	kubeAPI, err := kube.GetAPI(config.JobID)
 	if err != nil {
 		return nil, err
 	}
+	suite := Registry.benchmarks[config.Suite]
+	if suite == nil {
+		return nil, errors.New("unknown benchmark suite")
+	}
 	return &Worker{
 		client: kubeAPI.Client(),
-		config: test,
+		config: config,
+		suite:  suite,
 	}, nil
 }
 
-// Worker runs a test job
+// Worker runs a benchmark job
 type Worker struct {
 	client client.Client
-	config *Config
+	config *WorkerConfig
+	suite  BenchmarkingSuite
 }
 
-// Run runs a test
+// Run runs a benchmark
 func (w *Worker) Run() error {
-	test, ok := Registry.tests[w.config.Suite]
-	if !ok {
-		return fmt.Errorf("unknown test suite %s", w.config.Suite)
+	setupSuite(w.suite, w.config)
+	lis, err := net.Listen("tcp", ":5000")
+	if err != nil {
+		return err
 	}
+	server := grpc.NewServer()
+	RegisterWorkerServiceServer(server, w)
+	return server.Serve(lis)
+}
 
-	tests := []testing.InternalTest{
-		{
-			Name: w.config.Suite,
-			F: func(t *testing.T) {
-				RunTests(t, test, w.config)
-			},
-		},
-	}
-
-	// Hack to enable verbose testing.
-	os.Args = []string{
-		os.Args[0],
-		"-test.v",
-	}
-
-	testing.Main(func(_, _ string) (bool, error) { return true, nil }, tests, nil, nil)
-	return nil
+func (w *Worker) RunBenchmark(ctx context.Context, request *Request) (*Result, error) {
+	return runBenchmark(request.Benchmark, int(request.Requests), w.suite, w.config)
 }

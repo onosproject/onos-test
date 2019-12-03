@@ -60,26 +60,23 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		overrides = append(overrides, fmt.Sprintf("%s=%s", key, value))
 	}
 
-	config := &test.TestConfig{
-		JobConfig: &test.JobConfig{
-			JobID:      random.NewPetName(2),
-			Type:       test.TestTypeTest,
-			Image:      image,
-			Env: map[string]string{
-				"ARGS": strings.Join(overrides, ","),
-			},
-			Timeout:    timeout,
-			PullPolicy: corev1.PullPolicy(pullPolicy),
-			Teardown:   !noTeardown,
+	config := &test.Config{
+		JobID: random.NewPetName(2),
+		Image: image,
+		Env: map[string]string{
+			"ARGS": strings.Join(overrides, ","),
 		},
-		Suite: suite,
-		Test:  testName,
+		Timeout:    timeout,
+		PullPolicy: corev1.PullPolicy(pullPolicy),
+		Teardown:   !noTeardown,
+		Suite:      suite,
+		Test:       testName,
 	}
 
 	// If the cluster ID was not specified, create a new cluster to run the test
 	// Otherwise, deploy the test in the existing cluster
 	if clusterID == "" {
-		runner, err := test.NewTestRunner(config)
+		runner, err := test.NewRunner(config)
 		if err != nil {
 			return err
 		}

@@ -12,80 +12,67 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cli
+package benchmark
 
 import (
-	"fmt"
-	"github.com/onosproject/onos-test/pkg/benchmark"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	"strings"
+	"math/rand"
 	"time"
 )
 
-func getBenchCommand() *cobra.Command {
+// GetCommand returns the test command
+func GetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "benchmark",
-		Aliases: []string{"benchmarks", "bench"},
-		Short:   "Run benchmarks on Kubernetes",
-		RunE:    runBenchCommand,
+		Use:   "kube-bench",
+		Short: "Start and manage Kubernetes benchmarks",
+		RunE:  runBenchCommand,
 	}
-	cmd.Flags().StringP("image", "i", "", "the benchmark image to run")
-	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
-	cmd.Flags().StringToString("set", map[string]string{}, "cluster argument overrides")
+	cmd.Flags().StringP("image", "i", "", "the test image to run")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the image pull policy to use")
 	cmd.Flags().StringP("suite", "s", "", "the benchmark suite to run")
 	cmd.Flags().StringP("benchmark", "b", "", "the name of the benchmark to run")
 	cmd.Flags().IntP("workers", "w", 1, "the number of workers to run")
 	cmd.Flags().IntP("parallel", "p", 1, "the number of concurrent goroutines per client")
 	cmd.Flags().IntP("requests", "n", 1, "the number of requests to run")
-	cmd.Flags().StringToStringP("arg", "a", map[string]string{}, "a mapping of named benchmark arguments")
-	cmd.Flags().Duration("timeout", 10*time.Minute, "benchmark timeout")
-	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
+	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named benchmark arguments")
+	cmd.Flags().Duration("timeout", 0, "the test timeout")
 	return cmd
 }
 
+// runBenchCommand runs the bench command
 func runBenchCommand(cmd *cobra.Command, _ []string) error {
-	runCommand(cmd)
-
 	image, _ := cmd.Flags().GetString("image")
+	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	suite, _ := cmd.Flags().GetString("suite")
-	benchmarkName, _ := cmd.Flags().GetString("benchmark")
+	benchmark, _ := cmd.Flags().GetString("benchmark")
 	workers, _ := cmd.Flags().GetInt("workers")
 	parallelism, _ := cmd.Flags().GetInt("parallel")
 	requests, _ := cmd.Flags().GetInt("requests")
-	sets, _ := cmd.Flags().GetStringToString("set")
-	args, _ := cmd.Flags().GetStringToString("arg")
+	args, _ := cmd.Flags().GetStringToString("args")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
-	noTeardown, _ := cmd.Flags().GetBool("no-teardown")
-	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
-	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	overrides := []string{}
-	for key, value := range sets {
-		overrides = append(overrides, fmt.Sprintf("%s=%s", key, value))
-	}
-
-	config := &benchmark.CoordinatorConfig{
-		JobID: random.NewPetName(2),
-		Image: image,
-		Env: map[string]string{
-			"ARGS": strings.Join(overrides, ","),
-		},
+	config := &CoordinatorConfig{
+		JobID:       random.NewPetName(2),
+		Image:       image,
 		Timeout:     timeout,
-		PullPolicy:  pullPolicy,
-		Teardown:    !noTeardown,
+		PullPolicy:  corev1.PullPolicy(pullPolicy),
 		Suite:       suite,
-		Benchmark:   benchmarkName,
+		Benchmark:   benchmark,
 		Workers:     workers,
 		Parallelism: parallelism,
 		Requests:    requests,
 		Args:        args,
 	}
 
-	runner, err := benchmark.NewRunner(config)
+	runner, err := NewRunner(config)
 	if err != nil {
 		return err
 	}
 	return runner.Run()
+}
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
 }

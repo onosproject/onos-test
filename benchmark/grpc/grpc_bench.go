@@ -16,16 +16,17 @@ package grpc
 
 import (
 	"context"
+	"github.com/onosproject/onos-test/pkg/benchmark"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
-	"github.com/onosproject/onos-test/pkg/test"
 	"google.golang.org/grpc"
 )
 
 type GRPCBenchmarkSuite struct {
-	test.BenchmarkSuite
+	benchmark.Suite
+	client TestServiceClient
 }
 
-func (s *GRPCBenchmarkSuite) SetupBenchmarkSuite(c *test.Context) {
+func (s *GRPCBenchmarkSuite) SetupBenchmarkSuite(c *benchmark.Context) {
 	setup.App("test").
 		SetImage("onosproject/grpc-test:latest").
 		AddPort("grpc", 8080).
@@ -33,22 +34,20 @@ func (s *GRPCBenchmarkSuite) SetupBenchmarkSuite(c *test.Context) {
 	setup.SetupOrDie()
 }
 
-func (s *GRPCBenchmarkSuite) SetupBenchmark(b *test.Benchmark) {
-	b.Init(func() (TestServiceClient, error) {
-		conn, err := grpc.Dial("test:8080", grpc.WithInsecure())
-		if err != nil {
-			panic(err)
-		}
-		return NewTestServiceClient(conn), nil
-	})
+func (s *GRPCBenchmarkSuite) SetupBenchmark(b *benchmark.Benchmark) {
+	conn, err := grpc.Dial("test:8080", grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+	s.client = NewTestServiceClient(conn)
 }
 
-func (s *GRPCBenchmarkSuite) BenchmarkGRPCRequestReply(b *test.Benchmark) {
-	params := []test.Param{
-		test.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
+func (s *GRPCBenchmarkSuite) BenchmarkGRPCRequestReply(b *benchmark.Benchmark) {
+	params := []benchmark.Param{
+		benchmark.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
 	}
-	b.Run(func(client TestServiceClient, value []byte) error {
-		_, err := client.RequestReply(context.Background(), &Message{
+	b.Run(func(value []byte) error {
+		_, err := s.client.RequestReply(context.Background(), &Message{
 			Value: value,
 		})
 		return err

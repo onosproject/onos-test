@@ -27,7 +27,7 @@ import (
 
 // TestSuite tests the topo service
 type TestSuite struct {
-	test.TestSuite
+	test.Suite
 }
 
 // SetupTestSuite sets up the topo test suite

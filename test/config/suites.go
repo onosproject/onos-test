@@ -20,7 +20,7 @@ import (
 )
 
 type testSuite struct {
-	test.TestSuite
+	test.Suite
 }
 
 // SmokeTestSuite is the primary onos-config test suite

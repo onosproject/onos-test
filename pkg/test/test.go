@@ -26,8 +26,8 @@ import (
 // TestingSuite is a suite of tests
 type TestingSuite interface{}
 
-// TestSuite is an identifier interface for test suites
-type TestSuite struct{}
+// Suite is an identifier interface for test suites
+type Suite struct{}
 
 // SetupTestSuite is an interface for setting up a suite of tests
 type SetupTestSuite interface {
@@ -68,7 +68,7 @@ func failTestOnPanic(t *testing.T) {
 }
 
 // RunTests runs a test suite
-func RunTests(t *testing.T, suite TestingSuite, config *TestConfig) {
+func RunTests(t *testing.T, suite TestingSuite, config *Config) {
 	defer failTestOnPanic(t)
 
 	suiteSetupDone := false
@@ -131,7 +131,7 @@ func runTests(t *testing.T, tests []testing.InternalTest) {
 }
 
 // testFilter filters test method names
-func testFilter(name string, config *TestConfig) (bool, error) {
+func testFilter(name string, config *Config) (bool, error) {
 	if ok, _ := regexp.MatchString("^Test", name); !ok {
 		return false, nil
 	}

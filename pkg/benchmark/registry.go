@@ -12,29 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package benchmark
 
-import (
-	"context"
-	grpc_bench "github.com/onosproject/onos-test/benchmark/grpc"
-	"google.golang.org/grpc"
-	"net"
-)
-
-func main() {
-	service := &Service{}
-	server := grpc.NewServer()
-	grpc_bench.RegisterTestServiceServer(server, service)
-	lis, err := net.Listen("tcp", ":8080")
-	if err != nil {
-		panic(err)
-	}
-	server.Serve(lis)
+// Register registers a benchmark suite
+func Register(name string, suite BenchmarkingSuite) {
+	Registry.Register(name, suite)
 }
 
-type Service struct {
+// Registry is the global benchmark registry
+var Registry = &registry{
+	benchmarks: make(map[string]BenchmarkingSuite),
 }
 
-func (s *Service) RequestReply(ctx context.Context, message *grpc_bench.Message) (*grpc_bench.Message, error) {
-	return message, nil
+// registry is a registry of runnable benchmarks
+type registry struct {
+	benchmarks map[string]BenchmarkingSuite
+}
+
+// Register registers a benchmark suite
+func (s *registry) Register(name string, suite BenchmarkingSuite) {
+	s.benchmarks[name] = suite
 }

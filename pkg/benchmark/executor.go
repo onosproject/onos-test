@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package test
+package benchmark
 
 import (
 	"os"
 )
 
-// The executor is the entrypoint for test images. It takes the input and environment and runs
+// The executor is the entrypoint for benchmark images. It takes the input and environment and runs
 // the image in the appropriate context according to the arguments.
 
 // TestContext is the context in which a test image is running
@@ -35,7 +35,7 @@ const (
 // Main runs a test
 func Main() {
 	if err := Run(); err != nil {
-		println("Test run failed " + err.Error())
+		println("Benchmark failed " + err.Error())
 		os.Exit(1)
 	}
 	os.Exit(0)
@@ -43,15 +43,19 @@ func Main() {
 
 // Run runs a test
 func Run() error {
-	config, err := loadConfig()
-	if err != nil {
-		return err
-	}
 	context := getTestContext()
 	switch context {
 	case testContextCoordinator:
+		config, err := loadCoordinatorConfig()
+		if err != nil {
+			return err
+		}
 		return runCoordinator(config)
 	case testContextWorker:
+		config, err := loadWorkerConfig()
+		if err != nil {
+			return err
+		}
 		return runWorker(config)
 	}
 	return nil
@@ -63,7 +67,7 @@ func getTestContext() TestContext {
 }
 
 // runCoordinator runs a test image in the coordinator context
-func runCoordinator(config *Config) error {
+func runCoordinator(config *CoordinatorConfig) error {
 	coordinator, err := newCoordinator(config)
 	if err != nil {
 		return err
@@ -72,7 +76,7 @@ func runCoordinator(config *Config) error {
 }
 
 // runWorker runs a test image in the worker context
-func runWorker(config *Config) error {
+func runWorker(config *WorkerConfig) error {
 	worker, err := newWorker(config)
 	if err != nil {
 		return err

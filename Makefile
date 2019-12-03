@@ -69,18 +69,27 @@ onos-tests-docker:
 		--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
 		-t onosproject/onos-tests:${ONOS_TEST_VERSION}
 
+onos-benchmarks-docker: # @HELP build onos-benchmarks Docker image
+onos-benchmarks-docker:
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/onos-benchmarks/_output/bin/onos-benchmarks ./cmd/onos-benchmarks
+	docker build . -f build/onos-benchmarks/Dockerfile \
+		--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
+		-t onosproject/onos-benchmarks:${ONOS_TEST_VERSION}
+
 images: # @HELP build all Docker images
-images: onos-tests-docker grpc-test-docker
+images: onos-tests-docker onos-benchmarks-docker grpc-test-docker
 
 kind: # @HELP build Docker images and add them to the currently configured kind cluster
 kind: images
 	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
 	kind load docker-image onosproject/onos-tests:${ONOS_TEST_VERSION}
+	kind load docker-image onosproject/onos-benchmarks:${ONOS_TEST_VERSION}
 
 k3d: # @HELP build Docker images and add them to the currently configured k3d cluster
 k3d: images
 	@if [ "`k3d list`" = '' ]; then echo "no k3d cluster found" && exit 1; fi
 	k3d import-images onosproject/onos-tests:${ONOS_TEST_VERSION}
+	k3d import-images onosproject/onos-benchmarks:${ONOS_TEST_VERSION}
 
 all: build images
 

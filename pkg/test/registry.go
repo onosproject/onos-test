@@ -14,34 +14,22 @@
 
 package test
 
-// RegisterTests registers a test suite
-func RegisterTests(name string, suite TestingSuite) {
-	Registry.RegisterTests(name, suite)
-}
-
-// RegisterBenchmarks registers a benchmark suite
-func RegisterBenchmarks(name string, suite BenchmarkingSuite) {
-	Registry.RegisterBenchmarks(name, suite)
+// Register registers a test suite
+func Register(name string, suite TestingSuite) {
+	Registry.Register(name, suite)
 }
 
 // Registry is the global test registry
 var Registry = &TestRegistry{
-	tests:      make(map[string]TestingSuite),
-	benchmarks: make(map[string]BenchmarkingSuite),
+	tests: make(map[string]TestingSuite),
 }
 
 // TestRegistry is a registry of runnable tests
 type TestRegistry struct {
-	tests      map[string]TestingSuite
-	benchmarks map[string]BenchmarkingSuite
+	tests map[string]TestingSuite
 }
 
-// RegisterTests registers a test suite
-func (s *TestRegistry) RegisterTests(name string, suite TestingSuite) {
+// Register registers a test suite
+func (s *TestRegistry) Register(name string, suite TestingSuite) {
 	s.tests[name] = suite
-}
-
-// RegisterBenchmarks registers a benchmark suite
-func (s *TestRegistry) RegisterBenchmarks(name string, suite BenchmarkingSuite) {
-	s.benchmarks[name] = suite
 }

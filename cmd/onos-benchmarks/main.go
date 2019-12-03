@@ -15,26 +15,14 @@
 package main
 
 import (
-	"context"
-	grpc_bench "github.com/onosproject/onos-test/benchmark/grpc"
-	"google.golang.org/grpc"
-	"net"
+	"github.com/onosproject/onos-test/benchmark/grpc"
+	"github.com/onosproject/onos-test/benchmark/nopaxos"
+	"github.com/onosproject/onos-test/pkg/benchmark"
 )
 
 func main() {
-	service := &Service{}
-	server := grpc.NewServer()
-	grpc_bench.RegisterTestServiceServer(server, service)
-	lis, err := net.Listen("tcp", ":8080")
-	if err != nil {
-		panic(err)
-	}
-	server.Serve(lis)
-}
+	benchmark.Register("nopaxos", &nopaxos.MapBenchmarkSuite{})
+	benchmark.Register("grpc", &grpc.GRPCBenchmarkSuite{})
 
-type Service struct {
-}
-
-func (s *Service) RequestReply(ctx context.Context, message *grpc_bench.Message) (*grpc_bench.Message, error) {
-	return message, nil
+	benchmark.Main()
 }

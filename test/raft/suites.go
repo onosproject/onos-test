@@ -21,7 +21,7 @@ import (
 
 // testSuite is a suite of tests for Atomix primitives
 type testSuite struct {
-	test.TestSuite
+	test.Suite
 }
 
 // SetupTestSuite sets up the Atomix test suite

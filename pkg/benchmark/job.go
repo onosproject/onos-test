@@ -12,27 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package test
+package benchmark
 
-import (
-	"k8s.io/api/core/v1"
-)
-
-// Job manages a single test job for a suite
+// Job manages a single benchmark job for a suite
 type Job struct {
-	cluster *TestCluster
-	config  *Config
+	cluster *Cluster
+	config  *CoordinatorConfig
 }
 
 // start starts the test job
-func (j *Job) start() error {
+func (j *Job) run() error {
 	if err := j.cluster.Create(); err != nil {
 		return err
 	}
-	if err := j.cluster.StartTest(j.config); err != nil {
+	if err := j.cluster.CreateWorkers(j.config); err != nil {
 		return err
 	}
-	if err := j.cluster.awaitTestJobRunning(j.config); err != nil {
+	if err := j.cluster.RunBenchmarks(j.config); err != nil {
 		return err
 	}
 	return nil
@@ -40,12 +36,7 @@ func (j *Job) start() error {
 
 // getStatus gets the status message and exit code of the given pod
 func (j *Job) getStatus() (string, int, error) {
-	return j.cluster.GetTestResult(j.config)
-}
-
-// getPod finds the Pod for the given test
-func (j *Job) getPod() (*v1.Pod, error) {
-	return j.cluster.getPod(j.config)
+	return j.cluster.GetResult(j.config)
 }
 
 // tearDown tears down the job

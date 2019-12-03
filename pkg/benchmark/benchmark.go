@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package test
+package benchmark
 
 import (
 	"fmt"
 	"math"
 	"math/rand"
-	"os"
 	"reflect"
 	"regexp"
 	"sort"
@@ -32,8 +31,8 @@ const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNNOPQRSTUVWXYZ1234567890"
 // BenchmarkingSuite is a suite of benchmarks
 type BenchmarkingSuite interface{}
 
-// BenchmarkSuite is an identifier interface for benchmark suites
-type BenchmarkSuite struct{}
+// Suite is an identifier interface for benchmark suites
+type Suite struct{}
 
 // SetupBenchmarkSuite is an interface for setting up a suite of benchmarks
 type SetupBenchmarkSuite interface {
@@ -67,7 +66,7 @@ type AfterBenchmark interface {
 
 // Context provides the benchmark context
 type Context struct {
-	config *BenchmarkConfig
+	config *WorkerConfig
 }
 
 // GetArg gets a benchmark argument
@@ -77,7 +76,7 @@ func (c *Context) GetArg(name string) *Arg {
 			value: value,
 		}
 	}
-	return nil
+	return &Arg{}
 }
 
 // Arg is a benchmark argument
@@ -105,10 +104,11 @@ func (a *Arg) String(def string) string {
 	return a.value
 }
 
-func newBenchmark(name string, context *Context) *Benchmark {
+func newBenchmark(name string, requests int, context *Context) *Benchmark {
 	return &Benchmark{
-		Context: context,
-		Name:    name,
+		Context:  context,
+		requests: requests,
+		Name:     name,
 	}
 }
 
@@ -117,25 +117,26 @@ type Benchmark struct {
 	*Context
 
 	// Name is the name of the benchmark
-	Name string
-	init interface{}
+	Name     string
+	requests int
+	result   *Result
 }
 
-// Init supplies a function for initializing the benchmark client
-func (b *Benchmark) Init(f interface{}) {
-	b.init = f
+// getResult returns the benchmark result
+func (b *Benchmark) getResult() *Result {
+	return b.result
 }
 
 // Run runs the benchmark with the given parameters
 func (b *Benchmark) Run(f interface{}, params ...Param) {
 	// Prepare the benchmark arguments
-	handler, clients := b.prepare(b.init, f, params)
+	handler := b.prepare(f, params)
 
 	// Warm the benchmark
-	b.warm(handler, clients, params)
+	b.warm(handler, params)
 
 	// Run the benchmark
-	runTime, results := b.run(handler, clients, params)
+	runTime, results := b.run(handler, params)
 
 	// Calculate the total latency from latency results
 	var totalLatency time.Duration
@@ -145,49 +146,28 @@ func (b *Benchmark) Run(f interface{}, params ...Param) {
 
 	// Calculate latency percentiles
 	meanLatency := time.Duration(int64(totalLatency) / int64(len(results)))
-	latency1 := results[int(math.Max(float64(len(results)/100)-1, 0))]
-	latency5 := results[int(math.Max(float64(len(results)/20)-1, 0))]
-	latency25 := results[int(math.Max(float64(len(results)/4)-1, 0))]
 	latency50 := results[int(math.Max(float64(len(results)/2)-1, 0))]
 	latency75 := results[int(math.Max(float64(len(results)-(len(results)/4)-1), 0))]
 	latency95 := results[int(math.Max(float64(len(results)-(len(results)/20)-1), 0))]
 	latency99 := results[int(math.Max(float64(len(results)-(len(results)/100)-1), 0))]
 
-	// Output the test results
-	println(fmt.Sprintf("Duration: %s", runTime.String()))
-	println(fmt.Sprintf("Operations: %d", b.config.Requests))
-	println(fmt.Sprintf("Operations/sec: %f", float64(b.config.Requests)/(float64(runTime)/float64(time.Second))))
-	println(fmt.Sprintf("Mean latency: %s", meanLatency.String()))
-	println(fmt.Sprintf("1st percentile latency: %s", latency1.String()))
-	println(fmt.Sprintf("5th percentile latency: %s", latency5.String()))
-	println(fmt.Sprintf("25th percentile latency: %s", latency25.String()))
-	println(fmt.Sprintf("50th percentile latency: %s", latency50.String()))
-	println(fmt.Sprintf("75th percentile latency: %s", latency75.String()))
-	println(fmt.Sprintf("90th percentile latency: %s", latency95.String()))
-	println(fmt.Sprintf("99th percentile latency: %s", latency99.String()))
+	b.result = &Result{
+		Requests:  uint32(b.requests),
+		Duration:  runTime,
+		Latency:   meanLatency,
+		Latency50: latency50,
+		Latency75: latency75,
+		Latency95: latency95,
+		Latency99: latency99,
+	}
 }
 
 // prepare prepares the benchmark
-func (b *Benchmark) prepare(init interface{}, next interface{}, params []Param) (func(...interface{}), []interface{}) {
-	initV := reflect.ValueOf(init)
-	initF := func() (interface{}, error) {
-		vrets := initV.Call([]reflect.Value{})
-		if len(vrets) != 2 {
-			panic("expected two return values for Init func")
-		}
-
-		client := vrets[0].Interface()
-		var err error
-		if vrets[1].Interface() != nil {
-			err = vrets[1].Interface().(error)
-		}
-		return client, err
-	}
-
-	nextV := reflect.ValueOf(next)
-	nextF := func(args ...interface{}) {
+func (b *Benchmark) prepare(next interface{}, params []Param) func(...interface{}) {
+	v := reflect.ValueOf(next)
+	f := func(args ...interface{}) {
 		vargs := make([]reflect.Value, len(args))
-		ft := nextV.Type()
+		ft := v.Type()
 		for i := 0; i < len(args); i++ {
 			if args[i] != nil {
 				vargs[i] = reflect.ValueOf(args[i])
@@ -195,30 +175,20 @@ func (b *Benchmark) prepare(init interface{}, next interface{}, params []Param) 
 				vargs[i] = reflect.Zero(ft.In(i))
 			}
 		}
-		_ = nextV.Call(vargs)
+		_ = v.Call(vargs)
 	}
 
 	// Prepare the benchmark parameters
 	for _, param := range params {
 		param.Reset()
 	}
-
-	// Create the clients
-	clients := make([]interface{}, b.config.Clients)
-	for i := 0; i < b.config.Clients; i++ {
-		client, err := initF()
-		if err != nil {
-			panic(err)
-		}
-		clients[i] = client
-	}
-	return nextF, clients
+	return f
 }
 
 // getArgs returns the arguments for the given number of requests
 func (b *Benchmark) getArgs(params []Param) [][]interface{} {
-	args := make([][]interface{}, b.config.Requests)
-	for i := 0; i < b.config.Requests; i++ {
+	args := make([][]interface{}, b.requests)
+	for i := 0; i < b.requests; i++ {
 		requestArgs := make([]interface{}, len(params))
 		for j, arg := range params {
 			requestArgs[j] = arg.Next()
@@ -229,20 +199,18 @@ func (b *Benchmark) getArgs(params []Param) [][]interface{} {
 }
 
 // warm warms up the benchmark
-func (b *Benchmark) warm(f func(...interface{}), clients []interface{}, params []Param) {
+func (b *Benchmark) warm(f func(...interface{}), params []Param) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
-	requestCh := make(chan []interface{}, b.config.Clients*b.config.Parallelism)
-	for _, client := range clients {
-		for i := 0; i < b.config.Parallelism; i++ {
-			wg.Add(1)
-			go func(client interface{}) {
-				for args := range requestCh {
-					f(append([]interface{}{client}, args...)...)
-				}
-				wg.Done()
-			}(client)
-		}
+	requestCh := make(chan []interface{}, b.config.Parallelism)
+	for i := 0; i < b.config.Parallelism; i++ {
+		wg.Add(1)
+		go func() {
+			for args := range requestCh {
+				f(args...)
+			}
+			wg.Done()
+		}()
 	}
 
 	// Create the arguments for benchmark calls
@@ -259,24 +227,22 @@ func (b *Benchmark) warm(f func(...interface{}), clients []interface{}, params [
 }
 
 // run runs the benchmark
-func (b *Benchmark) run(f func(...interface{}), clients []interface{}, params []Param) (time.Duration, []time.Duration) {
+func (b *Benchmark) run(f func(...interface{}), params []Param) (time.Duration, []time.Duration) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
-	requestCh := make(chan []interface{}, b.config.Clients*b.config.Parallelism)
-	resultCh := make(chan time.Duration, b.config.Requests)
-	for _, client := range clients {
-		for i := 0; i < b.config.Parallelism; i++ {
-			wg.Add(1)
-			go func(client interface{}) {
-				for args := range requestCh {
-					start := time.Now()
-					f(append([]interface{}{client}, args...)...)
-					end := time.Now()
-					resultCh <- end.Sub(start)
-				}
-				wg.Done()
-			}(client)
-		}
+	requestCh := make(chan []interface{}, b.config.Parallelism)
+	resultCh := make(chan time.Duration, b.requests)
+	for i := 0; i < b.config.Parallelism; i++ {
+		wg.Add(1)
+		go func() {
+			for args := range requestCh {
+				start := time.Now()
+				f(args...)
+				end := time.Now()
+				resultCh <- end.Sub(start)
+			}
+			wg.Done()
+		}()
 	}
 
 	// Create the arguments for benchmark calls
@@ -300,7 +266,7 @@ func (b *Benchmark) run(f func(...interface{}), clients []interface{}, params []
 	close(resultCh)
 
 	// Aggregate the results
-	results := make([]time.Duration, 0, b.config.Requests)
+	results := make([]time.Duration, 0, b.requests)
 	for d := range resultCh {
 		results = append(results, d)
 	}
@@ -379,82 +345,67 @@ func (a *RandomBytesParam) Next() interface{} {
 	return a.args[rand.Intn(len(a.args))]
 }
 
-type internalBenchmark struct {
-	name string
-	f    func(*Benchmark)
+// getBenchmarks returns a list of benchmarks in the given suite
+func getBenchmarks(suite BenchmarkingSuite) []string {
+	methodFinder := reflect.TypeOf(suite)
+	benchmarks := []string{}
+	for index := 0; index < methodFinder.NumMethod(); index++ {
+		method := methodFinder.Method(index)
+		ok, err := benchmarkFilter(method.Name)
+		if ok {
+			benchmarks = append(benchmarks, method.Name)
+		} else if err != nil {
+			panic(err)
+		}
+	}
+	return benchmarks
 }
 
-// RunBenchmarks runs a benchmark suite
-func RunBenchmarks(suite BenchmarkingSuite, config *BenchmarkConfig) {
-	suiteSetupDone := false
-
+// setupSuite sets up the given benchmark suite
+func setupSuite(suite BenchmarkingSuite, config *WorkerConfig) {
 	context := &Context{
 		config: config,
 	}
-
-	methodFinder := reflect.TypeOf(suite)
-	benchmarks := []internalBenchmark{}
-	for index := 0; index < methodFinder.NumMethod(); index++ {
-		method := methodFinder.Method(index)
-		ok, err := benchmarkFilter(method.Name, config)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "invalid regexp for -m: %s\n", err)
-			os.Exit(1)
-		}
-		if !ok {
-			continue
-		}
-		if !suiteSetupDone {
-			if setupBenchmarkSuite, ok := suite.(SetupBenchmarkSuite); ok {
-				setupBenchmarkSuite.SetupBenchmarkSuite(context)
-			}
-			defer func() {
-				if tearDownBenchmarkSuite, ok := suite.(TearDownBenchmarkSuite); ok {
-					tearDownBenchmarkSuite.TearDownBenchmarkSuite(context)
-				}
-			}()
-			suiteSetupDone = true
-		}
-		benchmark := internalBenchmark{
-			name: method.Name,
-			f: func(b *Benchmark) {
-				if setupBenchmarkSuite, ok := suite.(SetupBenchmark); ok {
-					setupBenchmarkSuite.SetupBenchmark(b)
-				}
-				if beforeBenchmarkSuite, ok := suite.(BeforeBenchmark); ok {
-					beforeBenchmarkSuite.BeforeBenchmark(b)
-				}
-				defer func() {
-					if afterBenchmarkSuite, ok := suite.(AfterBenchmark); ok {
-						afterBenchmarkSuite.AfterBenchmark(b)
-					}
-					if tearDownBenchmarkSuite, ok := suite.(TearDownBenchmark); ok {
-						tearDownBenchmarkSuite.TearDownBenchmark(b)
-					}
-				}()
-				method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(b)})
-			},
-		}
-		benchmarks = append(benchmarks, benchmark)
+	if setupBenchmarkSuite, ok := suite.(SetupBenchmarkSuite); ok {
+		setupBenchmarkSuite.SetupBenchmarkSuite(context)
 	}
-	runBenchmarks(benchmarks, context)
 }
 
-// runBenchmark runs a benchmark
-func runBenchmarks(benchmarks []internalBenchmark, context *Context) {
-	for _, benchmark := range benchmarks {
-		println(benchmark.name)
-		benchmark.f(newBenchmark(benchmark.name, context))
+// runBenchmark runs a benchmark method
+func runBenchmark(benchmark string, requests int, suite BenchmarkingSuite, config *WorkerConfig) (*Result, error) {
+	methods := reflect.TypeOf(suite)
+	method, ok := methods.MethodByName(benchmark)
+	if !ok {
+		return nil, fmt.Errorf("cannot find benchmark method %s", benchmark)
 	}
+
+	println(benchmark)
+	context := &Context{
+		config: config,
+	}
+	b := newBenchmark(benchmark, requests, context)
+	if setupBenchmarkSuite, ok := suite.(SetupBenchmark); ok {
+		setupBenchmarkSuite.SetupBenchmark(b)
+	}
+	if beforeBenchmarkSuite, ok := suite.(BeforeBenchmark); ok {
+		beforeBenchmarkSuite.BeforeBenchmark(b)
+	}
+	defer func() {
+		if afterBenchmarkSuite, ok := suite.(AfterBenchmark); ok {
+			afterBenchmarkSuite.AfterBenchmark(b)
+		}
+		if tearDownBenchmarkSuite, ok := suite.(TearDownBenchmark); ok {
+			tearDownBenchmarkSuite.TearDownBenchmark(b)
+		}
+	}()
+	method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(b)})
+	return b.getResult(), nil
 }
 
 // benchmarkFilter filters benchmark method names
-func benchmarkFilter(name string, config *BenchmarkConfig) (bool, error) {
+func benchmarkFilter(name string) (bool, error) {
 	if ok, _ := regexp.MatchString("^Benchmark", name); !ok {
 		return false, nil
-	}
-	if config.Benchmark != "" {
-		return config.Benchmark == name, nil
 	}
 	return true, nil
 }

@@ -15,26 +15,15 @@
 package main
 
 import (
-	"context"
-	grpc_bench "github.com/onosproject/onos-test/benchmark/grpc"
-	"google.golang.org/grpc"
-	"net"
+	"fmt"
+	"github.com/onosproject/onos-test/pkg/benchmark"
+	"os"
 )
 
 func main() {
-	service := &Service{}
-	server := grpc.NewServer()
-	grpc_bench.RegisterTestServiceServer(server, service)
-	lis, err := net.Listen("tcp", ":8080")
-	if err != nil {
-		panic(err)
+	cmd := benchmark.GetCommand()
+	if err := cmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
-	server.Serve(lis)
-}
-
-type Service struct {
-}
-
-func (s *Service) RequestReply(ctx context.Context, message *grpc_bench.Message) (*grpc_bench.Message, error) {
-	return message, nil
 }
