@@ -473,7 +473,7 @@ func (c *Cluster) awaitWorkerRunning(worker int, config *CoordinatorConfig) erro
 		pod, err := c.getPod(worker, config)
 		if err != nil {
 			return err
-		} else if pod != nil && pod.Status.ContainerStatuses[0].Ready {
+		} else if pod != nil && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].Ready {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)
@@ -482,35 +482,48 @@ func (c *Cluster) awaitWorkerRunning(worker int, config *CoordinatorConfig) erro
 
 // RunBenchmarks runs the given benchmarks
 func (c *Cluster) RunBenchmarks(config *CoordinatorConfig) error {
+	suite := Registry.benchmarks[config.Suite]
+	results := make([]result, 0)
+	if config.Benchmark != "" {
+		step := logging.NewStep(c.namespace, "Run benchmark %s", config.Benchmark)
+		step.Start()
+		result, err := c.runBenchmark(config.Benchmark, config)
+		if err != nil {
+			step.Fail(err)
+			return err
+		}
+		step.Complete()
+		results = append(results, result)
+	} else {
+		suiteStep := logging.NewStep(c.namespace, "Run benchmark suite %s", config.Suite)
+		suiteStep.Start()
+		benchmarks := getBenchmarks(suite)
+		for _, benchmark := range benchmarks {
+			benchmarkSuite := logging.NewStep(c.namespace, "Run benchmark %s", benchmark)
+			benchmarkSuite.Start()
+			result, err := c.runBenchmark(benchmark, config)
+			if err != nil {
+				benchmarkSuite.Fail(err)
+				suiteStep.Fail(err)
+				return err
+			}
+			benchmarkSuite.Complete()
+			results = append(results, result)
+		}
+		suiteStep.Complete()
+	}
+
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	fmt.Fprintln(writer, "BENCHMARK\tREQUESTS\tDURATION\tTHROUGHPUT\tMEAN LATENCY\tMEDIAN LATENCY\t75% LATENCY\t95% LATENCY\t99% LATENCY")
-
-	suite := Registry.benchmarks[config.Suite]
-	if config.Benchmark != "" {
-
-	} else {
-		benchmarks := getBenchmarks(suite)
-		for _, benchmark := range benchmarks {
-			result, err := c.runBenchmark(benchmark, config)
-			if err != nil {
-				return err
-			}
-			fmt.Fprintln(writer, fmt.Sprintf("%s\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
-				benchmark, result.requests, result.duration, result.throughput, result.meanLatency,
-				result.latencyPercentiles[.5], result.latencyPercentiles[.75],
-				result.latencyPercentiles[.95], result.latencyPercentiles[.99]))
-		}
+	for _, result := range results {
+		fmt.Fprintln(writer, fmt.Sprintf("%s\t%d\t%s\t%f\t%s\t%s\t%s\t%s\t%s",
+			result.benchmark, result.requests, result.duration, result.throughput, result.meanLatency,
+			result.latencyPercentiles[.5], result.latencyPercentiles[.75],
+			result.latencyPercentiles[.95], result.latencyPercentiles[.99]))
 	}
+	writer.Flush()
 	return nil
-}
-
-type result struct {
-	requests           int
-	duration           time.Duration
-	throughput         float64
-	meanLatency        time.Duration
-	latencyPercentiles map[float32]time.Duration
 }
 
 // runBenchmark runs the given benchmark
@@ -580,12 +593,22 @@ func (c *Cluster) runBenchmark(benchmark string, config *CoordinatorConfig) (res
 	latencyPercentiles[.99] = time.Duration(float64(latency99Sum) / float64(len(workers)))
 
 	return result{
+		benchmark:          benchmark,
 		requests:           int(requests),
 		duration:           duration,
 		throughput:         throughput,
 		meanLatency:        meanLatency,
 		latencyPercentiles: latencyPercentiles,
 	}, nil
+}
+
+type result struct {
+	benchmark          string
+	requests           int
+	duration           time.Duration
+	throughput         float64
+	meanLatency        time.Duration
+	latencyPercentiles map[float32]time.Duration
 }
 
 // getWorkerConns returns the worker clients for the given benchmark
