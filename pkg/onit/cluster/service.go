@@ -182,7 +182,7 @@ func (s *Service) SetArgs(args ...string) {
 
 // Setup sets up the service
 func (s *Service) Setup() error {
-	if s.replicas == 0 {
+	if s.Replicas() == 0 {
 		return nil
 	}
 
@@ -340,9 +340,8 @@ func (s *Service) createDeployment() error {
 
 		volumeMounts = make([]corev1.VolumeMount, 0, len(s.secrets))
 		for filepath := range s.secrets {
-			filename := path.Dir(filepath)
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
-				Name:      filename,
+				Name:      "secret",
 				MountPath: filepath,
 				SubPath:   getKey(filepath),
 				ReadOnly:  true,
@@ -441,7 +440,7 @@ func (s *Service) createDeployment() error {
 
 // AwaitReady waits for the service to complete startup
 func (s *Service) AwaitReady() error {
-	if s.replicas == 0 {
+	if s.Replicas() == 0 {
 		return nil
 	}
 
