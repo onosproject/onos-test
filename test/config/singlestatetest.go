@@ -19,6 +19,7 @@ import (
 	"github.com/onosproject/onos-topo/api/device"
 	"github.com/stretchr/testify/assert"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 )
@@ -45,12 +46,25 @@ func (s *SmokeTestSuite) TestSingleState(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, c != nil, "Fetching client returned nil")
 
-	// Check that the value was correctly retrieved from the device and store in the state cache
-	valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(simulator.Name(), stateControllersPath))
-	assert.NoError(t, errorAfter)
-	assert.NotEqual(t, "", valueAfter, "Query after state returned an error: %s\n", errorAfter)
+	// Check that the value was correctly retrieved from the device and stored in the state cache
+	success := false
 	re := regexp.MustCompile(stateValueRegexp)
-	match := re.MatchString(valueAfter[0].pathDataValue)
-	assert.True(t, match, "Query for state returned the wrong value: %s\n", valueAfter)
-	assert.Equal(t, 0, len(extensions))
+	for attempt := 1; attempt <= 10; attempt++ {
+		// If the device cache has not been completely initialized, we can hit a race here where the value
+		// will be returned as null. Needs further investigation.
+		valueAfter, extensions, errorAfter := GNMIGet(MakeContext(), c, makeDevicePath(simulator.Name(), stateControllersPath))
+		assert.NoError(t, errorAfter)
+		assert.NotEqual(t, nil, valueAfter, "Query after state returned nil")
+		address := valueAfter[0].pathDataValue
+		if !strings.Contains(address, ".") {
+			time.Sleep(time.Second)
+			continue
+		}
+		match := re.MatchString(address)
+		assert.True(t, match, "Query for state returned the wrong value: %s\n", valueAfter)
+		assert.Equal(t, 0, len(extensions))
+		success = true
+		break
+	}
+	assert.Equal(t, success, true, "state value was not found")
 }
