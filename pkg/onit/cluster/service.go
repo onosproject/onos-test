@@ -440,7 +440,7 @@ func (s *Service) createDeployment() error {
 
 // AwaitReady waits for the service to complete startup
 func (s *Service) AwaitReady() error {
-	if s.replicas == 0 {
+	if s.Replicas() == 0 {
 		return nil
 	}
 
