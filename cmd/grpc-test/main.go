@@ -22,19 +22,21 @@ import (
 )
 
 func main() {
-	service := &Service{}
+	service := &testService{}
 	server := grpc.NewServer()
 	grpc_bench.RegisterTestServiceServer(server, service)
 	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		panic(err)
 	}
-	server.Serve(lis)
+	if err := server.Serve(lis); err != nil {
+		panic(err)
+	}
 }
 
-type Service struct {
+type testService struct {
 }
 
-func (s *Service) RequestReply(ctx context.Context, message *grpc_bench.Message) (*grpc_bench.Message, error) {
+func (s *testService) RequestReply(ctx context.Context, message *grpc_bench.Message) (*grpc_bench.Message, error) {
 	return message, nil
 }

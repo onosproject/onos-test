@@ -52,8 +52,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	testName, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	noTeardown, _ := cmd.Flags().GetBool("no-teardown")
-	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
-	pullPolicy := corev1.PullPolicy(imagePullPolicy)
+	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 
 	overrides := []string{}
 	for key, value := range sets {
@@ -83,7 +82,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		return runner.Run()
 	}
 
-	cluster, err := test.NewTestCluster(clusterID)
+	cluster, err := test.NewCluster(clusterID)
 	if err != nil {
 		return err
 	}

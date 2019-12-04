@@ -22,11 +22,13 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/setup"
 )
 
+// MapBenchmarkSuite :: benchmark
 type MapBenchmarkSuite struct {
 	benchmark.Suite
 	m _map.Map
 }
 
+// SetupBenchmarkSuite :: benchmark
 func (s *MapBenchmarkSuite) SetupBenchmarkSuite(c *benchmark.Context) {
 	setup.Partitions("nopaxos").
 		NOPaxos().
@@ -35,6 +37,7 @@ func (s *MapBenchmarkSuite) SetupBenchmarkSuite(c *benchmark.Context) {
 	setup.SetupOrDie()
 }
 
+// SetupBenchmark :: benchmark
 func (s *MapBenchmarkSuite) SetupBenchmark(b *benchmark.Benchmark) {
 	group, err := env.Database().Partitions("nopaxos").Connect()
 	if err != nil {
@@ -47,6 +50,7 @@ func (s *MapBenchmarkSuite) SetupBenchmark(b *benchmark.Benchmark) {
 	s.m = m
 }
 
+// BenchmarkMapPut :: benchmark
 func (s *MapBenchmarkSuite) BenchmarkMapPut(b *benchmark.Benchmark) {
 	params := []benchmark.Param{
 		benchmark.RandomString(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
@@ -58,6 +62,7 @@ func (s *MapBenchmarkSuite) BenchmarkMapPut(b *benchmark.Benchmark) {
 	}, params...)
 }
 
+// BenchmarkMapGet :: benchmark
 func (s *MapBenchmarkSuite) BenchmarkMapGet(b *benchmark.Benchmark) {
 	params := []benchmark.Param{
 		benchmark.RandomString(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),

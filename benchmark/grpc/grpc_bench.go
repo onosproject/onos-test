@@ -21,12 +21,14 @@ import (
 	"google.golang.org/grpc"
 )
 
-type GRPCBenchmarkSuite struct {
+// BenchmarkSuite :: benchmark
+type BenchmarkSuite struct {
 	benchmark.Suite
 	client TestServiceClient
 }
 
-func (s *GRPCBenchmarkSuite) SetupBenchmarkSuite(c *benchmark.Context) {
+// SetupBenchmarkSuite :: benchmark
+func (s *BenchmarkSuite) SetupBenchmarkSuite(c *benchmark.Context) {
 	setup.App("test").
 		SetImage("onosproject/grpc-test:latest").
 		AddPort("grpc", 8080).
@@ -34,7 +36,8 @@ func (s *GRPCBenchmarkSuite) SetupBenchmarkSuite(c *benchmark.Context) {
 	setup.SetupOrDie()
 }
 
-func (s *GRPCBenchmarkSuite) SetupBenchmark(b *benchmark.Benchmark) {
+// SetupBenchmark :: benchmark
+func (s *BenchmarkSuite) SetupBenchmark(b *benchmark.Benchmark) {
 	conn, err := grpc.Dial("test:8080", grpc.WithInsecure())
 	if err != nil {
 		panic(err)
@@ -42,7 +45,8 @@ func (s *GRPCBenchmarkSuite) SetupBenchmark(b *benchmark.Benchmark) {
 	s.client = NewTestServiceClient(conn)
 }
 
-func (s *GRPCBenchmarkSuite) BenchmarkGRPCRequestReply(b *benchmark.Benchmark) {
+// BenchmarkGRPCRequestReply :: benchmark
+func (s *BenchmarkSuite) BenchmarkGRPCRequestReply(b *benchmark.Benchmark) {
 	params := []benchmark.Param{
 		benchmark.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
 	}

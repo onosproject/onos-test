@@ -348,13 +348,6 @@ func (s *Service) createDeployment() error {
 				ReadOnly:  true,
 			})
 		}
-		volumeMounts = []corev1.VolumeMount{
-			{
-				Name:      "secret",
-				MountPath: "/certs",
-				ReadOnly:  true,
-			},
-		}
 	}
 
 	var readinessProbe *corev1.Probe

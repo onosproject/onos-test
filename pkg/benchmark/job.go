@@ -34,11 +34,6 @@ func (j *Job) run() error {
 	return nil
 }
 
-// getStatus gets the status message and exit code of the given pod
-func (j *Job) getStatus() (string, int, error) {
-	return j.cluster.GetResult(j.config)
-}
-
 // tearDown tears down the job
 func (j *Job) tearDown() error {
 	return j.cluster.Delete()

@@ -35,6 +35,11 @@ var (
 		onit add app onos-ztp --image onosproject/onos-ztp:latest --image-pull-policy "Always" `
 )
 
+const (
+	defaultMininetImage   = "opennetworking/mn-stratum:latest"
+	defaultSimulatorImage = "onosproject/device-simulator:latest"
+)
+
 // getAddCommand returns a cobra "add" command for adding resources to the cluster
 func getAddCommand() *cobra.Command {
 	cmd := &cobra.Command{

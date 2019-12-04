@@ -22,7 +22,7 @@ import (
 
 func main() {
 	benchmark.Register("nopaxos", &nopaxos.MapBenchmarkSuite{})
-	benchmark.Register("grpc", &grpc.GRPCBenchmarkSuite{})
+	benchmark.Register("grpc", &grpc.BenchmarkSuite{})
 
 	benchmark.Main()
 }

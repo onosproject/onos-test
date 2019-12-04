@@ -180,7 +180,7 @@ func (b *Benchmark) prepare(next interface{}, params []Param) func(...interface{
 
 	// Prepare the benchmark parameters
 	for _, param := range params {
-		param.Reset()
+		param.reset()
 	}
 	return f
 }
@@ -191,7 +191,7 @@ func (b *Benchmark) getArgs(params []Param) [][]interface{} {
 	for i := 0; i < b.requests; i++ {
 		requestArgs := make([]interface{}, len(params))
 		for j, arg := range params {
-			requestArgs[j] = arg.Next()
+			requestArgs[j] = arg.next()
 		}
 		args[i] = requestArgs
 	}
@@ -278,11 +278,11 @@ func (b *Benchmark) run(f func(...interface{}), params []Param) (time.Duration, 
 
 // Param is an interface for benchmark parameters
 type Param interface {
-	// Reset resets the benchmark parameter
-	Reset()
+	// reset resets the benchmark parameter
+	reset()
 
-	// Next returns the next instance of the benchmark parameter
-	Next() interface{}
+	// next returns the next instance of the benchmark parameter
+	next() interface{}
 }
 
 // RandomString returns a random string parameter
@@ -300,7 +300,7 @@ type RandomStringParam struct {
 	args   []string
 }
 
-func (a *RandomStringParam) Reset() {
+func (a *RandomStringParam) reset() {
 	a.args = make([]string, a.count)
 	for i := 0; i < a.count; i++ {
 		bytes := make([]byte, a.length)
@@ -311,7 +311,7 @@ func (a *RandomStringParam) Reset() {
 	}
 }
 
-func (a *RandomStringParam) Next() interface{} {
+func (a *RandomStringParam) next() interface{} {
 	return a.args[rand.Intn(len(a.args))]
 }
 
@@ -330,7 +330,7 @@ type RandomBytesParam struct {
 	args   [][]byte
 }
 
-func (a *RandomBytesParam) Reset() {
+func (a *RandomBytesParam) reset() {
 	a.args = make([][]byte, a.count)
 	for i := 0; i < a.count; i++ {
 		bytes := make([]byte, a.length)
@@ -341,7 +341,7 @@ func (a *RandomBytesParam) Reset() {
 	}
 }
 
-func (a *RandomBytesParam) Next() interface{} {
+func (a *RandomBytesParam) next() interface{} {
 	return a.args[rand.Intn(len(a.args))]
 }
 

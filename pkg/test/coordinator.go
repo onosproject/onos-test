@@ -58,7 +58,7 @@ func (c *Coordinator) Run() error {
 				Suite:      suite,
 			}
 			job := &Job{
-				cluster: &TestCluster{
+				cluster: &Cluster{
 					client:    c.client,
 					namespace: config.JobID,
 				},
@@ -77,7 +77,7 @@ func (c *Coordinator) Run() error {
 			Test:       c.config.Test,
 		}
 		job := &Job{
-			cluster: &TestCluster{
+			cluster: &Cluster{
 				client:    c.client,
 				namespace: config.JobID,
 			},

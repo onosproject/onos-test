@@ -15,7 +15,6 @@
 package benchmark
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -364,13 +363,11 @@ func (c *Cluster) createWorker(worker int, config *CoordinatorConfig) error {
 		},
 	}
 	env := config.Env
-	if env != nil {
-		for key, value := range env {
-			envVars = append(envVars, corev1.EnvVar{
-				Name:  key,
-				Value: value,
-			})
-		}
+	for key, value := range env {
+		envVars = append(envVars, corev1.EnvVar{
+			Name:  key,
+			Value: value,
+		})
 	}
 
 	pod := &corev1.Pod{
@@ -617,23 +614,6 @@ func (c *Cluster) getWorkers(config *CoordinatorConfig) ([]WorkerServiceClient, 
 		workers[i] = NewWorkerServiceClient(worker)
 	}
 	return workers, nil
-}
-
-// getLogs gets the logs from the given pod
-func (c *Cluster) getLogs(pod corev1.Pod) ([]byte, error) {
-	req := c.client.CoreV1().Pods(c.namespace).GetLogs(pod.Name, &corev1.PodLogOptions{})
-	readCloser, err := req.Stream()
-	if err != nil {
-		return nil, err
-	}
-
-	defer readCloser.Close()
-
-	var buf bytes.Buffer
-	if _, err = buf.ReadFrom(readCloser); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
 }
 
 // GetResult gets the status message and exit code of the given test

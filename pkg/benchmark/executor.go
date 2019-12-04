@@ -21,15 +21,15 @@ import (
 // The executor is the entrypoint for benchmark images. It takes the input and environment and runs
 // the image in the appropriate context according to the arguments.
 
-// TestContext is the context in which a test image is running
-type TestContext string
+// benchmarkContext is the context in which a test image is running
+type benchmarkContext string
 
 const (
 	testNamespaceEnv = "TEST_NAMESPACE"
 	testContextEnv   = "TEST_CONTEXT"
 
-	testContextCoordinator TestContext = "coordinator"
-	testContextWorker      TestContext = "worker"
+	testContextCoordinator benchmarkContext = "coordinator"
+	testContextWorker      benchmarkContext = "worker"
 )
 
 // Main runs a test
@@ -62,8 +62,8 @@ func Run() error {
 }
 
 // getTestContext returns the current test context
-func getTestContext() TestContext {
-	return TestContext(os.Getenv(testContextEnv))
+func getTestContext() benchmarkContext {
+	return benchmarkContext(os.Getenv(testContextEnv))
 }
 
 // runCoordinator runs a test image in the coordinator context
