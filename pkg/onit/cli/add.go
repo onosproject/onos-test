@@ -59,7 +59,7 @@ func getAddNetworkCommand() *cobra.Command {
 		Use:   "network [args]",
 		Short: "Add a stratum network to the test cluster",
 		Args:  cobra.MaximumNArgs(10),
-		RunE:  runAddNetworkCommand,
+		RunE:  runInCluster(runAddNetworkCommand),
 	}
 
 	cmd.Flags().StringP("name", "n", "", "the name of the network to add")
@@ -73,7 +73,7 @@ func getAddNetworkCommand() *cobra.Command {
 }
 
 func runAddNetworkCommand(cmd *cobra.Command, _ []string) error {
-	runCommand(cmd)
+	setupCommand(cmd)
 
 	image, _ := cmd.Flags().GetString("image")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
@@ -103,7 +103,7 @@ func getAddSimulatorCommand() *cobra.Command {
 		Use:   "simulator [args]",
 		Short: "Add a device simulator to the test cluster",
 		Args:  cobra.NoArgs,
-		RunE:  runAddSimulatorCommand,
+		RunE:  runInCluster(runAddSimulatorCommand),
 	}
 
 	cmd.Flags().StringP("name", "n", "", "the name to assign to the device simulator")
@@ -113,7 +113,7 @@ func getAddSimulatorCommand() *cobra.Command {
 }
 
 func runAddSimulatorCommand(cmd *cobra.Command, _ []string) error {
-	runCommand(cmd)
+	setupCommand(cmd)
 
 	image, _ := cmd.Flags().GetString("image")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
@@ -140,7 +140,7 @@ func getAddAppCommand() *cobra.Command {
 		Use:   "app [args]",
 		Short: "Add an app to the test cluster",
 		Args:  cobra.ArbitraryArgs,
-		RunE:  runAddAppCommand,
+		RunE:  runInCluster(runAddAppCommand),
 	}
 
 	cmd.Flags().StringP("name", "n", "", "the name of the app to add")
@@ -158,7 +158,7 @@ func getAddAppCommand() *cobra.Command {
 }
 
 func runAddAppCommand(cmd *cobra.Command, args []string) error {
-	runCommand(cmd)
+	setupCommand(cmd)
 
 	image, _ := cmd.Flags().GetString("image")
 	replicas, _ := cmd.Flags().GetInt("replicas")

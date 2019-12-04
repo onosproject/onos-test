@@ -56,24 +56,23 @@ func getCreateClusterCommand() *cobra.Command {
 		Use:   "cluster [args]",
 		Short: "Setup a test cluster on Kubernetes",
 		Args:  cobra.NoArgs,
-		RunE:  runCreateClusterCommand,
+		RunE:  runInNewCluster(runCreateClusterCommand),
 	}
 	cmd.Flags().StringToString("set", map[string]string{}, "set a cluster argument")
 	return cmd
 }
 
 func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
-	runCommand(cmd)
-	args, _ := cmd.Flags().GetStringToString("set")
-	cluster.SetArgs(args)
+	setupCommand(cmd)
+
+	// Get the k8s API
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}
-	cluster := cluster.New(kubeAPI)
-	if err := cluster.Create(); err != nil {
-		return err
-	}
+
+	args, _ := cmd.Flags().GetStringToString("set")
+	cluster.SetArgs(args)
 	setup := setup.New(kubeAPI)
 	setup.Atomix()
 	setup.Partitions().Raft()

@@ -43,7 +43,7 @@ func getTestCommand() *cobra.Command {
 }
 
 func runTestCommand(cmd *cobra.Command, _ []string) error {
-	runCommand(cmd)
+	setupCommand(cmd)
 
 	clusterID, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")

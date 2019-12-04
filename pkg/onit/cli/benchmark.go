@@ -46,7 +46,7 @@ func getBenchCommand() *cobra.Command {
 }
 
 func runBenchCommand(cmd *cobra.Command, _ []string) error {
-	runCommand(cmd)
+	setupCommand(cmd)
 
 	image, _ := cmd.Flags().GetString("image")
 	suite, _ := cmd.Flags().GetString("suite")

@@ -65,7 +65,7 @@ func getName(cmd *cobra.Command) string {
 	return name
 }
 
-func runCommand(cmd *cobra.Command) {
+func setupCommand(cmd *cobra.Command) {
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	logging.SetVerbose(verbose)
 }
