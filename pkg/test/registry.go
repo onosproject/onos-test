@@ -16,20 +16,20 @@ package test
 
 // Register registers a test suite
 func Register(name string, suite TestingSuite) {
-	Registry.Register(name, suite)
+	Registry.register(name, suite)
 }
 
 // Registry is the global test registry
-var Registry = &TestRegistry{
+var Registry = &testRegistry{
 	tests: make(map[string]TestingSuite),
 }
 
-// TestRegistry is a registry of runnable tests
-type TestRegistry struct {
+// testRegistry is a registry of runnable tests
+type testRegistry struct {
 	tests map[string]TestingSuite
 }
 
-// Register registers a test suite
-func (s *TestRegistry) Register(name string, suite TestingSuite) {
+// register registers a test suite
+func (s *testRegistry) register(name string, suite TestingSuite) {
 	s.tests[name] = suite
 }

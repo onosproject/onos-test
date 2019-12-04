@@ -59,6 +59,7 @@ func (w *Worker) Run() error {
 	return server.Serve(lis)
 }
 
+// RunBenchmark runs a benchmark method from the given request
 func (w *Worker) RunBenchmark(ctx context.Context, request *Request) (*Result, error) {
 	return runBenchmark(request.Benchmark, int(request.Requests), w.suite, w.config)
 }

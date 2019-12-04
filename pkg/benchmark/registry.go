@@ -16,20 +16,20 @@ package benchmark
 
 // Register registers a benchmark suite
 func Register(name string, suite BenchmarkingSuite) {
-	Registry.Register(name, suite)
+	Registry.register(name, suite)
 }
 
 // Registry is the global benchmark registry
-var Registry = &registry{
+var Registry = &benchmarkRegistry{
 	benchmarks: make(map[string]BenchmarkingSuite),
 }
 
-// registry is a registry of runnable benchmarks
-type registry struct {
+// benchmarkRegistry is a registry of runnable benchmarks
+type benchmarkRegistry struct {
 	benchmarks map[string]BenchmarkingSuite
 }
 
-// Register registers a benchmark suite
-func (s *registry) Register(name string, suite BenchmarkingSuite) {
+// register registers a benchmark suite
+func (s *benchmarkRegistry) register(name string, suite BenchmarkingSuite) {
 	s.benchmarks[name] = suite
 }

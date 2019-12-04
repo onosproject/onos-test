@@ -20,7 +20,7 @@ import (
 
 // Job manages a single test job for a suite
 type Job struct {
-	cluster *TestCluster
+	cluster *Cluster
 	config  *Config
 }
 

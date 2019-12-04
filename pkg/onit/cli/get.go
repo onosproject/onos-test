@@ -17,8 +17,8 @@ package cli
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/kube"
-	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/onosproject/onos-test/pkg/onit/env"
+	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/spf13/cobra"
 )
 
@@ -61,7 +61,7 @@ func getGetClustersCommand() *cobra.Command {
 }
 
 func runGetClustersCommand(_ *cobra.Command, _ []string) error {
-	clusters, err := test.GetTestClusters()
+	clusters, err := test.GetClusters()
 	if err != nil {
 		return err
 	}
