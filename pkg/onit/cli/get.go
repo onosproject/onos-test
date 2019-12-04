@@ -16,6 +16,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-test/pkg/test"
@@ -30,8 +31,17 @@ var (
 		# Get the list of installed apps
 		onit get apps
 
+		# Get the list of installed apps for a specific cluster
+		onit get apps -c <name-of-cluster>
+
 		# Get a list of simulators
 		onit get simulators
+
+        # Get a list of simulators for a specific cluster
+		onit get simulators -c <name-of-cluster>
+		
+		# Get a list of networks for a a specific cluster
+		onit get networks -c <name-of-cluster>
 
 		# Get a list of networks
 		onit get networks`

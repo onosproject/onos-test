@@ -23,9 +23,9 @@ import (
 var (
 	deleteExample = `
 		# Delete a cluster with a given name
-		onit delete cluster <name of cluster>
+		onit delete cluster -c <name of cluster>
 
-		# Delete the currently configured cluster
+		# Delete the "onos" configured cluster
 		onit delete cluster`
 )
 
