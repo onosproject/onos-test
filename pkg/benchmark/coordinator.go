@@ -75,6 +75,7 @@ func (c *Coordinator) Run() error {
 			Benchmark:       c.config.Benchmark,
 			Workers:         c.config.Workers,
 			Parallelism:     c.config.Parallelism,
+			Requests:        c.config.Requests,
 			Args:            c.config.Args,
 			Env:             c.config.Env,
 		}
@@ -194,8 +195,8 @@ func (t *WorkerTask) createWorkers() error {
 // createWorker creates the given worker
 func (t *WorkerTask) createWorker(worker int) error {
 	env := t.config.ToEnv()
+	env[kube.NamespaceEnv] = t.config.ID
 	env[benchmarkContextEnv] = string(benchmarkContextWorker)
-	env[benchmarkNamespaceEnv] = t.config.ID
 	env[benchmarkJobEnv] = t.config.ID
 
 	envVars := make([]corev1.EnvVar, 0, len(env))

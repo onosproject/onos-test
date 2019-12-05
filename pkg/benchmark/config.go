@@ -26,8 +26,7 @@ import (
 type benchmarkContext string
 
 const (
-	benchmarkNamespaceEnv = "BENCHMARK_NAMESPACE"
-	benchmarkContextEnv   = "BENCHMARK_CONTEXT"
+	benchmarkContextEnv = "BENCHMARK_CONTEXT"
 
 	benchmarkJobEnv             = "BENCHMARK_JOB"
 	benchmarkImageEnv           = "BENCHMARK_IMAGE"
@@ -59,15 +58,15 @@ func GetConfigFromEnv() *Config {
 			args[strings.ToLower(key[len(benchmarkArgPrefix):])] = value
 		}
 	}
-	workers, err := strconv.Atoi(benchmarkWorkersEnv)
+	workers, err := strconv.Atoi(os.Getenv(benchmarkWorkersEnv))
 	if err != nil {
 		panic(err)
 	}
-	parallelism, err := strconv.Atoi(benchmarkParallelismEnv)
+	parallelism, err := strconv.Atoi(os.Getenv(benchmarkParallelismEnv))
 	if err != nil {
 		panic(err)
 	}
-	requests, err := strconv.Atoi(benchmarkRequestsEnv)
+	requests, err := strconv.Atoi(os.Getenv(benchmarkRequestsEnv))
 	if err != nil {
 		panic(err)
 	}

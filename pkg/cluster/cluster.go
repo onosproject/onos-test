@@ -47,7 +47,7 @@ func GetClusters() ([]string, error) {
 
 // NewCluster returns a new test cluster for the given Kubernetes API
 func NewCluster(namespace string) (*Cluster, error) {
-	kubeAPI, err := kube.GetAPIFromEnv()
+	kubeAPI, err := kube.GetAPI(namespace)
 	if err != nil {
 		return nil, err
 	}

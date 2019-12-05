@@ -25,7 +25,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const testNamespaceEnv = "TEST_NAMESPACE"
+// NamespaceEnv is the environment variable for setting the k8s namespace
+const NamespaceEnv = "NAMESPACE"
 
 // GetAPI returns the Kubernetes API for the given namespace
 func GetAPI(namespace string) (API, error) {
@@ -60,7 +61,7 @@ func GetAPIOrDie(namespace string) API {
 
 // GetAPIFromEnv returns the Kubernetes API for the current environment
 func GetAPIFromEnv() (API, error) {
-	namespace := os.Getenv(testNamespaceEnv)
+	namespace := os.Getenv(NamespaceEnv)
 	if namespace == "" {
 		namespace = random.NewPetName(2)
 	}

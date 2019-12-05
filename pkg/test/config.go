@@ -24,8 +24,7 @@ import (
 type testContext string
 
 const (
-	testNamespaceEnv = "TEST_NAMESPACE"
-	testContextEnv   = "TEST_CONTEXT"
+	testContextEnv = "TEST_CONTEXT"
 
 	testJobEnv             = "TEST_JOB"
 	testImageEnv           = "TEST_IMAGE"
