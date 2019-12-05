@@ -20,9 +20,6 @@ import (
 	"strings"
 )
 
-const configPath = "/config"
-const configFile = "config.yaml"
-
 type testContext string
 
 const (

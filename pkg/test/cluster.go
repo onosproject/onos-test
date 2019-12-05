@@ -273,17 +273,13 @@ func (c *Cluster) createTestJob(job *Job) error {
 	zero := int32(0)
 	one := int32(1)
 
-	envVars := []corev1.EnvVar{
-		{
-			Name:  testContextEnv,
-			Value: string(testContextWorker),
-		},
-		{
-			Name:  testNamespaceEnv,
-			Value: c.namespace,
-		},
-	}
-	for key, value := range job.Env {
+	env := job.Env
+	env[testContextEnv] = string(testContextWorker)
+	env[testNamespaceEnv] = c.namespace
+	env[testJobEnv] = job.ID
+
+	envVars := make([]corev1.EnvVar, 0, len(env))
+	for key, value := range env {
 		envVars = append(envVars, corev1.EnvVar{
 			Name:  key,
 			Value: value,

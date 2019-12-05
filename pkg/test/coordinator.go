@@ -45,37 +45,28 @@ type Coordinator struct {
 
 // Run runs the tests
 func (c *Coordinator) Run() error {
-	workers := make([]*WorkerTask, 0)
-	if getTestSuite() == "" {
+	var suites []string
+	suite := getTestSuite()
+	if suite == "" {
+		suites = make([]string, 0, len(Registry.tests))
 		for suite := range Registry.tests {
-			jobID := newJobID(getTestJob(), suite)
-			env := getTestEnv()
-			env[testSuiteEnv] = suite
-			job := &Job{
-				ID:              newJobID(getTestJob(), getTestSuite()),
-				Image:           getTestImage(),
-				ImagePullPolicy: getTestImagePullPolicy(),
-				Command:         os.Args,
-				Env:             env,
-			}
-			worker := &WorkerTask{
-				client: c.client,
-				cluster: &Cluster{
-					client:    c.client,
-					namespace: jobID,
-				},
-				job: job,
-			}
-			workers = append(workers, worker)
+			suites = append(suites, suite)
 		}
 	} else {
-		jobID := newJobID(getTestJob(), getTestSuite())
+		suites = []string{suite}
+	}
+
+	workers := make([]*WorkerTask, len(suites))
+	for i, suite := range suites {
+		jobID := newJobID(getTestJob(), suite)
+		env := getTestEnv()
+		env[testSuiteEnv] = suite
 		job := &Job{
-			ID:              newJobID(getTestJob(), getTestSuite()),
+			ID:              jobID,
 			Image:           getTestImage(),
 			ImagePullPolicy: getTestImagePullPolicy(),
 			Command:         os.Args,
-			Env:             getTestEnv(),
+			Env:             env,
 		}
 		worker := &WorkerTask{
 			client: c.client,
@@ -85,21 +76,21 @@ func (c *Coordinator) Run() error {
 			},
 			job: job,
 		}
-		workers = append(workers, worker)
+		workers[i] = worker
 	}
 	return runWorkers(workers)
 }
 
 // runWorkers runs the given test workers
-func runWorkers(jobs []*WorkerTask) error {
+func runWorkers(tasks []*WorkerTask) error {
 	// Start jobs in separate goroutines
 	wg := &sync.WaitGroup{}
-	errChan := make(chan error, len(jobs))
-	codeChan := make(chan int, len(jobs))
-	for _, job := range jobs {
+	errChan := make(chan error, len(tasks))
+	codeChan := make(chan int, len(tasks))
+	for _, job := range tasks {
 		wg.Add(1)
-		go func(job *WorkerTask) {
-			status, err := job.Run()
+		go func(task *WorkerTask) {
+			status, err := task.Run()
 			if err != nil {
 				errChan <- err
 			} else {

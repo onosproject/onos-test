@@ -328,6 +328,10 @@ func (r *Runner) createJob(job *Job) error {
 			Value: namespace,
 		},
 		{
+			Name:  testJobEnv,
+			Value: job.ID,
+		},
+		{
 			Name:  testImageEnv,
 			Value: job.Image,
 		},
