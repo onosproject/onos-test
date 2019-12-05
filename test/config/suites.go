@@ -44,6 +44,8 @@ type CLITestSuite struct {
 
 // SetupTestSuite sets up the onos-config CLI test suite
 func (s *CLITestSuite) SetupTestSuite() {
+	setup.Atomix()
+	setup.Partitions().Raft()
 	setup.CLI().SetEnabled()
 	setup.Topo().SetReplicas(2)
 	setup.Config().SetReplicas(2)
@@ -57,6 +59,8 @@ type HATestSuite struct {
 
 // SetupTestSuite sets up the onos-config CLI test suite
 func (s *HATestSuite) SetupTestSuite() {
+	setup.Atomix()
+	setup.Partitions().Raft()
 	setup.Topo().SetReplicas(2)
 	setup.Config().SetReplicas(2)
 	setup.SetupOrDie()
