@@ -25,11 +25,11 @@ import (
 // MapBenchmarkSuite :: benchmark
 type MapBenchmarkSuite struct {
 	benchmark.Suite
-	m _map.Map
+	_map _map.Map
 }
 
-// SetupBenchmarkSuite :: benchmark
-func (s *MapBenchmarkSuite) SetupBenchmarkSuite(c *benchmark.Context) {
+// SetupSuite :: benchmark
+func (s *MapBenchmarkSuite) SetupSuite(c *benchmark.Context) {
 	setup.Partitions("nopaxos").
 		NOPaxos().
 		SetPartitions(c.GetArg("partitions").Int(1)).
@@ -38,16 +38,21 @@ func (s *MapBenchmarkSuite) SetupBenchmarkSuite(c *benchmark.Context) {
 }
 
 // SetupBenchmark :: benchmark
-func (s *MapBenchmarkSuite) SetupBenchmark(b *benchmark.Benchmark) {
+func (s *MapBenchmarkSuite) SetupBenchmark(c *benchmark.Context) {
 	group, err := env.Database().Partitions("nopaxos").Connect()
 	if err != nil {
 		panic(err)
 	}
-	m, err := group.GetMap(context.Background(), b.Name)
+	_map, err := group.GetMap(context.Background(), c.Name)
 	if err != nil {
 		panic(err)
 	}
-	s.m = m
+	s._map = _map
+}
+
+// TearDownBenchmark :: benchmark
+func (s *MapBenchmarkSuite) TearDownBenchmark(c *benchmark.Context) {
+	s._map.Close()
 }
 
 // BenchmarkMapPut :: benchmark
@@ -56,8 +61,8 @@ func (s *MapBenchmarkSuite) BenchmarkMapPut(b *benchmark.Benchmark) {
 		benchmark.RandomString(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
 		benchmark.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
 	}
-	b.Run(func(client _map.Map, key string, value []byte) error {
-		_, err := client.Put(context.Background(), key, value)
+	b.Run(func(key string, value []byte) error {
+		_, err := s._map.Put(context.Background(), key, value)
 		return err
 	}, params...)
 }
@@ -67,8 +72,8 @@ func (s *MapBenchmarkSuite) BenchmarkMapGet(b *benchmark.Benchmark) {
 	params := []benchmark.Param{
 		benchmark.RandomString(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
 	}
-	b.Run(func(client _map.Map, key string) error {
-		_, err := client.Get(context.Background(), key)
+	b.Run(func(key string) error {
+		_, err := s._map.Get(context.Background(), key)
 		return err
 	}, params...)
 }

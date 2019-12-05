@@ -38,6 +38,8 @@ func getTestCommand() *cobra.Command {
 	cmd.Flags().StringP("test", "t", "", "the name of the test method to run")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "test timeout")
 	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
+
+	_ = cmd.MarkFlagRequired("image")
 	return cmd
 }
 
