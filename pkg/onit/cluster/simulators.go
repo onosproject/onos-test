@@ -19,25 +19,27 @@ import (
 	"github.com/onosproject/onos-test/pkg/util/random"
 )
 
-func newSimulators(client *client) *Simulators {
+func newSimulators(cluster *Cluster) *Simulators {
 	return &Simulators{
-		client: client,
+		client:  cluster.client,
+		cluster: cluster,
 	}
 }
 
 // Simulators provides methods for adding and modifying simulators
 type Simulators struct {
 	*client
+	cluster *Cluster
 }
 
 // New returns a new simulator
 func (s *Simulators) New() *Simulator {
-	return newSimulator(fmt.Sprintf("devicesim-%s", random.NewPetName(2)), s.client)
+	return newSimulator(s.cluster, fmt.Sprintf("devicesim-%s", random.NewPetName(2)))
 }
 
 // Get gets a simulator by name
 func (s *Simulators) Get(name string) *Simulator {
-	return newSimulator(name, s.client)
+	return newSimulator(s.cluster, name)
 }
 
 // List lists the simulators in the cluster

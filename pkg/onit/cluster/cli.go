@@ -29,9 +29,9 @@ const (
 	cliService = "onos-cli"
 )
 
-func newCLI(client *client) *CLI {
+func newCLI(cluster *Cluster) *CLI {
 	return &CLI{
-		Deployment: newDeployment(cliService, getLabels(cliType), cliImage, client),
+		Deployment: newDeployment(cluster, cliService, getLabels(cliType), cliImage),
 	}
 }
 

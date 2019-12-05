@@ -30,9 +30,10 @@ import (
 	"time"
 )
 
-func newNode(name string, port int, image string, client *client) *Node {
+func newNode(cluster *Cluster, name string, port int, image string) *Node {
 	return &Node{
-		client:     client,
+		client:     cluster.client,
+		cluster:    cluster,
 		name:       name,
 		port:       port,
 		image:      image,
@@ -43,6 +44,7 @@ func newNode(name string, port int, image string, client *client) *Node {
 // Node provides the environment for a single node
 type Node struct {
 	*client
+	cluster    *Cluster
 	name       string
 	port       int
 	image      string

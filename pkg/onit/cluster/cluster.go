@@ -30,17 +30,18 @@ func New(kube kube.API) *Cluster {
 		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
 		extensionsClient: apiextension.NewForConfigOrDie(kube.Config()),
 	}
-	return &Cluster{
-		client:     client,
-		atomix:     newAtomix(client),
-		database:   newDatabase(client),
-		cli:        newCLI(client),
-		topo:       newTopo(client),
-		config:     newConfig(client),
-		apps:       newApps(client),
-		simulators: newSimulators(client),
-		networks:   newNetworks(client),
+	cluster := &Cluster{
+		client: client,
 	}
+	cluster.atomix = newAtomix(cluster)
+	cluster.database = newDatabase(cluster)
+	cluster.cli = newCLI(cluster)
+	cluster.topo = newTopo(cluster)
+	cluster.config = newConfig(cluster)
+	cluster.apps = newApps(cluster)
+	cluster.simulators = newSimulators(cluster)
+	cluster.networks = newNetworks(cluster)
+	return cluster
 }
 
 // Cluster facilitates modifying subsystems in Kubernetes

@@ -39,9 +39,9 @@ var topoArgs = []string{
 	"-certPath=/certs/onos-topo.crt",
 }
 
-func newTopo(client *client) *Topo {
+func newTopo(cluster *Cluster) *Topo {
 	return &Topo{
-		Service: newService(topoService, []Port{{Name: "grpc", Port: topoPort}}, getLabels(topoType), topoImage, topoSecrets, topoArgs, client),
+		Service: newService(cluster, topoService, []Port{{Name: "grpc", Port: topoPort}}, getLabels(topoType), topoImage, topoSecrets, topoArgs),
 	}
 }
 

@@ -22,12 +22,12 @@ const (
 	partitionLabel = "partition"
 )
 
-func newPartition(name string, client *client) *Partition {
+func newPartition(cluster *Cluster, name string) *Partition {
 	labels := getLabels(partitionType)
 	labels[groupLabel] = name[:strings.LastIndex(name, "-")]
 	labels[partitionLabel] = name[strings.LastIndex(name, "-")+1:]
 	return &Partition{
-		Deployment: newDeployment(name, labels, "", client),
+		Deployment: newDeployment(cluster, name, labels, ""),
 	}
 }
 

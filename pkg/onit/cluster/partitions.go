@@ -22,16 +22,18 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-func newPartitions(group string, client *client) *Partitions {
+func newPartitions(cluster *Cluster, group string) *Partitions {
 	return &Partitions{
-		client: client,
-		group:  group,
+		client:  cluster.client,
+		cluster: cluster,
+		group:   group,
 	}
 }
 
 // Partitions provides methods for adding and modifying partitions
 type Partitions struct {
 	*client
+	cluster *Cluster
 	group   string
 	raft    *RaftPartitions
 	nopaxos *NOPaxosPartitions
@@ -56,7 +58,7 @@ func (s *Partitions) NOPaxos() *NOPaxosPartitions {
 
 // Partition gets a partition by name
 func (s *Partitions) Partition(name string) *Partition {
-	return newPartition(name, s.client)
+	return newPartition(s.cluster, name)
 }
 
 // getLabels returns the labels for the partition group

@@ -16,7 +16,6 @@ package cluster
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"github.com/onosproject/onos-topo/api/device"
@@ -54,9 +53,9 @@ func (d TopoType) String() string {
 	return [...]string{"linear", "single"}[d]
 }
 
-func newNetwork(name string, client *client) *Network {
+func newNetwork(cluster *Cluster, name string) *Network {
 	return &Network{
-		Node:          newNode(name, 0, networkImage, client),
+		Node:          newNode(cluster, name, 0, networkImage),
 		add:           true,
 		deviceType:    networkDeviceType,
 		deviceVersion: networkDeviceVersion,
@@ -87,7 +86,7 @@ func (s *Network) Devices() ([]*Node, error) {
 
 	devices := make([]*Node, len(services.Items))
 	for i, service := range services.Items {
-		devices[i] = newNode(service.Name, stratumPort, "", s.client)
+		devices[i] = newNode(s.cluster, service.Name, stratumPort, "")
 	}
 	return devices, nil
 }
@@ -347,40 +346,12 @@ func (s *Network) addDevices() error {
 
 // addDevice adds the given device to the topo service
 func (s *Network) addDevice(node *Node) error {
-	if err := s.addDeviceByCLI(node); err == nil {
-		return nil
-	}
-	return s.addDeviceByAPI(node)
-}
-
-func (s *Network) addDeviceByCLI(node *Node) error {
-	// Determine whether any CLI nodes are deployed and use the CLI to add the device if possible
-	cli := newCLI(s.client)
-	nodes, err := cli.Nodes()
-	if err != nil {
-		return err
-	}
-
-	if len(nodes) == 0 {
-		return errors.New("onos-cli is not available")
-	}
-
-	timeout := s.DeviceTimeout()
-	if timeout == nil {
-		t := topoTimeout
-		timeout = &t
-	}
-	_, _, err = nodes[0].Execute(fmt.Sprintf("onos topo add device %s --address %s --type %s --version %s --timeout %s --plain", node.Name(), node.Address(), s.DeviceType(), s.DeviceVersion(), timeout))
-	return err
-}
-
-func (s *Network) addDeviceByAPI(node *Node) error {
 	tlsConfig, err := s.Credentials()
 	if err != nil {
 		return err
 	}
 
-	conn, err := grpc.Dial(topoAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	conn, err := grpc.Dial(s.cluster.Topo().Address(s.cluster.Topo().Ports()[0].Name), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	if err != nil {
 		return err
 	}
@@ -441,34 +412,12 @@ func (s *Network) removeDevices() error {
 
 // removeDevice removes the given device from the topo service
 func (s *Network) removeDevice(node *Node) error {
-	if err := s.removeDeviceByCLI(node); err == nil {
-		return nil
-	}
-	return s.removeDeviceByAPI(node)
-}
-
-func (s *Network) removeDeviceByCLI(node *Node) error {
-	// Determine whether any CLI nodes are deployed and use the CLI to add the device if possible
-	cli := newCLI(s.client)
-	nodes, err := cli.Nodes()
-	if err != nil {
-		return err
-	}
-
-	if len(nodes) == 0 {
-		return errors.New("onos-cli is not available")
-	}
-	_, _, err = nodes[0].Execute(fmt.Sprintf("onos topo remove device %s", node.Name()))
-	return err
-}
-
-func (s *Network) removeDeviceByAPI(node *Node) error {
 	tlsConfig, err := s.Credentials()
 	if err != nil {
 		return err
 	}
 
-	conn, err := grpc.Dial(topoAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	conn, err := grpc.Dial(s.cluster.Topo().Address(s.cluster.Topo().Ports()[0].Name), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	if err != nil {
 		return err
 	}

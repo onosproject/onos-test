@@ -37,9 +37,9 @@ var configArgs = []string{
 	"-modelPlugin=/usr/local/lib/stratum.so.1.0.0",
 }
 
-func newConfig(client *client) *Config {
+func newConfig(cluster *Cluster) *Config {
 	return &Config{
-		Service: newService(configService, []Port{{Name: "grpc", Port: configPort}}, getLabels(configType), configImage, configSecrets, configArgs, client),
+		Service: newService(cluster, configService, []Port{{Name: "grpc", Port: configPort}}, getLabels(configType), configImage, configSecrets, configArgs),
 	}
 }
 

@@ -16,25 +16,27 @@ package cluster
 
 import "github.com/onosproject/onos-test/pkg/util/random"
 
-func newNetworks(client *client) *Networks {
+func newNetworks(cluster *Cluster) *Networks {
 	return &Networks{
-		client: client,
+		client:  cluster.client,
+		cluster: cluster,
 	}
 }
 
 // Networks provides methods for adding and modifying networks
 type Networks struct {
 	*client
+	cluster *Cluster
 }
 
 // New returns a new network
 func (s *Networks) New() *Network {
-	return newNetwork(random.NewPetName(2), s.client)
+	return newNetwork(s.cluster, random.NewPetName(2))
 }
 
 // Get gets a network by name
 func (s *Networks) Get(name string) *Network {
-	return newNetwork(name, s.client)
+	return newNetwork(s.cluster, name)
 }
 
 // List lists the networks in the cluster
