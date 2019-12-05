@@ -23,7 +23,6 @@ const (
 	topoImage   = "onosproject/onos-topo:latest"
 	topoService = "onos-topo"
 	topoPort    = 5150
-	topoAddress = "onos-topo:5150"
 	topoTimeout = 30 * time.Second
 )
 
@@ -39,9 +38,9 @@ var topoArgs = []string{
 	"-certPath=/certs/onos-topo.crt",
 }
 
-func newTopo(client *client) *Topo {
+func newTopo(cluster *Cluster) *Topo {
 	return &Topo{
-		Service: newService(topoService, []Port{{Name: "grpc", Port: topoPort}}, getLabels(topoType), topoImage, topoSecrets, topoArgs, client),
+		Service: newService(cluster, topoService, []Port{{Name: "grpc", Port: topoPort}}, getLabels(topoType), topoImage, topoSecrets, topoArgs),
 	}
 }
 

@@ -18,23 +18,27 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"os"
 	"sync"
+	"time"
 )
 
 // newCoordinator returns a new test coordinator
-func newCoordinator(test *Config) (*Coordinator, error) {
-	kubeAPI, err := kube.GetAPI(test.JobID)
+func newCoordinator(config *Config) (*Coordinator, error) {
+	kubeAPI, err := kube.GetAPI(config.ID)
 	if err != nil {
 		return nil, err
 	}
 	return &Coordinator{
 		client: kubeAPI.Clientset(),
-		config: test,
+		config: config,
 	}, nil
 }
 
@@ -46,115 +50,56 @@ type Coordinator struct {
 
 // Run runs the tests
 func (c *Coordinator) Run() error {
-	jobs := make([]*Job, 0)
+	var suites []string
 	if c.config.Suite == "" {
+		suites = make([]string, 0, len(Registry.tests))
 		for suite := range Registry.tests {
-			config := &Config{
-				JobID:      newJobID(c.config.JobID, suite),
-				Image:      c.config.Image,
-				Timeout:    c.config.Timeout,
-				PullPolicy: c.config.PullPolicy,
-				Teardown:   c.config.Teardown,
-				Suite:      suite,
-			}
-			job := &Job{
-				cluster: &Cluster{
-					client:    c.client,
-					namespace: config.JobID,
-				},
-				config: config,
-			}
-			jobs = append(jobs, job)
+			suites = append(suites, suite)
 		}
 	} else {
-		config := &Config{
-			JobID:      newJobID(c.config.JobID, c.config.Suite),
-			Image:      c.config.Image,
-			Timeout:    c.config.Timeout,
-			PullPolicy: c.config.PullPolicy,
-			Teardown:   c.config.Teardown,
-			Suite:      c.config.Suite,
-			Test:       c.config.Test,
-		}
-		job := &Job{
-			cluster: &Cluster{
-				client:    c.client,
-				namespace: config.JobID,
-			},
-			config: config,
-		}
-		jobs = append(jobs, job)
+		suites = []string{c.config.Suite}
 	}
-	return runJobs(jobs, c.client)
+
+	workers := make([]*WorkerTask, len(suites))
+	for i, suite := range suites {
+		jobID := newJobID(c.config.ID, suite)
+		config := &Config{
+			ID:              jobID,
+			Image:           c.config.Image,
+			ImagePullPolicy: c.config.ImagePullPolicy,
+			Suite:           suite,
+			Test:            c.config.Test,
+			Env:             c.config.Env,
+		}
+		testCluster, err := cluster.NewCluster(config.ID)
+		if err != nil {
+			return err
+		}
+		worker := &WorkerTask{
+			client:  c.client,
+			cluster: testCluster,
+			config:  config,
+		}
+		workers[i] = worker
+	}
+	return runWorkers(workers)
 }
 
-// runJobs runs the given test jobs
-func runJobs(jobs []*Job, client *kubernetes.Clientset) error {
+// runWorkers runs the given test workers
+func runWorkers(tasks []*WorkerTask) error {
 	// Start jobs in separate goroutines
 	wg := &sync.WaitGroup{}
-	mu := &sync.Mutex{}
-	errChan := make(chan error, len(jobs))
-	codeChan := make(chan int, len(jobs))
-	for _, job := range jobs {
+	errChan := make(chan error, len(tasks))
+	codeChan := make(chan int, len(tasks))
+	for _, job := range tasks {
 		wg.Add(1)
-		go func(job *Job) {
-			// Start the job
-			err := job.start()
+		go func(task *WorkerTask) {
+			status, err := task.Run()
 			if err != nil {
 				errChan <- err
-				_ = job.tearDown()
-				return
+			} else {
+				codeChan <- status
 			}
-
-			// Get the stream of logs for the pod
-			pod, err := job.getPod()
-			if err != nil {
-				errChan <- err
-				_ = job.tearDown()
-				return
-			} else if pod == nil {
-				errChan <- errors.New("cannot locate test pod")
-				_ = job.tearDown()
-				return
-			}
-
-			req := client.CoreV1().Pods(job.config.JobID).GetLogs(pod.Name, &corev1.PodLogOptions{
-				Follow: true,
-			})
-			reader, err := req.Stream()
-			if err != nil {
-				errChan <- err
-				if job.config.Teardown {
-					_ = job.tearDown()
-				}
-				return
-			}
-			defer reader.Close()
-
-			// Stream the logs to stdout
-			scanner := bufio.NewScanner(reader)
-			for scanner.Scan() {
-				mu.Lock()
-				logging.Print(scanner.Text())
-				mu.Unlock()
-			}
-
-			// Get the exit message and code
-			_, status, err := job.getStatus()
-			if err != nil {
-				errChan <- err
-				if job.config.Teardown {
-					_ = job.tearDown()
-				}
-				return
-			}
-			codeChan <- status
-
-			// Tear down the cluster if necessary
-			if job.config.Teardown {
-				_ = job.tearDown()
-			}
-
 			wg.Done()
 		}(job)
 	}
@@ -183,4 +128,203 @@ func runJobs(jobs []*Job, client *kubernetes.Clientset) error {
 // newJobID returns a new unique test job ID
 func newJobID(testID, suite string) string {
 	return fmt.Sprintf("%s-%s", testID, suite)
+}
+
+// WorkerTask manages a single test job for a test worker
+type WorkerTask struct {
+	client  *kubernetes.Clientset
+	cluster *cluster.Cluster
+	config  *Config
+}
+
+// Run runs the worker job
+func (t *WorkerTask) Run() (int, error) {
+	// Start the job
+	err := t.start()
+	if err != nil {
+		_ = t.tearDown()
+		return 0, err
+	}
+
+	// Get the stream of logs for the pod
+	pod, err := t.getPod()
+	if err != nil {
+		_ = t.tearDown()
+		return 0, err
+	} else if pod == nil {
+		_ = t.tearDown()
+		return 0, errors.New("cannot locate test pod")
+	}
+
+	req := t.client.CoreV1().Pods(t.config.ID).GetLogs(pod.Name, &corev1.PodLogOptions{
+		Follow: true,
+	})
+	reader, err := req.Stream()
+	if err != nil {
+		_ = t.tearDown()
+		return 0, err
+	}
+	defer reader.Close()
+
+	// Stream the logs to stdout
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		logging.Print(scanner.Text())
+	}
+
+	// Get the exit message and code
+	_, status, err := t.getStatus()
+	if err != nil {
+		_ = t.tearDown()
+		return 0, err
+	}
+
+	// Tear down the cluster if necessary
+	_ = t.tearDown()
+	return status, nil
+}
+
+// start starts the worker job
+func (t *WorkerTask) start() error {
+	if err := t.cluster.Create(); err != nil {
+		return err
+	}
+	if err := t.startTest(); err != nil {
+		return err
+	}
+	if err := t.awaitTestJobRunning(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// startTest starts running a test job
+func (t *WorkerTask) startTest() error {
+	if err := t.createTestJob(); err != nil {
+		return err
+	}
+	if err := t.awaitTestJobRunning(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// createTestJob creates the job to run tests
+func (t *WorkerTask) createTestJob() error {
+	zero := int32(0)
+	one := int32(1)
+
+	env := t.config.Env
+	env[testContextEnv] = string(testContextWorker)
+	env[testNamespaceEnv] = t.config.ID
+	env[testJobEnv] = t.config.ID
+
+	envVars := make([]corev1.EnvVar, 0, len(env))
+	for key, value := range env {
+		envVars = append(envVars, corev1.EnvVar{
+			Name:  key,
+			Value: value,
+		})
+	}
+
+	batchJob := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      t.config.ID,
+			Namespace: t.config.ID,
+			Annotations: map[string]string{
+				"job": t.config.ID,
+			},
+		},
+		Spec: batchv1.JobSpec{
+			Parallelism:  &one,
+			Completions:  &one,
+			BackoffLimit: &zero,
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"job": t.config.ID,
+					},
+				},
+				Spec: corev1.PodSpec{
+					ServiceAccountName: t.config.ID,
+					RestartPolicy:      corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:            "test",
+							Image:           t.config.Image,
+							ImagePullPolicy: t.config.ImagePullPolicy,
+							Env:             envVars,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if t.config.Timeout > 0 {
+		timeoutSeconds := int64(t.config.Timeout / time.Second)
+		batchJob.Spec.ActiveDeadlineSeconds = &timeoutSeconds
+	}
+	_, err := t.client.BatchV1().Jobs(t.config.ID).Create(batchJob)
+	return err
+}
+
+// awaitTestJobRunning blocks until the test job creates a pod in the RUNNING state
+func (t *WorkerTask) awaitTestJobRunning() error {
+	for {
+		pod, err := t.getPod()
+		if err != nil {
+			return err
+		} else if pod != nil {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// getTestResult gets the status message and exit code of the given test
+func (t *WorkerTask) getTestResult() (string, int, error) {
+	pod, err := t.getPod()
+	if err != nil {
+		return "", 0, err
+	} else if pod == nil {
+		return "", 0, errors.New("cannot locate test pod")
+	}
+	state := pod.Status.ContainerStatuses[0].State
+	if state.Terminated != nil {
+		return state.Terminated.Message, int(state.Terminated.ExitCode), nil
+	}
+	return "", 0, errors.New("test job is not complete")
+}
+
+// getPod finds the Pod for the given test
+func (t *WorkerTask) getPod() (*corev1.Pod, error) {
+	pods, err := t.client.CoreV1().Pods(t.config.ID).List(metav1.ListOptions{
+		LabelSelector: "job=" + t.config.ID,
+	})
+	if err != nil {
+		return nil, err
+	} else if len(pods.Items) > 0 {
+		for _, pod := range pods.Items {
+			if pod.Status.Phase == corev1.PodRunning && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].Ready {
+				return &pod, nil
+			}
+		}
+		for _, pod := range pods.Items {
+			if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
+				return &pod, nil
+			}
+		}
+	}
+	return nil, nil
+}
+
+// getStatus gets the status message and exit code of the given pod
+func (t *WorkerTask) getStatus() (string, int, error) {
+	return t.getTestResult()
+}
+
+// tearDown tears down the job
+func (t *WorkerTask) tearDown() error {
+	return t.cluster.Delete()
 }

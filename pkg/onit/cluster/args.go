@@ -22,17 +22,14 @@ import (
 
 var args = make(map[string]string)
 
+const argPrefix = "ONIT_ARG_"
+
 func init() {
-	overrides := os.Getenv("ARGS")
-	if overrides != "" {
-		args := strings.Split(overrides, ",")
-		for _, arg := range args {
-			elements := strings.Split(arg, "=")
-			if len(elements) == 2 {
-				key := elements[0]
-				value := elements[1]
-				SetArg(key, value)
-			}
+	for _, keyval := range os.Environ() {
+		key := keyval[:strings.Index(keyval, "=")]
+		if strings.HasPrefix(key, argPrefix) {
+			value := keyval[strings.Index(keyval, "=")+1:]
+			SetArg(strings.ReplaceAll(strings.ToLower(key[len(argPrefix):]), "_", "."), value)
 		}
 	}
 }

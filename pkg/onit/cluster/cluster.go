@@ -17,8 +17,6 @@ package cluster
 import (
 	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/kube"
-	"github.com/onosproject/onos-test/pkg/test"
-	"github.com/onosproject/onos-test/pkg/util/logging"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"
 )
@@ -32,17 +30,18 @@ func New(kube kube.API) *Cluster {
 		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
 		extensionsClient: apiextension.NewForConfigOrDie(kube.Config()),
 	}
-	return &Cluster{
-		client:     client,
-		atomix:     newAtomix(client),
-		database:   newDatabase(client),
-		cli:        newCLI(client),
-		topo:       newTopo(client),
-		config:     newConfig(client),
-		apps:       newApps(client),
-		simulators: newSimulators(client),
-		networks:   newNetworks(client),
+	cluster := &Cluster{
+		client: client,
 	}
+	cluster.atomix = newAtomix(cluster)
+	cluster.database = newDatabase(cluster)
+	cluster.cli = newCLI(cluster)
+	cluster.topo = newTopo(cluster)
+	cluster.config = newConfig(cluster)
+	cluster.apps = newApps(cluster)
+	cluster.simulators = newSimulators(cluster)
+	cluster.networks = newNetworks(cluster)
+	return cluster
 }
 
 // Cluster facilitates modifying subsystems in Kubernetes
@@ -96,36 +95,4 @@ func (c *Cluster) Simulators() *Simulators {
 // Networks returns the cluster networks
 func (c *Cluster) Networks() *Networks {
 	return c.networks
-}
-
-// Create creates the cluster
-func (c *Cluster) Create() error {
-	step := logging.NewStep(c.namespace, "Setup ONOS cluster")
-	step.Start()
-	cluster, err := test.NewCluster(c.namespace)
-	if err != nil {
-		return err
-	}
-	if err := cluster.Create(); err != nil {
-		step.Fail(err)
-		return err
-	}
-	step.Complete()
-	return nil
-}
-
-// Delete deletes the cluster
-func (c *Cluster) Delete() error {
-	step := logging.NewStep(c.namespace, "Tear down ONOS cluster")
-	step.Start()
-	cluster, err := test.NewCluster(c.namespace)
-	if err != nil {
-		return err
-	}
-	if err := cluster.Delete(); err != nil {
-		step.Fail(err)
-		return err
-	}
-	step.Complete()
-	return nil
 }

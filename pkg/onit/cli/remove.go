@@ -52,7 +52,7 @@ func getRemoveNetworkCommand() *cobra.Command {
 		Use:   "network [args]",
 		Short: "Remove a stratum network from the cluster",
 		Args:  cobra.NoArgs,
-		RunE:  runRemoveNetworkCommand,
+		RunE:  runInCluster(runRemoveNetworkCommand),
 	}
 	cmd.Flags().StringP("name", "n", "", "the name of the network to remove")
 	_ = cmd.MarkFlagRequired("name")
@@ -63,7 +63,7 @@ func getRemoveNetworkCommand() *cobra.Command {
 }
 
 func runRemoveNetworkCommand(cmd *cobra.Command, _ []string) error {
-	runCommand(cmd)
+	setupCommand(cmd)
 
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
@@ -84,7 +84,7 @@ func getRemoveSimulatorCommand() *cobra.Command {
 		Use:   "simulator [args]",
 		Short: "Remove a device simulator from the cluster",
 		Args:  cobra.NoArgs,
-		RunE:  runRemoveSimulatorCommand,
+		RunE:  runInCluster(runRemoveSimulatorCommand),
 	}
 	cmd.Flags().StringP("name", "n", "", "the name of the simulator to remove")
 	_ = cmd.MarkFlagRequired("name")
@@ -95,7 +95,7 @@ func getRemoveSimulatorCommand() *cobra.Command {
 }
 
 func runRemoveSimulatorCommand(cmd *cobra.Command, args []string) error {
-	runCommand(cmd)
+	setupCommand(cmd)
 
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
@@ -116,7 +116,7 @@ func getRemoveAppCommand() *cobra.Command {
 		Use:   "app [args]",
 		Short: "Remove an app from the cluster",
 		Args:  cobra.NoArgs,
-		RunE:  runRemoveAppCommand,
+		RunE:  runInCluster(runRemoveAppCommand),
 	}
 	cmd.Flags().StringP("name", "n", "", "the name of the app to remove")
 	_ = cmd.MarkFlagRequired("name")
@@ -126,8 +126,8 @@ func getRemoveAppCommand() *cobra.Command {
 	return cmd
 }
 
-func runRemoveAppCommand(cmd *cobra.Command, args []string) error {
-	runCommand(cmd)
+func runRemoveAppCommand(cmd *cobra.Command, _ []string) error {
+	setupCommand(cmd)
 
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {

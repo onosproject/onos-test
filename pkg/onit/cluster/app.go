@@ -25,11 +25,11 @@ var appSecrets = map[string]string{
 	"client.key": clientKey,
 }
 
-func newApp(name string, client *client) *App {
+func newApp(cluster *Cluster, name string) *App {
 	labels := getLabels(appType)
 	labels[appLabel] = name
 	return &App{
-		Service: newService(name, []Port{}, labels, "", appSecrets, []string{}, client),
+		Service: newService(cluster, name, []Port{}, labels, "", appSecrets, []string{}),
 	}
 }
 

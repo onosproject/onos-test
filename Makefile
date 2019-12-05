@@ -59,43 +59,53 @@ proto:
 		--entrypoint build/bin/compile_protos.sh \
 		onosproject/protoc-go:stable
 
+onit-docker: # @HELP build onit Docker image
+onit-docker:
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/onit/_output/bin/onit ./cmd/onit
+	docker build build/onit -f build/onit/Dockerfile \
+		--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
+		-t onosproject/onit:${ONOS_TEST_VERSION}
+
+images: # @HELP build all Docker images
+images: onit-docker
+
+kind: # @HELP build Docker images and add them to the currently configured kind cluster
+kind: images
+	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
+	kind load docker-image onosproject/onit:${ONOS_TEST_VERSION}
+
 grpc-test-docker: # @HELP build onos-tests Docker image
 grpc-test-docker:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/grpc-test/_output/bin/grpc-test ./cmd/grpc-test
-	docker build . -f build/grpc-test/Dockerfile \
+	docker build build/grpc-test -f build/grpc-test/Dockerfile \
 		--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
 		-t onosproject/grpc-test:${ONOS_TEST_VERSION}
 
 onos-tests-docker: # @HELP build onos-tests Docker image
 onos-tests-docker:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/onos-tests/_output/bin/onos-tests ./cmd/onos-tests
-	docker build . -f build/onos-tests/Dockerfile \
+	docker build build/onos-tests -f build/onos-tests/Dockerfile \
 		--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
 		-t onosproject/onos-tests:${ONOS_TEST_VERSION}
 
 onos-benchmarks-docker: # @HELP build onos-benchmarks Docker image
 onos-benchmarks-docker:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/onos-benchmarks/_output/bin/onos-benchmarks ./cmd/onos-benchmarks
-	docker build . -f build/onos-benchmarks/Dockerfile \
+	docker build build/onos-benchmarks -f build/onos-benchmarks/Dockerfile \
 		--build-arg ONOS_BUILD_VERSION=${ONOS_BUILD_VERSION} \
 		-t onosproject/onos-benchmarks:${ONOS_TEST_VERSION}
 
-images: # @HELP build all Docker images
-images: onos-tests-docker onos-benchmarks-docker grpc-test-docker
+tests: # @HELP build all Docker images
+tests: onos-tests-docker onos-benchmarks-docker grpc-test-docker
 
-kind: # @HELP build Docker images and add them to the currently configured kind cluster
-kind: images
+tests-kind: # @HELP build Docker images and add them to the currently configured kind cluster
+tests-kind: tests
 	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
 	kind load docker-image onosproject/onos-tests:${ONOS_TEST_VERSION}
 	kind load docker-image onosproject/onos-benchmarks:${ONOS_TEST_VERSION}
+	kind load docker-image onosproject/grpc-test:${ONOS_TEST_VERSION}
 
-k3d: # @HELP build Docker images and add them to the currently configured k3d cluster
-k3d: images
-	@if [ "`k3d list`" = '' ]; then echo "no k3d cluster found" && exit 1; fi
-	k3d import-images onosproject/onos-tests:${ONOS_TEST_VERSION}
-	k3d import-images onosproject/onos-benchmarks:${ONOS_TEST_VERSION}
-
-all: build images
+all: build images tests
 
 
 clean: # @HELP remove all the build artifacts

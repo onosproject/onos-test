@@ -64,9 +64,16 @@ type AfterBenchmark interface {
 	AfterBenchmark(b *Benchmark)
 }
 
+// newContext returns a new benchmark context
+func newContext(config *Config) *Context {
+	return &Context{
+		config: config,
+	}
+}
+
 // Context provides the benchmark context
 type Context struct {
-	config *WorkerConfig
+	config *Config
 }
 
 // GetArg gets a benchmark argument
@@ -362,17 +369,15 @@ func getBenchmarks(suite BenchmarkingSuite) []string {
 }
 
 // setupSuite sets up the given benchmark suite
-func setupSuite(suite BenchmarkingSuite, config *WorkerConfig) {
-	context := &Context{
-		config: config,
-	}
+func setupSuite(suite BenchmarkingSuite, config *Config) {
+	context := newContext(config)
 	if setupBenchmarkSuite, ok := suite.(SetupBenchmarkSuite); ok {
 		setupBenchmarkSuite.SetupBenchmarkSuite(context)
 	}
 }
 
 // runBenchmark runs a benchmark method
-func runBenchmark(benchmark string, requests int, suite BenchmarkingSuite, config *WorkerConfig) (*Result, error) {
+func runBenchmark(benchmark string, requests int, suite BenchmarkingSuite, config *Config) (*Result, error) {
 	methods := reflect.TypeOf(suite)
 	method, ok := methods.MethodByName(benchmark)
 	if !ok {
@@ -380,9 +385,7 @@ func runBenchmark(benchmark string, requests int, suite BenchmarkingSuite, confi
 	}
 
 	println(benchmark)
-	context := &Context{
-		config: config,
-	}
+	context := newContext(config)
 	b := newBenchmark(benchmark, requests, context)
 	if setupBenchmarkSuite, ok := suite.(SetupBenchmark); ok {
 		setupBenchmarkSuite.SetupBenchmark(b)

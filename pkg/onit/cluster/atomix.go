@@ -31,9 +31,9 @@ const (
 	atomixPort    = 5679
 )
 
-func newAtomix(client *client) *Atomix {
+func newAtomix(cluster *Cluster) *Atomix {
 	return &Atomix{
-		Deployment: newDeployment(atomixService, getLabels(atomixType), atomixImage, client),
+		Deployment: newDeployment(cluster, atomixService, getLabels(atomixType), atomixImage),
 	}
 }
 

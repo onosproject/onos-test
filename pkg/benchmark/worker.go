@@ -24,8 +24,8 @@ import (
 )
 
 // newWorker returns a new benchmark worker
-func newWorker(config *WorkerConfig) (*Worker, error) {
-	kubeAPI, err := kube.GetAPI(config.JobID)
+func newWorker(config *Config) (*Worker, error) {
+	kubeAPI, err := kube.GetAPI(config.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -35,16 +35,16 @@ func newWorker(config *WorkerConfig) (*Worker, error) {
 	}
 	return &Worker{
 		client: kubeAPI.Client(),
-		config: config,
 		suite:  suite,
+		config: config,
 	}, nil
 }
 
 // Worker runs a benchmark job
 type Worker struct {
 	client client.Client
-	config *WorkerConfig
 	suite  BenchmarkingSuite
+	config *Config
 }
 
 // Run runs a benchmark

@@ -23,9 +23,10 @@ import (
 
 const apiPort = "api"
 
-func newDeployment(name string, labels map[string]string, image string, client *client) *Deployment {
+func newDeployment(cluster *Cluster, name string, labels map[string]string, image string) *Deployment {
 	return &Deployment{
-		client:     client,
+		client:     cluster.client,
+		cluster:    cluster,
 		name:       name,
 		labels:     labels,
 		image:      image,
@@ -36,6 +37,7 @@ func newDeployment(name string, labels map[string]string, image string, client *
 // Deployment is a collection of nodes
 type Deployment struct {
 	*client
+	cluster    *Cluster
 	name       string
 	labels     map[string]string
 	image      string
@@ -77,11 +79,11 @@ func (d *Deployment) Node(name string) (*Node, error) {
 	for _, container := range pod.Spec.Containers {
 		for _, port := range container.Ports {
 			if port.Name == apiPort {
-				return newNode(name, int(port.ContainerPort), container.Image, d.client), nil
+				return newNode(d.cluster, name, int(port.ContainerPort), container.Image), nil
 			}
 		}
 	}
-	return newNode(name, 0, "", d.client), nil
+	return newNode(d.cluster, name, 0, ""), nil
 }
 
 // Nodes returns a list of nodes in the service

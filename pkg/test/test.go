@@ -135,8 +135,9 @@ func testFilter(name string, config *Config) (bool, error) {
 	if ok, _ := regexp.MatchString("^Test", name); !ok {
 		return false, nil
 	}
-	if config.Test != "" {
-		return config.Test == name, nil
+	test := config.Test
+	if test != "" {
+		return test == name, nil
 	}
 	return true, nil
 }

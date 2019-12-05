@@ -15,6 +15,7 @@
 package benchmark
 
 import (
+	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -53,24 +54,31 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	args, _ := cmd.Flags().GetStringToString("args")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 
-	config := &CoordinatorConfig{
-		JobID:       random.NewPetName(2),
-		Image:       image,
-		Timeout:     timeout,
-		PullPolicy:  corev1.PullPolicy(pullPolicy),
-		Suite:       suite,
-		Benchmark:   benchmark,
-		Workers:     workers,
-		Parallelism: parallelism,
-		Requests:    requests,
-		Args:        args,
+	config := &Config{
+		ID:              random.NewPetName(2),
+		Image:           image,
+		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
+		Suite:           suite,
+		Benchmark:       benchmark,
+		Workers:         workers,
+		Parallelism:     parallelism,
+		Requests:        requests,
+		Args:            args,
+		Timeout:         timeout,
 	}
 
-	runner, err := NewRunner(config)
+	job := &cluster.Job{
+		ID:              config.ID,
+		Image:           image,
+		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
+		Env:             config.ToEnv(),
+		Timeout:         timeout,
+	}
+	runner, err := cluster.NewRunner()
 	if err != nil {
 		return err
 	}
-	return runner.Run()
+	return runner.Run(job)
 }
 
 func init() {

@@ -15,12 +15,11 @@
 package cli
 
 import (
-	"fmt"
+	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	"os"
 	"strings"
 	"time"
 )
@@ -43,59 +42,42 @@ func getTestCommand() *cobra.Command {
 }
 
 func runTestCommand(cmd *cobra.Command, _ []string) error {
-	runCommand(cmd)
+	setupCommand(cmd)
 
-	clusterID, _ := cmd.Flags().GetString("cluster")
 	image, _ := cmd.Flags().GetString("image")
 	sets, _ := cmd.Flags().GetStringToString("set")
 	suite, _ := cmd.Flags().GetString("suite")
 	testName, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
-	noTeardown, _ := cmd.Flags().GetBool("no-teardown")
 	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 
-	overrides := []string{}
+	env := make(map[string]string)
 	for key, value := range sets {
-		overrides = append(overrides, fmt.Sprintf("%s=%s", key, value))
+		env["ONIT_ARG_"+strings.ToUpper(strings.ReplaceAll(key, ".", "_"))] = value
 	}
 
 	config := &test.Config{
-		JobID: random.NewPetName(2),
-		Image: image,
-		Env: map[string]string{
-			"ARGS": strings.Join(overrides, ","),
-		},
-		Timeout:    timeout,
-		PullPolicy: corev1.PullPolicy(pullPolicy),
-		Teardown:   !noTeardown,
-		Suite:      suite,
-		Test:       testName,
+		ID:              random.NewPetName(2),
+		Image:           image,
+		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
+		Suite:           suite,
+		Test:            testName,
+		Env:             env,
+		Timeout:         timeout,
 	}
 
-	// If the cluster ID was not specified, create a new cluster to run the test
-	// Otherwise, deploy the test in the existing cluster
-	if clusterID == "" {
-		runner, err := test.NewRunner(config)
-		if err != nil {
-			return err
-		}
-		return runner.Run()
+	job := &cluster.Job{
+		ID:              config.ID,
+		Image:           image,
+		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
+		Env:             config.ToEnv(),
+		Timeout:         timeout,
 	}
 
-	cluster, err := test.NewCluster(clusterID)
+	// Create a job runner and run the test job
+	runner, err := cluster.NewRunner()
 	if err != nil {
 		return err
 	}
-	if err := cluster.StartTest(config); err != nil {
-		return err
-	}
-	if err := cluster.AwaitTestComplete(config); err != nil {
-		return err
-	}
-	_, code, err := cluster.GetTestResult(config)
-	if err != nil {
-		return err
-	}
-	os.Exit(code)
-	return nil
+	return runner.Run(job)
 }

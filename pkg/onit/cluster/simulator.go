@@ -130,9 +130,9 @@ const simulatorConfig = `
 }
 `
 
-func newSimulator(name string, client *client) *Simulator {
+func newSimulator(cluster *Cluster, name string) *Simulator {
 	return &Simulator{
-		Node:          newNode(name, 11161, simulatorImage, client),
+		Node:          newNode(cluster, name, 11161, simulatorImage),
 		add:           true,
 		deviceType:    simulatorDeviceType,
 		deviceVersion: simulatorDeviceVersion,
@@ -373,50 +373,17 @@ func (s *Simulator) connectTopo() (*grpc.ClientConn, error) {
 	if err != nil {
 		return nil, err
 	}
-	return grpc.Dial(topoAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	return grpc.Dial(s.cluster.Topo().Address(s.cluster.Topo().Ports()[0].Name), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 }
 
 // addDevice adds the device to the topo service
 func (s *Simulator) addDevice() error {
-	// If the CLI is available, use it to add the device. Otherwise use the northbound API. This is necessary
-	// to allow devices to be added when the northbound API is unreachable (e.g. from outside the cluster).
-	if err := s.addDeviceByCLI(); err == nil {
-		return nil
-	}
-	return s.addDeviceByAPI()
-}
-
-// addDeviceByCLI adds the device via the CLI
-func (s *Simulator) addDeviceByCLI() error {
-	// Determine whether any CLI nodes are deployed and use the CLI to add the device if possible
-	cli := newCLI(s.client)
-	nodes, err := cli.Nodes()
-	if err != nil {
-		return err
-	}
-
-	// If the CLI is unavailable, return an error
-	if len(nodes) == 0 {
-		return errors.New("onos-cli is not available")
-	}
-
-	timeout := s.DeviceTimeout()
-	if timeout == nil {
-		t := topoTimeout
-		timeout = &t
-	}
-	_, _, err = nodes[0].Execute(fmt.Sprintf("onos topo add device %s --address %s --type %s --version %s --timeout %s --plain", s.Name(), s.Address(), s.DeviceType(), s.DeviceVersion(), timeout))
-	return err
-}
-
-// addDeviceByAPI adds the device via the topo API
-func (s *Simulator) addDeviceByAPI() error {
 	tlsConfig, err := s.Credentials()
 	if err != nil {
 		return err
 	}
 
-	conn, err := grpc.Dial(topoAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	conn, err := grpc.Dial(s.cluster.Topo().Address(s.cluster.Topo().Ports()[0].Name), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	if err != nil {
 		return err
 	}
@@ -515,37 +482,12 @@ func (s *Simulator) TearDown() error {
 
 // removeDevice removes the device from the topo service
 func (s *Simulator) removeDevice() error {
-	if err := s.removeDeviceByCLI(); err == nil {
-		return nil
-	}
-	return s.removeDeviceByAPI()
-}
-
-// removeDeviceByCLI removes the device via the CLI
-func (s *Simulator) removeDeviceByCLI() error {
-	// Determine whether any CLI nodes are deployed and use the CLI to add the device if possible
-	cli := newCLI(s.client)
-	nodes, err := cli.Nodes()
-	if err != nil {
-		return err
-	}
-
-	// If the CLI is unavailable, return an error
-	if len(nodes) == 0 {
-		return errors.New("onos-cli is not available")
-	}
-	_, _, err = nodes[0].Execute(fmt.Sprintf("onos topo remove device %s", s.Name()))
-	return err
-}
-
-// removeDeviceByAPI removes the device via the topo API
-func (s *Simulator) removeDeviceByAPI() error {
 	tlsConfig, err := s.Credentials()
 	if err != nil {
 		return err
 	}
 
-	conn, err := grpc.Dial(topoAddress, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	conn, err := grpc.Dial(s.cluster.Topo().Address(s.cluster.Topo().Ports()[0].Name), grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	if err != nil {
 		return err
 	}

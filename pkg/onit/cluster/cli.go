@@ -29,9 +29,9 @@ const (
 	cliService = "onos-cli"
 )
 
-func newCLI(client *client) *CLI {
+func newCLI(cluster *Cluster) *CLI {
 	return &CLI{
-		Deployment: newDeployment(cliService, getLabels(cliType), cliImage, client),
+		Deployment: newDeployment(cluster, cliService, getLabels(cliType), cliImage),
 	}
 }
 
@@ -43,7 +43,7 @@ type CLI struct {
 
 // Enabled indicates whether the CLI is enabled
 func (c *CLI) Enabled() bool {
-	return GetArg(c.name, "enabled").Bool(false)
+	return GetArg(c.name, "enabled").Bool(c.enabled)
 }
 
 // SetEnabled sets whether the CLI is enabled

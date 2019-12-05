@@ -15,8 +15,9 @@
 package cli
 
 import (
+	testcluster "github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/kube"
-	"github.com/onosproject/onos-test/pkg/onit/cluster"
+	onitcluster "github.com/onosproject/onos-test/pkg/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"github.com/spf13/cobra"
 )
@@ -56,25 +57,33 @@ func getCreateClusterCommand() *cobra.Command {
 		Use:   "cluster [args]",
 		Short: "Setup a test cluster on Kubernetes",
 		Args:  cobra.NoArgs,
-		RunE:  runCreateClusterCommand,
+		RunE:  runInCluster(runCreateClusterCommand),
 	}
 	cmd.Flags().StringToString("set", map[string]string{}, "set a cluster argument")
 	return cmd
 }
 
 func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
-	runCommand(cmd)
-	args, _ := cmd.Flags().GetStringToString("set")
-	cluster.SetArgs(args)
-	kubeAPI, err := kube.GetAPI(getCluster(cmd))
+	setupCommand(cmd)
+
+	// Get the k8s API
+	api, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
 	}
-	cluster := cluster.New(kubeAPI)
-	if err := cluster.Create(); err != nil {
+
+	// Create the cluster
+	c, err := testcluster.NewCluster(api.Namespace())
+	if err != nil {
 		return err
 	}
-	setup := setup.New(kubeAPI)
+	if err := c.Create(); err != nil {
+		return err
+	}
+
+	args, _ := cmd.Flags().GetStringToString("set")
+	onitcluster.SetArgs(args)
+	setup := setup.New(api)
 	setup.Atomix()
 	setup.Partitions().Raft()
 	setup.Topo().SetReplicas(1)

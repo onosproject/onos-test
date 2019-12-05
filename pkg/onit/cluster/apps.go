@@ -16,25 +16,27 @@ package cluster
 
 import "github.com/onosproject/onos-test/pkg/util/random"
 
-func newApps(client *client) *Apps {
+func newApps(cluster *Cluster) *Apps {
 	return &Apps{
-		client: client,
+		client:  cluster.client,
+		cluster: cluster,
 	}
 }
 
 // Apps provides methods for adding and modifying applications
 type Apps struct {
 	*client
+	cluster *Cluster
 }
 
 // New returns a new app
 func (s *Apps) New() *App {
-	return newApp(random.NewPetName(2), s.client)
+	return newApp(s.cluster, random.NewPetName(2))
 }
 
 // Get gets an app by name
 func (s *Apps) Get(name string) *App {
-	return newApp(name, s.client)
+	return newApp(s.cluster, name)
 }
 
 // List lists the networks in the cluster

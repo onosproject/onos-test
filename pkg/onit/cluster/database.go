@@ -14,17 +14,19 @@
 
 package cluster
 
-func newDatabase(client *client) *Database {
+func newDatabase(cluster *Cluster) *Database {
 	return &Database{
-		client: client,
-		groups: make(map[string]*Partitions),
+		client:  cluster.client,
+		cluster: cluster,
+		groups:  make(map[string]*Partitions),
 	}
 }
 
 // Database provides methods for managing the Atomix database
 type Database struct {
 	*client
-	groups map[string]*Partitions
+	cluster *Cluster
+	groups  map[string]*Partitions
 }
 
 // Partitions returns a list of partitions in the database
@@ -32,7 +34,7 @@ func (s *Database) Partitions(group string) *Partitions {
 	if partitions, ok := s.groups[group]; ok {
 		return partitions
 	}
-	partitions := newPartitions(group, s.client)
+	partitions := newPartitions(s.cluster, group)
 	s.groups[group] = partitions
 	return partitions
 }

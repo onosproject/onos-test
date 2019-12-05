@@ -28,6 +28,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/yookoala/realpath v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+	golang.org/x/tools v0.0.0-20191113183821-b2a5ed324b91
 	google.golang.org/grpc v1.25.0
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	gotest.tools v2.2.0+incompatible

@@ -4,6 +4,6 @@ RUN apk upgrade --update --no-cache && apk add libc6-compat
 
 USER nobody
 
-ADD _output/bin/onos-tests /usr/local/bin/onos-tests
+ADD _output/bin/onit /usr/local/bin/onit
 
-ENTRYPOINT ["onos-tests"]
+ENTRYPOINT ["onit"]

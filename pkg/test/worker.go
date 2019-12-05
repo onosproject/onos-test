@@ -23,14 +23,14 @@ import (
 )
 
 // newWorker returns a new test worker
-func newWorker(test *Config) (*Worker, error) {
-	kubeAPI, err := kube.GetAPI(test.JobID)
+func newWorker(config *Config) (*Worker, error) {
+	kubeAPI, err := kube.GetAPI(config.ID)
 	if err != nil {
 		return nil, err
 	}
 	return &Worker{
 		client: kubeAPI.Client(),
-		config: test,
+		config: config,
 	}, nil
 }
 

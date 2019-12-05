@@ -15,46 +15,75 @@
 package test
 
 import (
-	"github.com/ghodss/yaml"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"os"
-	"path/filepath"
+	"strings"
 	"time"
 )
 
-const configPath = "/config"
-const configFile = "config.yaml"
+type testContext string
 
-// Config is a job configuration
-type Config struct {
-	JobID      string
-	Image      string
-	Env        map[string]string
-	Timeout    time.Duration
-	PullPolicy corev1.PullPolicy
-	Teardown   bool
-	Suite      string
-	Test       string
+const (
+	testNamespaceEnv = "TEST_NAMESPACE"
+	testContextEnv   = "TEST_CONTEXT"
+
+	testJobEnv             = "TEST_JOB"
+	testImageEnv           = "TEST_IMAGE"
+	testImagePullPolicyEnv = "TEST_IMAGE_PULL_POLICY"
+	testSuiteEnv           = "TEST_SUITE"
+	testNameEnv            = "TEST_NAME"
+)
+
+const (
+	testContextCoordinator testContext = "coordinator"
+	testContextWorker      testContext = "worker"
+)
+
+// GetConfigFromEnv returns the test configuration from the environment
+func GetConfigFromEnv() *Config {
+	env := make(map[string]string)
+	for _, keyval := range os.Environ() {
+		key := keyval[:strings.Index(keyval, "=")]
+		value := keyval[strings.Index(keyval, "=")+1:]
+		env[key] = value
+	}
+	return &Config{
+		ID:              os.Getenv(testJobEnv),
+		Image:           os.Getenv(testImageEnv),
+		ImagePullPolicy: corev1.PullPolicy(os.Getenv(testImagePullPolicyEnv)),
+		Suite:           os.Getenv(testSuiteEnv),
+		Test:            os.Getenv(testNameEnv),
+		Env:             env,
+	}
 }
 
-// loadConfig loads the test configuration
-func loadConfig() (*Config, error) {
-	file, err := os.Open(filepath.Join(configPath, configFile))
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+// Config is a test configuration
+type Config struct {
+	ID              string
+	Image           string
+	ImagePullPolicy corev1.PullPolicy
+	Suite           string
+	Test            string
+	Env             map[string]string
+	Timeout         time.Duration
+}
 
-	jsonBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
+// ToEnv returns the configuration as a mapping of environment variables
+func (c *Config) ToEnv() map[string]string {
+	env := c.Env
+	env[testJobEnv] = c.ID
+	env[testImageEnv] = c.Image
+	env[testImagePullPolicyEnv] = string(c.ImagePullPolicy)
+	env[testSuiteEnv] = c.Suite
+	env[testNameEnv] = c.Test
+	return env
+}
 
-	config := &Config{}
-	err = yaml.Unmarshal(jsonBytes, config)
-	if err != nil {
-		return nil, err
+// getTestContext returns the current test context
+func getTestContext() testContext {
+	context := os.Getenv(testContextEnv)
+	if context != "" {
+		return testContext(context)
 	}
-	return config, nil
+	return testContextCoordinator
 }

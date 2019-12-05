@@ -29,9 +29,9 @@ import (
 	"time"
 )
 
-func newService(name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string, client *client) *Service {
+func newService(cluster *Cluster, name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string) *Service {
 	return &Service{
-		Deployment: newDeployment(name, labels, image, client),
+		Deployment: newDeployment(cluster, name, labels, image),
 		ports:      ports,
 		secrets:    secrets,
 		env:        make(map[string]string),
@@ -107,7 +107,7 @@ func (s *Service) Address(port string) string {
 	if info == nil {
 		panic(fmt.Errorf("unknown port %s", port))
 	}
-	return fmt.Sprintf("%s:%d", s.name, info.Port)
+	return fmt.Sprintf("%s.%s.svc.cluster.local:%d", s.name, s.namespace, info.Port)
 }
 
 // Replicas returns the number of nodes in the service
