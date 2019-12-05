@@ -16,7 +16,7 @@ package cli
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/test"
+	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -60,12 +60,12 @@ func runInCluster(command func(cmd *cobra.Command, args []string) error) func(cm
 			timeout = 0
 		}
 
-		runner, err := test.NewRunner()
+		runner, err := cluster.NewRunner()
 		if err != nil {
 			return err
 		}
 
-		job := &test.Job{
+		job := &cluster.Job{
 			ID:              fmt.Sprintf("onit-%s", random.NewPetName(2)),
 			Image:           onitImage,
 			ImagePullPolicy: onitPullPolicy,

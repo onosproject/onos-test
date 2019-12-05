@@ -32,19 +32,20 @@ func Main() {
 
 // Run runs a test
 func Run() error {
+	config := GetConfigFromEnv()
 	context := getTestContext()
 	switch context {
 	case testContextCoordinator:
-		return runCoordinator()
+		return runCoordinator(config)
 	case testContextWorker:
-		return runWorker()
+		return runWorker(config)
 	}
 	return nil
 }
 
 // runCoordinator runs a test image in the coordinator context
-func runCoordinator() error {
-	coordinator, err := newCoordinator()
+func runCoordinator(config *Config) error {
+	coordinator, err := newCoordinator(config)
 	if err != nil {
 		return err
 	}
@@ -52,8 +53,8 @@ func runCoordinator() error {
 }
 
 // runWorker runs a test image in the worker context
-func runWorker() error {
-	worker, err := newWorker()
+func runWorker(config *Config) error {
+	worker, err := newWorker(config)
 	if err != nil {
 		return err
 	}

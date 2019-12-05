@@ -65,20 +65,20 @@ type AfterBenchmark interface {
 }
 
 // newContext returns a new benchmark context
-func newContext() *Context {
+func newContext(config *Config) *Context {
 	return &Context{
-		args: getBenchmarkArgs(),
+		config: config,
 	}
 }
 
 // Context provides the benchmark context
 type Context struct {
-	args map[string]string
+	config *Config
 }
 
 // GetArg gets a benchmark argument
 func (c *Context) GetArg(name string) *Arg {
-	if value, ok := c.args[name]; ok {
+	if value, ok := c.config.Args[name]; ok {
 		return &Arg{
 			value: value,
 		}
@@ -209,8 +209,8 @@ func (b *Benchmark) getArgs(params []Param) [][]interface{} {
 func (b *Benchmark) warm(f func(...interface{}), params []Param) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
-	requestCh := make(chan []interface{}, getBenchmarkParallelism())
-	for i := 0; i < getBenchmarkParallelism(); i++ {
+	requestCh := make(chan []interface{}, b.config.Parallelism)
+	for i := 0; i < b.config.Parallelism; i++ {
 		wg.Add(1)
 		go func() {
 			for args := range requestCh {
@@ -237,9 +237,9 @@ func (b *Benchmark) warm(f func(...interface{}), params []Param) {
 func (b *Benchmark) run(f func(...interface{}), params []Param) (time.Duration, []time.Duration) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
-	requestCh := make(chan []interface{}, getBenchmarkParallelism())
+	requestCh := make(chan []interface{}, b.config.Parallelism)
 	resultCh := make(chan time.Duration, b.requests)
-	for i := 0; i < getBenchmarkParallelism(); i++ {
+	for i := 0; i < b.config.Parallelism; i++ {
 		wg.Add(1)
 		go func() {
 			for args := range requestCh {
@@ -369,15 +369,15 @@ func getBenchmarks(suite BenchmarkingSuite) []string {
 }
 
 // setupSuite sets up the given benchmark suite
-func setupSuite(suite BenchmarkingSuite) {
-	context := newContext()
+func setupSuite(suite BenchmarkingSuite, config *Config) {
+	context := newContext(config)
 	if setupBenchmarkSuite, ok := suite.(SetupBenchmarkSuite); ok {
 		setupBenchmarkSuite.SetupBenchmarkSuite(context)
 	}
 }
 
 // runBenchmark runs a benchmark method
-func runBenchmark(benchmark string, requests int, suite BenchmarkingSuite) (*Result, error) {
+func runBenchmark(benchmark string, requests int, suite BenchmarkingSuite, config *Config) (*Result, error) {
 	methods := reflect.TypeOf(suite)
 	method, ok := methods.MethodByName(benchmark)
 	if !ok {
@@ -385,7 +385,7 @@ func runBenchmark(benchmark string, requests int, suite BenchmarkingSuite) (*Res
 	}
 
 	println(benchmark)
-	context := newContext()
+	context := newContext(config)
 	b := newBenchmark(benchmark, requests, context)
 	if setupBenchmarkSuite, ok := suite.(SetupBenchmark); ok {
 		setupBenchmarkSuite.SetupBenchmark(b)

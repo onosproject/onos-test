@@ -15,10 +15,10 @@
 package cli
 
 import (
+	testcluster "github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/kube"
-	"github.com/onosproject/onos-test/pkg/onit/cluster"
+	onitcluster "github.com/onosproject/onos-test/pkg/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
-	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/spf13/cobra"
 )
 
@@ -73,7 +73,7 @@ func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Create the cluster
-	c, err := test.NewCluster(api.Namespace())
+	c, err := testcluster.NewCluster(api.Namespace())
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
 	}
 
 	args, _ := cmd.Flags().GetStringToString("set")
-	cluster.SetArgs(args)
+	onitcluster.SetArgs(args)
 	setup := setup.New(api)
 	setup.Atomix()
 	setup.Partitions().Raft()

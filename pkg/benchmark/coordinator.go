@@ -35,47 +35,48 @@ import (
 )
 
 // newCoordinator returns a new benchmark coordinator
-func newCoordinator() (*Coordinator, error) {
-	kubeAPI, err := kube.GetAPI(getBenchmarkNamespace())
+func newCoordinator(config *Config) (*Coordinator, error) {
+	kubeAPI, err := kube.GetAPI(config.ID)
 	if err != nil {
 		return nil, err
 	}
 	return &Coordinator{
 		client: kubeAPI.Clientset(),
+		config: config,
 	}, nil
 }
 
 // Coordinator coordinates workers for suites of benchmarks
 type Coordinator struct {
 	client *kubernetes.Clientset
+	config *Config
 }
 
 // Run runs the tests
 func (c *Coordinator) Run() error {
 	var suites []string
-	suite := getBenchmarkSuite()
-	if suite == "" {
+	if c.config.Suite == "" {
 		suites = make([]string, 0, len(Registry.benchmarks))
 		for suite := range Registry.benchmarks {
 			suites = append(suites, suite)
 		}
 	} else {
-		suites = []string{suite}
+		suites = []string{c.config.Suite}
 	}
 
 	workers := make([]*WorkerTask, len(suites))
 	for i, suite := range suites {
-		jobID := newJobID(getBenchmarkJob(), suite)
+		jobID := newJobID(c.config.ID, suite)
 		config := &Config{
 			ID:              jobID,
-			Image:           getBenchmarkImage(),
-			ImagePullPolicy: getBenchmarkImagePullPolicy(),
+			Image:           c.config.Image,
+			ImagePullPolicy: c.config.ImagePullPolicy,
 			Suite:           suite,
-			Benchmark:       getBenchmarkName(),
-			Workers:         getBenchmarkWorkers(),
-			Parallelism:     getBenchmarkParallelism(),
-			Args:            getBenchmarkArgs(),
-			Env:             getBenchmarkEnv(),
+			Benchmark:       c.config.Benchmark,
+			Workers:         c.config.Workers,
+			Parallelism:     c.config.Parallelism,
+			Args:            c.config.Args,
+			Env:             c.config.Env,
 		}
 		benchCluster, err := cluster.NewCluster(jobID)
 		if err != nil {
@@ -174,7 +175,7 @@ func (t *WorkerTask) run() error {
 
 // start starts running a test job
 func (t *WorkerTask) start() error {
-	for i := 0; i < getBenchmarkWorkers(); i++ {
+	for i := 0; i < t.config.Workers; i++ {
 		if err := t.createWorker(i); err != nil {
 			return err
 		}
@@ -195,7 +196,7 @@ func (t *WorkerTask) getWorkerAddress(worker int) string {
 
 // createWorkers creates the benchmark workers
 func (t *WorkerTask) createWorkers() error {
-	for i := 0; i < getBenchmarkWorkers(); i++ {
+	for i := 0; i < t.config.Workers; i++ {
 		if err := t.createWorker(i); err != nil {
 			return err
 		}
@@ -286,7 +287,7 @@ func (t *WorkerTask) createWorker(worker int) error {
 
 // awaitRunning blocks until the job creates a pod in the RUNNING state
 func (t *WorkerTask) awaitRunning() error {
-	for i := 0; i < getBenchmarkWorkers(); i++ {
+	for i := 0; i < t.config.Workers; i++ {
 		if err := t.awaitWorkerRunning(i); err != nil {
 			return err
 		}
@@ -309,8 +310,8 @@ func (t *WorkerTask) awaitWorkerRunning(worker int) error {
 
 // getWorkerConns returns the worker clients for the given benchmark
 func (t *WorkerTask) getWorkers() ([]WorkerServiceClient, error) {
-	workers := make([]WorkerServiceClient, getBenchmarkWorkers())
-	for i := 0; i < getBenchmarkWorkers(); i++ {
+	workers := make([]WorkerServiceClient, t.config.Workers)
+	for i := 0; i < t.config.Workers; i++ {
 		worker, err := grpc.Dial(t.getWorkerAddress(i), grpc.WithInsecure())
 		if err != nil {
 			return nil, err
@@ -322,7 +323,7 @@ func (t *WorkerTask) getWorkers() ([]WorkerServiceClient, error) {
 
 // GetResult gets the status message and exit code of the given test
 func (t *WorkerTask) GetResult() (string, int, error) {
-	for i := 0; i < getBenchmarkWorkers(); i++ {
+	for i := 0; i < t.config.Workers; i++ {
 		pod, err := t.getPod(i)
 		if err != nil {
 			return "", 0, err
@@ -355,11 +356,10 @@ func (t *WorkerTask) getPod(worker int) (*corev1.Pod, error) {
 // runBenchmarks runs the given benchmarks
 func (t *WorkerTask) runBenchmarks() error {
 	results := make([]result, 0)
-	benchmark := getBenchmarkName()
-	if benchmark != "" {
-		step := logging.NewStep(t.config.ID, "Run benchmark %s", benchmark)
+	if t.config.Benchmark != "" {
+		step := logging.NewStep(t.config.ID, "Run benchmark %s", t.config.Benchmark)
 		step.Start()
-		result, err := t.runBenchmark(benchmark)
+		result, err := t.runBenchmark(t.config.Benchmark)
 		if err != nil {
 			step.Fail(err)
 			return err
@@ -423,7 +423,7 @@ func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
 				resultCh <- result
 			}
 			wg.Done()
-		}(worker, getBenchmarkRequests()/len(workers))
+		}(worker, t.config.Requests/len(workers))
 	}
 
 	wg.Wait()

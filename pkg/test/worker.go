@@ -23,33 +23,35 @@ import (
 )
 
 // newWorker returns a new test worker
-func newWorker() (*Worker, error) {
-	kubeAPI, err := kube.GetAPI(getTestNamespace())
+func newWorker(config *Config) (*Worker, error) {
+	kubeAPI, err := kube.GetAPI(config.ID)
 	if err != nil {
 		return nil, err
 	}
 	return &Worker{
 		client: kubeAPI.Client(),
+		config: config,
 	}, nil
 }
 
 // Worker runs a test job
 type Worker struct {
 	client client.Client
+	config *Config
 }
 
 // Run runs a test
 func (w *Worker) Run() error {
-	test, ok := Registry.tests[getTestSuite()]
+	test, ok := Registry.tests[w.config.Suite]
 	if !ok {
-		return fmt.Errorf("unknown test suite %s", getTestSuite())
+		return fmt.Errorf("unknown test suite %s", w.config.Suite)
 	}
 
 	tests := []testing.InternalTest{
 		{
-			Name: getTestSuite(),
+			Name: w.config.Suite,
 			F: func(t *testing.T) {
-				RunTests(t, test)
+				RunTests(t, test, w.config)
 			},
 		},
 	}

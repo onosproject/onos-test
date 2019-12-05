@@ -24,18 +24,19 @@ import (
 )
 
 // newWorker returns a new benchmark worker
-func newWorker() (*Worker, error) {
-	kubeAPI, err := kube.GetAPI(getBenchmarkNamespace())
+func newWorker(config *Config) (*Worker, error) {
+	kubeAPI, err := kube.GetAPI(config.ID)
 	if err != nil {
 		return nil, err
 	}
-	suite := Registry.benchmarks[getBenchmarkSuite()]
+	suite := Registry.benchmarks[config.Suite]
 	if suite == nil {
 		return nil, errors.New("unknown benchmark suite")
 	}
 	return &Worker{
 		client: kubeAPI.Client(),
 		suite:  suite,
+		config: config,
 	}, nil
 }
 
@@ -43,11 +44,12 @@ func newWorker() (*Worker, error) {
 type Worker struct {
 	client client.Client
 	suite  BenchmarkingSuite
+	config *Config
 }
 
 // Run runs a benchmark
 func (w *Worker) Run() error {
-	setupSuite(w.suite)
+	setupSuite(w.suite, w.config)
 	lis, err := net.Listen("tcp", ":5000")
 	if err != nil {
 		return err
@@ -59,5 +61,5 @@ func (w *Worker) Run() error {
 
 // RunBenchmark runs a benchmark method from the given request
 func (w *Worker) RunBenchmark(ctx context.Context, request *Request) (*Result, error) {
-	return runBenchmark(request.Benchmark, int(request.Requests), w.suite)
+	return runBenchmark(request.Benchmark, int(request.Requests), w.suite, w.config)
 }

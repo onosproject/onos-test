@@ -317,28 +317,7 @@ func (r *Runner) createJob(job *Job) error {
 	step := logging.NewStep(job.ID, "Deploy job coordinator")
 	step.Start()
 
-	env := []corev1.EnvVar{
-		{
-			Name:  testContextEnv,
-			Value: string(testContextCoordinator),
-		},
-		{
-			Name:  testNamespaceEnv,
-			Value: namespace,
-		},
-		{
-			Name:  testJobEnv,
-			Value: job.ID,
-		},
-		{
-			Name:  testImageEnv,
-			Value: job.Image,
-		},
-		{
-			Name:  testImagePullPolicyEnv,
-			Value: string(job.ImagePullPolicy),
-		},
-	}
+	env := make([]corev1.EnvVar, 0, len(job.Env))
 	for key, value := range job.Env {
 		env = append(env, corev1.EnvVar{
 			Name:  key,

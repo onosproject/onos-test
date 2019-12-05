@@ -60,7 +60,6 @@ func GetConfigFromEnv() *Config {
 // Config is a test configuration
 type Config struct {
 	ID              string
-	context         testContext
 	Image           string
 	ImagePullPolicy corev1.PullPolicy
 	Suite           string

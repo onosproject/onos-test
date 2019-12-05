@@ -15,8 +15,8 @@
 package cli
 
 import (
+	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/kube"
-	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/spf13/cobra"
 )
 
@@ -60,7 +60,7 @@ func runDeleteClusterCommand(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 	// Delete the cluster
-	c, err := test.NewCluster(kubeAPI.Namespace())
+	c, err := cluster.NewCluster(kubeAPI.Namespace())
 	if err != nil {
 		return err
 	}

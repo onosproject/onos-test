@@ -32,48 +32,49 @@ import (
 )
 
 // newCoordinator returns a new test coordinator
-func newCoordinator() (*Coordinator, error) {
-	kubeAPI, err := kube.GetAPI(getTestNamespace())
+func newCoordinator(config *Config) (*Coordinator, error) {
+	kubeAPI, err := kube.GetAPI(config.ID)
 	if err != nil {
 		return nil, err
 	}
 	return &Coordinator{
 		client: kubeAPI.Clientset(),
+		config: config,
 	}, nil
 }
 
 // Coordinator coordinates workers for suites of tests
 type Coordinator struct {
 	client *kubernetes.Clientset
+	config *Config
 }
 
 // Run runs the tests
 func (c *Coordinator) Run() error {
 	var suites []string
-	suite := getTestSuite()
-	if suite == "" {
+	if c.config.Suite == "" {
 		suites = make([]string, 0, len(Registry.tests))
 		for suite := range Registry.tests {
 			suites = append(suites, suite)
 		}
 	} else {
-		suites = []string{suite}
+		suites = []string{c.config.Suite}
 	}
 
 	workers := make([]*WorkerTask, len(suites))
 	for i, suite := range suites {
-		jobID := newJobID(getTestJob(), suite)
-		env := getTestEnv()
-		env[testSuiteEnv] = suite
+		jobID := newJobID(c.config.ID, suite)
 		config := &Config{
 			ID:              jobID,
-			Image:           getTestImage(),
-			ImagePullPolicy: getTestImagePullPolicy(),
-			Env:             env,
+			Image:           c.config.Image,
+			ImagePullPolicy: c.config.ImagePullPolicy,
+			Suite:           suite,
+			Test:            c.config.Test,
+			Env:             c.config.Env,
 		}
 		testCluster, err := cluster.NewCluster(config.ID)
 		if err != nil {
-
+			return err
 		}
 		worker := &WorkerTask{
 			client:  c.client,

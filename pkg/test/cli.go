@@ -48,7 +48,6 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 
 	config := &Config{
 		ID:              random.NewPetName(2),
-		context:         testContextCoordinator,
 		Image:           image,
 		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
 		Suite:           suite,
