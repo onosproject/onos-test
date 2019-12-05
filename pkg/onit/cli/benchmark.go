@@ -42,6 +42,8 @@ func getBenchCommand() *cobra.Command {
 	cmd.Flags().StringToStringP("arg", "a", map[string]string{}, "a mapping of named benchmark arguments")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "benchmark timeout")
 	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
+
+	_ = cmd.MarkFlagRequired("image")
 	return cmd
 }
 
