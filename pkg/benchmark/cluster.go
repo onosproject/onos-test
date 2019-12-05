@@ -15,10 +15,8 @@
 package benchmark
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"github.com/ghodss/yaml"
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
@@ -28,10 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
-	"math"
-	"os"
-	"sync"
-	"text/tabwriter"
 	"time"
 )
 
@@ -286,47 +280,16 @@ func (c *Cluster) createServiceAccount() error {
 }
 
 // Start starts running a test job
-func (c *Cluster) Start(config *CoordinatorConfig) error {
-	if err := c.createConfig(config); err != nil {
-		return err
-	}
-
-	for i := 0; i < config.Workers; i++ {
-		if err := c.createWorker(i, config); err != nil {
+func (c *Cluster) Start(job *Job) error {
+	for i := 0; i < getBenchmarkWorkers(); i++ {
+		if err := c.createWorker(i, job); err != nil {
 			return err
 		}
 	}
-	if err := c.awaitRunning(config); err != nil {
+	if err := c.awaitRunning(job); err != nil {
 		return err
 	}
 	return nil
-}
-
-// createConfig creates a ConfigMap for the test configuration
-func (c *Cluster) createConfig(config *CoordinatorConfig) error {
-	worker := &WorkerConfig{
-		JobID:       config.JobID,
-		Suite:       config.Suite,
-		Parallelism: config.Parallelism,
-		Args:        config.Args,
-	}
-
-	data, err := yaml.Marshal(worker)
-	if err != nil {
-		return err
-	}
-
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      config.JobID,
-			Namespace: c.namespace,
-		},
-		Data: map[string]string{
-			configFile: string(data),
-		},
-	}
-	_, err = c.client.CoreV1().ConfigMaps(c.namespace).Create(cm)
-	return err
 }
 
 func getWorkerName(worker int) string {
@@ -338,31 +301,28 @@ func (c *Cluster) getWorkerAddress(worker int) string {
 }
 
 // CreateWorkers creates the benchmark workers
-func (c *Cluster) CreateWorkers(config *CoordinatorConfig) error {
-	if err := c.createConfig(config); err != nil {
-		return err
-	}
-	for i := 0; i < config.Workers; i++ {
-		if err := c.createWorker(i, config); err != nil {
+func (c *Cluster) CreateWorkers(job *Job) error {
+	for i := 0; i < getBenchmarkWorkers(); i++ {
+		if err := c.createWorker(i, job); err != nil {
 			return err
 		}
 	}
-	return c.awaitRunning(config)
+	return c.awaitRunning(job)
 }
 
 // createWorker creates the given worker
-func (c *Cluster) createWorker(worker int, config *CoordinatorConfig) error {
+func (c *Cluster) createWorker(worker int, job *Job) error {
 	envVars := []corev1.EnvVar{
 		{
-			Name:  testContextEnv,
-			Value: string(testContextWorker),
+			Name:  benchmarkContextEnv,
+			Value: string(benchmarkContextWorker),
 		},
 		{
-			Name:  testNamespaceEnv,
+			Name:  benchmarkNamespaceEnv,
 			Value: c.namespace,
 		},
 	}
-	env := config.Env
+	env := job.Env
 	for key, value := range env {
 		envVars = append(envVars, corev1.EnvVar{
 			Name:  key,
@@ -374,7 +334,7 @@ func (c *Cluster) createWorker(worker int, config *CoordinatorConfig) error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: getWorkerName(worker),
 			Labels: map[string]string{
-				"benchmark": config.JobID,
+				"benchmark": job.ID,
 				"worker":    fmt.Sprintf("%d", worker),
 			},
 		},
@@ -384,8 +344,8 @@ func (c *Cluster) createWorker(worker int, config *CoordinatorConfig) error {
 			Containers: []corev1.Container{
 				{
 					Name:            "benchmark",
-					Image:           config.Image,
-					ImagePullPolicy: config.PullPolicy,
+					Image:           job.Image,
+					ImagePullPolicy: job.ImagePullPolicy,
 					Env:             envVars,
 					Ports: []corev1.ContainerPort{
 						{
@@ -402,25 +362,6 @@ func (c *Cluster) createWorker(worker int, config *CoordinatorConfig) error {
 						InitialDelaySeconds: 2,
 						PeriodSeconds:       5,
 					},
-					VolumeMounts: []corev1.VolumeMount{
-						{
-							Name:      "config",
-							MountPath: configPath,
-							ReadOnly:  true,
-						},
-					},
-				},
-			},
-			Volumes: []corev1.Volume{
-				{
-					Name: "config",
-					VolumeSource: corev1.VolumeSource{
-						ConfigMap: &corev1.ConfigMapVolumeSource{
-							LocalObjectReference: corev1.LocalObjectReference{
-								Name: config.JobID,
-							},
-						},
-					},
 				},
 			},
 		},
@@ -433,12 +374,12 @@ func (c *Cluster) createWorker(worker int, config *CoordinatorConfig) error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: getWorkerName(worker),
 			Labels: map[string]string{
-				"benchmark": config.JobID,
+				"benchmark": job.ID,
 			},
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"benchmark": config.JobID,
+				"benchmark": job.ID,
 				"worker":    fmt.Sprintf("%d", worker),
 			},
 			Ports: []corev1.ServicePort{
@@ -456,9 +397,9 @@ func (c *Cluster) createWorker(worker int, config *CoordinatorConfig) error {
 }
 
 // awaitRunning blocks until the job creates a pod in the RUNNING state
-func (c *Cluster) awaitRunning(config *CoordinatorConfig) error {
-	for i := 0; i < config.Workers; i++ {
-		if err := c.awaitWorkerRunning(i, config); err != nil {
+func (c *Cluster) awaitRunning(job *Job) error {
+	for i := 0; i < getBenchmarkWorkers(); i++ {
+		if err := c.awaitWorkerRunning(i, job); err != nil {
 			return err
 		}
 	}
@@ -466,9 +407,9 @@ func (c *Cluster) awaitRunning(config *CoordinatorConfig) error {
 }
 
 // awaitWorkerRunning blocks until the given worker is running
-func (c *Cluster) awaitWorkerRunning(worker int, config *CoordinatorConfig) error {
+func (c *Cluster) awaitWorkerRunning(worker int, job *Job) error {
 	for {
-		pod, err := c.getPod(worker, config)
+		pod, err := c.getPod(worker, job)
 		if err != nil {
 			return err
 		} else if pod != nil && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].Ready {
@@ -478,135 +419,10 @@ func (c *Cluster) awaitWorkerRunning(worker int, config *CoordinatorConfig) erro
 	}
 }
 
-// RunBenchmarks runs the given benchmarks
-func (c *Cluster) RunBenchmarks(config *CoordinatorConfig) error {
-	suite := Registry.benchmarks[config.Suite]
-	results := make([]result, 0)
-	if config.Benchmark != "" {
-		step := logging.NewStep(c.namespace, "Run benchmark %s", config.Benchmark)
-		step.Start()
-		result, err := c.runBenchmark(config.Benchmark, config)
-		if err != nil {
-			step.Fail(err)
-			return err
-		}
-		step.Complete()
-		results = append(results, result)
-	} else {
-		suiteStep := logging.NewStep(c.namespace, "Run benchmark suite %s", config.Suite)
-		suiteStep.Start()
-		benchmarks := getBenchmarks(suite)
-		for _, benchmark := range benchmarks {
-			benchmarkSuite := logging.NewStep(c.namespace, "Run benchmark %s", benchmark)
-			benchmarkSuite.Start()
-			result, err := c.runBenchmark(benchmark, config)
-			if err != nil {
-				benchmarkSuite.Fail(err)
-				suiteStep.Fail(err)
-				return err
-			}
-			benchmarkSuite.Complete()
-			results = append(results, result)
-		}
-		suiteStep.Complete()
-	}
-
-	writer := new(tabwriter.Writer)
-	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
-	fmt.Fprintln(writer, "BENCHMARK\tREQUESTS\tDURATION\tTHROUGHPUT\tMEAN LATENCY\tMEDIAN LATENCY\t75% LATENCY\t95% LATENCY\t99% LATENCY")
-	for _, result := range results {
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%d\t%s\t%f/sec\t%s\t%s\t%s\t%s\t%s",
-			result.benchmark, result.requests, result.duration, result.throughput, result.meanLatency,
-			result.latencyPercentiles[.5], result.latencyPercentiles[.75],
-			result.latencyPercentiles[.95], result.latencyPercentiles[.99]))
-	}
-	writer.Flush()
-	return nil
-}
-
-// runBenchmark runs the given benchmark
-func (c *Cluster) runBenchmark(benchmark string, config *CoordinatorConfig) (result, error) {
-	workers, err := c.getWorkers(config)
-	if err != nil {
-		return result{}, err
-	}
-
-	wg := &sync.WaitGroup{}
-	resultCh := make(chan *Result, len(workers))
-	errCh := make(chan error, len(workers))
-
-	for _, worker := range workers {
-		wg.Add(1)
-		go func(worker WorkerServiceClient, requests int) {
-			result, err := worker.RunBenchmark(context.Background(), &Request{
-				Benchmark: benchmark,
-				Requests:  uint32(requests),
-			})
-			if err != nil {
-				errCh <- err
-			} else {
-				resultCh <- result
-			}
-			wg.Done()
-		}(worker, config.Requests/len(workers))
-	}
-
-	wg.Wait()
-	close(resultCh)
-	close(errCh)
-
-	for err := range errCh {
-		return result{}, err
-	}
-
-	var duration time.Duration
-	var requests uint32
-	var latencySum time.Duration
-	var latency50Sum time.Duration
-	var latency75Sum time.Duration
-	var latency95Sum time.Duration
-	var latency99Sum time.Duration
-	for result := range resultCh {
-		requests += result.Requests
-		duration = time.Duration(math.Max(float64(duration), float64(result.Duration)))
-		latencySum += result.Latency
-		latency50Sum += result.Latency50
-		latency75Sum += result.Latency75
-		latency95Sum += result.Latency95
-		latency99Sum += result.Latency99
-	}
-
-	throughput := float64(requests) / (float64(duration) / float64(time.Second))
-	meanLatency := time.Duration(float64(latencySum) / float64(len(workers)))
-	latencyPercentiles := make(map[float32]time.Duration)
-	latencyPercentiles[.5] = time.Duration(float64(latency50Sum) / float64(len(workers)))
-	latencyPercentiles[.75] = time.Duration(float64(latency75Sum) / float64(len(workers)))
-	latencyPercentiles[.95] = time.Duration(float64(latency95Sum) / float64(len(workers)))
-	latencyPercentiles[.99] = time.Duration(float64(latency99Sum) / float64(len(workers)))
-
-	return result{
-		benchmark:          benchmark,
-		requests:           int(requests),
-		duration:           duration,
-		throughput:         throughput,
-		meanLatency:        meanLatency,
-		latencyPercentiles: latencyPercentiles,
-	}, nil
-}
-
-type result struct {
-	benchmark          string
-	requests           int
-	duration           time.Duration
-	throughput         float64
-	meanLatency        time.Duration
-	latencyPercentiles map[float32]time.Duration
-}
-
 // getWorkerConns returns the worker clients for the given benchmark
-func (c *Cluster) getWorkers(config *CoordinatorConfig) ([]WorkerServiceClient, error) {
-	workers := make([]WorkerServiceClient, config.Workers)
-	for i := 0; i < config.Workers; i++ {
+func (c *Cluster) getWorkers(job *Job) ([]WorkerServiceClient, error) {
+	workers := make([]WorkerServiceClient, getBenchmarkWorkers())
+	for i := 0; i < getBenchmarkWorkers(); i++ {
 		worker, err := grpc.Dial(c.getWorkerAddress(i), grpc.WithInsecure())
 		if err != nil {
 			return nil, err
@@ -617,9 +433,9 @@ func (c *Cluster) getWorkers(config *CoordinatorConfig) ([]WorkerServiceClient, 
 }
 
 // GetResult gets the status message and exit code of the given test
-func (c *Cluster) GetResult(config *CoordinatorConfig) (string, int, error) {
-	for i := 0; i < config.Workers; i++ {
-		pod, err := c.getPod(i, config)
+func (c *Cluster) GetResult(job *Job) (string, int, error) {
+	for i := 0; i < getBenchmarkWorkers(); i++ {
+		pod, err := c.getPod(i, job)
 		if err != nil {
 			return "", 0, err
 		}
@@ -640,7 +456,7 @@ func (c *Cluster) GetResult(config *CoordinatorConfig) (string, int, error) {
 }
 
 // getPod finds the Pod for the given test
-func (c *Cluster) getPod(worker int, config *CoordinatorConfig) (*corev1.Pod, error) {
+func (c *Cluster) getPod(worker int, config *Job) (*corev1.Pod, error) {
 	pod, err := c.client.CoreV1().Pods(c.namespace).Get(getWorkerName(worker), metav1.GetOptions{})
 	if err != nil && !k8serrors.IsNotFound(err) {
 		return nil, err

@@ -15,75 +15,119 @@
 package benchmark
 
 import (
-	"github.com/ghodss/yaml"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 	"os"
-	"path/filepath"
-	"time"
+	"strconv"
+	"strings"
 )
 
-const configPath = "/config"
-const configFile = "config.yaml"
+type benchmarkContext string
 
-// CoordinatorConfig is a benchmark coordinator configuration
-type CoordinatorConfig struct {
-	JobID       string
-	Image       string
-	Env         map[string]string
-	Timeout     time.Duration
-	PullPolicy  corev1.PullPolicy
-	Teardown    bool
-	Suite       string
-	Benchmark   string
-	Workers     int
-	Parallelism int
-	Requests    int
-	Args        map[string]string
-}
+const (
+	benchmarkNamespaceEnv = "BENCHMARK_NAMESPACE"
+	benchmarkContextEnv   = "BENCHMARK_CONTEXT"
 
-// WorkerConfig is a benchmark worker configuration
-type WorkerConfig struct {
-	JobID       string
-	Suite       string
-	Parallelism int
-	Args        map[string]string
-}
+	benchmarkJobEnv             = "BENCHMARK_JOB"
+	benchmarkImageEnv           = "BENCHMARK_IMAGE"
+	benchmarkImagePullPolicyEnv = "BENCHMARK_IMAGE_PULL_POLICY"
+	benchmarkSuiteEnv           = "BENCHMARK_SUITE"
+	benchmarkNameEnv            = "BENCHMARK_NAME"
+	benchmarkWorkersEnv         = "BENCHMARK_WORKERS"
+	benchmarkParallelismEnv     = "BENCHMARK_PARALLELISM"
+	benchmarkRequestsEnv        = "BENCHMARK_REQUESTS"
+	benchmarkArgPrefix          = "BENCHMARK_ARG_"
+)
 
-// loadCoordinatorConfig loads the coordinator configuration
-func loadCoordinatorConfig() (*CoordinatorConfig, error) {
-	config := &CoordinatorConfig{}
-	if err := loadConfig(config); err != nil {
-		return nil, err
+const (
+	benchmarkContextCoordinator benchmarkContext = "coordinator"
+	benchmarkContextWorker      benchmarkContext = "worker"
+)
+
+// getBenchmarkContext returns the current benchmark context
+func getBenchmarkContext() benchmarkContext {
+	context := os.Getenv(benchmarkContextEnv)
+	if context != "" {
+		return benchmarkContext(context)
 	}
-	return config, nil
+	return benchmarkContextCoordinator
 }
 
-// loadWorkerConfig loads the worker configuration
-func loadWorkerConfig() (*WorkerConfig, error) {
-	config := &WorkerConfig{}
-	if err := loadConfig(config); err != nil {
-		return nil, err
+func getBenchmarkEnv() map[string]string {
+	env := make(map[string]string)
+	for _, keyval := range os.Environ() {
+		key := keyval[:strings.Index(keyval, "=")]
+		value := keyval[strings.Index(keyval, "=")+1:]
+		env[key] = value
 	}
-	return config, nil
+	return env
 }
 
-// loadConfig loads the test configuration
-func loadConfig(config interface{}) error {
-	file, err := os.Open(filepath.Join(configPath, configFile))
+func getBenchmarkJob() string {
+	return os.Getenv(benchmarkJobEnv)
+}
+
+func getBenchmarkNamespace() string {
+	return os.Getenv(benchmarkNamespaceEnv)
+}
+
+func getBenchmarkImage() string {
+	return os.Getenv(benchmarkImageEnv)
+}
+
+func getBenchmarkImagePullPolicy() corev1.PullPolicy {
+	return corev1.PullPolicy(os.Getenv(benchmarkImagePullPolicyEnv))
+}
+
+func getBenchmarkSuite() string {
+	return os.Getenv(benchmarkSuiteEnv)
+}
+
+func getBenchmarkName() string {
+	return os.Getenv(benchmarkNameEnv)
+}
+
+func getBenchmarkWorkers() int {
+	workers := os.Getenv(benchmarkWorkersEnv)
+	if workers == "" {
+		return 1
+	}
+	i, err := strconv.Atoi(workers)
 	if err != nil {
-		return err
+		panic(err)
 	}
-	defer file.Close()
+	return i
+}
 
-	jsonBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		return err
+func getBenchmarkParallelism() int {
+	parallelism := os.Getenv(benchmarkParallelismEnv)
+	if parallelism == "" {
+		return 1
 	}
+	i, err := strconv.Atoi(parallelism)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
 
-	err = yaml.Unmarshal(jsonBytes, config)
-	if err != nil {
-		return err
+func getBenchmarkRequests() int {
+	requests := os.Getenv(benchmarkRequestsEnv)
+	if requests == "" {
+		return 1
 	}
-	return nil
+	i, err := strconv.Atoi(requests)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func getBenchmarkArgs() map[string]string {
+	args := make(map[string]string)
+	for key, value := range getBenchmarkEnv() {
+		if strings.HasPrefix(key, benchmarkArgPrefix) {
+			args[strings.ToLower(key[len(benchmarkArgPrefix):])] = value
+		}
+	}
+	return args
 }

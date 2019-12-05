@@ -17,7 +17,6 @@ package benchmark
 import (
 	"bufio"
 	"errors"
-	"github.com/ghodss/yaml"
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
@@ -27,61 +26,58 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
 )
 
 const namespace = "kube-bench"
-const configName = "benchmarks"
 
-// Record contains information about a test run
-type Record struct {
-	TestID   string
-	Args     []string
-	Message  string
-	ExitCode int
+// Job is a job configuration
+type Job struct {
+	ID              string
+	Image           string
+	ImagePullPolicy corev1.PullPolicy
+	Command         []string
+	Env             map[string]string
+	Timeout         time.Duration
 }
 
-// NewRunner returns a new test runner
-func NewRunner(config *CoordinatorConfig) (*Runner, error) {
-	kubeAPI, err := kube.GetAPI(config.JobID)
+// NewRunner returns a new test job runner
+func NewRunner() (*Runner, error) {
+	kubeAPI, err := kube.GetAPI(namespace)
 	if err != nil {
 		return nil, err
 	}
 	return &Runner{
 		client: kubeAPI.Clientset(),
-		config: config,
 	}, nil
 }
 
-// Runner is a test runner
+// Runner manages the test coordinator cluster
 type Runner struct {
 	client *kubernetes.Clientset
-	config *CoordinatorConfig
 }
 
-// Run runs the benchmark
-func (r *Runner) Run() error {
+// Run runs the given job in the coordinator namespace
+func (r *Runner) Run(job *Job) error {
 	if err := r.ensureNamespace(); err != nil {
 		return err
 	}
 
-	err := r.startBenchmark()
+	err := r.startJob(job)
 	if err != nil {
 		return err
 	}
 
-	step := logging.NewStep(r.config.JobID, "Run benchmark")
+	step := logging.NewStep(job.ID, "Run job")
 	step.Start()
 
 	// Get the stream of logs for the pod
-	pod, err := r.getPod()
+	pod, err := r.getPod(job)
 	if err != nil {
 		step.Fail(err)
 		return err
 	} else if pod == nil {
-		return errors.New("cannot locate benchmark pod")
+		return errors.New("cannot locate job pod")
 	}
 
 	req := r.client.CoreV1().Pods(namespace).GetLogs(pod.Name, &corev1.PodLogOptions{
@@ -101,7 +97,7 @@ func (r *Runner) Run() error {
 	}
 
 	// Get the exit message and code
-	_, status, err := r.getStatus()
+	_, status, err := r.getStatus(job)
 	if err != nil {
 		step.Fail(err)
 		return err
@@ -153,7 +149,6 @@ func (r *Runner) createClusterRole() error {
 					"",
 				},
 				Resources: []string{
-					"namespaces",
 					"pods",
 					"pods/log",
 					"pods/exec",
@@ -164,6 +159,17 @@ func (r *Runner) createClusterRole() error {
 					"configmaps",
 					"secrets",
 					"serviceaccounts",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"namespaces",
 				},
 				Verbs: []string{
 					"*",
@@ -219,6 +225,17 @@ func (r *Runner) createClusterRole() error {
 			},
 			{
 				APIGroups: []string{
+					"apiextensions.k8s.io",
+				},
+				Resources: []string{
+					"customresourcedefinitions",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
 					"k8s.atomix.io",
 				},
 				Resources: []string{
@@ -230,7 +247,6 @@ func (r *Runner) createClusterRole() error {
 			},
 		},
 	}
-
 	_, err := r.client.RbacV1().ClusterRoles().Create(role)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
@@ -280,19 +296,15 @@ func (r *Runner) createServiceAccount() error {
 	return nil
 }
 
-// startTests starts running a benchmark job
-func (r *Runner) startBenchmark() error {
-	step := logging.NewStep(r.config.JobID, "Starting benchmark")
+// startJob starts running a test job
+func (r *Runner) startJob(job *Job) error {
+	step := logging.NewStep(job.ID, "Starting job")
 	step.Start()
-	if err := r.createConfig(); err != nil {
+	if err := r.createJob(job); err != nil {
 		step.Fail(err)
 		return err
 	}
-	if err := r.createJob(); err != nil {
-		step.Fail(err)
-		return err
-	}
-	if err := r.awaitRunning(); err != nil {
+	if err := r.awaitJobRunning(job); err != nil {
 		step.Fail(err)
 		return err
 	}
@@ -300,53 +312,48 @@ func (r *Runner) startBenchmark() error {
 	return nil
 }
 
-// createConfig creates a ConfigMap for the benchmark configuration
-func (r *Runner) createConfig() error {
-	data, err := yaml.Marshal(r.config)
-	if err != nil {
-		return err
-	}
-
-	cm, err := r.client.CoreV1().ConfigMaps(namespace).Get(configName, metav1.GetOptions{})
-	if err != nil {
-		if !k8serrors.IsNotFound(err) {
-			return err
-		}
-		cm = &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      configName,
-				Namespace: namespace,
-			},
-			Data: map[string]string{},
-		}
-		cm, err = r.client.CoreV1().ConfigMaps(namespace).Create(cm)
-		if err != nil {
-			return err
-		}
-	}
-
-	if cm.Data == nil {
-		cm.Data = make(map[string]string)
-	}
-	cm.Data[r.config.JobID] = string(data)
-
-	_, err = r.client.CoreV1().ConfigMaps(namespace).Update(cm)
-	return err
-}
-
 // createJob creates the job to run tests
-func (r *Runner) createJob() error {
-	step := logging.NewStep(r.config.JobID, "Deploy test coordinator")
+func (r *Runner) createJob(job *Job) error {
+	step := logging.NewStep(job.ID, "Deploy job coordinator")
 	step.Start()
+
+	env := []corev1.EnvVar{
+		{
+			Name:  benchmarkContextEnv,
+			Value: string(benchmarkContextCoordinator),
+		},
+		{
+			Name:  benchmarkNamespaceEnv,
+			Value: namespace,
+		},
+		{
+			Name:  benchmarkJobEnv,
+			Value: job.ID,
+		},
+		{
+			Name:  benchmarkImageEnv,
+			Value: job.Image,
+		},
+		{
+			Name:  benchmarkImagePullPolicyEnv,
+			Value: string(job.ImagePullPolicy),
+		},
+	}
+	for key, value := range job.Env {
+		env = append(env, corev1.EnvVar{
+			Name:  key,
+			Value: value,
+		})
+	}
 
 	zero := int32(0)
 	one := int32(1)
-	job := &batchv1.Job{
+	batchJob := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      r.config.JobID,
+			Name:      job.ID,
 			Namespace: namespace,
 			Annotations: map[string]string{
-				"job-id": r.config.JobID,
+				"job": job.ID,
 			},
 		},
 		Spec: batchv1.JobSpec{
@@ -356,7 +363,7 @@ func (r *Runner) createJob() error {
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"job": r.config.JobID,
+						"job": job.ID,
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -364,35 +371,11 @@ func (r *Runner) createJob() error {
 					RestartPolicy:      corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
 						{
-							Name:            "test",
-							Image:           r.config.Image,
-							ImagePullPolicy: r.config.PullPolicy,
-							Env: []corev1.EnvVar{
-								{
-									Name:  testContextEnv,
-									Value: string(testContextCoordinator),
-								},
-							},
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "config",
-									MountPath: filepath.Join(configPath, configFile),
-									SubPath:   r.config.JobID,
-									ReadOnly:  true,
-								},
-							},
-						},
-					},
-					Volumes: []corev1.Volume{
-						{
-							Name: "config",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: configName,
-									},
-								},
-							},
+							Name:            "job",
+							Image:           job.Image,
+							ImagePullPolicy: job.ImagePullPolicy,
+							Command:         job.Command,
+							Env:             env,
 						},
 					},
 				},
@@ -400,12 +383,12 @@ func (r *Runner) createJob() error {
 		},
 	}
 
-	if r.config.Timeout > 0 {
-		timeoutSeconds := int64(r.config.Timeout / time.Second)
-		job.Spec.ActiveDeadlineSeconds = &timeoutSeconds
+	if job.Timeout > 0 {
+		timeoutSeconds := int64(job.Timeout / time.Second)
+		batchJob.Spec.ActiveDeadlineSeconds = &timeoutSeconds
 	}
 
-	_, err := r.client.BatchV1().Jobs(namespace).Create(job)
+	_, err := r.client.BatchV1().Jobs(namespace).Create(batchJob)
 	if err != nil {
 		step.Fail(err)
 		return err
@@ -414,10 +397,10 @@ func (r *Runner) createJob() error {
 	return nil
 }
 
-// awaitRunning blocks until the test job creates a pod in the RUNNING state
-func (r *Runner) awaitRunning() error {
+// awaitJobRunning blocks until the test job creates a pod in the RUNNING state
+func (r *Runner) awaitJobRunning(job *Job) error {
 	for {
-		pod, err := r.getPod()
+		pod, err := r.getPod(job)
 		if err != nil {
 			return err
 		} else if pod != nil {
@@ -428,9 +411,9 @@ func (r *Runner) awaitRunning() error {
 }
 
 // getStatus gets the status message and exit code of the given pod
-func (r *Runner) getStatus() (string, int, error) {
+func (r *Runner) getStatus(job *Job) (string, int, error) {
 	for {
-		pod, err := r.getPod()
+		pod, err := r.getPod(job)
 		if err != nil {
 			return "", 0, err
 		} else if pod == nil {
@@ -445,9 +428,9 @@ func (r *Runner) getStatus() (string, int, error) {
 }
 
 // getPod finds the Pod for the given test
-func (r *Runner) getPod() (*corev1.Pod, error) {
+func (r *Runner) getPod(job *Job) (*corev1.Pod, error) {
 	pods, err := r.client.CoreV1().Pods(namespace).List(metav1.ListOptions{
-		LabelSelector: "job=" + r.config.JobID,
+		LabelSelector: "job=" + job.ID,
 	})
 	if err != nil {
 		return nil, err
@@ -464,62 +447,4 @@ func (r *Runner) getPod() (*corev1.Pod, error) {
 		}
 	}
 	return nil, nil
-}
-
-// GetHistory returns the history of test runs on the cluster
-func (r *Runner) GetHistory() ([]Record, error) {
-	jobs, err := r.client.BatchV1().Jobs(namespace).List(metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	records := make([]Record, 0, len(jobs.Items))
-	for _, job := range jobs.Items {
-		record, err := r.getRecord(job)
-		if err != nil {
-			return nil, err
-		}
-		records = append(records, record)
-	}
-	return records, nil
-}
-
-// GetRecord returns a single record for the given test
-func (r *Runner) GetRecord() (Record, error) {
-	job, err := r.client.BatchV1().Jobs(namespace).Get(r.config.JobID, metav1.GetOptions{})
-	if err != nil {
-		return Record{}, err
-	}
-	return r.getRecord(*job)
-}
-
-// GetRecord returns a single record for the given test
-func (r *Runner) getRecord(job batchv1.Job) (Record, error) {
-	testID := job.Labels["test"]
-
-	var args []string
-	testArgs, ok := job.Annotations["test-args"]
-	if ok {
-		args = strings.Split(testArgs, ",")
-	} else {
-		args = make([]string, 0)
-	}
-
-	pod, err := r.getPod()
-	if err != nil {
-		return Record{}, nil
-	}
-
-	record := Record{
-		TestID: testID,
-		Args:   args,
-	}
-
-	state := pod.Status.ContainerStatuses[0].State
-	if state.Terminated != nil {
-		record.Message = state.Terminated.Message
-		record.ExitCode = int(state.Terminated.ExitCode)
-	}
-
-	return record, nil
 }

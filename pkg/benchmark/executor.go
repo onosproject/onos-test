@@ -21,17 +21,6 @@ import (
 // The executor is the entrypoint for benchmark images. It takes the input and environment and runs
 // the image in the appropriate context according to the arguments.
 
-// benchmarkContext is the context in which a test image is running
-type benchmarkContext string
-
-const (
-	testNamespaceEnv = "TEST_NAMESPACE"
-	testContextEnv   = "TEST_CONTEXT"
-
-	testContextCoordinator benchmarkContext = "coordinator"
-	testContextWorker      benchmarkContext = "worker"
-)
-
 // Main runs a test
 func Main() {
 	if err := Run(); err != nil {
@@ -43,32 +32,19 @@ func Main() {
 
 // Run runs a test
 func Run() error {
-	context := getTestContext()
+	context := getBenchmarkContext()
 	switch context {
-	case testContextCoordinator:
-		config, err := loadCoordinatorConfig()
-		if err != nil {
-			return err
-		}
-		return runCoordinator(config)
-	case testContextWorker:
-		config, err := loadWorkerConfig()
-		if err != nil {
-			return err
-		}
-		return runWorker(config)
+	case benchmarkContextCoordinator:
+		return runCoordinator()
+	case benchmarkContextWorker:
+		return runWorker()
 	}
 	return nil
 }
 
-// getTestContext returns the current test context
-func getTestContext() benchmarkContext {
-	return benchmarkContext(os.Getenv(testContextEnv))
-}
-
 // runCoordinator runs a test image in the coordinator context
-func runCoordinator(config *CoordinatorConfig) error {
-	coordinator, err := newCoordinator(config)
+func runCoordinator() error {
+	coordinator, err := newCoordinator()
 	if err != nil {
 		return err
 	}
@@ -76,8 +52,8 @@ func runCoordinator(config *CoordinatorConfig) error {
 }
 
 // runWorker runs a test image in the worker context
-func runWorker(config *WorkerConfig) error {
-	worker, err := newWorker(config)
+func runWorker() error {
+	worker, err := newWorker()
 	if err != nil {
 		return err
 	}
