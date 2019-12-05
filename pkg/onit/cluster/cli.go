@@ -43,7 +43,7 @@ type CLI struct {
 
 // Enabled indicates whether the CLI is enabled
 func (c *CLI) Enabled() bool {
-	return GetArg(c.name, "enabled").Bool(false)
+	return GetArg(c.name, "enabled").Bool(c.enabled)
 }
 
 // SetEnabled sets whether the CLI is enabled
