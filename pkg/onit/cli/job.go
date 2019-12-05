@@ -69,7 +69,7 @@ func runInCluster(command func(cmd *cobra.Command, args []string) error) func(cm
 			ID:              fmt.Sprintf("onit-%s", random.NewPetName(2)),
 			Image:           onitImage,
 			ImagePullPolicy: onitPullPolicy,
-			Command:         append([]string{"onit"}, os.Args[1:]...),
+			Args:            os.Args[1:],
 			Env: map[string]string{
 				cliContextEnv: string(k8sContext),
 			},
