@@ -63,6 +63,8 @@ func (s *clusterGuiSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) GuiSetup {
 }
 
 func (s *clusterGuiSetup) setup() error {
-	return s.gui.Setup()
-
+	if s.gui.Enabled() {
+		return s.gui.Setup()
+	}
+	return nil
 }
