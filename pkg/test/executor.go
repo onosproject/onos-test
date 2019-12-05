@@ -21,17 +21,6 @@ import (
 // The executor is the entrypoint for test images. It takes the input and environment and runs
 // the image in the appropriate context according to the arguments.
 
-// testContext is the context in which a test image is running
-type testContext string
-
-const (
-	testNamespaceEnv = "TEST_NAMESPACE"
-	testContextEnv   = "TEST_CONTEXT"
-
-	testContextCoordinator testContext = "coordinator"
-	testContextWorker      testContext = "worker"
-)
-
 // Main runs a test
 func Main() {
 	if err := Run(); err != nil {
@@ -43,28 +32,19 @@ func Main() {
 
 // Run runs a test
 func Run() error {
-	config, err := loadConfig()
-	if err != nil {
-		return err
-	}
 	context := getTestContext()
 	switch context {
 	case testContextCoordinator:
-		return runCoordinator(config)
+		return runCoordinator()
 	case testContextWorker:
-		return runWorker(config)
+		return runWorker()
 	}
 	return nil
 }
 
-// getTestContext returns the current test context
-func getTestContext() testContext {
-	return testContext(os.Getenv(testContextEnv))
-}
-
 // runCoordinator runs a test image in the coordinator context
-func runCoordinator(config *Config) error {
-	coordinator, err := newCoordinator(config)
+func runCoordinator() error {
+	coordinator, err := newCoordinator()
 	if err != nil {
 		return err
 	}
@@ -72,8 +52,8 @@ func runCoordinator(config *Config) error {
 }
 
 // runWorker runs a test image in the worker context
-func runWorker(config *Config) error {
-	worker, err := newWorker(config)
+func runWorker() error {
+	worker, err := newWorker()
 	if err != nil {
 		return err
 	}

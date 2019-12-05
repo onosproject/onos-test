@@ -46,7 +46,7 @@ func getDeleteClusterCommand() *cobra.Command {
 		Use:   "cluster [args]",
 		Short: "Delete a test cluster on Kubernetes",
 		Args:  cobra.NoArgs,
-		RunE:  runDeleteClusterCommand,
+		RunE:  runInCluster(runDeleteClusterCommand),
 	}
 	return cmd
 }

@@ -17,7 +17,6 @@ package test
 import (
 	"bytes"
 	"errors"
-	"github.com/ghodss/yaml"
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
@@ -279,42 +278,19 @@ func (c *Cluster) createServiceAccount() error {
 	return nil
 }
 
-// StartTest starts running a test job
-func (c *Cluster) StartTest(config *Config) error {
-	if err := c.createTestConfig(config); err != nil {
+// startTest starts running a test job
+func (c *Cluster) startTest(job *Job) error {
+	if err := c.createTestJob(job); err != nil {
 		return err
 	}
-	if err := c.createTestJob(config); err != nil {
-		return err
-	}
-	if err := c.awaitTestJobRunning(config); err != nil {
+	if err := c.awaitTestJobRunning(job); err != nil {
 		return err
 	}
 	return nil
 }
 
-// createTestConfig creates a ConfigMap for the test configuration
-func (c *Cluster) createTestConfig(config *Config) error {
-	data, err := yaml.Marshal(config)
-	if err != nil {
-		return err
-	}
-
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      config.JobID,
-			Namespace: c.namespace,
-		},
-		Data: map[string]string{
-			configFile: string(data),
-		},
-	}
-	_, err = c.client.CoreV1().ConfigMaps(c.namespace).Create(cm)
-	return err
-}
-
 // createTestJob creates the job to run tests
-func (c *Cluster) createTestJob(config *Config) error {
+func (c *Cluster) createTestJob(job *Job) error {
 	zero := int32(0)
 	one := int32(1)
 
@@ -328,20 +304,19 @@ func (c *Cluster) createTestJob(config *Config) error {
 			Value: c.namespace,
 		},
 	}
-	env := config.Env
-	for key, value := range env {
+	for key, value := range job.Env {
 		envVars = append(envVars, corev1.EnvVar{
 			Name:  key,
 			Value: value,
 		})
 	}
 
-	job := &batchv1.Job{
+	batchJob := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      config.JobID,
+			Name:      job.ID,
 			Namespace: c.namespace,
 			Annotations: map[string]string{
-				"test-id": config.JobID,
+				"test": job.ID,
 			},
 		},
 		Spec: batchv1.JobSpec{
@@ -351,7 +326,7 @@ func (c *Cluster) createTestJob(config *Config) error {
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"test": config.JobID,
+						"test": job.ID,
 					},
 				},
 				Spec: corev1.PodSpec{
@@ -360,28 +335,10 @@ func (c *Cluster) createTestJob(config *Config) error {
 					Containers: []corev1.Container{
 						{
 							Name:            "test",
-							Image:           config.Image,
-							ImagePullPolicy: config.PullPolicy,
+							Image:           job.Image,
+							ImagePullPolicy: job.ImagePullPolicy,
+							Command:         job.Command,
 							Env:             envVars,
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "config",
-									MountPath: configPath,
-									ReadOnly:  true,
-								},
-							},
-						},
-					},
-					Volumes: []corev1.Volume{
-						{
-							Name: "config",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: config.JobID,
-									},
-								},
-							},
 						},
 					},
 				},
@@ -389,18 +346,18 @@ func (c *Cluster) createTestJob(config *Config) error {
 		},
 	}
 
-	if config.Timeout > 0 {
-		timeoutSeconds := int64(config.Timeout / time.Second)
-		job.Spec.ActiveDeadlineSeconds = &timeoutSeconds
+	if job.Timeout > 0 {
+		timeoutSeconds := int64(job.Timeout / time.Second)
+		batchJob.Spec.ActiveDeadlineSeconds = &timeoutSeconds
 	}
-	_, err := c.client.BatchV1().Jobs(c.namespace).Create(job)
+	_, err := c.client.BatchV1().Jobs(c.namespace).Create(batchJob)
 	return err
 }
 
 // awaitTestJobRunning blocks until the test job creates a pod in the RUNNING state
-func (c *Cluster) awaitTestJobRunning(config *Config) error {
+func (c *Cluster) awaitTestJobRunning(job *Job) error {
 	for {
-		pod, err := c.getPod(config)
+		pod, err := c.getPod(job)
 		if err != nil {
 			return err
 		} else if pod != nil {
@@ -408,32 +365,6 @@ func (c *Cluster) awaitTestJobRunning(config *Config) error {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-}
-
-// AwaitTestComplete blocks until the test job is complete
-func (c *Cluster) AwaitTestComplete(config *Config) error {
-	for {
-		pod, err := c.getPod(config)
-		if err != nil {
-			return err
-		} else if pod == nil {
-			return errors.New("cannot locate test pod")
-		}
-		state := pod.Status.ContainerStatuses[0].State
-		if state.Terminated != nil {
-			return nil
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
-}
-
-// GetTestOutput gets the output from the given test
-func (c *Cluster) GetTestOutput(test *Config) ([]byte, error) {
-	pod, err := c.getPod(test)
-	if err != nil {
-		return nil, err
-	}
-	return c.getLogs(*pod)
 }
 
 // getLogs gets the logs from the given pod
@@ -453,9 +384,9 @@ func (c *Cluster) getLogs(pod corev1.Pod) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// GetTestResult gets the status message and exit code of the given test
-func (c *Cluster) GetTestResult(config *Config) (string, int, error) {
-	pod, err := c.getPod(config)
+// getTestResult gets the status message and exit code of the given test
+func (c *Cluster) getTestResult(job *Job) (string, int, error) {
+	pod, err := c.getPod(job)
 	if err != nil {
 		return "", 0, err
 	} else if pod == nil {
@@ -469,9 +400,9 @@ func (c *Cluster) GetTestResult(config *Config) (string, int, error) {
 }
 
 // getPod finds the Pod for the given test
-func (c *Cluster) getPod(config *Config) (*corev1.Pod, error) {
+func (c *Cluster) getPod(job *Job) (*corev1.Pod, error) {
 	pods, err := c.client.CoreV1().Pods(c.namespace).List(metav1.ListOptions{
-		LabelSelector: "test=" + config.JobID,
+		LabelSelector: "test=" + job.ID,
 	})
 	if err != nil {
 		return nil, err

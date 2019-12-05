@@ -31,6 +31,7 @@ func GetCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("image", "i", "", "the test image to run")
 	cmd.Flags().StringP("suite", "s", "", "the name of a suite to run")
+	cmd.Flags().StringP("test", "t", "", "the name of a test to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the image pull policy to use")
 	cmd.Flags().Duration("timeout", 0, "the test timeout")
 	return cmd
@@ -41,21 +42,24 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	image, _ := cmd.Flags().GetString("image")
 	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	suite, _ := cmd.Flags().GetString("suite")
+	test, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 
-	config := &Config{
-		JobID:      random.NewPetName(2),
-		Image:      image,
-		Timeout:    timeout,
-		PullPolicy: corev1.PullPolicy(pullPolicy),
-		Suite:      suite,
+	job := &Job{
+		ID:              random.NewPetName(2),
+		Image:           image,
+		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
+		Env: map[string]string{
+			testSuiteEnv: suite,
+			testNameEnv:  test,
+		},
+		Timeout: timeout,
 	}
-
-	runner, err := NewRunner(config)
+	runner, err := NewRunner()
 	if err != nil {
 		return err
 	}
-	return runner.Run()
+	return runner.Run(job)
 }
 
 func init() {

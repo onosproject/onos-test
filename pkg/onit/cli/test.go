@@ -20,7 +20,7 @@ import (
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -54,48 +54,29 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	noTeardown, _ := cmd.Flags().GetBool("no-teardown")
 	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 
-	overrides := []string{}
+	overrides := make([]string, 0, len(sets))
 	for key, value := range sets {
 		overrides = append(overrides, fmt.Sprintf("%s=%s", key, value))
 	}
 
-	config := &test.Config{
-		JobID: random.NewPetName(2),
-		Image: image,
+	job := &test.Job{
+		ID:              random.NewPetName(2),
+		Image:           image,
+		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
 		Env: map[string]string{
-			"ARGS": strings.Join(overrides, ","),
+			"TEST_CLUSTER":   clusterID,
+			"TEST_ARGS":      strings.Join(overrides, ","),
+			"TEST_SUITE":     suite,
+			"TEST_NAME":      testName,
+			"TEST_TEAR_DOWN": strconv.FormatBool(!noTeardown),
 		},
-		Timeout:    timeout,
-		PullPolicy: corev1.PullPolicy(pullPolicy),
-		Teardown:   !noTeardown,
-		Suite:      suite,
-		Test:       testName,
+		Timeout: timeout,
 	}
 
-	// If the cluster ID was not specified, create a new cluster to run the test
-	// Otherwise, deploy the test in the existing cluster
-	if clusterID == "" {
-		runner, err := test.NewRunner(config)
-		if err != nil {
-			return err
-		}
-		return runner.Run()
-	}
-
-	cluster, err := test.NewCluster(clusterID)
+	// Create a job runner and run the test job
+	runner, err := test.NewRunner()
 	if err != nil {
 		return err
 	}
-	if err := cluster.StartTest(config); err != nil {
-		return err
-	}
-	if err := cluster.AwaitTestComplete(config); err != nil {
-		return err
-	}
-	_, code, err := cluster.GetTestResult(config)
-	if err != nil {
-		return err
-	}
-	os.Exit(code)
-	return nil
+	return runner.Run(job)
 }

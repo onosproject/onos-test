@@ -68,7 +68,7 @@ func failTestOnPanic(t *testing.T) {
 }
 
 // RunTests runs a test suite
-func RunTests(t *testing.T, suite TestingSuite, config *Config) {
+func RunTests(t *testing.T, suite TestingSuite) {
 	defer failTestOnPanic(t)
 
 	suiteSetupDone := false
@@ -77,7 +77,7 @@ func RunTests(t *testing.T, suite TestingSuite, config *Config) {
 	tests := []testing.InternalTest{}
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
-		ok, err := testFilter(method.Name, config)
+		ok, err := testFilter(method.Name)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "invalid regexp for -m: %s\n", err)
 			os.Exit(1)
@@ -131,12 +131,13 @@ func runTests(t *testing.T, tests []testing.InternalTest) {
 }
 
 // testFilter filters test method names
-func testFilter(name string, config *Config) (bool, error) {
+func testFilter(name string) (bool, error) {
 	if ok, _ := regexp.MatchString("^Test", name); !ok {
 		return false, nil
 	}
-	if config.Test != "" {
-		return config.Test == name, nil
+	test := getTestName()
+	if test != "" {
+		return test == name, nil
 	}
 	return true, nil
 }

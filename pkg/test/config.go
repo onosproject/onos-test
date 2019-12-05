@@ -15,46 +15,71 @@
 package test
 
 import (
-	"github.com/ghodss/yaml"
-	"io/ioutil"
-	corev1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	"os"
-	"path/filepath"
-	"time"
+	"strings"
 )
 
 const configPath = "/config"
 const configFile = "config.yaml"
 
-// Config is a job configuration
-type Config struct {
-	JobID      string
-	Image      string
-	Env        map[string]string
-	Timeout    time.Duration
-	PullPolicy corev1.PullPolicy
-	Teardown   bool
-	Suite      string
-	Test       string
+type testContext string
+
+const (
+	testNamespaceEnv = "TEST_NAMESPACE"
+	testContextEnv   = "TEST_CONTEXT"
+
+	testJobEnv             = "TEST_JOB"
+	testImageEnv           = "TEST_IMAGE"
+	testImagePullPolicyEnv = "TEST_IMAGE_PULL_POLICY"
+	testSuiteEnv           = "TEST_SUITE"
+	testNameEnv            = "TEST_NAME"
+)
+
+const (
+	testContextCoordinator testContext = "coordinator"
+	testContextWorker      testContext = "worker"
+)
+
+// getTestContext returns the current test context
+func getTestContext() testContext {
+	context := os.Getenv(testContextEnv)
+	if context != "" {
+		return testContext(context)
+	}
+	return testContextCoordinator
 }
 
-// loadConfig loads the test configuration
-func loadConfig() (*Config, error) {
-	file, err := os.Open(filepath.Join(configPath, configFile))
-	if err != nil {
-		return nil, err
+func getTestEnv() map[string]string {
+	env := make(map[string]string)
+	for _, keyval := range os.Environ() {
+		key := keyval[:strings.Index(keyval, "=")]
+		value := keyval[strings.Index(keyval, "=")+1:]
+		env[key] = value
 	}
-	defer file.Close()
+	return env
+}
 
-	jsonBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
+func getTestJob() string {
+	return os.Getenv(testJobEnv)
+}
 
-	config := &Config{}
-	err = yaml.Unmarshal(jsonBytes, config)
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
+func getTestNamespace() string {
+	return os.Getenv(testNamespaceEnv)
+}
+
+func getTestImage() string {
+	return os.Getenv(testImageEnv)
+}
+
+func getTestImagePullPolicy() v1.PullPolicy {
+	return v1.PullPolicy(os.Getenv(testImagePullPolicyEnv))
+}
+
+func getTestSuite() string {
+	return os.Getenv(testSuiteEnv)
+}
+
+func getTestName() string {
+	return os.Getenv(testNameEnv)
 }
