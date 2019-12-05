@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package benchmark
+package cluster
 
 import (
 	"bufio"
@@ -29,7 +29,7 @@ import (
 	"time"
 )
 
-const namespace = "kube-bench"
+const namespace = "kube-test"
 
 // Job is a job configuration
 type Job struct {
@@ -319,23 +319,23 @@ func (r *Runner) createJob(job *Job) error {
 
 	env := []corev1.EnvVar{
 		{
-			Name:  benchmarkContextEnv,
-			Value: string(benchmarkContextCoordinator),
+			Name:  testContextEnv,
+			Value: string(testContextCoordinator),
 		},
 		{
-			Name:  benchmarkNamespaceEnv,
+			Name:  testNamespaceEnv,
 			Value: namespace,
 		},
 		{
-			Name:  benchmarkJobEnv,
+			Name:  testJobEnv,
 			Value: job.ID,
 		},
 		{
-			Name:  benchmarkImageEnv,
+			Name:  testImageEnv,
 			Value: job.Image,
 		},
 		{
-			Name:  benchmarkImagePullPolicyEnv,
+			Name:  testImagePullPolicyEnv,
 			Value: string(job.ImagePullPolicy),
 		},
 	}

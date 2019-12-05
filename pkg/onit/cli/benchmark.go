@@ -20,6 +20,7 @@ import (
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -61,11 +62,6 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
-	overrides := []string{}
-	for key, value := range sets {
-		overrides = append(overrides, fmt.Sprintf("%s=%s", key, value))
-	}
-
 	config := &benchmark.CoordinatorConfig{
 		JobID: random.NewPetName(2),
 		Image: image,
@@ -83,7 +79,35 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		Args:        args,
 	}
 
-	runner, err := benchmark.NewRunner(config)
+	env := map[string]string{
+		"BENCHMARK_SUITE": suite,
+		"BENCHMARK_NAME":  benchmarkName,
+		"BENCHMARK_PARALLELISM": fmt.Sprintf("%d", parallelism),
+	}
+	for key, value := range sets {
+
+	}
+	overrides := make([]string, 0, len(sets))
+	for key, value := range sets {
+		overrides = append(overrides, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	job := &benchmark.Job{
+		ID:              random.NewPetName(2),
+		Image:           image,
+		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
+		Env: map[string]string{
+			"TEST_CLUSTER":   clusterID,
+			"TEST_ARGS":      strings.Join(overrides, ","),
+			"TEST_SUITE":     suite,
+			"TEST_NAME":      testName,
+			"TEST_TEAR_DOWN": strconv.FormatBool(!noTeardown),
+		},
+		Timeout: timeout,
+	}
+
+	// Create a job runner and run the benchmark job
+	runner, err := benchmark.NewRunner()
 	if err != nil {
 		return err
 	}

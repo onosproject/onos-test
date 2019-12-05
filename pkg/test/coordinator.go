@@ -16,15 +16,19 @@ package test
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
-	"k8s.io/api/core/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"os"
 	"sync"
+	"time"
 )
 
 // newCoordinator returns a new test coordinator
@@ -61,20 +65,20 @@ func (c *Coordinator) Run() error {
 		jobID := newJobID(getTestJob(), suite)
 		env := getTestEnv()
 		env[testSuiteEnv] = suite
-		job := &Job{
+		config := &Config{
 			ID:              jobID,
 			Image:           getTestImage(),
 			ImagePullPolicy: getTestImagePullPolicy(),
-			Command:         os.Args,
 			Env:             env,
 		}
+		testCluster, err := cluster.NewCluster(config.ID)
+		if err != nil {
+
+		}
 		worker := &WorkerTask{
-			client: c.client,
-			cluster: &Cluster{
-				client:    c.client,
-				namespace: jobID,
-			},
-			job: job,
+			client:  c.client,
+			cluster: testCluster,
+			config:  config,
 		}
 		workers[i] = worker
 	}
@@ -129,35 +133,35 @@ func newJobID(testID, suite string) string {
 // WorkerTask manages a single test job for a test worker
 type WorkerTask struct {
 	client  *kubernetes.Clientset
-	cluster *Cluster
-	job     *Job
+	cluster *cluster.Cluster
+	config  *Config
 }
 
 // Run runs the worker job
-func (j *WorkerTask) Run() (int, error) {
+func (t *WorkerTask) Run() (int, error) {
 	// Start the job
-	err := j.start()
+	err := t.start()
 	if err != nil {
-		_ = j.tearDown()
+		_ = t.tearDown()
 		return 0, err
 	}
 
 	// Get the stream of logs for the pod
-	pod, err := j.getPod()
+	pod, err := t.getPod()
 	if err != nil {
-		_ = j.tearDown()
+		_ = t.tearDown()
 		return 0, err
 	} else if pod == nil {
-		_ = j.tearDown()
+		_ = t.tearDown()
 		return 0, errors.New("cannot locate test pod")
 	}
 
-	req := j.client.CoreV1().Pods(j.job.ID).GetLogs(pod.Name, &corev1.PodLogOptions{
+	req := t.client.CoreV1().Pods(t.config.ID).GetLogs(pod.Name, &corev1.PodLogOptions{
 		Follow: true,
 	})
 	reader, err := req.Stream()
 	if err != nil {
-		_ = j.tearDown()
+		_ = t.tearDown()
 		return 0, err
 	}
 	defer reader.Close()
@@ -169,42 +173,175 @@ func (j *WorkerTask) Run() (int, error) {
 	}
 
 	// Get the exit message and code
-	_, status, err := j.getStatus()
+	_, status, err := t.getStatus()
 	if err != nil {
-		_ = j.tearDown()
+		_ = t.tearDown()
 		return 0, err
 	}
 
 	// Tear down the cluster if necessary
-	_ = j.tearDown()
+	_ = t.tearDown()
 	return status, nil
 }
 
 // start starts the worker job
-func (j *WorkerTask) start() error {
-	if err := j.cluster.Create(); err != nil {
+func (t *WorkerTask) start() error {
+	if err := t.cluster.Create(); err != nil {
 		return err
 	}
-	if err := j.cluster.startTest(j.job); err != nil {
+	if err := t.startTest(); err != nil {
 		return err
 	}
-	if err := j.cluster.awaitTestJobRunning(j.job); err != nil {
+	if err := t.awaitTestJobRunning(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// getStatus gets the status message and exit code of the given pod
-func (j *WorkerTask) getStatus() (string, int, error) {
-	return j.cluster.getTestResult(j.job)
+// startTest starts running a test job
+func (t *WorkerTask) startTest() error {
+	if err := t.createTestJob(); err != nil {
+		return err
+	}
+	if err := t.awaitTestJobRunning(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// createTestJob creates the job to run tests
+func (t *WorkerTask) createTestJob() error {
+	zero := int32(0)
+	one := int32(1)
+
+	env := t.config.Env
+	env[testContextEnv] = string(testContextWorker)
+	env[testNamespaceEnv] = t.config.ID
+	env[testJobEnv] = t.config.ID
+
+	envVars := make([]corev1.EnvVar, 0, len(env))
+	for key, value := range env {
+		envVars = append(envVars, corev1.EnvVar{
+			Name:  key,
+			Value: value,
+		})
+	}
+
+	batchJob := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      t.config.ID,
+			Namespace: t.config.ID,
+			Annotations: map[string]string{
+				"job": t.config.ID,
+			},
+		},
+		Spec: batchv1.JobSpec{
+			Parallelism:  &one,
+			Completions:  &one,
+			BackoffLimit: &zero,
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"job": t.config.ID,
+					},
+				},
+				Spec: corev1.PodSpec{
+					ServiceAccountName: t.config.ID,
+					RestartPolicy:      corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:            "test",
+							Image:           t.config.Image,
+							ImagePullPolicy: t.config.ImagePullPolicy,
+							Env:             envVars,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if t.config.Timeout > 0 {
+		timeoutSeconds := int64(t.config.Timeout / time.Second)
+		batchJob.Spec.ActiveDeadlineSeconds = &timeoutSeconds
+	}
+	_, err := t.client.BatchV1().Jobs(t.config.ID).Create(batchJob)
+	return err
+}
+
+// awaitTestJobRunning blocks until the test job creates a pod in the RUNNING state
+func (t *WorkerTask) awaitTestJobRunning() error {
+	for {
+		pod, err := t.getPod()
+		if err != nil {
+			return err
+		} else if pod != nil {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// getLogs gets the logs from the given pod
+func (t *WorkerTask) getLogs(pod corev1.Pod) ([]byte, error) {
+	req := t.client.CoreV1().Pods(t.config.ID).GetLogs(pod.Name, &corev1.PodLogOptions{})
+	readCloser, err := req.Stream()
+	if err != nil {
+		return nil, err
+	}
+
+	defer readCloser.Close()
+
+	var buf bytes.Buffer
+	if _, err = buf.ReadFrom(readCloser); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// getTestResult gets the status message and exit code of the given test
+func (t *WorkerTask) getTestResult() (string, int, error) {
+	pod, err := t.getPod()
+	if err != nil {
+		return "", 0, err
+	} else if pod == nil {
+		return "", 0, errors.New("cannot locate test pod")
+	}
+	state := pod.Status.ContainerStatuses[0].State
+	if state.Terminated != nil {
+		return state.Terminated.Message, int(state.Terminated.ExitCode), nil
+	}
+	return "", 0, errors.New("test job is not complete")
 }
 
 // getPod finds the Pod for the given test
-func (j *WorkerTask) getPod() (*v1.Pod, error) {
-	return j.cluster.getPod(j.job)
+func (t *WorkerTask) getPod() (*corev1.Pod, error) {
+	pods, err := t.client.CoreV1().Pods(t.config.ID).List(metav1.ListOptions{
+		LabelSelector: "job=" + t.config.ID,
+	})
+	if err != nil {
+		return nil, err
+	} else if len(pods.Items) > 0 {
+		for _, pod := range pods.Items {
+			if pod.Status.Phase == corev1.PodRunning && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].Ready {
+				return &pod, nil
+			}
+		}
+		for _, pod := range pods.Items {
+			if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
+				return &pod, nil
+			}
+		}
+	}
+	return nil, nil
+}
+
+// getStatus gets the status message and exit code of the given pod
+func (t *WorkerTask) getStatus() (string, int, error) {
+	return t.getTestResult()
 }
 
 // tearDown tears down the job
-func (j *WorkerTask) tearDown() error {
-	return j.cluster.Delete()
+func (t *WorkerTask) tearDown() error {
+	return t.cluster.Delete()
 }

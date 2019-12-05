@@ -15,9 +15,10 @@
 package test
 
 import (
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"os"
 	"strings"
+	"time"
 )
 
 type testContext string
@@ -37,6 +38,46 @@ const (
 	testContextCoordinator testContext = "coordinator"
 	testContextWorker      testContext = "worker"
 )
+
+// GetConfigFromEnv returns the test configuration from the environment
+func GetConfigFromEnv() *Config {
+	env := make(map[string]string)
+	for _, keyval := range os.Environ() {
+		key := keyval[:strings.Index(keyval, "=")]
+		value := keyval[strings.Index(keyval, "=")+1:]
+		env[key] = value
+	}
+	return &Config{
+		ID:              os.Getenv(testJobEnv),
+		Image:           os.Getenv(testImageEnv),
+		ImagePullPolicy: corev1.PullPolicy(os.Getenv(testImagePullPolicyEnv)),
+		Suite:           os.Getenv(testSuiteEnv),
+		Test:            os.Getenv(testNameEnv),
+		Env:             env,
+	}
+}
+
+// Config is a test configuration
+type Config struct {
+	ID              string
+	Image           string
+	ImagePullPolicy corev1.PullPolicy
+	Suite           string
+	Test            string
+	Env             map[string]string
+	Timeout         time.Duration
+}
+
+// ToEnv returns the configuration as a mapping of environment variables
+func (c *Config) ToEnv() map[string]string {
+	env := c.Env
+	env[testJobEnv] = c.ID
+	env[testImageEnv] = c.Image
+	env[testImagePullPolicyEnv] = string(c.ImagePullPolicy)
+	env[testSuiteEnv] = c.Suite
+	env[testNameEnv] = c.Test
+	return env
+}
 
 // getTestContext returns the current test context
 func getTestContext() testContext {
@@ -69,8 +110,8 @@ func getTestImage() string {
 	return os.Getenv(testImageEnv)
 }
 
-func getTestImagePullPolicy() v1.PullPolicy {
-	return v1.PullPolicy(os.Getenv(testImagePullPolicyEnv))
+func getTestImagePullPolicy() corev1.PullPolicy {
+	return corev1.PullPolicy(os.Getenv(testImagePullPolicyEnv))
 }
 
 func getTestSuite() string {

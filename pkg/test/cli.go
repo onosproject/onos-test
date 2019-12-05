@@ -15,6 +15,7 @@
 package test
 
 import (
+	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -45,7 +46,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	test, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 
-	job := &Job{
+	job := &cluster.Job{
 		ID:              random.NewPetName(2),
 		Image:           image,
 		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
@@ -55,7 +56,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		},
 		Timeout: timeout,
 	}
-	runner, err := NewRunner()
+	runner, err := cluster.NewRunner()
 	if err != nil {
 		return err
 	}

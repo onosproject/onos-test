@@ -19,6 +19,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type benchmarkContext string
@@ -42,6 +43,21 @@ const (
 	benchmarkContextCoordinator benchmarkContext = "coordinator"
 	benchmarkContextWorker      benchmarkContext = "worker"
 )
+
+// Config is a benchmark configuration
+type Config struct {
+	ID              string
+	Image           string
+	ImagePullPolicy corev1.PullPolicy
+	Suite           string
+	Benchmark       string
+	Workers         int
+	Parallelism     int
+	Requests        int
+	Args            map[string]string
+	Env             map[string]string
+	Timeout         time.Duration
+}
 
 // getBenchmarkContext returns the current benchmark context
 func getBenchmarkContext() benchmarkContext {

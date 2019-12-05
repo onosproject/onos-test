@@ -16,9 +16,16 @@ package benchmark
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
+	"google.golang.org/grpc"
+	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	"math"
 	"os"
@@ -59,24 +66,26 @@ func (c *Coordinator) Run() error {
 	workers := make([]*WorkerTask, len(suites))
 	for i, suite := range suites {
 		jobID := newJobID(getBenchmarkJob(), suite)
-		env := getBenchmarkEnv()
-		env[benchmarkSuiteEnv] = suite
-		job := &Job{
+		config := &Config{
 			ID:              jobID,
 			Image:           getBenchmarkImage(),
 			ImagePullPolicy: getBenchmarkImagePullPolicy(),
-			Command:         os.Args,
-			Env:             env,
+			Suite:           suite,
+			Benchmark:       getBenchmarkName(),
+			Workers:         getBenchmarkWorkers(),
+			Parallelism:     getBenchmarkParallelism(),
+			Args:            getBenchmarkArgs(),
+			Env:             getBenchmarkEnv(),
+		}
+		benchCluster, err := cluster.NewCluster(jobID)
+		if err != nil {
+			return err
 		}
 
 		worker := &WorkerTask{
-			client: c.client,
-			cluster: &Cluster{
-				client:    c.client,
-				namespace: jobID,
-			},
-			job:   job,
-			suite: suite,
+			client:  c.client,
+			cluster: benchCluster,
+			config:  config,
 		}
 		workers[i] = worker
 	}
@@ -131,9 +140,8 @@ func newJobID(testID, suite string) string {
 // WorkerTask manages a single test job for a test worker
 type WorkerTask struct {
 	client  *kubernetes.Clientset
-	cluster *Cluster
-	job     *Job
-	suite   string
+	cluster *cluster.Cluster
+	config  *Config
 }
 
 // Run runs the worker job
@@ -155,7 +163,7 @@ func (t *WorkerTask) run() error {
 	if err := t.cluster.Create(); err != nil {
 		return err
 	}
-	if err := t.cluster.CreateWorkers(t.job); err != nil {
+	if err := t.createWorkers(); err != nil {
 		return err
 	}
 	if err := t.runBenchmarks(); err != nil {
@@ -164,12 +172,192 @@ func (t *WorkerTask) run() error {
 	return nil
 }
 
+// start starts running a test job
+func (t *WorkerTask) start() error {
+	for i := 0; i < getBenchmarkWorkers(); i++ {
+		if err := t.createWorker(i); err != nil {
+			return err
+		}
+	}
+	if err := t.awaitRunning(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func getWorkerName(worker int) string {
+	return fmt.Sprintf("worker-%d", worker)
+}
+
+func (t *WorkerTask) getWorkerAddress(worker int) string {
+	return fmt.Sprintf("%s.%s.svc.cluster.local:5000", getWorkerName(worker), t.config.ID)
+}
+
+// createWorkers creates the benchmark workers
+func (t *WorkerTask) createWorkers() error {
+	for i := 0; i < getBenchmarkWorkers(); i++ {
+		if err := t.createWorker(i); err != nil {
+			return err
+		}
+	}
+	return t.awaitRunning()
+}
+
+// createWorker creates the given worker
+func (t *WorkerTask) createWorker(worker int) error {
+	env := t.config.Env
+	env[benchmarkContextEnv] = string(benchmarkContextWorker)
+	env[benchmarkNamespaceEnv] = t.config.ID
+	env[benchmarkJobEnv] = t.config.ID
+
+	envVars := make([]corev1.EnvVar, 0, len(env))
+	for key, value := range env {
+		envVars = append(envVars, corev1.EnvVar{
+			Name:  key,
+			Value: value,
+		})
+	}
+
+	pod := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: getWorkerName(worker),
+			Labels: map[string]string{
+				"benchmark": t.config.ID,
+				"worker":    fmt.Sprintf("%d", worker),
+			},
+		},
+		Spec: corev1.PodSpec{
+			ServiceAccountName: t.config.ID,
+			RestartPolicy:      corev1.RestartPolicyNever,
+			Containers: []corev1.Container{
+				{
+					Name:            "benchmark",
+					Image:           t.config.Image,
+					ImagePullPolicy: t.config.ImagePullPolicy,
+					Env:             envVars,
+					Ports: []corev1.ContainerPort{
+						{
+							Name:          "management",
+							ContainerPort: 5000,
+						},
+					},
+					ReadinessProbe: &corev1.Probe{
+						Handler: corev1.Handler{
+							TCPSocket: &corev1.TCPSocketAction{
+								Port: intstr.FromInt(5000),
+							},
+						},
+						InitialDelaySeconds: 2,
+						PeriodSeconds:       5,
+					},
+				},
+			},
+		},
+	}
+	if _, err := t.client.CoreV1().Pods(t.config.ID).Create(pod); err != nil {
+		return err
+	}
+
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: getWorkerName(worker),
+			Labels: map[string]string{
+				"benchmark": t.config.ID,
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"benchmark": t.config.ID,
+				"worker":    fmt.Sprintf("%d", worker),
+			},
+			Ports: []corev1.ServicePort{
+				{
+					Name: "management",
+					Port: 5000,
+				},
+			},
+		},
+	}
+	if _, err := t.client.CoreV1().Services(t.config.ID).Create(svc); err != nil {
+		return err
+	}
+	return nil
+}
+
+// awaitRunning blocks until the job creates a pod in the RUNNING state
+func (t *WorkerTask) awaitRunning() error {
+	for i := 0; i < getBenchmarkWorkers(); i++ {
+		if err := t.awaitWorkerRunning(i); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// awaitWorkerRunning blocks until the given worker is running
+func (t *WorkerTask) awaitWorkerRunning(worker int) error {
+	for {
+		pod, err := t.getPod(worker)
+		if err != nil {
+			return err
+		} else if pod != nil && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].Ready {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// getWorkerConns returns the worker clients for the given benchmark
+func (t *WorkerTask) getWorkers() ([]WorkerServiceClient, error) {
+	workers := make([]WorkerServiceClient, getBenchmarkWorkers())
+	for i := 0; i < getBenchmarkWorkers(); i++ {
+		worker, err := grpc.Dial(t.getWorkerAddress(i), grpc.WithInsecure())
+		if err != nil {
+			return nil, err
+		}
+		workers[i] = NewWorkerServiceClient(worker)
+	}
+	return workers, nil
+}
+
+// GetResult gets the status message and exit code of the given test
+func (t *WorkerTask) GetResult() (string, int, error) {
+	for i := 0; i < getBenchmarkWorkers(); i++ {
+		pod, err := t.getPod(i)
+		if err != nil {
+			return "", 0, err
+		}
+		if pod != nil {
+			state := pod.Status.ContainerStatuses[0].State
+			if state.Terminated != nil {
+				if state.Terminated.ExitCode > 0 {
+					return state.Terminated.Message, int(state.Terminated.ExitCode), nil
+				}
+			} else {
+				return "", 0, errors.New("test job is not complete")
+			}
+		} else {
+			return "", 0, errors.New("test job is not complete")
+		}
+	}
+	return "", 0, nil
+}
+
+// getPod finds the Pod for the given test
+func (t *WorkerTask) getPod(worker int) (*corev1.Pod, error) {
+	pod, err := t.client.CoreV1().Pods(t.config.ID).Get(getWorkerName(worker), metav1.GetOptions{})
+	if err != nil && !k8serrors.IsNotFound(err) {
+		return nil, err
+	}
+	return pod, nil
+}
+
 // runBenchmarks runs the given benchmarks
 func (t *WorkerTask) runBenchmarks() error {
 	results := make([]result, 0)
 	benchmark := getBenchmarkName()
 	if benchmark != "" {
-		step := logging.NewStep(t.job.ID, "Run benchmark %s", benchmark)
+		step := logging.NewStep(t.config.ID, "Run benchmark %s", benchmark)
 		step.Start()
 		result, err := t.runBenchmark(benchmark)
 		if err != nil {
@@ -179,12 +367,12 @@ func (t *WorkerTask) runBenchmarks() error {
 		step.Complete()
 		results = append(results, result)
 	} else {
-		suiteStep := logging.NewStep(t.job.ID, "Run benchmark suite %s", t.suite)
+		suiteStep := logging.NewStep(t.config.ID, "Run benchmark suite %s", t.config.Suite)
 		suiteStep.Start()
-		suite := Registry.benchmarks[t.suite]
+		suite := Registry.benchmarks[t.config.Suite]
 		benchmarks := getBenchmarks(suite)
 		for _, benchmark := range benchmarks {
-			benchmarkSuite := logging.NewStep(t.job.ID, "Run benchmark %s", benchmark)
+			benchmarkSuite := logging.NewStep(t.config.ID, "Run benchmark %s", benchmark)
 			benchmarkSuite.Start()
 			result, err := t.runBenchmark(benchmark)
 			if err != nil {
@@ -213,7 +401,7 @@ func (t *WorkerTask) runBenchmarks() error {
 
 // runBenchmark runs the given benchmark
 func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
-	workers, err := t.cluster.getWorkers(t.job)
+	workers, err := t.getWorkers()
 	if err != nil {
 		return result{}, err
 	}
