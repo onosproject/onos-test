@@ -193,7 +193,7 @@ func (t *WorkerTask) createWorkers() error {
 
 // createWorker creates the given worker
 func (t *WorkerTask) createWorker(worker int) error {
-	env := t.config.Env
+	env := t.config.ToEnv()
 	env[benchmarkContextEnv] = string(benchmarkContextWorker)
 	env[benchmarkNamespaceEnv] = t.config.ID
 	env[benchmarkJobEnv] = t.config.ID
