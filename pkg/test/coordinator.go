@@ -218,8 +218,8 @@ func (t *WorkerTask) createTestJob() error {
 	one := int32(1)
 
 	env := t.config.ToEnv()
+	env[kube.NamespaceEnv] = t.config.ID
 	env[testContextEnv] = string(testContextWorker)
-	env[testNamespaceEnv] = t.config.ID
 	env[testJobEnv] = t.config.ID
 
 	envVars := make([]corev1.EnvVar, 0, len(env))

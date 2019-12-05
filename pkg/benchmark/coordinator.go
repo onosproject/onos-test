@@ -194,8 +194,8 @@ func (t *WorkerTask) createWorkers() error {
 // createWorker creates the given worker
 func (t *WorkerTask) createWorker(worker int) error {
 	env := t.config.ToEnv()
+	env[kube.NamespaceEnv] = t.config.ID
 	env[benchmarkContextEnv] = string(benchmarkContextWorker)
-	env[benchmarkNamespaceEnv] = t.config.ID
 	env[benchmarkJobEnv] = t.config.ID
 
 	envVars := make([]corev1.EnvVar, 0, len(env))
