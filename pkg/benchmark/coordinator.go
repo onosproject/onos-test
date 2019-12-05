@@ -75,6 +75,7 @@ func (c *Coordinator) Run() error {
 			Benchmark:       c.config.Benchmark,
 			Workers:         c.config.Workers,
 			Parallelism:     c.config.Parallelism,
+			Requests:        c.config.Requests,
 			Args:            c.config.Args,
 			Env:             c.config.Env,
 		}
