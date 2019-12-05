@@ -150,7 +150,6 @@ func (r *Runner) createClusterRole() error {
 					"",
 				},
 				Resources: []string{
-					"namespaces",
 					"pods",
 					"pods/log",
 					"pods/exec",
@@ -161,6 +160,17 @@ func (r *Runner) createClusterRole() error {
 					"configmaps",
 					"secrets",
 					"serviceaccounts",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"namespaces",
 				},
 				Verbs: []string{
 					"*",
@@ -216,6 +226,17 @@ func (r *Runner) createClusterRole() error {
 			},
 			{
 				APIGroups: []string{
+					"apiextensions.k8s.io",
+				},
+				Resources: []string{
+					"customresourcedefinitions",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
 					"k8s.atomix.io",
 				},
 				Resources: []string{
@@ -227,7 +248,6 @@ func (r *Runner) createClusterRole() error {
 			},
 		},
 	}
-
 	_, err := r.client.RbacV1().ClusterRoles().Create(role)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return err
@@ -407,7 +427,7 @@ func (r *Runner) getStatus(job *Job) (string, int, error) {
 // getPod finds the Pod for the given test
 func (r *Runner) getPod(job *Job) (*corev1.Pod, error) {
 	pods, err := r.client.CoreV1().Pods(namespace).List(metav1.ListOptions{
-		LabelSelector: "test=" + job.ID,
+		LabelSelector: "job=" + job.ID,
 	})
 	if err != nil {
 		return nil, err
