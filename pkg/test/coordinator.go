@@ -147,7 +147,10 @@ func (t *WorkerTask) Run() (int, error) {
 	}
 
 	// Get the stream of logs for the pod
-	pod, err := t.getPod()
+	pod, err := t.getPod(func(pod corev1.Pod) bool {
+		return len(pod.Status.ContainerStatuses) > 0 &&
+			pod.Status.ContainerStatuses[0].State.Running != nil
+	})
 	if err != nil {
 		_ = t.tearDown()
 		return 0, err
@@ -214,7 +217,7 @@ func (t *WorkerTask) createTestJob() error {
 	zero := int32(0)
 	one := int32(1)
 
-	env := t.config.Env
+	env := t.config.ToEnv()
 	env[testContextEnv] = string(testContextWorker)
 	env[testNamespaceEnv] = t.config.ID
 	env[testJobEnv] = t.config.ID
@@ -272,7 +275,10 @@ func (t *WorkerTask) createTestJob() error {
 // awaitTestJobRunning blocks until the test job creates a pod in the RUNNING state
 func (t *WorkerTask) awaitTestJobRunning() error {
 	for {
-		pod, err := t.getPod()
+		pod, err := t.getPod(func(pod corev1.Pod) bool {
+			return len(pod.Status.ContainerStatuses) > 0 &&
+				pod.Status.ContainerStatuses[0].Ready
+		})
 		if err != nil {
 			return err
 		} else if pod != nil {
@@ -284,21 +290,25 @@ func (t *WorkerTask) awaitTestJobRunning() error {
 
 // getTestResult gets the status message and exit code of the given test
 func (t *WorkerTask) getTestResult() (string, int, error) {
-	pod, err := t.getPod()
-	if err != nil {
-		return "", 0, err
-	} else if pod == nil {
-		return "", 0, errors.New("cannot locate test pod")
+	for {
+		pod, err := t.getPod(func(pod corev1.Pod) bool {
+			return len(pod.Status.ContainerStatuses) > 0 &&
+				pod.Status.ContainerStatuses[0].State.Terminated != nil
+		})
+		if err != nil {
+			return "", 0, err
+		} else if pod != nil {
+			state := pod.Status.ContainerStatuses[0].State
+			if state.Terminated != nil {
+				return state.Terminated.Message, int(state.Terminated.ExitCode), nil
+			}
+		}
+		time.Sleep(100 * time.Second)
 	}
-	state := pod.Status.ContainerStatuses[0].State
-	if state.Terminated != nil {
-		return state.Terminated.Message, int(state.Terminated.ExitCode), nil
-	}
-	return "", 0, errors.New("test job is not complete")
 }
 
 // getPod finds the Pod for the given test
-func (t *WorkerTask) getPod() (*corev1.Pod, error) {
+func (t *WorkerTask) getPod(predicate func(pod corev1.Pod) bool) (*corev1.Pod, error) {
 	pods, err := t.client.CoreV1().Pods(t.config.ID).List(metav1.ListOptions{
 		LabelSelector: "job=" + t.config.ID,
 	})
@@ -306,12 +316,7 @@ func (t *WorkerTask) getPod() (*corev1.Pod, error) {
 		return nil, err
 	} else if len(pods.Items) > 0 {
 		for _, pod := range pods.Items {
-			if pod.Status.Phase == corev1.PodRunning && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].Ready {
-				return &pod, nil
-			}
-		}
-		for _, pod := range pods.Items {
-			if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
+			if predicate(pod) {
 				return &pod, nil
 			}
 		}

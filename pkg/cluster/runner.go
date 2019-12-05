@@ -72,7 +72,10 @@ func (r *Runner) Run(job *Job) error {
 	step.Start()
 
 	// Get the stream of logs for the pod
-	pod, err := r.getPod(job)
+	pod, err := r.getPod(job, func(pod corev1.Pod) bool {
+		return len(pod.Status.ContainerStatuses) > 0 &&
+			pod.Status.ContainerStatuses[0].Ready
+	})
 	if err != nil {
 		step.Fail(err)
 		return err
@@ -379,7 +382,10 @@ func (r *Runner) createJob(job *Job) error {
 // awaitJobRunning blocks until the test job creates a pod in the RUNNING state
 func (r *Runner) awaitJobRunning(job *Job) error {
 	for {
-		pod, err := r.getPod(job)
+		pod, err := r.getPod(job, func(pod corev1.Pod) bool {
+			return len(pod.Status.ContainerStatuses) > 0 &&
+				pod.Status.ContainerStatuses[0].Ready
+		})
 		if err != nil {
 			return err
 		} else if pod != nil {
@@ -392,22 +398,24 @@ func (r *Runner) awaitJobRunning(job *Job) error {
 // getStatus gets the status message and exit code of the given pod
 func (r *Runner) getStatus(job *Job) (string, int, error) {
 	for {
-		pod, err := r.getPod(job)
+		pod, err := r.getPod(job, func(pod corev1.Pod) bool {
+			return len(pod.Status.ContainerStatuses) > 0 &&
+				pod.Status.ContainerStatuses[0].State.Terminated != nil
+		})
 		if err != nil {
 			return "", 0, err
-		} else if pod == nil {
-			return "", 0, errors.New("cannot locate test pod")
-		}
-		state := pod.Status.ContainerStatuses[0].State
-		if state.Terminated != nil {
-			return state.Terminated.Message, int(state.Terminated.ExitCode), nil
+		} else if pod != nil {
+			state := pod.Status.ContainerStatuses[0].State
+			if state.Terminated != nil {
+				return state.Terminated.Message, int(state.Terminated.ExitCode), nil
+			}
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
 }
 
 // getPod finds the Pod for the given test
-func (r *Runner) getPod(job *Job) (*corev1.Pod, error) {
+func (r *Runner) getPod(job *Job, predicate func(pod corev1.Pod) bool) (*corev1.Pod, error) {
 	pods, err := r.client.CoreV1().Pods(namespace).List(metav1.ListOptions{
 		LabelSelector: "job=" + job.ID,
 	})
@@ -415,12 +423,7 @@ func (r *Runner) getPod(job *Job) (*corev1.Pod, error) {
 		return nil, err
 	} else if len(pods.Items) > 0 {
 		for _, pod := range pods.Items {
-			if pod.Status.Phase == corev1.PodRunning && len(pod.Status.ContainerStatuses) > 0 && pod.Status.ContainerStatuses[0].Ready {
-				return &pod, nil
-			}
-		}
-		for _, pod := range pods.Items {
-			if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
+			if predicate(pod) {
 				return &pod, nil
 			}
 		}
