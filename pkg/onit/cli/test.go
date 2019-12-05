@@ -70,7 +70,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		ID:              config.ID,
 		Image:           image,
 		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
-		Env:             env,
+		Env:             config.ToEnv(),
 		Timeout:         timeout,
 	}
 
