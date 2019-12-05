@@ -36,7 +36,7 @@ type Job struct {
 	ID              string
 	Image           string
 	ImagePullPolicy corev1.PullPolicy
-	Command         []string
+	Args            []string
 	Env             map[string]string
 	Timeout         time.Duration
 }
@@ -356,7 +356,7 @@ func (r *Runner) createJob(job *Job) error {
 							Name:            "job",
 							Image:           job.Image,
 							ImagePullPolicy: job.ImagePullPolicy,
-							Command:         job.Command,
+							Args:            job.Args,
 							Env:             env,
 						},
 					},
