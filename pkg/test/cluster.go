@@ -131,7 +131,6 @@ func (c *Cluster) createClusterRole() error {
 					"",
 				},
 				Resources: []string{
-					"namespaces",
 					"pods",
 					"pods/log",
 					"pods/exec",
@@ -145,6 +144,17 @@ func (c *Cluster) createClusterRole() error {
 				},
 				Verbs: []string{
 					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"",
+				},
+				Resources: []string{
+					"namespaces",
+				},
+				Verbs: []string{
+					"get",
 				},
 			},
 			{
@@ -190,6 +200,17 @@ func (c *Cluster) createClusterRole() error {
 				Resources: []string{
 					"clusterroles",
 					"clusterrolebindings",
+				},
+				Verbs: []string{
+					"*",
+				},
+			},
+			{
+				APIGroups: []string{
+					"apiextensions.k8s.io",
+				},
+				Resources: []string{
+					"customresourcedefinitions",
 				},
 				Verbs: []string{
 					"*",
