@@ -39,7 +39,7 @@ var configArgs = []string{
 
 func newConfig(cluster *Cluster) *Config {
 	return &Config{
-		Service: newService(cluster, configService, []Port{{Name: "grpc", Port: configPort}}, getLabels(configType), configImage, configSecrets, configArgs),
+		Service: newService(cluster, configService, []Port{{Name: "grpc", Port: configPort}}, getLabels(configType), configImage, configSecrets, configArgs, nil),
 	}
 }
 

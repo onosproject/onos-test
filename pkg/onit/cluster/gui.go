@@ -21,19 +21,19 @@ const (
 	guiPort    = 80
 )
 
-// Enabled indicates whether the CLI is enabled
+// Enabled indicates whether the Gui is enabled
 func (c *Gui) Enabled() bool {
 	return GetArg(c.name, "enabled").Bool(c.enabled)
 }
 
-// SetEnabled sets whether the CLI is enabled
+// SetEnabled sets whether the Gui is enabled
 func (c *Gui) SetEnabled(enabled bool) {
 	c.enabled = enabled
 }
 
 func newGui(cluster *Cluster) *Gui {
 	return &Gui{
-		Service: newService(cluster, guiService, []Port{{Name: "grpc", Port: guiPort}}, getLabels(guiType), guiImage, nil, nil),
+		Service: newService(cluster, guiService, []Port{{Name: "grpc", Port: guiPort}}, getLabels(guiType), guiImage, nil, nil, nil),
 	}
 }
 

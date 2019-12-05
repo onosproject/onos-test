@@ -40,7 +40,7 @@ var topoArgs = []string{
 
 func newTopo(cluster *Cluster) *Topo {
 	return &Topo{
-		Service: newService(cluster, topoService, []Port{{Name: "grpc", Port: topoPort}}, getLabels(topoType), topoImage, topoSecrets, topoArgs),
+		Service: newService(cluster, topoService, []Port{{Name: "grpc", Port: topoPort}}, getLabels(topoType), topoImage, topoSecrets, topoArgs, nil),
 	}
 }
 

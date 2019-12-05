@@ -60,6 +60,11 @@ func App(name string) AppSetup {
 	return getSetup().App(name)
 }
 
+// Envoy returns the setup configuration for an envoy
+func Envoy(name string) EnvoySetup {
+	return getSetup().Envoy()
+}
+
 // Topo returns the setup configuration for the topo service
 func Topo() TopoSetup {
 	return getSetup().Topo()
@@ -104,6 +109,9 @@ type ClusterSetup interface {
 
 	// Gui returns the setup configuration for the ONOS gui service
 	Gui() GuiSetup
+
+	// Envoy returns the setup configuration for the envoy proxy service
+	Envoy() EnvoySetup
 
 	// App returns the setup configuration for an application
 	App(name string) AppSetup
@@ -172,6 +180,13 @@ func (s *clusterSetup) Gui() GuiSetup {
 	}
 }
 
+func (s *clusterSetup) Envoy() EnvoySetup {
+	return &clusterEnvoySetup{
+		envoy: s.cluster.Envoy(),
+	}
+
+}
+
 func (s *clusterSetup) App(name string) AppSetup {
 	if app, ok := s.apps[name]; ok {
 		return app
@@ -203,6 +218,8 @@ func (s *clusterSetup) Setup() error {
 	setupService(s.Topo().(serviceSetup), wg, errCh)
 	setupService(s.Config().(serviceSetup), wg, errCh)
 	setupService(s.Gui().(serviceSetup), wg, errCh)
+	setupService(s.Envoy().(serviceSetup), wg, errCh)
+
 	for _, app := range s.apps {
 		setupService(app.(serviceSetup), wg, errCh)
 	}

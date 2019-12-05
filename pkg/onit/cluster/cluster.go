@@ -40,6 +40,7 @@ func New(kube kube.API) *Cluster {
 	cluster.config = newConfig(cluster)
 	cluster.gui = newGui(cluster)
 	cluster.apps = newApps(cluster)
+	cluster.envoy = newEnvoy(cluster)
 	cluster.simulators = newSimulators(cluster)
 	cluster.networks = newNetworks(cluster)
 	return cluster
@@ -54,6 +55,7 @@ type Cluster struct {
 	topo       *Topo
 	config     *Config
 	gui        *Gui
+	envoy      *Envoy
 	apps       *Apps
 	simulators *Simulators
 	networks   *Networks
@@ -87,6 +89,11 @@ func (c *Cluster) Config() *Config {
 // Gui returns the gui service
 func (c *Cluster) Gui() *Gui {
 	return c.gui
+}
+
+// Envoy returns the cluster envoy proxy
+func (c *Cluster) Envoy() *Envoy {
+	return c.envoy
 }
 
 // Apps returns the cluster applications

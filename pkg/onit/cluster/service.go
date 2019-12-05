@@ -17,6 +17,10 @@ package cluster
 import (
 	"crypto/tls"
 	"fmt"
+	"path"
+	"strings"
+	"time"
+
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -24,17 +28,15 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"path"
-	"strings"
-	"time"
 )
 
-func newService(cluster *Cluster, name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string) *Service {
+func newService(cluster *Cluster, name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string, command []string) *Service {
 	return &Service{
 		Deployment: newDeployment(cluster, name, labels, image),
 		ports:      ports,
 		secrets:    secrets,
 		env:        make(map[string]string),
+		command:    command,
 		args:       args,
 	}
 }
@@ -55,6 +57,7 @@ type Service struct {
 	privileged bool
 	secrets    map[string]string
 	env        map[string]string
+	command    []string
 	args       []string
 }
 
@@ -180,6 +183,16 @@ func (s *Service) SetArgs(args ...string) {
 	s.args = args
 }
 
+// SetCommand sets the service command
+func (s *Service) SetCommand(command ...string) {
+	s.command = command
+}
+
+// Command returns the service command
+func (s *Service) Command() []string {
+	return s.command
+}
+
 // Setup sets up the service
 func (s *Service) Setup() error {
 	if s.Replicas() == 0 {
@@ -198,6 +211,13 @@ func (s *Service) Setup() error {
 		step.Fail(err)
 		return err
 	}
+
+	/*step.Logf("Creating %s ConfigMap", s.Name())
+	if err := s.createConfigMap(); err != nil {
+		step.Fail(err)
+		return err
+	}*/
+
 	step.Logf("Creating %s Deployment", s.Name())
 	if err := s.createDeployment(); err != nil {
 		step.Fail(err)
@@ -238,6 +258,21 @@ func (s *Service) createSecret() error {
 	_, err := s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
 	return err
 }
+
+/*func (s *Service) createConfigMap() error {
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      s.name,
+			Namespace: s.namespace,
+		},
+		BinaryData: map[string][]byte{
+			"envoy-config.yaml": []byte(envoyConfig),
+		},
+	}
+	_, err := s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
+	return err
+
+}*/
 
 // createService creates a Service to expose the Deployment to other pods
 func (s *Service) createService() error {
@@ -430,6 +465,7 @@ func (s *Service) createDeployment() error {
 							ImagePullPolicy: s.PullPolicy(),
 							Env:             env,
 							Args:            s.args,
+							Command:         s.command,
 							Ports:           ports,
 							ReadinessProbe:  readinessProbe,
 							LivenessProbe:   livenessProbe,
