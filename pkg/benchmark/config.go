@@ -37,6 +37,7 @@ const (
 	benchmarkParallelismEnv     = "BENCHMARK_PARALLELISM"
 	benchmarkRequestsEnv        = "BENCHMARK_REQUESTS"
 	benchmarkArgPrefix          = "BENCHMARK_ARG_"
+	benchmarkWorkerEnv          = "BENCHMARK_WORKER"
 )
 
 const (
@@ -123,4 +124,17 @@ func getBenchmarkContext() benchmarkContext {
 		return benchmarkContext(context)
 	}
 	return benchmarkContextCoordinator
+}
+
+// getBenchmarkWorker returns the current benchmark worker number
+func getBenchmarkWorker() int {
+	worker := os.Getenv(benchmarkWorkerEnv)
+	if worker == "" {
+		return 0
+	}
+	i, err := strconv.Atoi(worker)
+	if err != nil {
+		panic(err)
+	}
+	return i
 }

@@ -21,34 +21,86 @@ package onos.test.benchmark;
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 
-// Request is a benchmark request
-message Request {
-    // Benchmark is the benchmark to run
-    string benchmark = 1;
+// SuiteRequest is a benchmark suite request
+message SuiteRequest {
+    // suite is the benchmark suite
+    string suite = 1;
 
-    // Requests is the number of requests to run
-    uint32 requests = 2;
+    // args is the benchmark arguments
+    map<string, string> args = 2;
 }
 
-// Result is a benchmark result
-message Result {
+// SuiteResponse is a response to a SuiteRequest
+message SuiteResponse {
+
+}
+
+// BenchmarkRequest is a benchmark request
+message BenchmarkRequest {
+    // suite is the benchmark suite
+    string suite = 1;
+
+    // benchmark is the benchmark to run
+    string benchmark = 2;
+
+    // args is the benchmark arguments
+    map<string, string> args = 3;
+}
+
+// BenchmarkResponse is a benchmark response
+message BenchmarkResponse {
+
+}
+
+// RunRequest is a benchmark run request
+message RunRequest {
+    // suite is the benchmark suite
+    string suite = 1;
+
+    // benchmark is the benchmark to run
+    string benchmark = 2;
+
+    // requests is the number of requests to run
+    uint32 requests = 3;
+
+    // parallelism is the benchmark parallelism
+    uint32 parallelism = 4;
+
+    // args is the benchmark arguments
+    map<string, string> args = 5;
+}
+
+// RunResponse is a benchmark run response
+message RunResponse {
+    // suite is the benchmark suite
+    string suite = 1;
+
+    // benchmark is the benchmark that was run
+    string benchmark = 2;
+
     // requests is the number of requests that were run
-    uint32 requests = 1;
+    uint32 requests = 3;
 
     // duration is the duration of the test run
-    google.protobuf.Duration duration = 2 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+    google.protobuf.Duration duration = 4 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
 
     // latency is the mean latency
-    google.protobuf.Duration latency = 3 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+    google.protobuf.Duration latency = 5 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
 
     // latency* are latency percentiles
-    google.protobuf.Duration latency50 = 4 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
-    google.protobuf.Duration latency75 = 5 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
-    google.protobuf.Duration latency95 = 6 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
-    google.protobuf.Duration latency99 = 7 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+    google.protobuf.Duration latency50 = 6 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+    google.protobuf.Duration latency75 = 7 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+    google.protobuf.Duration latency95 = 8 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+    google.protobuf.Duration latency99 = 9 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
 }
 
 // WorkerService is a benchmark worker service
 service WorkerService {
-    rpc RunBenchmark (Request) returns (Result);
+    rpc SetupSuite (SuiteRequest) returns (SuiteResponse);
+    rpc TearDownSuite (SuiteRequest) returns (SuiteResponse);
+    rpc SetupWorker (SuiteRequest) returns (SuiteResponse);
+    rpc TearDownWorker (SuiteRequest) returns (SuiteResponse);
+    rpc SetupBenchmark (BenchmarkRequest) returns (BenchmarkResponse);
+    rpc TearDownBenchmark (BenchmarkRequest) returns (BenchmarkResponse);
+    rpc RunBenchmark (RunRequest) returns (RunResponse);
 }

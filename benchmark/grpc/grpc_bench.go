@@ -24,11 +24,11 @@ import (
 // BenchmarkSuite :: benchmark
 type BenchmarkSuite struct {
 	benchmark.Suite
-	client TestServiceClient
+	conn *grpc.ClientConn
 }
 
-// SetupBenchmarkSuite :: benchmark
-func (s *BenchmarkSuite) SetupBenchmarkSuite(c *benchmark.Context) {
+// SetupSuite :: benchmark
+func (s *BenchmarkSuite) SetupSuite(c *benchmark.Context) {
 	setup.App("test").
 		SetImage("onosproject/grpc-test:latest").
 		AddPort("grpc", 8080).
@@ -37,12 +37,17 @@ func (s *BenchmarkSuite) SetupBenchmarkSuite(c *benchmark.Context) {
 }
 
 // SetupBenchmark :: benchmark
-func (s *BenchmarkSuite) SetupBenchmark(b *benchmark.Benchmark) {
+func (s *BenchmarkSuite) SetupBenchmark(c *benchmark.Context) {
 	conn, err := grpc.Dial("test:8080", grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
-	s.client = NewTestServiceClient(conn)
+	s.conn = conn
+}
+
+// TearDownBenchmark :: benchmark
+func (s *BenchmarkSuite) TearDownBenchmark(c *benchmark.Context) {
+	s.conn.Close()
 }
 
 // BenchmarkGRPCRequestReply :: benchmark
@@ -50,8 +55,9 @@ func (s *BenchmarkSuite) BenchmarkGRPCRequestReply(b *benchmark.Benchmark) {
 	params := []benchmark.Param{
 		benchmark.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
 	}
+	client := NewTestServiceClient(s.conn)
 	b.Run(func(value []byte) error {
-		_, err := s.client.RequestReply(context.Background(), &Message{
+		_, err := client.RequestReply(context.Background(), &Message{
 			Value: value,
 		})
 		return err

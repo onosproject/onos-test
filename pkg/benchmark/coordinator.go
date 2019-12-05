@@ -15,8 +15,8 @@
 package benchmark
 
 import (
+	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/kube"
@@ -144,6 +144,7 @@ type WorkerTask struct {
 	client  *kubernetes.Clientset
 	cluster *cluster.Cluster
 	config  *Config
+	workers []WorkerServiceClient
 }
 
 // Run runs the worker job
@@ -197,6 +198,7 @@ func (t *WorkerTask) createWorker(worker int) error {
 	env := t.config.ToEnv()
 	env[kube.NamespaceEnv] = t.config.ID
 	env[benchmarkContextEnv] = string(benchmarkContextWorker)
+	env[benchmarkWorkerEnv] = fmt.Sprintf("%d", worker)
 	env[benchmarkJobEnv] = t.config.ID
 
 	envVars := make([]corev1.EnvVar, 0, len(env))
@@ -243,7 +245,8 @@ func (t *WorkerTask) createWorker(worker int) error {
 			},
 		},
 	}
-	if _, err := t.client.CoreV1().Pods(t.config.ID).Create(pod); err != nil {
+	_, err := t.client.CoreV1().Pods(t.config.ID).Create(pod)
+	if err != nil {
 		return err
 	}
 
@@ -270,7 +273,40 @@ func (t *WorkerTask) createWorker(worker int) error {
 	if _, err := t.client.CoreV1().Services(t.config.ID).Create(svc); err != nil {
 		return err
 	}
+
+	go t.streamWorkerLogs(worker)
 	return nil
+}
+
+// streamWorkerLogs streams the logs from the given worker
+func (t *WorkerTask) streamWorkerLogs(worker int) {
+	for {
+		pod, err := t.getPod(worker)
+		if err != nil || pod == nil {
+			return
+		}
+
+		if len(pod.Status.ContainerStatuses) > 0 &&
+			(pod.Status.ContainerStatuses[0].State.Running != nil ||
+				pod.Status.ContainerStatuses[0].State.Terminated != nil) {
+			req := t.client.CoreV1().Pods(t.config.ID).GetLogs(getWorkerName(worker), &corev1.PodLogOptions{
+				Follow: true,
+			})
+			reader, err := req.Stream()
+			if err != nil {
+				return
+			}
+			defer reader.Close()
+
+			// Stream the logs to stdout
+			scanner := bufio.NewScanner(reader)
+			for scanner.Scan() {
+				logging.Print(scanner.Text())
+			}
+			return
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 }
 
 // awaitRunning blocks until the job creates a pod in the RUNNING state
@@ -298,6 +334,10 @@ func (t *WorkerTask) awaitWorkerRunning(worker int) error {
 
 // getWorkerConns returns the worker clients for the given benchmark
 func (t *WorkerTask) getWorkers() ([]WorkerServiceClient, error) {
+	if t.workers != nil {
+		return t.workers, nil
+	}
+
 	workers := make([]WorkerServiceClient, t.config.Workers)
 	for i := 0; i < t.config.Workers; i++ {
 		worker, err := grpc.Dial(t.getWorkerAddress(i), grpc.WithInsecure())
@@ -306,30 +346,8 @@ func (t *WorkerTask) getWorkers() ([]WorkerServiceClient, error) {
 		}
 		workers[i] = NewWorkerServiceClient(worker)
 	}
+	t.workers = workers
 	return workers, nil
-}
-
-// GetResult gets the status message and exit code of the given test
-func (t *WorkerTask) GetResult() (string, int, error) {
-	for i := 0; i < t.config.Workers; i++ {
-		pod, err := t.getPod(i)
-		if err != nil {
-			return "", 0, err
-		}
-		if pod != nil {
-			state := pod.Status.ContainerStatuses[0].State
-			if state.Terminated != nil {
-				if state.Terminated.ExitCode > 0 {
-					return state.Terminated.Message, int(state.Terminated.ExitCode), nil
-				}
-			} else {
-				return "", 0, errors.New("test job is not complete")
-			}
-		} else {
-			return "", 0, errors.New("test job is not complete")
-		}
-	}
-	return "", 0, nil
 }
 
 // getPod finds the Pod for the given test
@@ -341,8 +359,97 @@ func (t *WorkerTask) getPod(worker int) (*corev1.Pod, error) {
 	return pod, nil
 }
 
+// setupSuite sets up the benchmark suite
+func (t *WorkerTask) setupSuite() error {
+	workers, err := t.getWorkers()
+	if err != nil {
+		return err
+	}
+
+	worker := workers[0]
+	_, err = worker.SetupSuite(context.Background(), &SuiteRequest{
+		Suite: t.config.Suite,
+		Args:  t.config.Args,
+	})
+	return err
+}
+
+// setupWorkers sets up the benchmark workers
+func (t *WorkerTask) setupWorkers() error {
+	workers, err := t.getWorkers()
+	if err != nil {
+		return err
+	}
+
+	wg := &sync.WaitGroup{}
+	errCh := make(chan error)
+	for _, worker := range workers {
+		wg.Add(1)
+		go func(worker WorkerServiceClient) {
+			_, err = worker.SetupWorker(context.Background(), &SuiteRequest{
+				Suite: t.config.Suite,
+				Args:  t.config.Args,
+			})
+			if err != nil {
+				errCh <- err
+			}
+			wg.Done()
+		}(worker)
+	}
+	wg.Wait()
+	close(errCh)
+
+	for err := range errCh {
+		return err
+	}
+	return nil
+}
+
+// setupBenchmark sets up the given benchmark
+func (t *WorkerTask) setupBenchmark(benchmark string) error {
+	workers, err := t.getWorkers()
+	if err != nil {
+		return err
+	}
+
+	wg := &sync.WaitGroup{}
+	errCh := make(chan error)
+	for _, worker := range workers {
+		wg.Add(1)
+		go func(worker WorkerServiceClient) {
+			_, err = worker.SetupBenchmark(context.Background(), &BenchmarkRequest{
+				Suite:     t.config.Suite,
+				Benchmark: benchmark,
+				Args:      t.config.Args,
+			})
+			if err != nil {
+				errCh <- err
+			}
+			wg.Done()
+		}(worker)
+	}
+	wg.Wait()
+	close(errCh)
+
+	for err := range errCh {
+		return err
+	}
+	return nil
+}
+
 // runBenchmarks runs the given benchmarks
 func (t *WorkerTask) runBenchmarks() error {
+	// Setup the benchmark suite on one of the workers
+	if err := t.setupSuite(); err != nil {
+		return err
+	}
+
+	// Setup the workers
+	if err := t.setupWorkers(); err != nil {
+		return err
+	}
+
+	// Run the benchmarks
 	results := make([]result, 0)
 	if t.config.Benchmark != "" {
 		step := logging.NewStep(t.config.ID, "Run benchmark %s", t.config.Benchmark)
@@ -389,21 +496,29 @@ func (t *WorkerTask) runBenchmarks() error {
 
 // runBenchmark runs the given benchmark
 func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
+	// Setup the benchmark
+	if err := t.setupBenchmark(benchmark); err != nil {
+		return result{}, err
+	}
+
 	workers, err := t.getWorkers()
 	if err != nil {
 		return result{}, err
 	}
 
 	wg := &sync.WaitGroup{}
-	resultCh := make(chan *Result, len(workers))
+	resultCh := make(chan *RunResponse, len(workers))
 	errCh := make(chan error, len(workers))
 
 	for _, worker := range workers {
 		wg.Add(1)
 		go func(worker WorkerServiceClient, requests int) {
-			result, err := worker.RunBenchmark(context.Background(), &Request{
-				Benchmark: benchmark,
-				Requests:  uint32(requests),
+			result, err := worker.RunBenchmark(context.Background(), &RunRequest{
+				Suite:       t.config.Suite,
+				Benchmark:   benchmark,
+				Requests:    uint32(requests),
+				Parallelism: uint32(t.config.Parallelism),
+				Args:        t.config.Args,
 			})
 			if err != nil {
 				errCh <- err
