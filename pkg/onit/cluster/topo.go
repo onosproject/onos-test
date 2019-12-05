@@ -23,7 +23,6 @@ const (
 	topoImage   = "onosproject/onos-topo:latest"
 	topoService = "onos-topo"
 	topoPort    = 5150
-	topoAddress = "onos-topo:5150"
 	topoTimeout = 30 * time.Second
 )
 

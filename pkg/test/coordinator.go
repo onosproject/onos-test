@@ -16,7 +16,6 @@ package test
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/cluster"
@@ -281,23 +280,6 @@ func (t *WorkerTask) awaitTestJobRunning() error {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-}
-
-// getLogs gets the logs from the given pod
-func (t *WorkerTask) getLogs(pod corev1.Pod) ([]byte, error) {
-	req := t.client.CoreV1().Pods(t.config.ID).GetLogs(pod.Name, &corev1.PodLogOptions{})
-	readCloser, err := req.Stream()
-	if err != nil {
-		return nil, err
-	}
-
-	defer readCloser.Close()
-
-	var buf bytes.Buffer
-	if _, err = buf.ReadFrom(readCloser); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
 }
 
 // getTestResult gets the status message and exit code of the given test

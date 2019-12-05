@@ -173,19 +173,6 @@ func (t *WorkerTask) run() error {
 	return nil
 }
 
-// start starts running a test job
-func (t *WorkerTask) start() error {
-	for i := 0; i < t.config.Workers; i++ {
-		if err := t.createWorker(i); err != nil {
-			return err
-		}
-	}
-	if err := t.awaitRunning(); err != nil {
-		return err
-	}
-	return nil
-}
-
 func getWorkerName(worker int) string {
 	return fmt.Sprintf("worker-%d", worker)
 }

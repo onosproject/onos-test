@@ -68,7 +68,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	config := &benchmark.Config{
 		ID:              random.NewPetName(2),
 		Image:           image,
-		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
+		ImagePullPolicy: pullPolicy,
 		Suite:           suite,
 		Benchmark:       benchmarkName,
 		Workers:         workers,
@@ -82,7 +82,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	job := &cluster.Job{
 		ID:              config.ID,
 		Image:           image,
-		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
+		ImagePullPolicy: pullPolicy,
 		Env:             config.ToEnv(),
 		Timeout:         timeout,
 	}
