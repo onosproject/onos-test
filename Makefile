@@ -74,11 +74,6 @@ kind: images
 	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
 	kind load docker-image onosproject/onit:${ONOS_TEST_VERSION}
 
-k3d: # @HELP build Docker images and add them to the currently configured k3d cluster
-k3d: images
-	@if [ "`k3d list`" = '' ]; then echo "no k3d cluster found" && exit 1; fi
-	k3d import-images onosproject/onit:${ONOS_TEST_VERSION}
-
 grpc-test-docker: # @HELP build onos-tests Docker image
 grpc-test-docker:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/grpc-test/_output/bin/grpc-test ./cmd/grpc-test
@@ -109,13 +104,6 @@ tests-kind: tests
 	kind load docker-image onosproject/onos-tests:${ONOS_TEST_VERSION}
 	kind load docker-image onosproject/onos-benchmarks:${ONOS_TEST_VERSION}
 	kind load docker-image onosproject/grpc-test:${ONOS_TEST_VERSION}
-
-tests-k3d: # @HELP build Docker images and add them to the currently configured k3d cluster
-tests-k3d: tests
-	@if [ "`k3d list`" = '' ]; then echo "no k3d cluster found" && exit 1; fi
-	k3d import-images onosproject/onos-tests:${ONOS_TEST_VERSION}
-	k3d import-images onosproject/onos-benchmarks:${ONOS_TEST_VERSION}
-	k3d import-images onosproject/grpc-test:${ONOS_TEST_VERSION}
 
 all: build images tests
 
