@@ -15,6 +15,7 @@
 package benchmark
 
 import (
+	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"os"
 	"strconv"
@@ -44,6 +45,46 @@ const (
 	benchmarkContextWorker      benchmarkContext = "worker"
 )
 
+// GetConfigFromEnv returns the benchmark configuration from the environment
+func GetConfigFromEnv() *Config {
+	env := make(map[string]string)
+	for _, keyval := range os.Environ() {
+		key := keyval[:strings.Index(keyval, "=")]
+		value := keyval[strings.Index(keyval, "=")+1:]
+		env[key] = value
+	}
+	args := make(map[string]string)
+	for key, value := range env {
+		if strings.HasPrefix(key, benchmarkArgPrefix) {
+			args[strings.ToLower(key[len(benchmarkArgPrefix):])] = value
+		}
+	}
+	workers, err := strconv.Atoi(benchmarkWorkersEnv)
+	if err != nil {
+		panic(err)
+	}
+	parallelism, err := strconv.Atoi(benchmarkParallelismEnv)
+	if err != nil {
+		panic(err)
+	}
+	requests, err := strconv.Atoi(benchmarkRequestsEnv)
+	if err != nil {
+		panic(err)
+	}
+	return &Config{
+		ID:              os.Getenv(benchmarkJobEnv),
+		Image:           os.Getenv(benchmarkImageEnv),
+		ImagePullPolicy: corev1.PullPolicy(os.Getenv(benchmarkImagePullPolicyEnv)),
+		Suite:           os.Getenv(benchmarkSuiteEnv),
+		Benchmark:       os.Getenv(benchmarkNameEnv),
+		Workers:         workers,
+		Parallelism:     parallelism,
+		Requests:        requests,
+		Args:            args,
+		Env:             env,
+	}
+}
+
 // Config is a benchmark configuration
 type Config struct {
 	ID              string
@@ -59,6 +100,23 @@ type Config struct {
 	Timeout         time.Duration
 }
 
+// ToEnv returns the configuration as a mapping of environment variables
+func (c *Config) ToEnv() map[string]string {
+	env := c.Env
+	env[benchmarkJobEnv] = c.ID
+	env[benchmarkImageEnv] = c.Image
+	env[benchmarkImagePullPolicyEnv] = string(c.ImagePullPolicy)
+	env[benchmarkSuiteEnv] = c.Suite
+	env[benchmarkNameEnv] = c.Benchmark
+	env[benchmarkWorkersEnv] = fmt.Sprintf("%d", c.Workers)
+	env[benchmarkParallelismEnv] = fmt.Sprintf("%d", c.Parallelism)
+	env[benchmarkRequestsEnv] = fmt.Sprintf("%d", c.Requests)
+	for key, value := range c.Args {
+		env[benchmarkArgPrefix+strings.ToUpper(key)] = value
+	}
+	return env
+}
+
 // getBenchmarkContext returns the current benchmark context
 func getBenchmarkContext() benchmarkContext {
 	context := os.Getenv(benchmarkContextEnv)
@@ -66,84 +124,4 @@ func getBenchmarkContext() benchmarkContext {
 		return benchmarkContext(context)
 	}
 	return benchmarkContextCoordinator
-}
-
-func getBenchmarkEnv() map[string]string {
-	env := make(map[string]string)
-	for _, keyval := range os.Environ() {
-		key := keyval[:strings.Index(keyval, "=")]
-		value := keyval[strings.Index(keyval, "=")+1:]
-		env[key] = value
-	}
-	return env
-}
-
-func getBenchmarkJob() string {
-	return os.Getenv(benchmarkJobEnv)
-}
-
-func getBenchmarkNamespace() string {
-	return os.Getenv(benchmarkNamespaceEnv)
-}
-
-func getBenchmarkImage() string {
-	return os.Getenv(benchmarkImageEnv)
-}
-
-func getBenchmarkImagePullPolicy() corev1.PullPolicy {
-	return corev1.PullPolicy(os.Getenv(benchmarkImagePullPolicyEnv))
-}
-
-func getBenchmarkSuite() string {
-	return os.Getenv(benchmarkSuiteEnv)
-}
-
-func getBenchmarkName() string {
-	return os.Getenv(benchmarkNameEnv)
-}
-
-func getBenchmarkWorkers() int {
-	workers := os.Getenv(benchmarkWorkersEnv)
-	if workers == "" {
-		return 1
-	}
-	i, err := strconv.Atoi(workers)
-	if err != nil {
-		panic(err)
-	}
-	return i
-}
-
-func getBenchmarkParallelism() int {
-	parallelism := os.Getenv(benchmarkParallelismEnv)
-	if parallelism == "" {
-		return 1
-	}
-	i, err := strconv.Atoi(parallelism)
-	if err != nil {
-		panic(err)
-	}
-	return i
-}
-
-func getBenchmarkRequests() int {
-	requests := os.Getenv(benchmarkRequestsEnv)
-	if requests == "" {
-		return 1
-	}
-	i, err := strconv.Atoi(requests)
-	if err != nil {
-		panic(err)
-	}
-	return i
-}
-
-func getBenchmarkArgs() map[string]string {
-	args := make(map[string]string)
-	for key, value := range getBenchmarkEnv() {
-		if strings.HasPrefix(key, benchmarkArgPrefix) {
-			args[strings.ToLower(key[len(benchmarkArgPrefix):])] = value
-		}
-	}
-	return args
 }

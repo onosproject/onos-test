@@ -60,6 +60,7 @@ func GetConfigFromEnv() *Config {
 // Config is a test configuration
 type Config struct {
 	ID              string
+	context         testContext
 	Image           string
 	ImagePullPolicy corev1.PullPolicy
 	Suite           string
@@ -86,38 +87,4 @@ func getTestContext() testContext {
 		return testContext(context)
 	}
 	return testContextCoordinator
-}
-
-func getTestEnv() map[string]string {
-	env := make(map[string]string)
-	for _, keyval := range os.Environ() {
-		key := keyval[:strings.Index(keyval, "=")]
-		value := keyval[strings.Index(keyval, "=")+1:]
-		env[key] = value
-	}
-	return env
-}
-
-func getTestJob() string {
-	return os.Getenv(testJobEnv)
-}
-
-func getTestNamespace() string {
-	return os.Getenv(testNamespaceEnv)
-}
-
-func getTestImage() string {
-	return os.Getenv(testImageEnv)
-}
-
-func getTestImagePullPolicy() corev1.PullPolicy {
-	return corev1.PullPolicy(os.Getenv(testImagePullPolicyEnv))
-}
-
-func getTestSuite() string {
-	return os.Getenv(testSuiteEnv)
-}
-
-func getTestName() string {
-	return os.Getenv(testNameEnv)
 }

@@ -46,16 +46,24 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	test, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 
-	job := &cluster.Job{
+	config := &Config{
 		ID:              random.NewPetName(2),
+		context:         testContextCoordinator,
 		Image:           image,
 		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
-		Env: map[string]string{
-			testSuiteEnv: suite,
-			testNameEnv:  test,
-		},
-		Timeout: timeout,
+		Suite:           suite,
+		Test:            test,
+		Timeout:         timeout,
 	}
+
+	job := &cluster.Job{
+		ID:              config.ID,
+		Image:           image,
+		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
+		Env:             config.ToEnv(),
+		Timeout:         timeout,
+	}
+
 	runner, err := cluster.NewRunner()
 	if err != nil {
 		return err
