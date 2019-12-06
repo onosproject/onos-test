@@ -86,7 +86,8 @@ device-1   device-1:11161   1.0.0     GNMI: {Connectivity: REACHABLE, Channel: C
 device-2   device-2:11161   1.0.0     GNMI: {Connectivity: REACHABLE, Channel: CONNECTED, Service: AVAILABLE}
 ```
 
-ONIT will deploy each cluster inside of its own namespace in Kubernetes, so the cluster can easily be accessed via
+ONIT will deploy each cluster inside of its own namespace in Kubernetes (the
+default namespace is 'onos'), so the cluster can easily be accessed via
 standard k8s tools for debugging:
 
 ```bash
@@ -100,5 +101,15 @@ onos-config-567d957775-d25p8         1/1     Running   0          3m35s
 onos-topo-84dc5568f5-v8dfh           1/1     Running   0          3m36s
 raft-1-0                             1/1     Running   0          3m35s
 ```
+
+For instance to follow the logs on the `onos-config` pod run:
+```bash
+kubectl -n onos logs --follow $(kubectl -n onos get pods -l type=config -o name)
+```
+
+or if a shell on the `onos-cli` pod is required (useful for running `gnmi_cli` commands):
+```bash
+kubectl -n onos exec -it $(kubectl -n onos get pods -l type=cli -o name) -- /bin/sh
+``` 
 
 [Kubernetes]: https://kubernetes.io/

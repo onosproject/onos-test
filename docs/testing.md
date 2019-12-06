@@ -49,7 +49,7 @@ Each test suite should be assigned a unique name which can be used to filter sui
 tests via the CLI:
 
 ```bash
-> onit run test --image onosproject/onos-tests:latest --suite atomix-ha
+> onit test --image onosproject/onos-tests:latest --suite atomix-ha
 ```
 
 ## Writing a test suite
