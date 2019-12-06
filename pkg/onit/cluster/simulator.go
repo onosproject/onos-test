@@ -286,8 +286,8 @@ func (s *Simulator) createPod() error {
 								Port: intstr.FromInt(simulatorInsecurePort),
 							},
 						},
-						InitialDelaySeconds: 5,
-						PeriodSeconds:       10,
+						InitialDelaySeconds: 2,
+						PeriodSeconds:       2,
 					},
 					LivenessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
