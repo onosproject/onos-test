@@ -33,14 +33,14 @@ jobs:
         - sh build/bin/trigger-docs-travis $TRAVIS_ACCESS_TOKEN
 
     - stage: integration-tests
-      if: type != pull_request
-      notifications:
-        email:
-          - andrea@opennetworking.org
-          - jordan@opennetworking.org
-          - ray@opennetworking.org
-          - sean@opennetworking.org
-          - tom@opennetworking.org
+      #if: type != pull_request
+      #notifications:
+      #  email:
+      #    - andrea@opennetworking.org
+      #    - jordan@opennetworking.org
+      #    - ray@opennetworking.org
+      #    - sean@opennetworking.org
+      #    - tom@opennetworking.org
 
       script:
         # Download and install kubectl
@@ -55,7 +55,7 @@ jobs:
         # Set KUBECONFIG environment variable
         - export KUBECONFIG="$(kind get kubeconfig-path)"
         - kind create cluster
-        - make integration
+        - build/bin/run-integration-tests
     - stage: push images
       if: type != pull_request
       script:

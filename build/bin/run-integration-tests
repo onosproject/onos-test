@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Script to build and run all of the onos integration tests
+
+pushd ..
+git clone https://github.com/onosproject/onos-config.git
+cd onos-config
+make kind
+onit test --image onosproject/onos-config-tests:latest --suite gnmi
+popd
+
+pushd ..
+git clone https://github.com/onosproject/onos-topo.git
+make kind
+onit test --image onosproject/onos-topo-tests:latest --suite topo
+popd
