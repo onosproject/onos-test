@@ -27,6 +27,11 @@ jobs:
     - stage: tests
       script: make coverage
 
+    - stage: docs build
+      if: type != pull_request
+      script:
+        - sh build/bin/trigger-docs-travis $TRAVIS_ACCESS_TOKEN
+
     - stage: integration-tests
       if: type != pull_request
       notifications:
@@ -51,10 +56,6 @@ jobs:
         - export KUBECONFIG="$(kind get kubeconfig-path)"
         - kind create cluster
         - make integration
-    - stage: docs build
-      if: type != pull_request
-      script:
-          - sh build/bin/trigger-docs-travis $TRAVIS_ACCESS_TOKEN
     - stage: push images
       if: type != pull_request
       script:
