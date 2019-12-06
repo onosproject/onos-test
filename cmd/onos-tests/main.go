@@ -18,7 +18,6 @@ import (
 	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/onosproject/onos-test/test/nopaxos"
 	"github.com/onosproject/onos-test/test/raft"
-	"github.com/onosproject/onos-test/test/topo"
 )
 
 func main() {
@@ -26,7 +25,6 @@ func main() {
 	test.Register("raft-ha", &raft.HATestSuite{})
 	test.Register("nopaxos", &nopaxos.SmokeTestSuite{})
 	test.Register("nopaxos-ha", &nopaxos.HATestSuite{})
-	test.Register("topo", &topo.TestSuite{})
 
 	test.Main()
 }
