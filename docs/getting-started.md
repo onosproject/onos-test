@@ -24,18 +24,40 @@ You can optionally persist the output of the `onit completion` command to your s
 
 ## Usage
 
+### Integration Tests
+
 To run a suite of tests, use the `onit run test` command, providing a test image to run:
 
 ```bash
-> onit test --image onosproject/onos-tests:latest
+onit test --image onosproject/onos-tests:latest
 ```
 
 Benchmarks can be run with the `onit run benchmark` command:
 
 ```bash
-> onit benchmark --image onosproject/onos-tests:latest
+onit benchmark --image onosproject/onos-tests:latest
 ```
 
+To run a suite: 
+```bash
+onit test --image onosproject/onos-tests:latest --suite config
+```
+
+To run a specific test:
+```bash
+go run github.com/onosproject/onos-test/cmd/onit test --image onosproject/onos-tests:latest --suite config --test TestTransaction
+```
+
+### Development Cluster
+
+To setup a cluster for development, after having pushed all the new images to `kind` run:
+```bash
+go run github.com/onosproject/onos-test/cmd/onit create cluster --set onos-cli.enabled=true
+```
+To add a simulator:
+```bash
+go run github.com/onosproject/onos-test/cmd/onit add simulator --name devicesim-1
+```
 [Kubernetes]: https://kubernetes.io/
 [KIND]: https://github.com/kubernetes-sigs/kind
 [MicroK8s]: https://microk8s.io/
