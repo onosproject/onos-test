@@ -57,7 +57,7 @@ to add commands for setting up and modifying clusters, adding and removing devic
 a μONOS cluster.
 
 ```bash
-> onit create cluster
+> onit create cluster --set onos-cli.enabled=true
 ‣ 2019-11-15T14:42:39-08:00 onos Setup ONOS cluster
 ‣ 2019-11-15T14:42:39-08:00 onos Setup namespace
 ✓ 2019-11-15T14:42:39-08:00 onos Setup namespace
