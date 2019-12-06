@@ -21,11 +21,17 @@ const (
 	envoyPort    = 8080
 )
 
-const envoyConfig = `admin:
+var envoyCommand = []string{
+	"/usr/local/bin/envoy",
+	"-c",
+	"/etc/envoy-proxy/config/envoy-config.yaml",
+}
+
+const envoyConfig = `
+admin:
   access_log_path: /tmp/admin_access.log
   address:
     socket_address: { address: 0.0.0.0, port_value: 9901 }
-
 static_resources:
   listeners:
     - name: listener_0
@@ -69,22 +75,15 @@ static_resources:
       tls_context:
         common_tls_context:
           tls_certificates:
-            certificate_chain: { "filename": "/etc/envoy-proxy/certs/client1.crt" }
-            private_key: { "filename": "/etc/envoy-proxy/certs/client1.key" }
+            certificate_chain: { "filename": "/certs/client.crt" }
+            private_key: { "filename": "/certs/client.key" }
           validation_context:
-            trusted_ca: { filename: "/etc/envoy-proxy/certs/onf.cacrt" }`
-
-var envoyCommand = []string{
-	"/usr/local/bin/envoy",
-	"-c",
-	"/etc/envoy-proxy/config/envoy-config.yaml",
-}
+            trusted_ca: { filename: "/certs/onf.cacrt" }`
 
 var envoySecrets = map[string]string{
-	"/etc/envoy-proxy/config/envoy-config.yml": envoyConfig,
-	"/etc/envoy-proxy/certs/onf.cacrt":         caCert,
-	"/etc/envoy-proxy/certs/client1.crt":       clientCert,
-	"/etc/envoy-proxy/certs/client.key":        clientKey,
+	"/certs/onf.cacrt":  caCert,
+	"/certs/client.crt": clientCert,
+	"/certs/client.key": clientKey,
 }
 
 // Enabled indicates whether the Gui is enabled
@@ -98,8 +97,12 @@ func (c *Envoy) SetEnabled(enabled bool) {
 }
 
 func newEnvoy(cluster *Cluster) *Envoy {
+	var envoyConfigMaps = map[string]string{
+		"/etc/envoy-proxy/config/envoy-config.yaml": envoyConfig,
+	}
+
 	return &Envoy{
-		Service: newService(cluster, envoyService, []Port{{Name: "envoy", Port: envoyPort}}, getLabels(envoyType), envoyImage, envoySecrets, nil, envoyCommand),
+		Service: newService(cluster, envoyService, []Port{{Name: "envoy", Port: envoyPort}}, getLabels(envoyType), envoyImage, envoySecrets, nil, envoyCommand, envoyConfigMaps),
 	}
 }
 

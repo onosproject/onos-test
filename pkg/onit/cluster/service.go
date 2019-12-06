@@ -30,7 +30,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func newService(cluster *Cluster, name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string, command []string) *Service {
+func newService(cluster *Cluster, name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string, command []string, configMaps map[string]string) *Service {
 	return &Service{
 		Deployment: newDeployment(cluster, name, labels, image),
 		ports:      ports,
@@ -38,6 +38,7 @@ func newService(cluster *Cluster, name string, ports []Port, labels map[string]s
 		env:        make(map[string]string),
 		command:    command,
 		args:       args,
+		configMaps: configMaps,
 	}
 }
 
@@ -56,6 +57,7 @@ type Service struct {
 	user       *int
 	privileged bool
 	secrets    map[string]string
+	configMaps map[string]string
 	env        map[string]string
 	command    []string
 	args       []string
@@ -153,6 +155,16 @@ func (s *Service) SetSecrets(secrets map[string]string) {
 	s.secrets = secrets
 }
 
+// ConfigMaps returns the service config maps
+func (s *Service) ConfigMaps() map[string]string {
+	return s.configMaps
+}
+
+// SetConfigMaps sets the service config maps
+func (s *Service) SetConfigMaps(configMaps map[string]string) {
+	s.configMaps = configMaps
+}
+
 // AddSecret adds a secret to the service
 func (s *Service) AddSecret(name, secret string) {
 	s.secrets[name] = secret
@@ -212,11 +224,11 @@ func (s *Service) Setup() error {
 		return err
 	}
 
-	/*step.Logf("Creating %s ConfigMap", s.Name())
+	step.Logf("Creating %s ConfigMap", s.Name())
 	if err := s.createConfigMap(); err != nil {
 		step.Fail(err)
 		return err
-	}*/
+	}
 
 	step.Logf("Creating %s Deployment", s.Name())
 	if err := s.createDeployment(); err != nil {
@@ -259,20 +271,26 @@ func (s *Service) createSecret() error {
 	return err
 }
 
-/*func (s *Service) createConfigMap() error {
+func (s *Service) createConfigMap() error {
+	if len(s.configMaps) == 0 {
+		return nil
+	}
+
+	configMaps := make(map[string]string)
+	for key, value := range s.configMaps {
+		configMaps[getKey(key)] = value
+	}
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.name,
 			Namespace: s.namespace,
+			Labels:    s.labels,
 		},
-		BinaryData: map[string][]byte{
-			"envoy-config.yaml": []byte(envoyConfig),
-		},
+		Data: configMaps,
 	}
 	_, err := s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
 	return err
-
-}*/
+}
 
 // createService creates a Service to expose the Deployment to other pods
 func (s *Service) createService() error {
@@ -361,19 +379,18 @@ func (s *Service) createDeployment() error {
 	// Mount secrets if necessary
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
+	volumeMounts = make([]corev1.VolumeMount, 0, len(s.secrets)+len(s.configMaps))
 	if len(s.secrets) > 0 {
-		volumes = []corev1.Volume{
-			{
-				Name: "secret",
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName: s.Name(),
-					},
+		secretVolume := corev1.Volume{
+			Name: "secret",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: s.Name(),
 				},
 			},
 		}
 
-		volumeMounts = make([]corev1.VolumeMount, 0, len(s.secrets))
+		volumes = append(volumes, secretVolume)
 		for filepath := range s.secrets {
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      "secret",
@@ -382,6 +399,30 @@ func (s *Service) createDeployment() error {
 				ReadOnly:  true,
 			})
 		}
+	}
+	// Mount configMaps if necessary
+	if len(s.configMaps) > 0 {
+		configVolume := corev1.Volume{
+			Name: "config",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: s.Name(),
+					},
+				},
+			},
+		}
+		volumes = append(volumes, configVolume)
+
+		for filepath := range s.configMaps {
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      "config",
+				MountPath: filepath,
+				SubPath:   getKey(filepath),
+				ReadOnly:  true,
+			})
+		}
+
 	}
 
 	var readinessProbe *corev1.Probe

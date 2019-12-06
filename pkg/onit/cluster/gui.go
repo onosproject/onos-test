@@ -33,7 +33,7 @@ func (c *Gui) SetEnabled(enabled bool) {
 
 func newGui(cluster *Cluster) *Gui {
 	return &Gui{
-		Service: newService(cluster, guiService, []Port{{Name: "grpc", Port: guiPort}}, getLabels(guiType), guiImage, nil, nil, nil),
+		Service: newService(cluster, guiService, []Port{{Name: "grpc", Port: guiPort}}, getLabels(guiType), guiImage, nil, nil, nil, nil),
 	}
 }
 
