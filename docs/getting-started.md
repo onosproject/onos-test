@@ -16,6 +16,7 @@ To install ONIT, fetch and compile the ONIT binary using `go get`:
 ```
 
 The `onit` CLI supports auto-completion of commands for bash and zsh. To enable auto-completion:
+
 * `bash` - Run `source $(onit completion bash)`
 * `zsh` - Run `source <(onit completion zsh)`
 
@@ -26,13 +27,13 @@ You can optionally persist the output of the `onit completion` command to your s
 To run a suite of tests, use the `onit run test` command, providing a test image to run:
 
 ```bash
-> onit run test --image onosproject/onos-tests:latest
+> onit test --image onosproject/onos-tests:latest
 ```
 
 Benchmarks can be run with the `onit run benchmark` command:
 
 ```bash
-> onit run benchmark --image onosproject/onos-tests:latest
+> onit benchmark --image onosproject/onos-tests:latest
 ```
 
 [Kubernetes]: https://kubernetes.io/
