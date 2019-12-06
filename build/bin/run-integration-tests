@@ -7,6 +7,7 @@ set -e
 # onos-topo
 pushd ..
 git clone https://github.com/onosproject/onos-topo.git
+cd onos-topo
 make kind
 onit test --image onosproject/onos-topo-tests:latest --suite topo
 popd
