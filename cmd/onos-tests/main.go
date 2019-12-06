@@ -16,7 +16,6 @@ package main
 
 import (
 	"github.com/onosproject/onos-test/pkg/test"
-	"github.com/onosproject/onos-test/test/config"
 	"github.com/onosproject/onos-test/test/nopaxos"
 	"github.com/onosproject/onos-test/test/raft"
 	"github.com/onosproject/onos-test/test/topo"
@@ -28,9 +27,6 @@ func main() {
 	test.Register("nopaxos", &nopaxos.SmokeTestSuite{})
 	test.Register("nopaxos-ha", &nopaxos.HATestSuite{})
 	test.Register("topo", &topo.TestSuite{})
-	test.Register("config", &config.SmokeTestSuite{})
-	test.Register("config-cli", &config.CLITestSuite{})
-	test.Register("config-ha", &config.HATestSuite{})
 
 	test.Main()
 }
