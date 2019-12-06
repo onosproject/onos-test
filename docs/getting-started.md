@@ -45,18 +45,18 @@ onit test --image onosproject/onos-tests:latest --suite config
 
 To run a specific test:
 ```bash
-go run github.com/onosproject/onos-test/cmd/onit test --image onosproject/onos-tests:latest --suite config --test TestTransaction
+onit test --image onosproject/onos-tests:latest --suite config --test TestTransaction
 ```
 
 ### Development Cluster
 
 To setup a cluster for development, after having pushed all the new images to `kind` run:
 ```bash
-go run github.com/onosproject/onos-test/cmd/onit create cluster --set onos-cli.enabled=true
+onit create cluster --set onos-cli.enabled=true
 ```
 To add a simulator:
 ```bash
-go run github.com/onosproject/onos-test/cmd/onit add simulator --name devicesim-1
+onit add simulator --name devicesim-1
 ```
 [Kubernetes]: https://kubernetes.io/
 [KIND]: https://github.com/kubernetes-sigs/kind
