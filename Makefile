@@ -8,7 +8,7 @@ ONOS_TEST_DEBUG_VERSION := debug
 ONOS_BUILD_VERSION := stable
 
 build: # @HELP build the Go binaries and run all validations (default)
-build: build-kube-test build-kube-bench build-onit
+build: build-kube-test build-kube-bench build-onit build-onit-doc-generator
 
 build-kube-test:
 	go build -o build/_output/kube-test ./cmd/kube-test
@@ -21,6 +21,9 @@ build-onit:
 
 build-onos-tests:
 	go build -o build/onos-tests/_output/bin/onos-tests ./cmd/onos-tests
+
+build-onit-doc-generator:
+	go build -o build/_output/onos-cli-docs-gen ./cmd/onit-cli-docs-gen
 
 test: # @HELP run the unit tests and source code validation
 test: license_check build deps linters
