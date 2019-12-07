@@ -21,6 +21,10 @@ const (
 	guiPort    = 80
 )
 
+var ingressAnnotations = map[string]string{
+	"kubernetes.io/ingress.class": "nginx",
+}
+
 // Enabled indicates whether the Gui is enabled
 func (c *Gui) Enabled() bool {
 	return GetArg(c.name, "enabled").Bool(c.enabled)
@@ -33,7 +37,7 @@ func (c *Gui) SetEnabled(enabled bool) {
 
 func newGui(cluster *Cluster) *Gui {
 	return &Gui{
-		Service: newService(cluster, guiService, []Port{{Name: "grpc", Port: guiPort}}, getLabels(guiType), guiImage, nil, nil, nil, nil),
+		Service: newService(cluster, guiService, []Port{{Name: "grpc", Port: guiPort}}, getLabels(guiType), guiImage, nil, nil, nil, nil, ingressAnnotations),
 	}
 }
 

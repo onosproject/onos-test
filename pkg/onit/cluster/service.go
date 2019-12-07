@@ -26,19 +26,27 @@ import (
 	"google.golang.org/grpc/credentials"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func newService(cluster *Cluster, name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string, command []string, configMaps map[string]string) *Service {
+func newService(cluster *Cluster, name string,
+	ports []Port,
+	labels map[string]string, image string,
+	secrets map[string]string, args []string,
+	command []string,
+	configMaps map[string]string,
+	annotations map[string]string) *Service {
 	return &Service{
-		Deployment: newDeployment(cluster, name, labels, image),
-		ports:      ports,
-		secrets:    secrets,
-		env:        make(map[string]string),
-		command:    command,
-		args:       args,
-		configMaps: configMaps,
+		Deployment:  newDeployment(cluster, name, labels, image),
+		ports:       ports,
+		secrets:     secrets,
+		env:         make(map[string]string),
+		command:     command,
+		args:        args,
+		configMaps:  configMaps,
+		annotations: annotations,
 	}
 }
 
@@ -51,16 +59,17 @@ type Port struct {
 // Service is the base type for multi-node services
 type Service struct {
 	*Deployment
-	ports      []Port
-	replicas   int
-	debug      bool
-	user       *int
-	privileged bool
-	secrets    map[string]string
-	configMaps map[string]string
-	env        map[string]string
-	command    []string
-	args       []string
+	ports       []Port
+	replicas    int
+	debug       bool
+	user        *int
+	privileged  bool
+	secrets     map[string]string
+	configMaps  map[string]string
+	annotations map[string]string
+	env         map[string]string
+	command     []string
+	args        []string
 }
 
 // SetName sets the service name
@@ -155,6 +164,16 @@ func (s *Service) SetSecrets(secrets map[string]string) {
 	s.secrets = secrets
 }
 
+// SetAnnotations sets the ingress annotations
+func (s *Service) SetAnnotations(annotations map[string]string) {
+	s.annotations = annotations
+}
+
+// Annotations returns the ingress annotations
+func (s *Service) Annotations() map[string]string {
+	return s.annotations
+}
+
 // ConfigMaps returns the service config maps
 func (s *Service) ConfigMaps() map[string]string {
 	return s.configMaps
@@ -235,6 +254,13 @@ func (s *Service) Setup() error {
 		step.Fail(err)
 		return err
 	}
+
+	step.Logf("Creating %s Ingress", s.Name())
+	if err := s.createIngress(); err != nil {
+		step.Fail(err)
+		return err
+	}
+
 	step.Logf("Waiting for %s to become ready", s.Name())
 	if err := s.AwaitReady(); err != nil {
 		step.Fail(err)
@@ -315,6 +341,49 @@ func (s *Service) createService() error {
 	}
 	_, err := s.kubeClient.CoreV1().Services(s.namespace).Create(service)
 	return err
+}
+
+func (s *Service) createGuiIngress() error {
+	ing := &extensionsv1beta1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        s.name + "-ingress",
+			Namespace:   s.namespace,
+			Annotations: s.annotations,
+		},
+		Spec: extensionsv1beta1.IngressSpec{
+			Rules: []extensionsv1beta1.IngressRule{
+				{
+					Host: s.name,
+					IngressRuleValue: extensionsv1beta1.IngressRuleValue{
+						HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
+							Paths: []extensionsv1beta1.HTTPIngressPath{
+								{
+									Backend: extensionsv1beta1.IngressBackend{
+										ServiceName: s.name,
+										ServicePort: intstr.FromInt(80),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	_, err := s.kubeClient.ExtensionsV1beta1().Ingresses(s.namespace).Create(ing)
+	return err
+}
+
+// createIngress creates an ingress resource
+func (s *Service) createIngress() error {
+	if len(s.annotations) == 0 {
+		return nil
+	}
+
+	// TODO it should be replaced with a more generic function
+	err := s.createGuiIngress()
+	return err
+
 }
 
 // createDeployment creates a Deployment

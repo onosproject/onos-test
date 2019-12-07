@@ -16,6 +16,7 @@ package setup
 
 import (
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
+
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -64,7 +65,10 @@ func (s *clusterGuiSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) GuiSetup {
 
 func (s *clusterGuiSetup) setup() error {
 	if s.gui.Enabled() {
-		return s.gui.Setup()
+		err := s.gui.Setup()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
