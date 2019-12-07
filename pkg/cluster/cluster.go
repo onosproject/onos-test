@@ -15,6 +15,8 @@
 package cluster
 
 import (
+	"time"
+
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	corev1 "k8s.io/api/core/v1"
@@ -276,5 +278,26 @@ func (c *Cluster) createServiceAccount() error {
 
 // teardownNamespace tears down the cluster namespace
 func (c *Cluster) teardownNamespace() error {
-	return c.client.CoreV1().Namespaces().Delete(c.namespace, &metav1.DeleteOptions{})
+	step := logging.NewStep(c.namespace, "Delete namespace %s", c.namespace)
+	step.Start()
+	err := c.client.CoreV1().Namespaces().Delete(c.namespace, &metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	pods, err := c.client.CoreV1().Pods(c.namespace).List(metav1.ListOptions{})
+	if err != nil {
+		step.Fail(err)
+	}
+	total := len(pods.Items)
+	for total > 0 {
+		time.Sleep(50 * time.Millisecond)
+		pods, err = c.client.CoreV1().Pods(c.namespace).List(metav1.ListOptions{})
+		if err != nil {
+			return err
+		}
+		total = len(pods.Items)
+	}
+	step.Complete()
+	return nil
 }
