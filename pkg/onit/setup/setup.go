@@ -218,7 +218,6 @@ func (s *clusterSetup) Setup() error {
 	setupService(s.Topo().(serviceSetup), wg, errCh)
 	setupService(s.Config().(serviceSetup), wg, errCh)
 	setupService(s.Gui().(serviceSetup), wg, errCh)
-	setupService(s.Envoy().(serviceSetup), wg, errCh)
 
 	for _, app := range s.apps {
 		setupService(app.(serviceSetup), wg, errCh)

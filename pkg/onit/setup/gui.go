@@ -65,7 +65,15 @@ func (s *clusterGuiSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) GuiSetup {
 
 func (s *clusterGuiSetup) setup() error {
 	if s.gui.Enabled() {
-		err := s.gui.Setup()
+		err := s.gui.OnosConfig.Setup()
+		if err != nil {
+			return err
+		}
+		err = s.gui.OnosTopo.Setup()
+		if err != nil {
+			return err
+		}
+		err = s.gui.Setup()
 		if err != nil {
 			return err
 		}

@@ -38,9 +38,10 @@ var configArgs = []string{
 }
 
 func newConfig(cluster *Cluster) *Config {
-	return &Config{
+	config := &Config{
 		Service: newService(cluster, configService, []Port{{Name: "grpc", Port: configPort}}, getLabels(configType), configImage, configSecrets, configArgs),
 	}
+	return config
 }
 
 // Config provides methods for managing the onos-config service

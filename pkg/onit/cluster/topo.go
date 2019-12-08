@@ -39,9 +39,10 @@ var topoArgs = []string{
 }
 
 func newTopo(cluster *Cluster) *Topo {
-	return &Topo{
+	topo := &Topo{
 		Service: newService(cluster, topoService, []Port{{Name: "grpc", Port: topoPort}}, getLabels(topoType), topoImage, topoSecrets, topoArgs),
 	}
+	return topo
 }
 
 // Topo provides methods for managing the onos-topo service

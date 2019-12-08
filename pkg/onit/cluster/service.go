@@ -372,8 +372,11 @@ func (s *Service) createIngress() error {
 	}
 
 	// TODO it should be replaced with a more generic function
-	err := s.createGuiIngress()
-	return err
+	if s.Name() == "onos-gui" {
+		err := s.createGuiIngress()
+		return err
+	}
+	return nil
 
 }
 

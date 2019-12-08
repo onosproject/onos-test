@@ -38,8 +38,19 @@ func (c *Gui) SetEnabled(enabled bool) {
 func newGui(cluster *Cluster) *Gui {
 	service := newService(cluster, guiService, []Port{{Name: "grpc", Port: guiPort}}, getLabels(guiType), guiImage, nil, nil)
 	service.SetAnnotations(ingressAnnotations)
+	onosConfigEnvoy := newEnvoy(cluster)
+	onosConfigEnvoy.SetName("onos-config-envoy")
+	onosConfigEnvoy.SetReplicas(1)
+	onosConfigEnvoy.SetEnabled(true)
+	onosTopoEnvoy := newEnvoy(cluster)
+	onosTopoEnvoy.SetName("onos-topo-envoy")
+	onosTopoEnvoy.SetReplicas(1)
+	onosTopoEnvoy.SetEnabled(true)
+
 	return &Gui{
-		Service: service,
+		Service:    service,
+		OnosTopo:   onosTopoEnvoy,
+		OnosConfig: onosConfigEnvoy,
 	}
 
 }
@@ -47,5 +58,7 @@ func newGui(cluster *Cluster) *Gui {
 // Gui provides methods for managing the onos-gui service
 type Gui struct {
 	*Service
-	enabled bool
+	OnosTopo   *Envoy
+	OnosConfig *Envoy
+	enabled    bool
 }
