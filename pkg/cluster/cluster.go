@@ -24,6 +24,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+const clusterRole = "kube-test-cluster"
+
 // GetClusters returns a list of test clusters
 func GetClusters() ([]string, error) {
 	kubeAPI, err := kube.GetAPIFromEnv()
@@ -118,8 +120,7 @@ func (c *Cluster) setupRBAC() error {
 func (c *Cluster) createClusterRole() error {
 	role := &rbacv1.ClusterRole{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.namespace,
-			Namespace: c.namespace,
+			Name: clusterRole,
 		},
 		Rules: []rbacv1.PolicyRule{
 			{
@@ -234,29 +235,45 @@ func (c *Cluster) createClusterRole() error {
 
 // createClusterRoleBinding creates the ClusterRoleBinding required by the test manager
 func (c *Cluster) createClusterRoleBinding() error {
-	roleBinding := &rbacv1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      c.namespace,
-			Namespace: c.namespace,
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:      "ServiceAccount",
-				Name:      c.namespace,
-				Namespace: c.namespace,
+	roleBinding, err := c.client.RbacV1().ClusterRoleBindings().Get(clusterRole, metav1.GetOptions{})
+	if err != nil {
+		if !k8serrors.IsNotFound(err) {
+			return err
+		}
+		roleBinding = &rbacv1.ClusterRoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: clusterRole,
 			},
-		},
-		RoleRef: rbacv1.RoleRef{
-			Kind:     "ClusterRole",
-			Name:     c.namespace,
-			APIGroup: "rbac.authorization.k8s.io",
-		},
-	}
-	_, err := c.client.RbacV1().ClusterRoleBindings().Create(roleBinding)
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
+			Subjects: []rbacv1.Subject{
+				{
+					Kind:      "ServiceAccount",
+					Name:      c.namespace,
+					Namespace: c.namespace,
+				},
+			},
+			RoleRef: rbacv1.RoleRef{
+				Kind:     "ClusterRole",
+				Name:     clusterRole,
+				APIGroup: "rbac.authorization.k8s.io",
+			},
+		}
+		_, err := c.client.RbacV1().ClusterRoleBindings().Create(roleBinding)
+		if err != nil && k8serrors.IsAlreadyExists(err) {
+			return c.createClusterRoleBinding()
+		}
 		return err
 	}
-	return nil
+
+	roleBinding.Subjects = append(roleBinding.Subjects, rbacv1.Subject{
+		Kind:      "ServiceAccount",
+		Name:      c.namespace,
+		Namespace: c.namespace,
+	})
+	_, err = c.client.RbacV1().ClusterRoleBindings().Update(roleBinding)
+	if err != nil && k8serrors.IsConflict(err) {
+		return c.createClusterRoleBinding()
+	}
+	return err
 }
 
 // createServiceAccount creates a ServiceAccount used by the test manager
