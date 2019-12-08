@@ -31,22 +31,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func newService(cluster *Cluster, name string,
-	ports []Port,
-	labels map[string]string, image string,
-	secrets map[string]string, args []string,
-	command []string,
-	configMaps map[string]string,
-	annotations map[string]string) *Service {
+func newService(cluster *Cluster, name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string) *Service {
 	return &Service{
-		Deployment:  newDeployment(cluster, name, labels, image),
-		ports:       ports,
-		secrets:     secrets,
-		env:         make(map[string]string),
-		command:     command,
-		args:        args,
-		configMaps:  configMaps,
-		annotations: annotations,
+		Deployment: newDeployment(cluster, name, labels, image),
+		ports:      ports,
+		secrets:    secrets,
+		env:        make(map[string]string),
+		args:       args,
 	}
 }
 

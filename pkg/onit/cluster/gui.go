@@ -36,9 +36,12 @@ func (c *Gui) SetEnabled(enabled bool) {
 }
 
 func newGui(cluster *Cluster) *Gui {
+	service := newService(cluster, guiService, []Port{{Name: "grpc", Port: guiPort}}, getLabels(guiType), guiImage, nil, nil)
+	service.SetAnnotations(ingressAnnotations)
 	return &Gui{
-		Service: newService(cluster, guiService, []Port{{Name: "grpc", Port: guiPort}}, getLabels(guiType), guiImage, nil, nil, nil, nil, ingressAnnotations),
+		Service: service,
 	}
+
 }
 
 // Gui provides methods for managing the onos-gui service

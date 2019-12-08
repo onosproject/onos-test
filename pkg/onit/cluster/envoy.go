@@ -85,6 +85,9 @@ var envoySecrets = map[string]string{
 	"/certs/client.crt": clientCert,
 	"/certs/client.key": clientKey,
 }
+var envoyConfigMaps = map[string]string{
+	"/etc/envoy-proxy/config/envoy-config.yaml": envoyConfig,
+}
 
 // Enabled indicates whether the Gui is enabled
 func (c *Envoy) Enabled() bool {
@@ -97,11 +100,11 @@ func (c *Envoy) SetEnabled(enabled bool) {
 }
 
 func newEnvoy(cluster *Cluster) *Envoy {
-	var envoyConfigMaps = map[string]string{
-		"/etc/envoy-proxy/config/envoy-config.yaml": envoyConfig,
-	}
+	service := newService(cluster, envoyService, []Port{{Name: "envoy", Port: envoyPort}}, getLabels(envoyType), envoyImage, envoySecrets, nil)
+	service.SetConfigMaps(envoyConfigMaps)
+	service.SetCommand(envoyCommand...)
 	return &Envoy{
-		Service: newService(cluster, envoyService, []Port{{Name: "envoy", Port: envoyPort}}, getLabels(envoyType), envoyImage, envoySecrets, nil, envoyCommand, envoyConfigMaps, nil),
+		Service: service,
 	}
 }
 
