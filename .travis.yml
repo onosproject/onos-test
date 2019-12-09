@@ -55,7 +55,8 @@ jobs:
         # Set KUBECONFIG environment variable
         - export KUBECONFIG="$(kind get kubeconfig-path)"
         - kind create cluster
-        #- make integration
+        - build/bin/run-integration-tests
+
     - stage: push images
       if: type != pull_request
       script:
