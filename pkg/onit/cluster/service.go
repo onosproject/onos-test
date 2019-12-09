@@ -390,6 +390,15 @@ func (s *Service) createDeployment() error {
 			Name:  "ATOMIX_RAFT_GROUP",
 			Value: "database",
 		},
+		{
+			Name: "NODE_ID",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					APIVersion: "v1",
+					FieldPath:  "metadata.name",
+				},
+			},
+		},
 	}
 	for name, value := range s.env {
 		env = append(env, corev1.EnvVar{

@@ -288,8 +288,8 @@ func (t *WorkerTask) awaitTestJobRunning() error {
 	}
 }
 
-// getTestResult gets the status message and exit code of the given test
-func (t *WorkerTask) getTestResult() (string, int, error) {
+// getStatus gets the status message and exit code of the given test
+func (t *WorkerTask) getStatus() (string, int, error) {
 	for {
 		pod, err := t.getPod(func(pod corev1.Pod) bool {
 			return len(pod.Status.ContainerStatuses) > 0 &&
@@ -322,11 +322,6 @@ func (t *WorkerTask) getPod(predicate func(pod corev1.Pod) bool) (*corev1.Pod, e
 		}
 	}
 	return nil, nil
-}
-
-// getStatus gets the status message and exit code of the given pod
-func (t *WorkerTask) getStatus() (string, int, error) {
-	return t.getTestResult()
 }
 
 // tearDown tears down the job

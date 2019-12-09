@@ -254,8 +254,8 @@ func (s *Network) createPod() error {
 								Port: intstr.FromInt(50001),
 							},
 						},
-						InitialDelaySeconds: 5,
-						PeriodSeconds:       10,
+						PeriodSeconds:    1,
+						FailureThreshold: 30,
 					},
 					LivenessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
