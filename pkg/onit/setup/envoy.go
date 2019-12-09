@@ -33,6 +33,9 @@ type EnvoySetup interface {
 
 	// SetPullPolicy sets the image pull policy
 	SetPullPolicy(pullPolicy corev1.PullPolicy) EnvoySetup
+
+	// SetConfigMaps sets the config maps
+	SetConfigMaps(map[string]string) EnvoySetup
 }
 
 var _ EnvoySetup = &clusterEnvoySetup{}
@@ -59,6 +62,11 @@ func (s *clusterEnvoySetup) SetImage(image string) EnvoySetup {
 
 func (s *clusterEnvoySetup) SetPullPolicy(pullPolicy corev1.PullPolicy) EnvoySetup {
 	s.envoy.SetPullPolicy(pullPolicy)
+	return s
+}
+
+func (s *clusterEnvoySetup) SetConfigMaps(configMaps map[string]string) EnvoySetup {
+	s.envoy.SetConfigMaps(configMaps)
 	return s
 }
 
