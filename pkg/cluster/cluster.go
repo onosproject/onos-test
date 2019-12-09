@@ -15,14 +15,13 @@
 package cluster
 
 import (
-	"time"
-
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -285,18 +284,17 @@ func (c *Cluster) teardownNamespace() error {
 		return err
 	}
 
-	pods, err := c.client.CoreV1().Pods(c.namespace).List(metav1.ListOptions{})
+	w, err := c.client.CoreV1().Namespaces().Watch(metav1.ListOptions{
+		LabelSelector: "test=" + c.namespace,
+	})
 	if err != nil {
 		step.Fail(err)
 	}
-	total := len(pods.Items)
-	for total > 0 {
-		time.Sleep(50 * time.Millisecond)
-		pods, err = c.client.CoreV1().Pods(c.namespace).List(metav1.ListOptions{})
-		if err != nil {
-			return err
+	for event := range w.ResultChan() {
+		switch event.Type {
+		case watch.Deleted:
+			w.Stop()
 		}
-		total = len(pods.Items)
 	}
 	step.Complete()
 	return nil
