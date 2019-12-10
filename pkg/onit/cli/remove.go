@@ -16,6 +16,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/spf13/cobra"
@@ -23,14 +24,14 @@ import (
 
 var (
 	removeExample = `
-		# Remove a simulator with a given name
-		onit remove simulator <simulator-name>
+		# Remove a simulator with a given name running on a specific cluster
+		onit remove simulator -n <simulator-name> -c my-cluster
 
 		# Remove a network with a given name
-		onit remove network <network-name>
+		onit remove network -n <network-name> -c my-cluster
 	
 		# Remove an app
-		onit remove app <app-name>`
+		onit remove app -n <app-name> -c my-cluster`
 )
 
 // getRemoveCommand returns a cobra "remove" command for removing resources from the cluster

@@ -15,9 +15,10 @@
 package cli
 
 import (
+	"io/ioutil"
+
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/env"
-	"io/ioutil"
 
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -25,14 +26,17 @@ import (
 
 var (
 	addExample = `
-		# Add a simulator with a given name
-		onit add simulator simulator-1
+		# Add a simulator with a given name to "onos" cluster
+		onit add simulator -n simulator-1
+
+		# Add a simulator with a random name to a specific cluster
+		onit add simulator -c my-cluster
 
 		# Add a network of stratum switches that emulates a linear network topology with two nodes
-		onit add network stratum-linear --topo linear,2
+		onit add network -n stratum-linear --topo linear --devices 2
 	   
-		# Add latest version of an application 
-		onit add app onos-ztp --image onosproject/onos-ztp:latest --image-pull-policy "Always" `
+		# Add latest version of an application
+		onit add app -n onos-ztp -i onosproject/onos-ztp:latest -u 0 -p grpc=5150 -r 2 -s /certs/onf.cacrt=configs/certs/onf.cacrt -s /certs/onos-ztp.crt=configs/certs/service.crt -s /certs/onos-ztp.key=configs/certs/service.key -- -caPath=/certs/onf.cacrt -keyPath=/certs/onos-ztp.key -certPath=/certs/onos-ztp.crt --image-pull-policy "Always" `
 )
 
 const (
