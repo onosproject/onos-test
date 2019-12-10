@@ -92,11 +92,19 @@ func (d *Deployment) Node(name string) (*Node, error) {
 	for _, container := range pod.Spec.Containers {
 		for _, port := range container.Ports {
 			if port.Name == apiPort {
-				return newNode(d.cluster, name, int(port.ContainerPort), container.Image), nil
+				node := newNode(d.cluster)
+				node.SetName(name)
+				node.SetPort(int(port.ContainerPort))
+				node.SetImage(container.Image)
+				return node, nil
 			}
 		}
 	}
-	return newNode(d.cluster, name, 0, ""), nil
+	node := newNode(d.cluster)
+	node.SetName(name)
+	node.SetPort(0)
+
+	return node, nil
 }
 
 // Nodes returns a list of nodes in the service
