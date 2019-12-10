@@ -64,6 +64,7 @@ func (n *Node) SetPort(port int) {
 	n.port = port
 }
 
+// Port returns the node port
 func (n *Node) Port() int {
 	return n.port
 }
