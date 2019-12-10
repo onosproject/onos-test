@@ -28,8 +28,13 @@ var appSecrets = map[string]string{
 func newApp(cluster *Cluster, name string) *App {
 	labels := getLabels(appType)
 	labels[appLabel] = name
+	service := newService(cluster)
+	service.SetSecrets(appSecrets)
+	service.SetName(name)
+	service.SetLabels(labels)
+
 	return &App{
-		Service: newService(cluster, name, []Port{}, labels, "", appSecrets, []string{}),
+		Service: service,
 	}
 }
 
