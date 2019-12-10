@@ -8,6 +8,7 @@ the integration test framework, ONIT provides a CLI tool and API for running tes
 
 At the lowest level of ONIT is KubeTest, a lightweight command line tool and API for running parallel integration
 tests on Kubernetes. The framework provides two components:
+
 * CLI - a command line client for running tests and benchmarks in Kubernetes
 * API - a test suite abstraction for grouping and parallelizing tests
 

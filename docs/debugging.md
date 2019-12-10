@@ -6,22 +6,24 @@ To set up a test cluster, use the `onit create cluster` command:
 
 ```bash
 > onit create cluster
-‣ 2019-11-15T10:45:21-08:00 onos Setup ONOS cluster
-‣ 2019-11-15T10:45:21-08:00 onos Setup namespace
-✓ 2019-11-15T10:45:21-08:00 onos Setup namespace
-‣ 2019-11-15T10:45:21-08:00 onos Set up RBAC
-✓ 2019-11-15T10:45:21-08:00 onos Set up RBAC
-✓ 2019-11-15T10:45:21-08:00 onos Setup ONOS cluster
-‣ 2019-11-15T10:45:21-08:00 onos Setup Atomix controller
-✓ 2019-11-15T10:45:36-08:00 onos Setup Atomix controller
-‣ 2019-11-15T10:45:36-08:00 onos Setup Raft partitions
-‣ 2019-11-15T10:45:36-08:00 onos Setup onos-topo
-‣ 2019-11-15T10:45:36-08:00 onos Setup onos-config
-‣ 2019-11-15T10:45:36-08:00 onos Setup onos-cli service
-✓ 2019-11-15T10:45:40-08:00 onos Setup onos-cli service
-✓ 2019-11-15T10:45:45-08:00 onos Setup Raft partitions
-✓ 2019-11-15T10:45:58-08:00 onos Setup onos-topo
-✓ 2019-11-15T10:46:06-08:00 onos Setup onos-config
+‣ 2019-12-10T11:00:01-05:00 onit-better-dolphin Starting job
+‣ 2019-12-10T11:00:01-05:00 onit-better-dolphin Deploy job coordinator
+✓ 2019-12-10T11:00:01-05:00 onit-better-dolphin Deploy job coordinator
+✓ 2019-12-10T11:00:03-05:00 onit-better-dolphin Starting job
+‣ 2019-12-10T11:00:03-05:00 onit-better-dolphin Run job
+‣ 2019-12-10T16:00:03Z onos Setup namespace
+✓ 2019-12-10T16:00:03Z onos Setup namespace
+‣ 2019-12-10T16:00:03Z onos Set up RBAC
+✓ 2019-12-10T16:00:03Z onos Set up RBAC
+‣ 2019-12-10T16:00:03Z onos Setup Atomix controller
+✓ 2019-12-10T16:00:05Z onos Setup Atomix controller
+‣ 2019-12-10T16:00:05Z onos Setup Raft partitions
+‣ 2019-12-10T16:00:05Z onos Setup onos-topo
+‣ 2019-12-10T16:00:05Z onos Setup onos-config
+✓ 2019-12-10T16:00:13Z onos Setup Raft partitions
+✓ 2019-12-10T16:00:23Z onos Setup onos-topo
+✓ 2019-12-10T16:00:24Z onos Setup onos-config
+✓ 2019-12-10T11:00:25-05:00 onit-better-dolphin Run job
 ```
 
 When a cluster is created, `onit` creates a new namespace in Kubernetes and deploys the default μONOS services in that
@@ -42,8 +44,14 @@ To add a device simulator to the cluster, use the `onit add simulator` command:
 
 ```bash
 > onit -c my-cluster add simulator -n device-1
-‣ 2019-11-15T11:18:20-08:00 onos Add simulator driving-skink
-✓ 2019-11-15T11:18:29-08:00 onos Add simulator driving-skink
+‣ 2019-12-10T11:12:07-05:00 onit-optimal-snake Starting job
+‣ 2019-12-10T11:12:07-05:00 onit-optimal-snake Deploy job coordinator
+✓ 2019-12-10T11:12:07-05:00 onit-optimal-snake Deploy job coordinator
+✓ 2019-12-10T11:12:08-05:00 onit-optimal-snake Starting job
+‣ 2019-12-10T11:12:08-05:00 onit-optimal-snake Run job
+‣ 2019-12-10T16:12:08Z onos Add simulator device-1
+✓ 2019-12-10T16:12:11Z onos Add simulator device-1
+✓ 2019-12-10T11:12:12-05:00 onit-optimal-snake Run job
 ```
 
 Simulators can be removed with the `onit remove simulator` command:
