@@ -60,7 +60,7 @@ func newNetwork(cluster *Cluster, name string) *Network {
 	node.SetName(name)
 	node.SetPort(0)
 	return &Network{
-		Node:          newNode(cluster),
+		Node:          node,
 		add:           true,
 		deviceType:    networkDeviceType,
 		deviceVersion: networkDeviceVersion,

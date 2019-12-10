@@ -137,7 +137,7 @@ func newSimulator(cluster *Cluster, name string) *Simulator {
 	node.SetImage(simulatorImage)
 	node.SetPort(11161)
 	return &Simulator{
-		Node:          newNode(cluster),
+		Node:          node,
 		add:           true,
 		deviceType:    simulatorDeviceType,
 		deviceVersion: simulatorDeviceVersion,
