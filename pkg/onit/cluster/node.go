@@ -19,6 +19,9 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
@@ -26,8 +29,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
 	executil "k8s.io/client-go/util/exec"
-	"strings"
-	"time"
 )
 
 func newNode(cluster *Cluster, name string, port int, image string) *Node {
@@ -94,7 +95,7 @@ func (n *Node) Execute(command ...string) ([]string, int, error) {
 	}
 	container := pod.Spec.Containers[0]
 
-	fullCommand := append([]string{"/bin/bash", "-c"}, command...)
+	fullCommand := append([]string{"/bin/sh", "-c"}, command...)
 	req := n.kubeClient.CoreV1().RESTClient().Post().
 		Resource("pods").
 		Name(n.Name()).
