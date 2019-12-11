@@ -41,11 +41,11 @@ onit test --image <test-image>
 
 For example, to run onos-config suite tests using [kind] cluster:
 ```bash
-git clone https://github.com/onosproject/onos-config.git
-cd onos-config
-make kind
-onit test --image onosproject/onos-config-tests:latest --suite gnmi
+onit test --image onosproject/onos-config-tests:latest --suite gnmi --image-pull-policy="Always"
 ```
+
+> Note: To learn about how you can create a test image, refer to [testing](testing.md) document.
+>
 
 Benchmarks can be run with the `onit run benchmark` command:
 
