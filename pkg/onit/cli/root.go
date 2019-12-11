@@ -15,9 +15,13 @@
 package cli
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
 )
 
 const defaultCluster = "onos"
@@ -45,6 +49,17 @@ func GetRootCommand() *cobra.Command {
 		cobra.BashCompCustom: {"__onit_get_clusters"},
 	}
 	return cmd
+}
+
+// GenerateCliDocs generate markdown files for onit commands
+func GenerateCliDocs() {
+	cmd := GetRootCommand()
+	err := doc.GenMarkdownTree(cmd, "docs/cli")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 }
 
 // getCluster returns the cluster from the given command flags
