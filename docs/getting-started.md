@@ -24,40 +24,47 @@ You can optionally persist the output of the `onit completion` command to your s
 
 ## Usage
 
-### Integration Tests
-
-To run a suite of tests, use the `onit run test` command, providing a test image to run:
-
-```bash
-onit test --image onosproject/onos-tests:latest
-```
-
-Benchmarks can be run with the `onit run benchmark` command:
-
-```bash
-onit benchmark --image onosproject/onos-tests:latest
-```
-
-To run a suite: 
-```bash
-onit test --image onosproject/onos-tests:latest --suite config
-```
-
-To run a specific test:
-```bash
-onit test --image onosproject/onos-tests:latest --suite config --test TestTransaction
-```
-
 ### Development Cluster
 
 To setup a cluster for development, after having pushed all the new images to `kind` run:
 ```bash
 onit create cluster --set onos-cli.enabled=true
 ```
-To add a simulator:
+
+### Integration Tests
+
+To run a suite of tests, use the `onit run test` command, providing a test image to run:
+
 ```bash
-onit add simulator --name devicesim-1
+onit test --image <test-image>
 ```
+
+For example, to run onos-config suite tests using [kind] cluster:
+```bash
+onit test --image onosproject/onos-config-tests:latest --suite gnmi --image-pull-policy="Always"
+```
+
+> Note: To learn about how you can create a test image, refer to [testing](testing.md) document.
+>
+
+Benchmarks can be run with the `onit run benchmark` command:
+
+```bash
+onit benchmark --image <test-image> 
+```
+
+To run a suite (e.g. a suite of onos-topo tests): 
+```bash
+onit test --image onosproject/onos-topo-tests:latest --suite topo
+```
+
+To run a specific test (e.g. an onos-config test):
+```bash
+onit test --image onosproject/onos-config-tests:latest --suite config --test TestTransaction
+```
+
+More usage examples are provided in [debugging](debugging.md) document.
+
 [Kubernetes]: https://kubernetes.io/
 [KIND]: https://github.com/kubernetes-sigs/kind
 [MicroK8s]: https://microk8s.io/
