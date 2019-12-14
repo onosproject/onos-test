@@ -52,6 +52,7 @@ type Service struct {
 	user       *int
 	privileged bool
 	secrets    map[string]string
+	configMaps map[string]string
 	env        map[string]string
 	args       []string
 }
@@ -148,6 +149,16 @@ func (s *Service) AddSecret(name, secret string) {
 	s.secrets[name] = secret
 }
 
+// ConfigMaps returns the service config maps
+func (s *Service) ConfigMaps() map[string]string {
+	return s.configMaps
+}
+
+// SetConfigMaps sets the service config maps
+func (s *Service) SetConfigMaps(configMaps map[string]string) {
+	s.configMaps = configMaps
+}
+
 // Env returns the service environment
 func (s *Service) Env() map[string]string {
 	return s.env
@@ -229,6 +240,27 @@ func (s *Service) createSecret() error {
 		StringData: secrets,
 	}
 	_, err := s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
+	return err
+}
+
+func (s *Service) createConfigMap() error {
+	if len(s.configMaps) == 0 {
+		return nil
+	}
+
+	configMaps := make(map[string]string)
+	for key, value := range s.configMaps {
+		configMaps[getKey(key)] = value
+	}
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      s.name,
+			Namespace: s.namespace,
+			Labels:    s.labels,
+		},
+		Data: configMaps,
+	}
+	_, err := s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
 	return err
 }
 
@@ -319,19 +351,18 @@ func (s *Service) createDeployment() error {
 	// Mount secrets if necessary
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
+	volumeMounts = make([]corev1.VolumeMount, 0, len(s.secrets)+len(s.configMaps))
 	if len(s.secrets) > 0 {
-		volumes = []corev1.Volume{
-			{
-				Name: "secret",
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName: s.Name(),
-					},
+		secretVolume := corev1.Volume{
+			Name: "secret",
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName: s.Name(),
 				},
 			},
 		}
 
-		volumeMounts = make([]corev1.VolumeMount, 0, len(s.secrets))
+		volumes = append(volumes, secretVolume)
 		for filepath := range s.secrets {
 			volumeMounts = append(volumeMounts, corev1.VolumeMount{
 				Name:      "secret",
@@ -340,6 +371,30 @@ func (s *Service) createDeployment() error {
 				ReadOnly:  true,
 			})
 		}
+	}
+	// Mount configMaps if necessary
+	if len(s.configMaps) > 0 {
+		configVolume := corev1.Volume{
+			Name: "config",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: s.Name(),
+					},
+				},
+			},
+		}
+		volumes = append(volumes, configVolume)
+
+		for filepath := range s.configMaps {
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      "config",
+				MountPath: filepath,
+				SubPath:   getKey(filepath),
+				ReadOnly:  true,
+			})
+		}
+
 	}
 
 	var readinessProbe *corev1.Probe

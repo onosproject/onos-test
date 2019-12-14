@@ -38,6 +38,7 @@ func New(kube kube.API) *Cluster {
 	cluster.cli = newCLI(cluster)
 	cluster.topo = newTopo(cluster)
 	cluster.config = newConfig(cluster)
+	cluster.gui = newGui(cluster)
 	cluster.apps = newApps(cluster)
 	cluster.simulators = newSimulators(cluster)
 	cluster.networks = newNetworks(cluster)
@@ -52,6 +53,7 @@ type Cluster struct {
 	cli        *CLI
 	topo       *Topo
 	config     *Config
+	gui        *Gui
 	apps       *Apps
 	simulators *Simulators
 	networks   *Networks
@@ -75,6 +77,11 @@ func (c *Cluster) CLI() *CLI {
 // Topo returns the topo service
 func (c *Cluster) Topo() *Topo {
 	return c.topo
+}
+
+// Gui returns the gui service
+func (c *Cluster) Gui() *Gui {
+	return c.gui
 }
 
 // Config returns the configuration service
