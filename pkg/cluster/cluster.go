@@ -279,10 +279,6 @@ func (c *Cluster) createServiceAccount() error {
 func (c *Cluster) teardownNamespace() error {
 	step := logging.NewStep(c.namespace, "Delete namespace %s", c.namespace)
 	step.Start()
-	err := c.client.CoreV1().Namespaces().Delete(c.namespace, &metav1.DeleteOptions{})
-	if err != nil {
-		return err
-	}
 
 	w, err := c.client.CoreV1().Namespaces().Watch(metav1.ListOptions{
 		LabelSelector: "test=" + c.namespace,
@@ -290,6 +286,12 @@ func (c *Cluster) teardownNamespace() error {
 	if err != nil {
 		step.Fail(err)
 	}
+
+	err = c.client.CoreV1().Namespaces().Delete(c.namespace, &metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
 	for event := range w.ResultChan() {
 		switch event.Type {
 		case watch.Deleted:
