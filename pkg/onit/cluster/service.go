@@ -55,6 +55,7 @@ type Service struct {
 	configMaps map[string]string
 	env        map[string]string
 	args       []string
+	command    []string
 }
 
 // Ports returns the service ports
@@ -184,6 +185,16 @@ func (s *Service) SetArgs(args ...string) {
 	s.args = args
 }
 
+// SetCommand sets the service command
+func (s *Service) SetCommand(command ...string) {
+	s.command = command
+}
+
+// Command returns the service command
+func (s *Service) Command() []string {
+	return s.command
+}
+
 // Setup sets up the service
 func (s *Service) Setup() error {
 	if s.Replicas() == 0 {
@@ -202,6 +213,13 @@ func (s *Service) Setup() error {
 		step.Fail(err)
 		return err
 	}
+
+	step.Logf("Creating %s ConfigMaps", s.Name())
+	if err := s.createConfigMap(); err != nil {
+		step.Fail(err)
+		return err
+	}
+
 	step.Logf("Creating %s Deployment", s.Name())
 	if err := s.createDeployment(); err != nil {
 		step.Fail(err)
@@ -478,6 +496,7 @@ func (s *Service) createDeployment() error {
 							ImagePullPolicy: s.PullPolicy(),
 							Env:             env,
 							Args:            s.args,
+							Command:         s.command,
 							Ports:           ports,
 							ReadinessProbe:  readinessProbe,
 							LivenessProbe:   livenessProbe,

@@ -107,6 +107,7 @@ func newGui(cluster *Cluster) *Gui {
 	service.SetLabels(getLabels(guiType))
 	service.SetImage(guiImage)
 	service.SetConfigMaps(envoyConfigMaps)
+	service.SetReplicas(1)
 
 	return &Gui{
 		Service: service,
