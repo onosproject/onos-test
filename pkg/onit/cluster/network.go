@@ -17,6 +17,8 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"github.com/onosproject/onos-topo/api/device"
 	"google.golang.org/grpc"
@@ -24,7 +26,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"time"
 )
 
 const (
@@ -54,8 +55,12 @@ func (d TopoType) String() string {
 }
 
 func newNetwork(cluster *Cluster, name string) *Network {
+	node := newNode(cluster)
+	node.SetImage(networkImage)
+	node.SetName(name)
+	node.SetPort(0)
 	return &Network{
-		Node:          newNode(cluster, name, 0, networkImage),
+		Node:          node,
 		add:           true,
 		deviceType:    networkDeviceType,
 		deviceVersion: networkDeviceVersion,
@@ -86,7 +91,10 @@ func (s *Network) Devices() ([]*Node, error) {
 
 	devices := make([]*Node, len(services.Items))
 	for i, service := range services.Items {
-		devices[i] = newNode(s.cluster, service.Name, stratumPort, "")
+		node := newNode(s.cluster)
+		node.SetName(service.Name)
+		node.SetPort(stratumPort)
+		devices[i] = node
 	}
 	return devices, nil
 }

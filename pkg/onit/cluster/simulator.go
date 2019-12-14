@@ -18,15 +18,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"time"
+
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"github.com/onosproject/onos-topo/api/device"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"io"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"time"
 )
 
 const (
@@ -131,8 +132,12 @@ const simulatorConfig = `
 `
 
 func newSimulator(cluster *Cluster, name string) *Simulator {
+	node := newNode(cluster)
+	node.SetName(name)
+	node.SetImage(simulatorImage)
+	node.SetPort(11161)
 	return &Simulator{
-		Node:          newNode(cluster, name, 11161, simulatorImage),
+		Node:          node,
 		add:           true,
 		deviceType:    simulatorDeviceType,
 		deviceVersion: simulatorDeviceVersion,

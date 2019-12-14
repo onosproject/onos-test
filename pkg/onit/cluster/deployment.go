@@ -16,20 +16,18 @@ package cluster
 
 import (
 	"errors"
+	"time"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 const apiPort = "api"
 
-func newDeployment(cluster *Cluster, name string, labels map[string]string, image string) *Deployment {
+func newDeployment(cluster *Cluster) *Deployment {
 	return &Deployment{
 		client:     cluster.client,
 		cluster:    cluster,
-		name:       name,
-		labels:     labels,
-		image:      image,
 		pullPolicy: corev1.PullIfNotPresent,
 	}
 }
@@ -42,6 +40,21 @@ type Deployment struct {
 	labels     map[string]string
 	image      string
 	pullPolicy corev1.PullPolicy
+}
+
+// SetLabels sets the labels for the service
+func (d *Deployment) SetLabels(labels map[string]string) {
+	d.labels = labels
+}
+
+// SetCluster sets the cluster for the service
+func (d *Deployment) SetCluster(cluster *Cluster) {
+	d.cluster = cluster
+}
+
+// SetName sets the name for the service
+func (d *Deployment) SetName(name string) {
+	d.name = name
 }
 
 // Name returns the deployment name
@@ -79,11 +92,19 @@ func (d *Deployment) Node(name string) (*Node, error) {
 	for _, container := range pod.Spec.Containers {
 		for _, port := range container.Ports {
 			if port.Name == apiPort {
-				return newNode(d.cluster, name, int(port.ContainerPort), container.Image), nil
+				node := newNode(d.cluster)
+				node.SetName(name)
+				node.SetPort(int(port.ContainerPort))
+				node.SetImage(container.Image)
+				return node, nil
 			}
 		}
 	}
-	return newNode(d.cluster, name, 0, ""), nil
+	node := newNode(d.cluster)
+	node.SetName(name)
+	node.SetPort(0)
+
+	return node, nil
 }
 
 // Nodes returns a list of nodes in the service

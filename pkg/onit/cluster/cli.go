@@ -16,11 +16,12 @@ package cluster
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 const (
@@ -30,8 +31,13 @@ const (
 )
 
 func newCLI(cluster *Cluster) *CLI {
+	deployment := newDeployment(cluster)
+	deployment.SetImage(cliImage)
+	deployment.SetLabels(getLabels(cliType))
+	deployment.SetName(cliService)
+
 	return &CLI{
-		Deployment: newDeployment(cluster, cliService, getLabels(cliType), cliImage),
+		Deployment: deployment,
 	}
 }
 

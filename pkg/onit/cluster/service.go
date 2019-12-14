@@ -17,6 +17,10 @@ package cluster
 import (
 	"crypto/tls"
 	"fmt"
+	"path"
+	"strings"
+	"time"
+
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -24,18 +28,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"path"
-	"strings"
-	"time"
 )
 
-func newService(cluster *Cluster, name string, ports []Port, labels map[string]string, image string, secrets map[string]string, args []string) *Service {
+func newService(cluster *Cluster) *Service {
 	return &Service{
-		Deployment: newDeployment(cluster, name, labels, image),
-		ports:      ports,
-		secrets:    secrets,
+		Deployment: newDeployment(cluster),
 		env:        make(map[string]string),
-		args:       args,
 	}
 }
 
@@ -56,11 +54,6 @@ type Service struct {
 	secrets    map[string]string
 	env        map[string]string
 	args       []string
-}
-
-// SetName sets the service name
-func (s *Service) SetName(name string) {
-	s.name = name
 }
 
 // Ports returns the service ports

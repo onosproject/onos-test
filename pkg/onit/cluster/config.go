@@ -38,8 +38,17 @@ var configArgs = []string{
 }
 
 func newConfig(cluster *Cluster) *Config {
+	service := newService(cluster)
+	ports := []Port{{Name: "grpc", Port: configPort}}
+	service.SetArgs(configArgs...)
+	service.SetSecrets(configSecrets)
+	service.SetPorts(ports)
+	service.SetLabels(getLabels(configType))
+	service.SetImage(configImage)
+	service.SetName(configService)
+
 	return &Config{
-		Service: newService(cluster, configService, []Port{{Name: "grpc", Port: configPort}}, getLabels(configType), configImage, configSecrets, configArgs),
+		Service: service,
 	}
 }
 

@@ -19,6 +19,9 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
@@ -26,17 +29,12 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
 	executil "k8s.io/client-go/util/exec"
-	"strings"
-	"time"
 )
 
-func newNode(cluster *Cluster, name string, port int, image string) *Node {
+func newNode(cluster *Cluster) *Node {
 	return &Node{
 		client:     cluster.client,
 		cluster:    cluster,
-		name:       name,
-		port:       port,
-		image:      image,
 		pullPolicy: corev1.PullIfNotPresent,
 	}
 }
@@ -59,6 +57,16 @@ func (n *Node) Name() string {
 // SetName sets the node name
 func (n *Node) SetName(name string) {
 	n.name = name
+}
+
+// SetPort sets the node port
+func (n *Node) SetPort(port int) {
+	n.port = port
+}
+
+// Port returns the node port
+func (n *Node) Port() int {
+	return n.port
 }
 
 // Address returns the service address
