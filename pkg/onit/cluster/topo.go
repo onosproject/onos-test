@@ -41,12 +41,20 @@ var topoArgs = []string{
 func newTopo(cluster *Cluster) *Topo {
 	service := newService(cluster)
 	ports := []Port{{Name: "grpc", Port: topoPort}}
-	service.SetArgs(topoArgs...)
 	service.SetSecrets(topoSecrets)
 	service.SetPorts(ports)
 	service.SetLabels(getLabels(topoType))
 	service.SetImage(topoImage)
 	service.SetName(topoService)
+
+	topoContainer := newContainer(cluster)
+	var containers []*Container
+	topoContainer.SetName(topoService)
+	topoContainer.SetImage(topoImage)
+	topoContainer.SetArgs(topoArgs...)
+	containers = append(containers, topoContainer)
+	service.SetContainers(containers)
+
 	return &Topo{
 		Service: service,
 	}

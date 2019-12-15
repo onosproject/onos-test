@@ -79,9 +79,9 @@ var envoyConfigMaps = map[string]string{
 }
 
 const (
-	guiType  = "gui"
-	guiImage = "onosproject/onos-gui:latest"
-	//envoyImage = "envoyproxy/envoy:v1.11.1"
+	guiType    = "gui"
+	guiImage   = "onosproject/onos-gui:latest"
+	envoyImage = "envoyproxy/envoy:v1.11.1"
 	guiService = "onos-gui"
 	guiPort    = 80
 )
@@ -105,9 +105,24 @@ func newGui(cluster *Cluster) *Gui {
 	service.SetPorts([]Port{{Name: "grpc", Port: guiPort}})
 	service.SetName(guiService)
 	service.SetLabels(getLabels(guiType))
-	service.SetImage(guiImage)
 	service.SetConfigMaps(envoyConfigMaps)
 	service.SetReplicas(1)
+
+	guiContainer := newContainer(cluster)
+	var containers []*Container
+	guiContainer.SetName(guiService)
+	guiContainer.SetImage(guiImage)
+	containers = append(containers, guiContainer)
+
+	envoyContainer := newContainer(cluster)
+	envoyContainer.SetName("onos-envoy")
+	envoyContainer.SetImage(envoyImage)
+	envoyContainer.SetCommand("/usr/local/bin/envoy")
+	envoyContainer.SetArgs("-c", "/config/envoy.yaml")
+
+	containers = append(containers, envoyContainer)
+
+	service.SetContainers(containers)
 
 	return &Gui{
 		Service: service,

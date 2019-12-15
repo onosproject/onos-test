@@ -54,6 +54,7 @@ type Service struct {
 	secrets    map[string]string
 	configMaps map[string]string
 	env        map[string]string
+	containers []*Container
 	args       []string
 	command    []string
 }
@@ -193,6 +194,16 @@ func (s *Service) SetCommand(command ...string) {
 // Command returns the service command
 func (s *Service) Command() []string {
 	return s.command
+}
+
+// SetContainers sets the service containers
+func (s *Service) SetContainers(containers []*Container) {
+	s.containers = containers
+}
+
+// Containers returns the service containers
+func (s *Service) Containers() []*Container {
+	return s.containers
 }
 
 // Setup sets up the service
@@ -473,6 +484,24 @@ func (s *Service) createDeployment() error {
 		})
 	}
 
+	var corv1Containers []corev1.Container
+	for _, container := range s.containers {
+		corev1Container := corev1.Container{
+			Name:            container.Name(),
+			Image:           container.Image(),
+			ImagePullPolicy: container.PullPolicy(),
+			Env:             env,
+			Args:            container.Args(),
+			Command:         container.Command(),
+			Ports:           ports,
+			ReadinessProbe:  readinessProbe,
+			LivenessProbe:   livenessProbe,
+			VolumeMounts:    volumeMounts,
+			SecurityContext: securityContext,
+		}
+		corv1Containers = append(corv1Containers, corev1Container)
+	}
+
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),
@@ -489,21 +518,7 @@ func (s *Service) createDeployment() error {
 					Labels: s.labels,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:            s.Name(),
-							Image:           s.Image(),
-							ImagePullPolicy: s.PullPolicy(),
-							Env:             env,
-							Args:            s.args,
-							Command:         s.command,
-							Ports:           ports,
-							ReadinessProbe:  readinessProbe,
-							LivenessProbe:   livenessProbe,
-							VolumeMounts:    volumeMounts,
-							SecurityContext: securityContext,
-						},
-					},
+					Containers:      corv1Containers,
 					SecurityContext: podSecurityContext,
 					Volumes:         volumes,
 				},

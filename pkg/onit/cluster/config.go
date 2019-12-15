@@ -40,12 +40,20 @@ var configArgs = []string{
 func newConfig(cluster *Cluster) *Config {
 	service := newService(cluster)
 	ports := []Port{{Name: "grpc", Port: configPort}}
-	service.SetArgs(configArgs...)
+	//service.SetArgs(configArgs...)
 	service.SetSecrets(configSecrets)
 	service.SetPorts(ports)
 	service.SetLabels(getLabels(configType))
-	service.SetImage(configImage)
+	//service.SetImage(configImage)
 	service.SetName(configService)
+
+	configContainer := newContainer(cluster)
+	var containers []*Container
+	configContainer.SetName(configService)
+	configContainer.SetImage(configImage)
+	configContainer.SetArgs(configArgs...)
+	containers = append(containers, configContainer)
+	service.SetContainers(containers)
 
 	return &Config{
 		Service: service,
