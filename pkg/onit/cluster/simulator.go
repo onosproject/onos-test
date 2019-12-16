@@ -487,6 +487,10 @@ func (s *Simulator) TearDown() error {
 
 // removeDevice removes the device from the topo service
 func (s *Simulator) removeDevice() error {
+	if !s.add {
+		return nil
+	}
+
 	tlsConfig, err := s.Credentials()
 	if err != nil {
 		return err

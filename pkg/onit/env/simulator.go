@@ -48,6 +48,9 @@ type SimulatorSetup interface {
 	// SetDeviceTimeout sets the device timeout
 	SetDeviceTimeout(timeout time.Duration) SimulatorSetup
 
+	// SetAddDevice sets whether to add the device to the topo service
+	SetAddDevice(add bool) SimulatorSetup
+
 	// Add deploys the simulator in the cluster
 	Add() (SimulatorEnv, error)
 
@@ -89,6 +92,11 @@ func (s *clusterSimulatorSetup) SetDeviceVersion(version string) SimulatorSetup 
 
 func (s *clusterSimulatorSetup) SetDeviceTimeout(timeout time.Duration) SimulatorSetup {
 	s.simulator.SetDeviceTimeout(timeout)
+	return s
+}
+
+func (s *clusterSimulatorSetup) SetAddDevice(addDevice bool) SimulatorSetup {
+	s.simulator.SetAddDevice(addDevice)
 	return s
 }
 
