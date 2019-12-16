@@ -26,6 +26,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -236,6 +237,12 @@ func (s *Service) Setup() error {
 		step.Fail(err)
 		return err
 	}
+	step.Logf("Creating %s Ingress", s.Name())
+	if err := s.createIngress(); err != nil {
+		step.Fail(err)
+		return err
+	}
+
 	step.Logf("Waiting for %s to become ready", s.Name())
 	if err := s.AwaitReady(); err != nil {
 		step.Fail(err)
@@ -270,6 +277,54 @@ func (s *Service) createSecret() error {
 	}
 	_, err := s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
 	return err
+}
+
+func (s *Service) createGuiIngress() error {
+	var ingressAnnotations = map[string]string{
+		"kubernetes.io/ingress.class":                  "nginx",
+		"nginx.ingress.kubernetes.io/ssl-redirect":     "false",
+		"nginx.ingress.kubernetes.io/backend-protocol": "HTTP",
+	}
+	ing := &extensionsv1beta1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        s.name + "-ingress",
+			Namespace:   s.namespace,
+			Annotations: ingressAnnotations,
+		},
+		Spec: extensionsv1beta1.IngressSpec{
+			Rules: []extensionsv1beta1.IngressRule{
+				{
+					Host: s.name,
+					IngressRuleValue: extensionsv1beta1.IngressRuleValue{
+						HTTP: &extensionsv1beta1.HTTPIngressRuleValue{
+							Paths: []extensionsv1beta1.HTTPIngressPath{
+								{
+									Backend: extensionsv1beta1.IngressBackend{
+										ServiceName: s.name,
+										ServicePort: intstr.FromInt(80),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	_, err := s.kubeClient.ExtensionsV1beta1().Ingresses(s.namespace).Create(ing)
+	return err
+}
+
+// createIngress creates an ingress resource
+func (s *Service) createIngress() error {
+
+	// TODO it should be replaced with a more generic function
+	if s.Name() == guiService {
+		err := s.createGuiIngress()
+		return err
+	}
+	return nil
+
 }
 
 func (s *Service) createConfigMap() error {

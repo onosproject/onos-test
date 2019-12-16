@@ -86,10 +86,6 @@ const (
 	guiPort    = 80
 )
 
-/*var ingressAnnotations = map[string]string{
-	"kubernetes.io/ingress.class": "nginx",
-}*/
-
 // Enabled indicates whether the Gui is enabled
 func (c *Gui) Enabled() bool {
 	return GetArg(c.name, "enabled").Bool(c.enabled)
@@ -106,7 +102,6 @@ func newGui(cluster *Cluster) *Gui {
 	service.SetName(guiService)
 	service.SetLabels(getLabels(guiType))
 	service.SetConfigMaps(envoyConfigMaps)
-	service.SetReplicas(1)
 
 	guiContainer := newContainer(cluster)
 	var containers []*Container
