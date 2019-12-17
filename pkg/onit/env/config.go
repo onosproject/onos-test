@@ -17,6 +17,7 @@ package env
 import (
 	"context"
 	"github.com/onosproject/onos-config/api/admin"
+	"github.com/onosproject/onos-config/api/diags"
 	"github.com/openconfig/gnmi/client"
 	gnmi "github.com/openconfig/gnmi/client/gnmi"
 	"time"
@@ -31,6 +32,9 @@ type ConfigEnv interface {
 
 	// NewAdminServiceClient returns the config AdminService client
 	NewAdminServiceClient() (admin.ConfigAdminServiceClient, error)
+
+	// NewChangeServiceClient returns the config AdminService client
+	NewChangeServiceClient() (diags.ChangeServiceClient, error)
 
 	// NewGNMIClient returns the gNMI client
 	NewGNMIClient() (*gnmi.Client, error)
@@ -63,9 +67,17 @@ func (e *clusterConfigEnv) NewAdminServiceClient() (admin.ConfigAdminServiceClie
 func (e *clusterConfigEnv) NewGNMIClient() (*gnmi.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := gnmi.New(ctx, e.Destination())
+	gnmiClient, err := gnmi.New(ctx, e.Destination())
 	if err != nil {
 		return nil, err
 	}
-	return client.(*gnmi.Client), nil
+	return gnmiClient.(*gnmi.Client), nil
+}
+
+func (e *clusterConfigEnv) NewChangeServiceClient() (diags.ChangeServiceClient, error) {
+	conn, err := e.Connect()
+	if err != nil {
+		return nil, err
+	}
+	return diags.NewChangeServiceClient(conn), nil
 }
