@@ -116,4 +116,9 @@ To remove an application, use the `onit remove app` command:
 > onit -c my-cluster remove app -n onos-ztp
 ```
 
+## Running the onos-gui
+Running the µONOS GUI is achievable on top of an 'onit' created cluster, by loading
+its Helm Chart in to that cluster. See [onos-gui] for more details.
+
 [onos-ztp]: https://github.com/onosproject/onos-ztp
+[onos-gui]: https://docs.onosproject.org/onos-gui/docs/deployment/
