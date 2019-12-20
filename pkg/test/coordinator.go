@@ -303,7 +303,7 @@ func (t *WorkerTask) getStatus() (string, int, error) {
 				return state.Terminated.Message, int(state.Terminated.ExitCode), nil
 			}
 		}
-		time.Sleep(100 * time.Second)
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 
