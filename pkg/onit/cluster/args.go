@@ -46,6 +46,11 @@ func SetArg(name, value string) {
 	args[name] = value
 }
 
+// GetArgs gets the cluster arguments
+func GetArgs() map[string]string {
+	return args
+}
+
 // GetArg gets the value of an argument
 func GetArg(names ...string) *Arg {
 	return &Arg{
