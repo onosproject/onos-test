@@ -50,7 +50,7 @@ type RaftPartitions struct {
 
 // NumPartitions returns the number of partitions
 func (s *RaftPartitions) NumPartitions() int {
-	return GetArg(s.group, "partitions").Int(1)
+	return GetArg(s.group, "partitions").Int(s.partitions)
 }
 
 // SetPartitions sets the number of partitions in the group
