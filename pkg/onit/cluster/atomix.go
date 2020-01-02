@@ -144,26 +144,26 @@ func (s *Atomix) createDeployment() error {
 	replicas := int32(1)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.name,
+			Name:      s.Name(),
 			Namespace: s.namespace,
-			Labels:    getLabels(atomixType),
+			Labels:    s.labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: getLabels(atomixType),
+				MatchLabels: s.labels,
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: getLabels(atomixType),
+					Labels: s.labels,
 				},
 				Spec: corev1.PodSpec{
 					ServiceAccountName: s.namespace,
 					Containers: []corev1.Container{
 						{
-							Name:            s.name,
-							Image:           s.image,
-							ImagePullPolicy: s.pullPolicy,
+							Name:            s.Name(),
+							Image:           s.Image(),
+							ImagePullPolicy: s.PullPolicy(),
 							Command:         []string{"atomix-controller"},
 							Env: []corev1.EnvVar{
 								{
@@ -227,12 +227,12 @@ func (s *Atomix) createDeployment() error {
 func (s *Atomix) createService() error {
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.name,
+			Name:      s.Name(),
 			Namespace: s.namespace,
-			Labels:    getLabels(atomixType),
+			Labels:    s.labels,
 		},
 		Spec: corev1.ServiceSpec{
-			Selector: getLabels(atomixType),
+			Selector: s.labels,
 			Ports: []corev1.ServicePort{
 				{
 					Name: "control",
