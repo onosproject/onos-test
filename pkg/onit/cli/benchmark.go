@@ -17,10 +17,10 @@ package cli
 import (
 	"github.com/onosproject/onos-test/pkg/benchmark"
 	"github.com/onosproject/onos-test/pkg/cluster"
+	onitcluster "github.com/onosproject/onos-test/pkg/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	"strings"
 	"time"
 )
 
@@ -39,7 +39,7 @@ func getBenchCommand() *cobra.Command {
 	cmd.Flags().IntP("workers", "w", 1, "the number of workers to run")
 	cmd.Flags().IntP("parallel", "p", 1, "the number of concurrent goroutines per client")
 	cmd.Flags().IntP("requests", "n", 1, "the number of requests to run")
-	cmd.Flags().StringToStringP("arg", "a", map[string]string{}, "a mapping of named benchmark arguments")
+	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named benchmark arguments")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "benchmark timeout")
 	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
 
@@ -57,15 +57,10 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	parallelism, _ := cmd.Flags().GetInt("parallel")
 	requests, _ := cmd.Flags().GetInt("requests")
 	sets, _ := cmd.Flags().GetStringToString("set")
-	args, _ := cmd.Flags().GetStringToString("arg")
+	args, _ := cmd.Flags().GetStringToString("args")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
-
-	env := make(map[string]string)
-	for key, value := range sets {
-		env["ONIT_ARG_"+strings.ToUpper(strings.ReplaceAll(key, ".", "_"))] = value
-	}
 
 	config := &benchmark.Config{
 		ID:              random.NewPetName(2),
@@ -77,7 +72,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		Parallelism:     parallelism,
 		Requests:        requests,
 		Args:            args,
-		Env:             env,
+		Env:             onitcluster.GetArgsAsEnv(sets),
 		Timeout:         timeout,
 	}
 

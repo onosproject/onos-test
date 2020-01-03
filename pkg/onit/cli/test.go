@@ -16,11 +16,11 @@ package cli
 
 import (
 	"github.com/onosproject/onos-test/pkg/cluster"
+	onitcluster "github.com/onosproject/onos-test/pkg/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	"strings"
 	"time"
 )
 
@@ -53,18 +53,13 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 
-	env := make(map[string]string)
-	for key, value := range sets {
-		env["ONIT_ARG_"+strings.ToUpper(strings.ReplaceAll(key, ".", "_"))] = value
-	}
-
 	config := &test.Config{
 		ID:              random.NewPetName(2),
 		Image:           image,
 		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
 		Suite:           suite,
 		Test:            testName,
-		Env:             env,
+		Env:             onitcluster.GetArgsAsEnv(sets),
 		Timeout:         timeout,
 	}
 
