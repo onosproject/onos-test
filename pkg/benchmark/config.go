@@ -17,6 +17,7 @@ package benchmark
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
+	"github.com/onosproject/onos-test/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	"os"
 	"strconv"
@@ -37,7 +38,7 @@ const (
 	benchmarkWorkersEnv         = "BENCHMARK_WORKERS"
 	benchmarkParallelismEnv     = "BENCHMARK_PARALLELISM"
 	benchmarkRequestsEnv        = "BENCHMARK_REQUESTS"
-	benchmarkArgPrefix          = "BENCHMARK_ARG_"
+	benchmarkArgsEnv            = "BENCHMARK_ARGS"
 	benchmarkWorkerEnv          = "BENCHMARK_WORKER"
 )
 
@@ -58,10 +59,8 @@ func GetConfigFromEnv() *Config {
 	for key, value := range cluster.GetArgs() {
 		args[key] = value
 	}
-	for key, value := range env {
-		if strings.HasPrefix(key, benchmarkArgPrefix) {
-			args[strings.ToLower(key[len(benchmarkArgPrefix):])] = value
-		}
+	for key, value := range util.SplitMap(os.Getenv(benchmarkArgsEnv)) {
+		args[key] = value
 	}
 	workers, err := strconv.Atoi(os.Getenv(benchmarkWorkersEnv))
 	if err != nil {
@@ -115,9 +114,7 @@ func (c *Config) ToEnv() map[string]string {
 	env[benchmarkWorkersEnv] = fmt.Sprintf("%d", c.Workers)
 	env[benchmarkParallelismEnv] = fmt.Sprintf("%d", c.Parallelism)
 	env[benchmarkRequestsEnv] = fmt.Sprintf("%d", c.Requests)
-	for key, value := range c.Args {
-		env[benchmarkArgPrefix+strings.ToUpper(key)] = value
-	}
+	env[benchmarkArgsEnv] = util.JoinMap(c.Args)
 	return env
 }
 

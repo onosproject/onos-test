@@ -15,6 +15,7 @@
 package cluster
 
 import (
+	"github.com/onosproject/onos-test/pkg/util"
 	"os"
 	"strconv"
 	"strings"
@@ -22,15 +23,11 @@ import (
 
 var args = make(map[string]string)
 
-const argPrefix = "ONIT_ARG_"
+const argsEnv = "ONIT_ARGS"
 
 func init() {
-	for _, keyval := range os.Environ() {
-		key := keyval[:strings.Index(keyval, "=")]
-		if strings.HasPrefix(key, argPrefix) {
-			value := keyval[strings.Index(keyval, "=")+1:]
-			SetArg(strings.ReplaceAll(strings.ToLower(key[len(argPrefix):]), "_", "."), value)
-		}
+	for key, value := range util.SplitMap(os.Getenv(argsEnv)) {
+		SetArg(key, value)
 	}
 }
 
@@ -56,6 +53,13 @@ func GetArg(names ...string) *Arg {
 	return &Arg{
 		value: args[strings.Join(names, ".")],
 	}
+}
+
+// GetArgsAsEnv returns the given arguments as an environment variable map
+func GetArgsAsEnv(args map[string]string) map[string]string {
+	env := make(map[string]string)
+	env[argsEnv] = util.JoinMap(args)
+	return env
 }
 
 // Arg is a cluster argument
