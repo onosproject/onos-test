@@ -27,7 +27,7 @@ func SplitMap(value string) map[string]string {
 	values := strings.Split(value, entrySep)
 	pairs := make(map[string]string)
 	for _, pair := range values {
-		if strings.Index(pair, keyValueSep) != -1 {
+		if strings.Contains(pair, keyValueSep) {
 			key := pair[:strings.Index(pair, keyValueSep)]
 			value := pair[strings.Index(pair, keyValueSep)+1:]
 			pairs[key] = value
