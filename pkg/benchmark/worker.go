@@ -200,7 +200,7 @@ func (w *Worker) RunBenchmark(ctx context.Context, request *RunRequest) (*RunRes
 	}
 
 	context := newContext(request.Benchmark, request.Args)
-	b := newBenchmark(request.Benchmark, int(request.Requests), int(request.Parallelism), context)
+	b := newBenchmark(request.Benchmark, int(request.Requests), request.Duration, int(request.Parallelism), context)
 	method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(b)})
 
 	step.Complete()

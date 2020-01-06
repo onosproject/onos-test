@@ -26,6 +26,9 @@ import (
 
 const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNNOPQRSTUVWXYZ1234567890"
 
+const warmUpDuration = 30 * time.Second
+const aggBatchSize = 100
+
 // BenchmarkingSuite is a suite of benchmarks
 type BenchmarkingSuite interface{}
 
@@ -111,10 +114,11 @@ func (a *Arg) String(def string) string {
 	return a.value
 }
 
-func newBenchmark(name string, requests int, parallelism int, context *Context) *Benchmark {
+func newBenchmark(name string, requests int, duration *time.Duration, parallelism int, context *Context) *Benchmark {
 	return &Benchmark{
 		Context:     context,
 		requests:    requests,
+		duration:    duration,
 		parallelism: parallelism,
 		Name:        name,
 	}
@@ -127,6 +131,7 @@ type Benchmark struct {
 	// Name is the name of the benchmark
 	Name        string
 	requests    int
+	duration    *time.Duration
 	parallelism int
 	result      *RunResponse
 }
@@ -145,7 +150,7 @@ func (b *Benchmark) Run(f interface{}, params ...Param) {
 	b.warm(handler, params)
 
 	// Run the benchmark
-	runTime, results := b.run(handler, params)
+	requests, runTime, results := b.run(handler, params)
 
 	// Calculate the total latency from latency results
 	var totalLatency time.Duration
@@ -161,7 +166,7 @@ func (b *Benchmark) Run(f interface{}, params ...Param) {
 	latency99 := results[int(math.Max(float64(len(results)-(len(results)/100)-1), 0))]
 
 	b.result = &RunResponse{
-		Requests:  uint32(b.requests),
+		Requests:  uint32(requests),
 		Duration:  runTime,
 		Latency:   meanLatency,
 		Latency50: latency50,
@@ -194,19 +199,6 @@ func (b *Benchmark) prepare(next interface{}, params []Param) func(...interface{
 	return f
 }
 
-// getArgs returns the arguments for the given number of requests
-func (b *Benchmark) getArgs(params []Param) [][]interface{} {
-	args := make([][]interface{}, b.requests)
-	for i := 0; i < b.requests; i++ {
-		requestArgs := make([]interface{}, len(params))
-		for j, arg := range params {
-			requestArgs[j] = arg.next()
-		}
-		args[i] = requestArgs
-	}
-	return args
-}
-
 // warm warms up the benchmark
 func (b *Benchmark) warm(f func(...interface{}), params []Param) {
 	// Create an iteration channel and wait group and create a goroutine for each client
@@ -222,12 +214,14 @@ func (b *Benchmark) warm(f func(...interface{}), params []Param) {
 		}()
 	}
 
-	// Create the arguments for benchmark calls
-	args := b.getArgs(params)
-
-	// Record the start time and write arguments to the channel
-	for i := 0; i < len(args); i++ {
-		requestCh <- args[i]
+	// Run for the warm up duration to prepare the benchmark
+	start := time.Now()
+	for time.Since(start) < warmUpDuration {
+		args := make([]interface{}, len(params))
+		for j, arg := range params {
+			args[j] = arg.next()
+		}
+		requestCh <- args
 	}
 	close(requestCh)
 
@@ -236,11 +230,11 @@ func (b *Benchmark) warm(f func(...interface{}), params []Param) {
 }
 
 // run runs the benchmark
-func (b *Benchmark) run(f func(...interface{}), params []Param) (time.Duration, []time.Duration) {
+func (b *Benchmark) run(f func(...interface{}), params []Param) (int, time.Duration, []time.Duration) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
 	requestCh := make(chan []interface{}, b.parallelism)
-	resultCh := make(chan time.Duration, b.requests)
+	resultCh := make(chan time.Duration, aggBatchSize)
 	for i := 0; i < b.parallelism; i++ {
 		wg.Add(1)
 		go func() {
@@ -254,13 +248,57 @@ func (b *Benchmark) run(f func(...interface{}), params []Param) (time.Duration, 
 		}()
 	}
 
-	// Create the arguments for benchmark calls
-	args := b.getArgs(params)
+	// Start an aggregator goroutine
+	results := make([]time.Duration, 0, aggBatchSize*aggBatchSize)
+	aggWg := &sync.WaitGroup{}
+	aggWg.Add(1)
+	go func() {
+		var total time.Duration
+		var count = 0
+		// Iterate through results and aggregate durations
+		for duration := range resultCh {
+			total += duration
+			count++
+			// Average out the durations in batches
+			if count == aggBatchSize {
+				results = append(results, total/time.Duration(count))
+
+				// If the total number of batches reaches the batch size ^ 2, aggregate the aggregated results
+				if len(results) == aggBatchSize*aggBatchSize {
+					newResults := make([]time.Duration, 0, aggBatchSize*aggBatchSize)
+					for _, result := range results {
+						total += result
+						count++
+						if count == aggBatchSize {
+							newResults = append(newResults, total/time.Duration(count))
+							total = 0
+							count = 0
+						}
+					}
+					results = newResults
+				}
+				total = 0
+				count = 0
+			}
+		}
+		if count > 0 {
+			results = append(results, total/time.Duration(count))
+		}
+		aggWg.Done()
+	}()
 
 	// Record the start time and write arguments to the channel
 	start := time.Now()
-	for i := 0; i < len(args); i++ {
-		requestCh <- args[i]
+
+	// Iterate through the request count or until the time duration has been met
+	requests := 0
+	for (b.requests == 0 || requests < b.requests) && (b.duration == nil || time.Since(start) < *b.duration) {
+		args := make([]interface{}, len(params))
+		for j, arg := range params {
+			args[j] = arg.next()
+		}
+		requestCh <- args
+		requests++
 	}
 	close(requestCh)
 
@@ -274,15 +312,14 @@ func (b *Benchmark) run(f func(...interface{}), params []Param) (time.Duration, 
 	// Close the output channel
 	close(resultCh)
 
-	// Aggregate the results
-	results := make([]time.Duration, 0, b.requests)
-	for d := range resultCh {
-		results = append(results, d)
-	}
+	// Wait for the results to be aggregated
+	aggWg.Wait()
+
+	// Sort the aggregated results
 	sort.Slice(results, func(i, j int) bool {
 		return results[i] < results[j]
 	})
-	return duration, results
+	return requests, duration, results
 }
 
 // Param is an interface for benchmark parameters
