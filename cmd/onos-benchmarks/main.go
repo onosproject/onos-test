@@ -17,12 +17,13 @@ package main
 import (
 	"github.com/onosproject/onos-test/benchmark/grpc"
 	"github.com/onosproject/onos-test/benchmark/nopaxos"
+	"github.com/onosproject/onos-test/benchmark/raft"
 	"github.com/onosproject/onos-test/pkg/benchmark"
 )
 
 func main() {
 	benchmark.Register("nopaxos", &nopaxos.MapBenchmarkSuite{})
+	benchmark.Register("raft", &raft.MapBenchmarkSuite{})
 	benchmark.Register("grpc", &grpc.BenchmarkSuite{})
-
 	benchmark.Main()
 }
