@@ -76,6 +76,7 @@ func (c *Coordinator) Run() error {
 			Workers:         c.config.Workers,
 			Parallelism:     c.config.Parallelism,
 			Requests:        c.config.Requests,
+			Duration:        c.config.Duration,
 			Args:            c.config.Args,
 			Env:             c.config.Env,
 		}
@@ -512,11 +513,12 @@ func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
 
 	for _, worker := range workers {
 		wg.Add(1)
-		go func(worker WorkerServiceClient, requests int) {
+		go func(worker WorkerServiceClient, requests int, duration *time.Duration) {
 			result, err := worker.RunBenchmark(context.Background(), &RunRequest{
 				Suite:       t.config.Suite,
 				Benchmark:   benchmark,
 				Requests:    uint32(requests),
+				Duration:    duration,
 				Parallelism: uint32(t.config.Parallelism),
 				Args:        t.config.Args,
 			})
@@ -526,7 +528,7 @@ func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
 				resultCh <- result
 			}
 			wg.Done()
-		}(worker, t.config.Requests/len(workers))
+		}(worker, t.config.Requests/len(workers), t.config.Duration)
 	}
 
 	wg.Wait()

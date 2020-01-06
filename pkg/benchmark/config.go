@@ -38,6 +38,7 @@ const (
 	benchmarkWorkersEnv         = "BENCHMARK_WORKERS"
 	benchmarkParallelismEnv     = "BENCHMARK_PARALLELISM"
 	benchmarkRequestsEnv        = "BENCHMARK_REQUESTS"
+	benchmarkDurationEnv        = "BENCHMARK_DURATION"
 	benchmarkArgsEnv            = "BENCHMARK_ARGS"
 	benchmarkWorkerEnv          = "BENCHMARK_WORKER"
 )
@@ -74,6 +75,16 @@ func GetConfigFromEnv() *Config {
 	if err != nil {
 		panic(err)
 	}
+	var duration *time.Duration
+	durationEnv := os.Getenv(benchmarkDurationEnv)
+	if durationEnv != "" {
+		d, err := strconv.Atoi(durationEnv)
+		if err != nil {
+			panic(err)
+		}
+		dur := time.Duration(d)
+		duration = &dur
+	}
 	return &Config{
 		ID:              os.Getenv(benchmarkJobEnv),
 		Image:           os.Getenv(benchmarkImageEnv),
@@ -83,6 +94,7 @@ func GetConfigFromEnv() *Config {
 		Workers:         workers,
 		Parallelism:     parallelism,
 		Requests:        requests,
+		Duration:        duration,
 		Args:            args,
 		Env:             env,
 	}
@@ -98,6 +110,7 @@ type Config struct {
 	Workers         int
 	Parallelism     int
 	Requests        int
+	Duration        *time.Duration
 	Args            map[string]string
 	Env             map[string]string
 	Timeout         time.Duration
@@ -114,6 +127,9 @@ func (c *Config) ToEnv() map[string]string {
 	env[benchmarkWorkersEnv] = fmt.Sprintf("%d", c.Workers)
 	env[benchmarkParallelismEnv] = fmt.Sprintf("%d", c.Parallelism)
 	env[benchmarkRequestsEnv] = fmt.Sprintf("%d", c.Requests)
+	if c.Duration != nil {
+		env[benchmarkDurationEnv] = fmt.Sprintf("%d", *c.Duration)
+	}
 	env[benchmarkArgsEnv] = util.JoinMap(c.Args)
 	return env
 }

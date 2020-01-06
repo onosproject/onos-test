@@ -63,11 +63,14 @@ message RunRequest {
     // requests is the number of requests to run
     uint32 requests = 3;
 
+    // duration is the duration for which to run the benchmark
+    google.protobuf.Duration duration = 4[(gogoproto.stdduration) = true];
+
     // parallelism is the benchmark parallelism
-    uint32 parallelism = 4;
+    uint32 parallelism = 5;
 
     // args is the benchmark arguments
-    map<string, string> args = 5;
+    map<string, string> args = 6;
 }
 
 // RunResponse is a benchmark run response

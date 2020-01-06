@@ -38,7 +38,8 @@ func getBenchCommand() *cobra.Command {
 	cmd.Flags().StringP("benchmark", "b", "", "the name of the benchmark to run")
 	cmd.Flags().IntP("workers", "w", 1, "the number of workers to run")
 	cmd.Flags().IntP("parallel", "p", 1, "the number of concurrent goroutines per client")
-	cmd.Flags().IntP("requests", "n", 1, "the number of requests to run")
+	cmd.Flags().IntP("requests", "n", 0, "the number of requests to run")
+	cmd.Flags().DurationP("duration", "d", 0, "the duration for which to run the test")
 	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named benchmark arguments")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "benchmark timeout")
 	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
@@ -62,6 +63,15 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
+	var duration *time.Duration
+	if cmd.Flags().Changed("duration") {
+		d, _ := cmd.Flags().GetDuration("duration")
+		duration = &d
+		if timeout <= d {
+			timeout = d * 2
+		}
+	}
+
 	config := &benchmark.Config{
 		ID:              random.NewPetName(2),
 		Image:           image,
@@ -71,6 +81,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		Workers:         workers,
 		Parallelism:     parallelism,
 		Requests:        requests,
+		Duration:        duration,
 		Args:            args,
 		Env:             onitcluster.GetArgsAsEnv(sets),
 		Timeout:         timeout,
