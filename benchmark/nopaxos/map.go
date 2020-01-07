@@ -58,8 +58,8 @@ func (s *MapBenchmarkSuite) TearDownBenchmark(c *benchmark.Context) {
 // BenchmarkMapPut :: benchmark
 func (s *MapBenchmarkSuite) BenchmarkMapPut(b *benchmark.Benchmark) {
 	params := []benchmark.Param{
-		benchmark.RandomString(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
-		benchmark.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
+		benchmark.RandomStringFromSet(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
+		benchmark.RandomBytesFromSet(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
 	}
 	b.Run(func(key string, value []byte) error {
 		_, err := s._map.Put(context.Background(), key, value)
@@ -70,7 +70,7 @@ func (s *MapBenchmarkSuite) BenchmarkMapPut(b *benchmark.Benchmark) {
 // BenchmarkMapGet :: benchmark
 func (s *MapBenchmarkSuite) BenchmarkMapGet(b *benchmark.Benchmark) {
 	params := []benchmark.Param{
-		benchmark.RandomString(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
+		benchmark.RandomStringFromSet(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
 	}
 	b.Run(func(key string) error {
 		_, err := s._map.Get(context.Background(), key)

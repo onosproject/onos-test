@@ -53,7 +53,7 @@ func (s *BenchmarkSuite) TearDownBenchmark(c *benchmark.Context) {
 // BenchmarkGRPCRequestReply :: benchmark
 func (s *BenchmarkSuite) BenchmarkGRPCRequestReply(b *benchmark.Benchmark) {
 	params := []benchmark.Param{
-		benchmark.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
+		benchmark.RandomBytesFromSet(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
 	}
 	client := NewTestServiceClient(s.conn)
 	b.Run(func(value []byte) error {

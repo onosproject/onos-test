@@ -331,22 +331,22 @@ type Param interface {
 	next() interface{}
 }
 
-// RandomString returns a random string parameter
-func RandomString(count int, length int) Param {
-	return &RandomStringParam{
+// RandomStringFromSet returns a random string parameter
+func RandomStringFromSet(count int, length int) Param {
+	return &RandomStringFromSetParam{
 		count:  count,
 		length: length,
 	}
 }
 
-// RandomStringParam is a random string parameter
-type RandomStringParam struct {
+// RandomStringFromSetParam is a random string parameter
+type RandomStringFromSetParam struct {
 	count  int
 	length int
 	args   []string
 }
 
-func (a *RandomStringParam) reset() {
+func (a *RandomStringFromSetParam) reset() {
 	a.args = make([]string, a.count)
 	for i := 0; i < a.count; i++ {
 		bytes := make([]byte, a.length)
@@ -357,26 +357,49 @@ func (a *RandomStringParam) reset() {
 	}
 }
 
-func (a *RandomStringParam) next() interface{} {
+func (a *RandomStringFromSetParam) next() interface{} {
 	return a.args[rand.Intn(len(a.args))]
 }
 
-// RandomBytes returns a random bytes parameter
-func RandomBytes(count int, length int) Param {
-	return &RandomBytesParam{
+// RandomString returns a random string parameter
+func RandomString(length int) Param {
+	return &RandomStringParam{
+		length: length,
+	}
+}
+
+// RandomStringParam is a random string parameter
+type RandomStringParam struct {
+	length int
+	args   []string
+}
+
+func (a *RandomStringParam) reset() {}
+
+func (a *RandomStringParam) next() interface{} {
+	bytes := make([]byte, a.length)
+	for j := 0; j < a.length; j++ {
+		bytes[j] = chars[rand.Intn(len(chars))]
+	}
+	return string(bytes)
+}
+
+// RandomBytesFromSet returns a random bytes parameter
+func RandomBytesFromSet(count int, length int) Param {
+	return &RandomBytesFromSetParam{
 		count:  count,
 		length: length,
 	}
 }
 
-// RandomBytesParam is a random string parameter
-type RandomBytesParam struct {
+// RandomBytesFromSetParam is a random string parameter
+type RandomBytesFromSetParam struct {
 	count  int
 	length int
 	args   [][]byte
 }
 
-func (a *RandomBytesParam) reset() {
+func (a *RandomBytesFromSetParam) reset() {
 	a.args = make([][]byte, a.count)
 	for i := 0; i < a.count; i++ {
 		bytes := make([]byte, a.length)
@@ -387,8 +410,31 @@ func (a *RandomBytesParam) reset() {
 	}
 }
 
-func (a *RandomBytesParam) next() interface{} {
+func (a *RandomBytesFromSetParam) next() interface{} {
 	return a.args[rand.Intn(len(a.args))]
+}
+
+// RandomBytes returns a random bytes parameter
+func RandomBytes(length int) Param {
+	return &RandomBytesParam{
+		length: length,
+	}
+}
+
+// RandomBytesParam is a random string parameter
+type RandomBytesParam struct {
+	length int
+	args   [][]byte
+}
+
+func (a *RandomBytesParam) reset() {}
+
+func (a *RandomBytesParam) next() interface{} {
+	bytes := make([]byte, a.length)
+	for j := 0; j < a.length; j++ {
+		bytes[j] = chars[rand.Intn(len(chars))]
+	}
+	return bytes
 }
 
 // getBenchmarks returns a list of benchmarks in the given suite

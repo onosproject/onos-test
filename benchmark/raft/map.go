@@ -16,16 +16,19 @@ package raft
 
 import (
 	"context"
+	"errors"
 	"github.com/atomix/atomix-go-client/pkg/client/map"
 	"github.com/onosproject/onos-test/pkg/benchmark"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
+	"time"
 )
 
 // MapBenchmarkSuite :: benchmark
 type MapBenchmarkSuite struct {
 	benchmark.Suite
-	_map _map.Map
+	_map    _map.Map
+	watchCh chan *_map.Event
 }
 
 // SetupSuite :: benchmark
@@ -55,8 +58,8 @@ func (s *MapBenchmarkSuite) TearDownBenchmark(c *benchmark.Context) {
 // BenchmarkMapPut :: benchmark
 func (s *MapBenchmarkSuite) BenchmarkMapPut(b *benchmark.Benchmark) {
 	params := []benchmark.Param{
-		benchmark.RandomString(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
-		benchmark.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
+		benchmark.RandomStringFromSet(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
+		benchmark.RandomBytesFromSet(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
 	}
 	b.Run(func(key string, value []byte) error {
 		_, err := s._map.Put(context.Background(), key, value)
@@ -67,10 +70,39 @@ func (s *MapBenchmarkSuite) BenchmarkMapPut(b *benchmark.Benchmark) {
 // BenchmarkMapGet :: benchmark
 func (s *MapBenchmarkSuite) BenchmarkMapGet(b *benchmark.Benchmark) {
 	params := []benchmark.Param{
-		benchmark.RandomString(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
+		benchmark.RandomStringFromSet(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
 	}
 	b.Run(func(key string) error {
 		_, err := s._map.Get(context.Background(), key)
 		return err
+	}, params...)
+}
+
+func (s *MapBenchmarkSuite) SetupBenchmarkMapEvent(c *benchmark.Context) {
+	watchCh := make(chan *_map.Event)
+	if err := s._map.Watch(context.Background(), watchCh); err != nil {
+		panic(err)
+	}
+	s.watchCh = watchCh
+}
+
+func (s *MapBenchmarkSuite) TearDownBenchmarkMapEvent(c *benchmark.Context) {
+	s.watchCh = nil
+}
+
+// BenchmarkMapEvent :: benchmark
+func (s *MapBenchmarkSuite) BenchmarkMapEvent(b *benchmark.Benchmark) {
+	params := []benchmark.Param{
+		benchmark.RandomString(b.GetArg("key-length").Int(8)),
+		benchmark.RandomBytes(b.GetArg("value-length").Int(128)),
+	}
+	b.Run(func(key string, value []byte) error {
+		_, err := s._map.Put(context.Background(), key, value)
+		select {
+		case <-s.watchCh:
+			return err
+		case <-time.After(10 * time.Second):
+			return errors.New("event timeout")
+		}
 	}, params...)
 }

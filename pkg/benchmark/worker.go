@@ -153,8 +153,14 @@ func (w *Worker) SetupBenchmark(ctx context.Context, request *BenchmarkRequest) 
 		return nil, err
 	}
 
+	context := newContext(request.Benchmark, request.Args)
 	if setupBenchmark, ok := suite.(SetupBenchmark); ok {
-		setupBenchmark.SetupBenchmark(newContext(request.Benchmark, request.Args))
+		setupBenchmark.SetupBenchmark(context)
+	}
+
+	methods := reflect.TypeOf(suite)
+	if method, ok := methods.MethodByName("Setup" + request.Benchmark); ok {
+		method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(context)})
 	}
 
 	step.Complete()
@@ -172,8 +178,14 @@ func (w *Worker) TearDownBenchmark(ctx context.Context, request *BenchmarkReques
 		return nil, err
 	}
 
+	context := newContext(request.Benchmark, request.Args)
 	if tearDownBenchmark, ok := suite.(TearDownBenchmark); ok {
-		tearDownBenchmark.TearDownBenchmark(newContext(request.Benchmark, request.Args))
+		tearDownBenchmark.TearDownBenchmark(context)
+	}
+
+	methods := reflect.TypeOf(suite)
+	if method, ok := methods.MethodByName("TearDown" + request.Benchmark); ok {
+		method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(context)})
 	}
 
 	step.Complete()
