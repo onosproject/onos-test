@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"k8s.io/apimachinery/pkg/watch"
 	"time"
 
 	"github.com/onosproject/onos-test/pkg/util/logging"
@@ -470,6 +471,7 @@ func (s *Simulator) AwaitDevicePredicate(predicate func(*device.Device) bool, ti
 // TearDown removes the simulator from the cluster
 func (s *Simulator) TearDown() error {
 	var err error
+
 	if e := s.removeDevice(); e != nil {
 		err = e
 	}
@@ -480,6 +482,9 @@ func (s *Simulator) TearDown() error {
 		err = e
 	}
 	if e := s.deleteConfigMap(); e != nil {
+		err = e
+	}
+	if e := s.waitForDeletePod(); e != nil {
 		err = e
 	}
 	return err
@@ -529,6 +534,20 @@ func (s *Simulator) deleteConfigMap() error {
 // deletePod deletes a simulator Pod by name
 func (s *Simulator) deletePod() error {
 	return s.kubeClient.CoreV1().Pods(s.namespace).Delete(s.name, &metav1.DeleteOptions{})
+}
+
+func (s *Simulator) waitForDeletePod() error {
+	w, e := s.kubeClient.CoreV1().Pods(s.client.namespace).Watch(metav1.ListOptions{})
+	if e != nil {
+		return e
+	}
+	for event := range w.ResultChan() {
+		switch event.Type {
+		case watch.Deleted:
+			w.Stop()
+		}
+	}
+	return nil
 }
 
 // deleteService deletes a simulator Service by name
