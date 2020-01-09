@@ -26,6 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -57,7 +58,7 @@ func (c *Coordinator) Run() error {
 			suites = append(suites, suite)
 		}
 	} else {
-		suites = []string{c.config.Suite}
+		suites = strings.Split(c.config.Suite, ",")
 	}
 
 	workers := make([]*WorkerTask, len(suites))
