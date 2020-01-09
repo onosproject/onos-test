@@ -45,6 +45,10 @@ const (
 	gnmiInsecurePortEnv       = "GNMI_INSECURE_PORT"
 )
 
+/* This is the initial OpenConfig model that is
+   used in for the gnmi simulator.
+*/
+// TODO It would be better to find a solution to read it from file (if it is possible).
 const simulatorConfig = `
 {
   "interfaces": {
