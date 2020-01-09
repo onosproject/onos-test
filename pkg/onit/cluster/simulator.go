@@ -46,6 +46,10 @@ const (
 	gnmiInsecurePortEnv       = "GNMI_INSECURE_PORT"
 )
 
+/* This is the initial OpenConfig model that is
+   used in for the gnmi simulator.
+*/
+// TODO It would be better to find a solution to read it from file (if it is possible).
 const simulatorConfig = `
 {
   "interfaces": {
@@ -84,6 +88,15 @@ const simulatorConfig = `
       "login-banner": "This device is for authorized use only",
       "motd-banner": "replace-motd-banner"
     },
+    "state" : {
+      "boot-time": "1575415411",
+      "current-datetime": "2019-12-04T10:00:00Z-05:00",
+      "hostname": "replace-device-name",
+      "domain-name": "opennetworking.org",
+      "login-banner": "This device is for authorized use only",
+      "motd-banner": "replace-motd-banner"
+
+    },
     "openflow": {
       "agent": {
         "config": {
@@ -120,10 +133,81 @@ const simulatorConfig = `
                     "source-interface": "admin",
                     "transport": "TLS"
                   }
+                },
+                {
+                  "aux-id": 1,
+                  "config": {
+                    "address": "192.0.2.11",
+                    "aux-id": 1,
+                    "port": 6653,
+                    "priority": 2,
+                    "source-interface": "admin",
+                    "transport": "TLS"
+                  },
+                  "state": {
+                    "address": "192.0.2.11",
+                    "aux-id": 1,
+                    "port": 6653,
+                    "priority": 2,
+                    "source-interface": "admin",
+                    "transport": "TLS"
+                  }
                 }
+
               ]
+             
             },
             "name": "main"
+          },
+          {
+            "config": {
+              "name": "second"
+            },
+            "connections": {
+              "connection": [
+                {
+                  "aux-id": 0,
+                  "config": {
+                    "address": "192.0.3.10",
+                    "aux-id": 0,
+                    "port": 6633,
+                    "priority": 1,
+                    "source-interface": "admin",
+                    "transport": "TLS"
+                  },
+                  "state": {
+                    "address": "192.0.3.10",
+                    "aux-id": 0,
+                    "port": 6633,
+                    "priority": 1,
+                    "source-interface": "admin",
+                    "transport": "TLS"
+                  }
+                },
+                {
+                  "aux-id": 1,
+                  "config": {
+                    "address": "192.0.3.11",
+                    "aux-id": 1,
+                    "port": 6653,
+                    "priority": 2,
+                    "source-interface": "admin",
+                    "transport": "TLS"
+                  },
+                  "state": {
+                    "address": "192.0.3.11",
+                    "aux-id": 1,
+                    "port": 6653,
+                    "priority": 2,
+                    "source-interface": "admin",
+                    "transport": "TLS"
+                  }
+                }
+
+              ]
+             
+            },
+            "name": "second"
           }
         ]
       }
