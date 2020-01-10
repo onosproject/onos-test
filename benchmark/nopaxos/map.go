@@ -30,10 +30,7 @@ type MapBenchmarkSuite struct {
 
 // SetupSuite :: benchmark
 func (s *MapBenchmarkSuite) SetupSuite(c *benchmark.Context) {
-	setup.Partitions("nopaxos").
-		NOPaxos().
-		SetPartitions(c.GetArg("partitions").Int(1)).
-		SetReplicasPerPartition(c.GetArg("replicas").Int(1))
+	setup.Partitions("nopaxos").NOPaxos()
 	setup.SetupOrDie()
 }
 
