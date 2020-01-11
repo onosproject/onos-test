@@ -4,18 +4,34 @@
 
 set -e
 
-# onos-topo
-pushd ..
-git clone https://github.com/onosproject/onos-topo.git
-cd onos-topo
-make kind
-onit test --image onosproject/onos-topo-tests:latest --suite topo
-popd
+if [ -z $1 ]
+then
+  testSuite="*** Unknown Test Suite ***"
+elif [ -n $1 ]
+then
+# otherwise make first arg as a rental
+  testSuite=$1
+fi
 
-# onos-config
-pushd ..
-git clone https://github.com/onosproject/onos-config.git
-cd onos-config
-make kind
-onit test --image onosproject/onos-config-tests:latest --suite gnmi
-popd
+case "$testSuite" in
+"onos-topo")
+     # onos-topo
+     pushd ..
+     git clone https://github.com/onosproject/onos-topo.git
+     cd onos-topo
+     make kind
+     onit test --image onosproject/onos-topo-tests:latest --suite topo
+     popd;;
+
+"onos-config")
+    # onos-config
+    pushd ..
+    git clone https://github.com/onosproject/onos-config.git
+    cd onos-config
+    make kind
+    onit test --image onosproject/onos-config-tests:latest --suite gnmi
+    popd;;
+*) echo "You have failed to specify test suite."
+    exit 1
+    ;;
+esac
