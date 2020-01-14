@@ -16,15 +16,12 @@ package benchmark
 
 import (
 	"math"
-	"math/rand"
 	"reflect"
 	"sort"
 	"strconv"
 	"sync"
 	"time"
 )
-
-const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNNOPQRSTUVWXYZ1234567890"
 
 const warmUpDuration = 30 * time.Second
 const aggBatchSize = 100
@@ -194,7 +191,7 @@ func (b *Benchmark) prepare(next interface{}, params []Param) func(...interface{
 
 	// Prepare the benchmark parameters
 	for _, param := range params {
-		param.reset()
+		param.Reset()
 	}
 	return f
 }
@@ -219,7 +216,7 @@ func (b *Benchmark) warm(f func(...interface{}), params []Param) {
 	for time.Since(start) < warmUpDuration {
 		args := make([]interface{}, len(params))
 		for j, arg := range params {
-			args[j] = arg.next()
+			args[j] = arg.Next()
 		}
 		requestCh <- args
 	}
@@ -295,7 +292,7 @@ func (b *Benchmark) run(f func(...interface{}), params []Param) (int, time.Durat
 	for (b.requests == 0 || requests < b.requests) && (b.duration == nil || time.Since(start) < *b.duration) {
 		args := make([]interface{}, len(params))
 		for j, arg := range params {
-			args[j] = arg.next()
+			args[j] = arg.Next()
 		}
 		requestCh <- args
 		requests++
@@ -324,117 +321,11 @@ func (b *Benchmark) run(f func(...interface{}), params []Param) (int, time.Durat
 
 // Param is an interface for benchmark parameters
 type Param interface {
-	// reset resets the benchmark parameter
-	reset()
+	// Reset resets the benchmark parameter
+	Reset()
 
-	// next returns the next instance of the benchmark parameter
-	next() interface{}
-}
-
-// RandomStringFromSet returns a random string parameter
-func RandomStringFromSet(count int, length int) Param {
-	return &RandomStringFromSetParam{
-		count:  count,
-		length: length,
-	}
-}
-
-// RandomStringFromSetParam is a random string parameter
-type RandomStringFromSetParam struct {
-	count  int
-	length int
-	args   []string
-}
-
-func (a *RandomStringFromSetParam) reset() {
-	a.args = make([]string, a.count)
-	for i := 0; i < a.count; i++ {
-		bytes := make([]byte, a.length)
-		for j := 0; j < a.length; j++ {
-			bytes[j] = chars[rand.Intn(len(chars))]
-		}
-		a.args[i] = string(bytes)
-	}
-}
-
-func (a *RandomStringFromSetParam) next() interface{} {
-	return a.args[rand.Intn(len(a.args))]
-}
-
-// RandomString returns a random string parameter
-func RandomString(length int) Param {
-	return &RandomStringParam{
-		length: length,
-	}
-}
-
-// RandomStringParam is a random string parameter
-type RandomStringParam struct {
-	length int
-	args   []string
-}
-
-func (a *RandomStringParam) reset() {}
-
-func (a *RandomStringParam) next() interface{} {
-	bytes := make([]byte, a.length)
-	for j := 0; j < a.length; j++ {
-		bytes[j] = chars[rand.Intn(len(chars))]
-	}
-	return string(bytes)
-}
-
-// RandomBytesFromSet returns a random bytes parameter
-func RandomBytesFromSet(count int, length int) Param {
-	return &RandomBytesFromSetParam{
-		count:  count,
-		length: length,
-	}
-}
-
-// RandomBytesFromSetParam is a random string parameter
-type RandomBytesFromSetParam struct {
-	count  int
-	length int
-	args   [][]byte
-}
-
-func (a *RandomBytesFromSetParam) reset() {
-	a.args = make([][]byte, a.count)
-	for i := 0; i < a.count; i++ {
-		bytes := make([]byte, a.length)
-		for j := 0; j < a.length; j++ {
-			bytes[j] = chars[rand.Intn(len(chars))]
-		}
-		a.args[i] = bytes
-	}
-}
-
-func (a *RandomBytesFromSetParam) next() interface{} {
-	return a.args[rand.Intn(len(a.args))]
-}
-
-// RandomBytes returns a random bytes parameter
-func RandomBytes(length int) Param {
-	return &RandomBytesParam{
-		length: length,
-	}
-}
-
-// RandomBytesParam is a random string parameter
-type RandomBytesParam struct {
-	length int
-	args   [][]byte
-}
-
-func (a *RandomBytesParam) reset() {}
-
-func (a *RandomBytesParam) next() interface{} {
-	bytes := make([]byte, a.length)
-	for j := 0; j < a.length; j++ {
-		bytes[j] = chars[rand.Intn(len(chars))]
-	}
-	return bytes
+	// Next returns the Next instance of the benchmark parameter
+	Next() interface{}
 }
 
 // getBenchmarks returns a list of benchmarks in the given suite

@@ -18,6 +18,7 @@ import (
 	"context"
 	"github.com/atomix/atomix-go-client/pkg/client/map"
 	"github.com/onosproject/onos-test/pkg/benchmark"
+	"github.com/onosproject/onos-test/pkg/benchmark/params"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
 )
@@ -54,23 +55,27 @@ func (s *MapBenchmarkSuite) TearDownBenchmark(c *benchmark.Context) {
 
 // BenchmarkMapPut :: benchmark
 func (s *MapBenchmarkSuite) BenchmarkMapPut(b *benchmark.Benchmark) {
-	params := []benchmark.Param{
-		benchmark.RandomStringFromSet(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
-		benchmark.RandomBytesFromSet(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
-	}
 	b.Run(func(key string, value []byte) error {
 		_, err := s._map.Put(context.Background(), key, value)
 		return err
-	}, params...)
+	},
+		params.RandomChoice(
+			params.SetOf(
+				params.RandomString(b.GetArg("key-length").Int(8)),
+				b.GetArg("key-count").Int(1000))),
+		params.RandomChoice(
+			params.SetOf(
+				params.RandomBytes(b.GetArg("value-length").Int(128)),
+				b.GetArg("value-count").Int(1))))
 }
 
 // BenchmarkMapGet :: benchmark
 func (s *MapBenchmarkSuite) BenchmarkMapGet(b *benchmark.Benchmark) {
-	params := []benchmark.Param{
-		benchmark.RandomStringFromSet(b.GetArg("key-count").Int(1000), b.GetArg("key-length").Int(8)),
-	}
 	b.Run(func(key string) error {
 		_, err := s._map.Get(context.Background(), key)
 		return err
-	}, params...)
+	}, params.RandomChoice(
+		params.SetOf(
+			params.RandomString(b.GetArg("key-length").Int(8)),
+			b.GetArg("key-count").Int(1000))))
 }
