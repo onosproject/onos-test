@@ -83,6 +83,7 @@ func (s *MapBenchmarkSuite) BenchmarkMapGet(b *benchmark.Benchmark) {
 			b.GetArg("key-count").Int(1000))))
 }
 
+// SetupBenchmarkMapEvent sets up the map event benchmark
 func (s *MapBenchmarkSuite) SetupBenchmarkMapEvent(c *benchmark.Context) {
 	watchCh := make(chan *_map.Event)
 	if err := s._map.Watch(context.Background(), watchCh); err != nil {
@@ -91,6 +92,7 @@ func (s *MapBenchmarkSuite) SetupBenchmarkMapEvent(c *benchmark.Context) {
 	s.watchCh = watchCh
 }
 
+// TearDownBenchmarkMapEvent tears down the map event benchmark
 func (s *MapBenchmarkSuite) TearDownBenchmarkMapEvent(c *benchmark.Context) {
 	s.watchCh = nil
 }

@@ -84,7 +84,6 @@ func RandomString(length int) benchmark.Param {
 // RandomStringParam is a random string parameter
 type RandomStringParam struct {
 	length int
-	args   []string
 }
 
 // Reset resets the parameter
@@ -109,7 +108,6 @@ func RandomBytes(length int) benchmark.Param {
 // RandomBytesParam is a random string parameter
 type RandomBytesParam struct {
 	length int
-	args   [][]byte
 }
 
 // Reset resets the parameter
