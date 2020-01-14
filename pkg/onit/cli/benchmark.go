@@ -15,13 +15,14 @@
 package cli
 
 import (
+	"time"
+
 	"github.com/onosproject/onos-test/pkg/benchmark"
 	"github.com/onosproject/onos-test/pkg/cluster"
 	onitcluster "github.com/onosproject/onos-test/pkg/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	"time"
 )
 
 func getBenchCommand() *cobra.Command {
@@ -93,6 +94,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		ImagePullPolicy: pullPolicy,
 		Env:             config.ToEnv(),
 		Timeout:         timeout,
+		Type:            "benchmark",
 	}
 
 	// Create a job runner and run the benchmark job
