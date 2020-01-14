@@ -12,32 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package nopaxos
+package raft
 
 import (
 	"context"
+	"errors"
 	"github.com/atomix/atomix-go-client/pkg/client/map"
 	"github.com/onosproject/onos-test/pkg/benchmark"
 	"github.com/onosproject/onos-test/pkg/benchmark/params"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
+	"time"
 )
 
 // MapBenchmarkSuite :: benchmark
 type MapBenchmarkSuite struct {
 	benchmark.Suite
-	_map _map.Map
+	_map    _map.Map
+	watchCh chan *_map.Event
 }
 
 // SetupSuite :: benchmark
 func (s *MapBenchmarkSuite) SetupSuite(c *benchmark.Context) {
-	setup.Partitions("nopaxos").NOPaxos()
+	setup.Partitions("raft").Raft()
 	setup.SetupOrDie()
 }
 
 // SetupBenchmark :: benchmark
 func (s *MapBenchmarkSuite) SetupBenchmark(c *benchmark.Context) {
-	group, err := env.Database().Partitions("nopaxos").Connect()
+	group, err := env.Database().Partitions("raft").Connect()
 	if err != nil {
 		panic(err)
 	}
@@ -78,4 +81,33 @@ func (s *MapBenchmarkSuite) BenchmarkMapGet(b *benchmark.Benchmark) {
 		params.SetOf(
 			params.RandomString(b.GetArg("key-length").Int(8)),
 			b.GetArg("key-count").Int(1000))))
+}
+
+// SetupBenchmarkMapEvent sets up the map event benchmark
+func (s *MapBenchmarkSuite) SetupBenchmarkMapEvent(c *benchmark.Context) {
+	watchCh := make(chan *_map.Event)
+	if err := s._map.Watch(context.Background(), watchCh); err != nil {
+		panic(err)
+	}
+	s.watchCh = watchCh
+}
+
+// TearDownBenchmarkMapEvent tears down the map event benchmark
+func (s *MapBenchmarkSuite) TearDownBenchmarkMapEvent(c *benchmark.Context) {
+	s.watchCh = nil
+}
+
+// BenchmarkMapEvent :: benchmark
+func (s *MapBenchmarkSuite) BenchmarkMapEvent(b *benchmark.Benchmark) {
+	b.Run(func(key string, value []byte) error {
+		_, err := s._map.Put(context.Background(), key, value)
+		select {
+		case <-s.watchCh:
+			return err
+		case <-time.After(10 * time.Second):
+			return errors.New("event timeout")
+		}
+	},
+		params.RandomString(b.GetArg("key-length").Int(8)),
+		params.RandomBytes(b.GetArg("value-length").Int(128)))
 }

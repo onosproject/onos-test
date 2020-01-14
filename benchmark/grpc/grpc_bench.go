@@ -17,6 +17,7 @@ package grpc
 import (
 	"context"
 	"github.com/onosproject/onos-test/pkg/benchmark"
+	"github.com/onosproject/onos-test/pkg/benchmark/params"
 	"github.com/onosproject/onos-test/pkg/onit/setup"
 	"google.golang.org/grpc"
 )
@@ -52,14 +53,11 @@ func (s *BenchmarkSuite) TearDownBenchmark(c *benchmark.Context) {
 
 // BenchmarkGRPCRequestReply :: benchmark
 func (s *BenchmarkSuite) BenchmarkGRPCRequestReply(b *benchmark.Benchmark) {
-	params := []benchmark.Param{
-		benchmark.RandomBytes(b.GetArg("value-count").Int(1), b.GetArg("value-length").Int(128)),
-	}
 	client := NewTestServiceClient(s.conn)
 	b.Run(func(value []byte) error {
 		_, err := client.RequestReply(context.Background(), &Message{
 			Value: value,
 		})
 		return err
-	}, params...)
+	}, params.RandomBytes(b.GetArg("value-length").Int(128)))
 }

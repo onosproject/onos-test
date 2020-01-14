@@ -25,6 +25,8 @@ github.com/atomix/atomix-api v0.0.0-20191017192115-4d6a4f8e87a3 h1:iKZxEUGEJ1ZfW
 github.com/atomix/atomix-api v0.0.0-20191017192115-4d6a4f8e87a3/go.mod h1:joWKUd0zIeYbAQ0vmYHGsnV03ZgRalhceHgnJ3EN0mI=
 github.com/atomix/atomix-api v0.0.0-20191021183656-837bfda65c82 h1:jqTiJj5KfEADMgkVd06NhUC0DxSLwrWE56KghT9vGgw=
 github.com/atomix/atomix-api v0.0.0-20191021183656-837bfda65c82/go.mod h1:joWKUd0zIeYbAQ0vmYHGsnV03ZgRalhceHgnJ3EN0mI=
+github.com/atomix/atomix-api v0.0.0-20191217054529-55159c51ab6e h1:j4GEpQhi/Z2vpwA0icEQZAOemoUU7vjSIVWjRzFyWps=
+github.com/atomix/atomix-api v0.0.0-20191217054529-55159c51ab6e/go.mod h1:joWKUd0zIeYbAQ0vmYHGsnV03ZgRalhceHgnJ3EN0mI=
 github.com/atomix/atomix-go-client v0.0.0-20190807011524-58b4352273d7 h1:XE+KsvclmfZjbqYDhBqeK8wHDDHYB/FiwGeLcBurYoM=
 github.com/atomix/atomix-go-client v0.0.0-20190807011524-58b4352273d7/go.mod h1:P/m0xcEzXviZLULk78gYlJr0mHjXCZAcem3kOkvwzhA=
 github.com/atomix/atomix-go-client v0.0.0-20190814013624-2b7049842ee1 h1:SW6b1TIATnNmsKrnGaoweY+uLezgUEKT61z3IGLKOts=
@@ -51,6 +53,8 @@ github.com/atomix/atomix-go-client v0.0.0-20191022230401-78955a5abbef h1:RePrb4E
 github.com/atomix/atomix-go-client v0.0.0-20191022230401-78955a5abbef/go.mod h1:3VrFe1rCx3N6puiQOS0L9XoReGSaapaSH9pVZ3vW614=
 github.com/atomix/atomix-go-client v0.0.0-20191127222459-36981d701c6e h1:aLn+oZd73fkB11hrCGuqpFPug7rleIT0cCxloffYzMM=
 github.com/atomix/atomix-go-client v0.0.0-20191127222459-36981d701c6e/go.mod h1:3VrFe1rCx3N6puiQOS0L9XoReGSaapaSH9pVZ3vW614=
+github.com/atomix/atomix-go-client v0.0.0-20191219053757-bad855985f00 h1:ZlWT6LwOC6KD/XqaDnJMJcx7sNotRsONjwseYhcNzXY=
+github.com/atomix/atomix-go-client v0.0.0-20191219053757-bad855985f00/go.mod h1:riSQMsP+Pn2ZffC1AiPAc9HhTwcnlPRYTmW73KNM7hA=
 github.com/atomix/atomix-go-local v0.0.0-20190827233944-938e35b06834/go.mod h1:qLBTOiVKoEqzYOjgxIgWFa+Hfa3SR+VexA6jGBcv0HA=
 github.com/atomix/atomix-go-local v0.0.0-20190828183508-3db728c0fc3b/go.mod h1:VnwyXJvHzUHuVzzTmPhZ6/ktbBnz3CZk3aKMX7VlTmY=
 github.com/atomix/atomix-go-local v0.0.0-20190830183800-73f964b0f75a h1:O/17kCIR6b+QeSkNpP12g/xTiDg976KSIS/8SSJ6Z/8=
@@ -69,6 +73,7 @@ github.com/atomix/atomix-go-local v0.0.0-20191018192811-4de2cabe75ef/go.mod h1:L
 github.com/atomix/atomix-go-local v0.0.0-20191021234710-cca1c26bf4d8/go.mod h1:oRfnzGG5NU/uAQclc6chtLQ97/7WC5u+4t8lDouZIIE=
 github.com/atomix/atomix-go-local v0.0.0-20191108201451-9131cc896ed6 h1:qMdzRqZt7Jj7iyQOGRzQjoPRSTCRXjwKkPAhRUsYewo=
 github.com/atomix/atomix-go-local v0.0.0-20191108201451-9131cc896ed6/go.mod h1:aI/yXHQlpmA3DlJwFtmfvBSA6hyk1ANZLeXRYdZZ9wk=
+github.com/atomix/atomix-go-local v0.0.0-20191218214123-a72c188f976e/go.mod h1:TNYeoT2heNTgytoOXq1juZ/X/6GctzWC1bTmmAUBWIM=
 github.com/atomix/atomix-go-node v0.0.0-20190827191929-2d3dc9c550d9/go.mod h1:PL1T5R78itch1QC1CN4JmbRL/2XQlg4R95R14822C6Q=
 github.com/atomix/atomix-go-node v0.0.0-20190828183436-fc30340cd8db/go.mod h1:dyh8Bb50qKfMlpqDE6X+dQ1tZ399WKEABa3ntDYImnA=
 github.com/atomix/atomix-go-node v0.0.0-20190830183721-649263a17223/go.mod h1:KJxB/MAgndAbyCOqTV2hatw7lExiZZs7QCOr45IfC9U=
@@ -89,6 +94,8 @@ github.com/atomix/atomix-go-node v0.0.0-20191018192345-6fbb86e5f5ef/go.mod h1:Sm
 github.com/atomix/atomix-go-node v0.0.0-20191021234659-c841a97bec89/go.mod h1:wLJ9+8FK7p8R8tz3bXPQ6GTvpwhkwjyPomkL9ok5AzM=
 github.com/atomix/atomix-go-node v0.0.0-20191108201428-59c0962b63c8 h1:M9Spu1hySxpvTSZlwBkhcgPCxzS8GL+4Oizn2hxAbd4=
 github.com/atomix/atomix-go-node v0.0.0-20191108201428-59c0962b63c8/go.mod h1:wLJ9+8FK7p8R8tz3bXPQ6GTvpwhkwjyPomkL9ok5AzM=
+github.com/atomix/atomix-go-node v0.0.0-20191218180435-f58b519050d0/go.mod h1:CwNyxY+AwoQt76lt5EjK7PCIVuNe48c5mh/kJNBBEAg=
+github.com/atomix/atomix-go-node v0.0.0-20191218215657-d6b301251224/go.mod h1:Io61YHRSVo0k3wgq+ZSZH0Wyjrp7B4pNC5Jj0gQ+Ko8=
 github.com/atomix/atomix-k8s-controller v0.0.0-20190620084759-d5e65f7fbf68 h1:PCOXQ9q2rP/oYVNAFHR1LIqyD5JXQ19saZUKc4MkfR8=
 github.com/atomix/atomix-k8s-controller v0.0.0-20190620084759-d5e65f7fbf68/go.mod h1:vdmRfGKhgD28STeLKeKoq3tMZOyTR0l3WSG9QCrZWs0=
 github.com/atomix/atomix-k8s-controller v0.0.0-20190905035228-0c2f92a4bc0e h1:YJyjc60GiCyyWttQtVmLutmUJH41Wyqe/i5h7UdLwkc=
