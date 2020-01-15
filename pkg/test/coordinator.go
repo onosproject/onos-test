@@ -62,8 +62,7 @@ func (c *Coordinator) Run() error {
 		suites = strings.Split(c.config.Suite, ",")
 	}
 
-	iterations, _ := strconv.Atoi(c.config.Iterations)
-	for iteration := 1; iteration <= iterations || c.config.Iterations == "-1"; iteration++ {
+	for iteration := 1; iteration <= c.config.Iterations || c.config.Iterations < 0; iteration++ {
 		workers := make([]*WorkerTask, len(suites))
 		for i, suite := range suites {
 			jobID := newJobID(c.config.ID+"-"+strconv.Itoa(iteration), suite)
