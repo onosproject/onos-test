@@ -91,9 +91,10 @@ func (j *JobInfo) GetJobType() string {
 }
 
 // getJobs gets list of all jobs based on a given jobType
-func (h *History) getJobs(jobType string) []JobInfo {
+func (h *History) getJobs(jobType string) ([]JobInfo, map[string]JobInfo) {
 	pods := h.getPods(getLabels(jobType), "kube-test")
 	var jobs []JobInfo
+	jobsMap := make(map[string]JobInfo, len(pods.Items))
 
 	for _, pod := range pods.Items {
 		status := ""
@@ -127,21 +128,34 @@ func (h *History) getJobs(jobType string) []JobInfo {
 			envVar:  envVarMap,
 		}
 		jobs = append(jobs, job)
+		jobsMap[job.jobName] = job
 
 	}
 
-	return jobs
+	return jobs, jobsMap
 
+}
+
+// GetTestsMap gets a map of test jobs
+func (h *History) GetTestsMap() map[string]JobInfo {
+	_, mapTests := h.getJobs("test")
+	return mapTests
+}
+
+// GetBenchmarksMap gets a maps of benchmarks
+func (h *History) GetBenchmarksMap() map[string]JobInfo {
+	_, mapBenchmarks := h.getJobs("benchmark")
+	return mapBenchmarks
 }
 
 // ListTests gets list of all tests
 func (h *History) ListTests() []JobInfo {
-	testJobs := h.getJobs("test")
+	testJobs, _ := h.getJobs("test")
 	return testJobs
 }
 
 // ListBenchmarks gets list of all benchmarks
 func (h *History) ListBenchmarks() []JobInfo {
-	benchJobs := h.getJobs("benchmark")
+	benchJobs, _ := h.getJobs("benchmark")
 	return benchJobs
 }

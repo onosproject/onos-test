@@ -20,8 +20,12 @@ import (
 
 // HistoryEnv provides the history environment
 type HistoryEnv interface {
-	// List returns a history of tests and benchmarks
-	List() []cluster.JobInfo
+
+	// GetTestsMap returns a map of tests
+	GetTestsMap() map[string]cluster.JobInfo
+
+	// GetBenchmarksMap returns a map of benchmarks
+	GetBenchmarksMap() map[string]cluster.JobInfo
 
 	// ListTests returns a history of tests
 	ListTests() []cluster.JobInfo
@@ -45,4 +49,14 @@ func (e *clusterHistoryEnv) ListTests() []cluster.JobInfo {
 // ListBenchmarks gets list of benchmarks
 func (e *clusterHistoryEnv) ListBenchmarks() []cluster.JobInfo {
 	return e.history.ListBenchmarks()
+}
+
+// GetTestsMap gets a map of tests
+func (e *clusterHistoryEnv) GetTestsMap() map[string]cluster.JobInfo {
+	return e.history.GetTestsMap()
+}
+
+// GetBenchmarksMap gets a map of benchmarks
+func (e *clusterHistoryEnv) GetBenchmarksMap() map[string]cluster.JobInfo {
+	return e.history.GetBenchmarksMap()
 }

@@ -76,7 +76,9 @@ func runGetTestCommand(cmd *cobra.Command, _ []string) error {
 	}
 
 	env := env.New(kubeAPI)
-	tests := env.History().ListTests()
+	tests := env.History().GetTestsMap()
+	test := tests[getName(cmd)]
+	printTest(test)
 	return nil
 }
 
@@ -108,6 +110,16 @@ func printBenchmarks(jobs []oc.JobInfo) {
 		fmt.Fprintln(w, job.GetJobName(), "\t", job.GetJobStatus(), "\t", job.GetJobType(), "\t", job.GetJobImage(),
 			"\t", job.GetEnvVar()["BENCHMARK_SUITE"], "\t", job.GetEnvVar()["BENCHMARK_NAME"])
 	}
+	w.Flush()
+}
+
+func printTest(job oc.JobInfo) {
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug|tabwriter.AlignRight)
+	fmt.Fprintln(w, "Job Name\tStatus\tType\tImage\tTest Suite\tTest Name")
+	fmt.Fprintln(w, job.GetJobName(), "\t", job.GetJobStatus(), "\t", job.GetJobType(), "\t", job.GetJobImage(),
+		"\t", job.GetEnvVar()["TEST_SUITE"], "\t", job.GetEnvVar()["TEST_NAME"])
+
 	w.Flush()
 }
 
