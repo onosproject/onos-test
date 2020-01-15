@@ -41,6 +41,9 @@ var (
 		onit get networks`
 )
 
+const benchJobHeader = "Job Name\tStatus\tType\tImage\tBenchmark Suite\tBenchmark Name"
+const testJobHeader = "Job Name\tStatus\tType\tImage\tTest Suite\tTest Name"
+
 // getGetCommand returns a cobra "get" command to read test configurations
 func getGetCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -82,6 +85,9 @@ func getGetTestCommand() *cobra.Command {
 }
 
 func runGetBenchmarkCommand(cmd *cobra.Command, args []string) error {
+	if len(args) != 1 {
+		return nil
+	}
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
@@ -95,6 +101,9 @@ func runGetBenchmarkCommand(cmd *cobra.Command, args []string) error {
 }
 
 func runGetTestCommand(cmd *cobra.Command, args []string) error {
+	if len(args) != 1 {
+		return nil
+	}
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
@@ -127,22 +136,35 @@ func getGetBenchmarksCommand() *cobra.Command {
 	return cmd
 }
 
+func makeJobInfoHeader(job oc.JobInfo) string {
+	jobName := job.GetJobName()
+	jobStatus := job.GetJobStatus()
+	jobType := job.GetJobType()
+	jobImage := job.GetJobImage()
+	jobInfo := jobName + "\t" + jobStatus + "\t" + jobType + "\t" + jobImage + "\t"
+	if job.GetJobType() == "test" {
+		jobInfo = jobInfo + job.GetEnvVar()["TEST_SUITE"] + "\t" + job.GetEnvVar()["TEST_NAME"]
+	}
+	if job.GetJobType() == "benchmark" {
+		jobInfo = jobInfo + job.GetEnvVar()["BENCHMARK_SUITE"] + "\t" + job.GetEnvVar()["BENCHMARK_NAME"]
+	}
+	return jobInfo
+}
+
 func printBenchmark(job oc.JobInfo) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug|tabwriter.AlignRight)
-	fmt.Fprintln(w, "Job Name\tStatus\tType\tImage\tBenchmark Suite\tBenchmark Name")
-	fmt.Fprintln(w, job.GetJobName(), "\t", job.GetJobStatus(), "\t", job.GetJobType(), "\t", job.GetJobImage(),
-		"\t", job.GetEnvVar()["BENCHMARK_SUITE"], "\t", job.GetEnvVar()["BENCHMARK_NAME"])
+	fmt.Fprintln(w, benchJobHeader)
+	fmt.Fprintln(w, makeJobInfoHeader(job))
 	w.Flush()
 }
 
 func printBenchmarks(jobs []oc.JobInfo) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug|tabwriter.AlignRight)
-	fmt.Fprintln(w, "Job Name\tStatus\tType\tImage\tBenchmark Suite\tBenchmark Name")
+	fmt.Fprintln(w, benchJobHeader)
 	for _, job := range jobs {
-		fmt.Fprintln(w, job.GetJobName(), "\t", job.GetJobStatus(), "\t", job.GetJobType(), "\t", job.GetJobImage(),
-			"\t", job.GetEnvVar()["BENCHMARK_SUITE"], "\t", job.GetEnvVar()["BENCHMARK_NAME"])
+		fmt.Fprintln(w, makeJobInfoHeader(job))
 	}
 	w.Flush()
 }
@@ -150,22 +172,19 @@ func printBenchmarks(jobs []oc.JobInfo) {
 func printTest(job oc.JobInfo) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug|tabwriter.AlignRight)
-	fmt.Fprintln(w, "Job Name\tStatus\tType\tImage\tTest Suite\tTest Name")
-	fmt.Fprintln(w, job.GetJobName(), "\t", job.GetJobStatus(), "\t", job.GetJobType(), "\t", job.GetJobImage(),
-		"\t", job.GetEnvVar()["TEST_SUITE"], "\t", job.GetEnvVar()["TEST_NAME"])
-
+	fmt.Fprintln(w, testJobHeader)
+	fmt.Fprintln(w, makeJobInfoHeader(job))
 	w.Flush()
 }
 
 func printTests(jobs []oc.JobInfo) {
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug|tabwriter.AlignRight)
-	fmt.Fprintln(w, "Job Name\tStatus\tType\tImage\tTest Suite\tTest Name")
+	_, _ = fmt.Fprintln(w, testJobHeader)
 	for _, job := range jobs {
-		fmt.Fprintln(w, job.GetJobName(), "\t", job.GetJobStatus(), "\t", job.GetJobType(), "\t", job.GetJobImage(),
-			"\t", job.GetEnvVar()["TEST_SUITE"], "\t", job.GetEnvVar()["TEST_NAME"])
+		_, _ = fmt.Fprintln(w, makeJobInfoHeader(job))
 	}
-	w.Flush()
+	_ = w.Flush()
 }
 
 func runGetBenchmarksCommand(cmd *cobra.Command, _ []string) error {
