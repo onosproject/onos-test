@@ -71,7 +71,7 @@ func (c *Coordinator) Run() error {
 				Image:           c.config.Image,
 				ImagePullPolicy: c.config.ImagePullPolicy,
 				Suite:           suite,
-				Test:            c.config.Test,
+				Tests:            c.config.Tests,
 				Env:             c.config.Env,
 				Iterations:      c.config.Iterations,
 			}

@@ -55,8 +55,8 @@ func GetConfigFromEnv() *Config {
 		Image:           os.Getenv(testImageEnv),
 		ImagePullPolicy: corev1.PullPolicy(os.Getenv(testImagePullPolicyEnv)),
 		Suite:           os.Getenv(testSuiteEnv),
-		Test:            os.Getenv(testNameEnv),
 		Iterations:      iterations,
+		Tests:           strings.Split(os.Getenv(testNameEnv), ","),
 		Env:             env,
 	}
 }
@@ -67,10 +67,14 @@ type Config struct {
 	Image           string
 	ImagePullPolicy corev1.PullPolicy
 	Suite           string
-	Test            string
+	Tests           []string
 	Env             map[string]string
 	Timeout         time.Duration
 	Iterations      int
+}
+
+func toCSL(names []string) string {
+	return strings.Join(names, ",")
 }
 
 // ToEnv returns the configuration as a mapping of environment variables
@@ -80,8 +84,8 @@ func (c *Config) ToEnv() map[string]string {
 	env[testImageEnv] = c.Image
 	env[testImagePullPolicyEnv] = string(c.ImagePullPolicy)
 	env[testSuiteEnv] = c.Suite
-	env[testNameEnv] = c.Test
 	env[testIterationsEnv] = strconv.Itoa(c.Iterations)
+	env[testNameEnv] = toCSL(c.Tests)
 	return env
 }
 

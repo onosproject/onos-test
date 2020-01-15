@@ -43,7 +43,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	image, _ := cmd.Flags().GetString("image")
 	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	suite, _ := cmd.Flags().GetString("suite")
-	test, _ := cmd.Flags().GetString("test")
+	tests, _ := cmd.Flags().GetStringSlice("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 
 	config := &Config{
@@ -51,7 +51,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		Image:           image,
 		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
 		Suite:           suite,
-		Test:            test,
+		Tests:           tests,
 		Timeout:         timeout,
 	}
 
