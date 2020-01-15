@@ -31,6 +31,7 @@ const (
 	testImagePullPolicyEnv = "TEST_IMAGE_PULL_POLICY"
 	testSuiteEnv           = "TEST_SUITE"
 	testNameEnv            = "TEST_NAME"
+	testIterationsEnv      = "TEST_ITERATIONS"
 )
 
 const (
@@ -46,12 +47,14 @@ func GetConfigFromEnv() *Config {
 		value := keyval[strings.Index(keyval, "=")+1:]
 		env[key] = value
 	}
+
 	return &Config{
 		ID:              os.Getenv(testJobEnv),
 		Image:           os.Getenv(testImageEnv),
 		ImagePullPolicy: corev1.PullPolicy(os.Getenv(testImagePullPolicyEnv)),
 		Suite:           os.Getenv(testSuiteEnv),
 		Test:            os.Getenv(testNameEnv),
+		Iterations:      os.Getenv(testIterationsEnv),
 		Env:             env,
 	}
 }
@@ -65,6 +68,7 @@ type Config struct {
 	Test            string
 	Env             map[string]string
 	Timeout         time.Duration
+	Iterations      string
 }
 
 // ToEnv returns the configuration as a mapping of environment variables
@@ -75,6 +79,7 @@ func (c *Config) ToEnv() map[string]string {
 	env[testImagePullPolicyEnv] = string(c.ImagePullPolicy)
 	env[testSuiteEnv] = c.Suite
 	env[testNameEnv] = c.Test
+	env[testIterationsEnv] = c.Iterations
 	return env
 }
 
