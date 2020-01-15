@@ -138,14 +138,14 @@ func (h *History) getJobs(jobType string) ([]JobInfo, map[string]JobInfo) {
 
 // GetTestsMap gets a map of test jobs
 func (h *History) GetTestsMap() map[string]JobInfo {
-	_, mapTests := h.getJobs("test")
-	return mapTests
+	_, testsMap := h.getJobs("test")
+	return testsMap
 }
 
 // GetBenchmarksMap gets a maps of benchmarks
 func (h *History) GetBenchmarksMap() map[string]JobInfo {
-	_, mapBenchmarks := h.getJobs("benchmark")
-	return mapBenchmarks
+	_, benchmarksMap := h.getJobs("benchmark")
+	return benchmarksMap
 }
 
 // ListTests gets list of all tests

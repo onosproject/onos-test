@@ -55,6 +55,18 @@ func getGetCommand() *cobra.Command {
 	cmd.AddCommand(getGetTestsCommand())
 	cmd.AddCommand(getGetTestCommand())
 	cmd.AddCommand(getGetBenchmarksCommand())
+	cmd.AddCommand(getGetBenchmarkCommand())
+	return cmd
+}
+
+// getGetBenchmarkCommand returns a cobra command to get history of a specific benchmark
+func getGetBenchmarkCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "benchmark [name]",
+		Short: "Get history of a benchmark",
+		Args:  cobra.MaximumNArgs(1),
+		RunE:  runGetBenchmarkCommand,
+	}
 	return cmd
 }
 
@@ -63,13 +75,26 @@ func getGetTestCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "test [name]",
 		Short: "Get history of a test",
+		Args:  cobra.MaximumNArgs(1),
 		RunE:  runGetTestCommand,
 	}
-	cmd.Flags().StringP("name", "n", "", "test name")
 	return cmd
 }
 
-func runGetTestCommand(cmd *cobra.Command, _ []string) error {
+func runGetBenchmarkCommand(cmd *cobra.Command, args []string) error {
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
+	if err != nil {
+		return err
+	}
+
+	env := env.New(kubeAPI)
+	benchmarks := env.History().GetBenchmarksMap()
+	benchmark := benchmarks[args[0]]
+	printBenchmark(benchmark)
+	return nil
+}
+
+func runGetTestCommand(cmd *cobra.Command, args []string) error {
 	kubeAPI, err := kube.GetAPI(getCluster(cmd))
 	if err != nil {
 		return err
@@ -77,7 +102,7 @@ func runGetTestCommand(cmd *cobra.Command, _ []string) error {
 
 	env := env.New(kubeAPI)
 	tests := env.History().GetTestsMap()
-	test := tests[getName(cmd)]
+	test := tests[args[0]]
 	printTest(test)
 	return nil
 }
@@ -100,6 +125,15 @@ func getGetBenchmarksCommand() *cobra.Command {
 		RunE:  runGetBenchmarksCommand,
 	}
 	return cmd
+}
+
+func printBenchmark(job oc.JobInfo) {
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, 0, 0, 0, ' ', tabwriter.Debug|tabwriter.AlignRight)
+	fmt.Fprintln(w, "Job Name\tStatus\tType\tImage\tBenchmark Suite\tBenchmark Name")
+	fmt.Fprintln(w, job.GetJobName(), "\t", job.GetJobStatus(), "\t", job.GetJobType(), "\t", job.GetJobImage(),
+		"\t", job.GetEnvVar()["BENCHMARK_SUITE"], "\t", job.GetEnvVar()["BENCHMARK_NAME"])
+	w.Flush()
 }
 
 func printBenchmarks(jobs []oc.JobInfo) {
