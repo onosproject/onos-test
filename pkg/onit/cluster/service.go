@@ -21,12 +21,14 @@ import (
 	"strings"
 	"time"
 
+	"k8s.io/apimachinery/pkg/api/resource"
+
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -61,12 +63,24 @@ type Service struct {
 
 // CPURequest returns the cpu request for a deployment container
 func (s *Service) CPURequest() string {
-	return GetArg(s.name, "cpu").String(s.cpuRequest)
+	return GetArg(s.name, "cpu.request").String(s.cpuRequest)
+
 }
 
 // MemoryRequest returns the memory request for a deployment container
 func (s *Service) MemoryRequest() string {
-	return GetArg(s.name, "memory").String(s.memoryRequest)
+	return GetArg(s.name, "memory.request").String(s.memoryRequest)
+
+}
+
+// MemoryLimit returns the memory limit for a deployment container
+func (s *Service) MemoryLimit() string {
+	return GetArg(s.name, "memory.limit").String(s.memoryRequest)
+}
+
+// CPULimit returns cpu limit for a deployment container
+func (s *Service) CPULimit() string {
+	return GetArg(s.name, "cpu.limit").String(s.memoryRequest)
 }
 
 // SetCPURequest sets cpu request for a deployment container
@@ -205,7 +219,6 @@ func (s *Service) Setup() error {
 
 	step := logging.NewStep(s.namespace, "Setup %s", s.Name())
 	step.Start()
-	step.Logf("Creating %s Service", s.Name())
 	if err := s.createService(); err != nil {
 		step.Fail(err)
 		return err
@@ -254,6 +267,33 @@ func (s *Service) createSecret() error {
 	}
 	_, err := s.kubeClient.CoreV1().Secrets(s.namespace).Create(secret)
 	return err
+}
+
+func getResourceList(cpu, memory string) corev1.ResourceList {
+	res := corev1.ResourceList{}
+	if len(cpu) != 0 {
+		res[corev1.ResourceCPU] = resource.MustParse(cpu)
+	}
+	if len(memory) != 0 {
+		res[v1.ResourceMemory] = resource.MustParse(memory)
+	}
+	return res
+}
+
+func getResourceRequirements(requests, limits v1.ResourceList) v1.ResourceRequirements {
+	res := v1.ResourceRequirements{}
+	res.Requests = requests
+	res.Limits = limits
+	return res
+}
+
+func (s *Service) createResourceRequirements() corev1.ResourceRequirements {
+	cpuRequest := s.CPURequest()
+	memoryRequest := s.MemoryRequest()
+	cpuLimit := s.CPULimit()
+	memoryLimit := s.MemoryLimit()
+	resourceReq := getResourceRequirements(getResourceList(cpuRequest, memoryRequest), getResourceList(cpuLimit, memoryLimit))
+	return resourceReq
 }
 
 // createService creates a Service to expose the Deployment to other pods
@@ -452,12 +492,7 @@ func (s *Service) createDeployment() error {
 							LivenessProbe:   livenessProbe,
 							VolumeMounts:    volumeMounts,
 							SecurityContext: securityContext,
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceCPU:    resource.MustParse(s.CPURequest()),
-									corev1.ResourceMemory: resource.MustParse(s.MemoryRequest()),
-								},
-							},
+							Resources:       s.createResourceRequirements(),
 						},
 					},
 					SecurityContext: podSecurityContext,
