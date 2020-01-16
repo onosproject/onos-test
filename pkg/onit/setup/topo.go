@@ -29,6 +29,12 @@ type TopoSetup interface {
 
 	// SetPullPolicy sets the image pull policy
 	SetPullPolicy(pullPolicy corev1.PullPolicy) TopoSetup
+
+	// SetCpuRequest sets the cpu request
+	SetCPURequest(cpuRequest string) TopoSetup
+
+	// SetMemoryRequest sets memory request
+	SetMemoryRequest(memoryRequest string) TopoSetup
 }
 
 var _ TopoSetup = &clusterTopoSetup{}
@@ -50,6 +56,16 @@ func (s *clusterTopoSetup) SetImage(image string) TopoSetup {
 
 func (s *clusterTopoSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) TopoSetup {
 	s.topo.SetPullPolicy(pullPolicy)
+	return s
+}
+
+func (s *clusterTopoSetup) SetCPURequest(cpuRequest string) TopoSetup {
+	s.topo.SetCPURequest(cpuRequest)
+	return s
+}
+
+func (s *clusterTopoSetup) SetMemoryRequest(memoryRequest string) TopoSetup {
+	s.topo.SetMemoryRequest(memoryRequest)
 	return s
 }
 

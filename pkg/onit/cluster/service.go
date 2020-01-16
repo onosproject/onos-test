@@ -26,6 +26,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -46,14 +47,37 @@ type Port struct {
 // Service is the base type for multi-node services
 type Service struct {
 	*Deployment
-	ports      []Port
-	replicas   int
-	debug      bool
-	user       *int
-	privileged bool
-	secrets    map[string]string
-	env        map[string]string
-	args       []string
+	ports         []Port
+	replicas      int
+	debug         bool
+	user          *int
+	privileged    bool
+	secrets       map[string]string
+	env           map[string]string
+	args          []string
+	cpuRequest    string
+	memoryRequest string
+}
+
+// CPURequest returns the cpu request for a deployment container
+func (s *Service) CPURequest() string {
+	return GetArg(s.name, "cpu").String(s.cpuRequest)
+}
+
+// MemoryRequest returns the memory request for a deployment container
+func (s *Service) MemoryRequest() string {
+	return GetArg(s.name, "memory").String(s.memoryRequest)
+}
+
+// SetCPURequest sets cpu request for a deployment container
+func (s *Service) SetCPURequest(cpuRequest string) {
+	s.cpuRequest = cpuRequest
+
+}
+
+// SetMemoryRequest sets memory request for a deployment container
+func (s *Service) SetMemoryRequest(memoryRequest string) {
+	s.memoryRequest = memoryRequest
 }
 
 // Ports returns the service ports
@@ -428,6 +452,12 @@ func (s *Service) createDeployment() error {
 							LivenessProbe:   livenessProbe,
 							VolumeMounts:    volumeMounts,
 							SecurityContext: securityContext,
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{
+									corev1.ResourceCPU:    resource.MustParse(s.CPURequest()),
+									corev1.ResourceMemory: resource.MustParse(s.MemoryRequest()),
+								},
+							},
 						},
 					},
 					SecurityContext: podSecurityContext,
