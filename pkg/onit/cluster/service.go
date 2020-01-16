@@ -65,24 +65,24 @@ type Service struct {
 
 // CPURequest returns the cpu request for a deployment container
 func (s *Service) CPURequest() string {
-	return GetArg(s.name, "cpu.request").String(s.cpuRequest)
+	return GetArg(s.name, "cpu", "request").String(s.cpuRequest)
 
 }
 
 // MemoryRequest returns the memory request for a deployment container
 func (s *Service) MemoryRequest() string {
-	return GetArg(s.name, "memory.request").String(s.memoryRequest)
+	return GetArg(s.name, "memory", "request").String(s.memoryRequest)
 
 }
 
 // CPULimit returns cpu limit for a deployment container
 func (s *Service) CPULimit() string {
-	return GetArg(s.name, "cpu.limit").String(s.cpuLimit)
+	return GetArg(s.name, "cpu", "limit").String(s.cpuLimit)
 }
 
 // MemoryLimit returns the memory limit for a deployment container
 func (s *Service) MemoryLimit() string {
-	return GetArg(s.name, "memory.limit").String(s.memoryLimit)
+	return GetArg(s.name, "memory", "limit").String(s.memoryLimit)
 }
 
 // SetMemoryLimit sets memory limit for a deployment container
