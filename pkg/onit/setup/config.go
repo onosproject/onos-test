@@ -29,6 +29,18 @@ type ConfigSetup interface {
 
 	// SetPullPolicy sets the image pull policy
 	SetPullPolicy(pullPolicy corev1.PullPolicy) ConfigSetup
+
+	// SetCpuRequest sets the cpu request
+	SetCPURequest(cpuRequest string) ConfigSetup
+
+	// SetMemoryRequest sets memory request
+	SetMemoryRequest(memoryRequest string) ConfigSetup
+
+	// SetMemoryLimit sets memory limit
+	SetMemoryLimit(memoryLimit string) ConfigSetup
+
+	// SetCPULimit sets cpu limit
+	SetCPULimit(cpuLimit string) ConfigSetup
 }
 
 var _ ConfigSetup = &clusterConfigSetup{}
@@ -50,6 +62,26 @@ func (s *clusterConfigSetup) SetImage(image string) ConfigSetup {
 
 func (s *clusterConfigSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) ConfigSetup {
 	s.config.SetPullPolicy(pullPolicy)
+	return s
+}
+
+func (s *clusterConfigSetup) SetCPURequest(cpuRequest string) ConfigSetup {
+	s.config.SetCPURequest(cpuRequest)
+	return s
+}
+
+func (s *clusterConfigSetup) SetMemoryRequest(memoryRequest string) ConfigSetup {
+	s.config.SetMemoryRequest(memoryRequest)
+	return s
+}
+
+func (s *clusterConfigSetup) SetMemoryLimit(memoryLimit string) ConfigSetup {
+	s.config.SetMemoryLimit(memoryLimit)
+	return s
+}
+
+func (s *clusterConfigSetup) SetCPULimit(cpuLimit string) ConfigSetup {
+	s.config.SetCPULimit(cpuLimit)
 	return s
 }
 

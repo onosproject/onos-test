@@ -35,6 +35,12 @@ type TopoSetup interface {
 
 	// SetMemoryRequest sets memory request
 	SetMemoryRequest(memoryRequest string) TopoSetup
+
+	// SetMemoryLimit sets memory limit
+	SetMemoryLimit(memoryLimit string) TopoSetup
+
+	// SetCPULimit sets cpu limit
+	SetCPULimit(cpuLimit string) TopoSetup
 }
 
 var _ TopoSetup = &clusterTopoSetup{}
@@ -66,6 +72,16 @@ func (s *clusterTopoSetup) SetCPURequest(cpuRequest string) TopoSetup {
 
 func (s *clusterTopoSetup) SetMemoryRequest(memoryRequest string) TopoSetup {
 	s.topo.SetMemoryRequest(memoryRequest)
+	return s
+}
+
+func (s *clusterTopoSetup) SetMemoryLimit(memoryLimit string) TopoSetup {
+	s.topo.SetMemoryLimit(memoryLimit)
+	return s
+}
+
+func (s *clusterTopoSetup) SetCPULimit(cpuLimit string) TopoSetup {
+	s.topo.SetCPULimit(cpuLimit)
 	return s
 }
 
