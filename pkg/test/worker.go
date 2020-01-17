@@ -42,14 +42,14 @@ type Worker struct {
 
 // Run runs a test
 func (w *Worker) Run() error {
-	test, ok := Registry.tests[w.config.Suite]
+	test, ok := Registry.tests[w.config.Suites[0]]
 	if !ok {
-		return fmt.Errorf("unknown test suite %s", w.config.Suite)
+		return fmt.Errorf("unknown test suite %s", w.config.Suites[0])
 	}
 
 	tests := []testing.InternalTest{
 		{
-			Name: w.config.Suite,
+			Name: w.config.Suites[0],
 			F: func(t *testing.T) {
 				RunTests(t, test, w.config)
 			},

@@ -42,7 +42,7 @@ func GetCommand() *cobra.Command {
 func runTestCommand(cmd *cobra.Command, _ []string) error {
 	image, _ := cmd.Flags().GetString("image")
 	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
-	suite, _ := cmd.Flags().GetString("suite")
+	suites, _ := cmd.Flags().GetStringSlice("suite")
 	tests, _ := cmd.Flags().GetStringSlice("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 
@@ -50,7 +50,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		ID:              random.NewPetName(2),
 		Image:           image,
 		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
-		Suite:           suite,
+		Suites:          suites,
 		Tests:           tests,
 		Timeout:         timeout,
 	}

@@ -27,7 +27,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"os"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -52,26 +51,16 @@ type Coordinator struct {
 
 // Run runs the tests
 func (c *Coordinator) Run() error {
-	var suites []string
-	if c.config.Suite == "" {
-		suites = make([]string, 0, len(Registry.tests))
-		for suite := range Registry.tests {
-			suites = append(suites, suite)
-		}
-	} else {
-		suites = strings.Split(c.config.Suite, ",")
-	}
-
 	for iteration := 1; iteration <= c.config.Iterations || c.config.Iterations < 0; iteration++ {
-		workers := make([]*WorkerTask, len(suites))
-		for i, suite := range suites {
+		workers := make([]*WorkerTask, len(c.config.Suites))
+		for i, suite := range c.config.Suites {
 			jobID := newJobID(c.config.ID+"-"+strconv.Itoa(iteration), suite)
 			config := &Config{
 				ID:              jobID,
 				Image:           c.config.Image,
 				ImagePullPolicy: c.config.ImagePullPolicy,
-				Suite:           suite,
-				Tests:            c.config.Tests,
+				Suites:          []string{suite},
+				Tests:           c.config.Tests,
 				Env:             c.config.Env,
 				Iterations:      c.config.Iterations,
 			}
