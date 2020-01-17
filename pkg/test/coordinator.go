@@ -26,6 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -61,29 +62,36 @@ func (c *Coordinator) Run() error {
 		suites = strings.Split(c.config.Suite, ",")
 	}
 
-	workers := make([]*WorkerTask, len(suites))
-	for i, suite := range suites {
-		jobID := newJobID(c.config.ID, suite)
-		config := &Config{
-			ID:              jobID,
-			Image:           c.config.Image,
-			ImagePullPolicy: c.config.ImagePullPolicy,
-			Suite:           suite,
-			Test:            c.config.Test,
-			Env:             c.config.Env,
+	for iteration := 1; iteration <= c.config.Iterations || c.config.Iterations < 0; iteration++ {
+		workers := make([]*WorkerTask, len(suites))
+		for i, suite := range suites {
+			jobID := newJobID(c.config.ID+"-"+strconv.Itoa(iteration), suite)
+			config := &Config{
+				ID:              jobID,
+				Image:           c.config.Image,
+				ImagePullPolicy: c.config.ImagePullPolicy,
+				Suite:           suite,
+				Test:            c.config.Test,
+				Env:             c.config.Env,
+				Iterations:      c.config.Iterations,
+			}
+			testCluster, err := cluster.NewCluster(config.ID)
+			if err != nil {
+				return err
+			}
+			worker := &WorkerTask{
+				client:  c.client,
+				cluster: testCluster,
+				config:  config,
+			}
+			workers[i] = worker
 		}
-		testCluster, err := cluster.NewCluster(config.ID)
+		err := runWorkers(workers)
 		if err != nil {
 			return err
 		}
-		worker := &WorkerTask{
-			client:  c.client,
-			cluster: testCluster,
-			config:  config,
-		}
-		workers[i] = worker
 	}
-	return runWorkers(workers)
+	return nil
 }
 
 // runWorkers runs the given test workers

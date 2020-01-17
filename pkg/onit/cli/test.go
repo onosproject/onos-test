@@ -37,6 +37,8 @@ func getTestCommand() *cobra.Command {
 	cmd.Flags().StringP("suite", "s", "", "the test suite to run")
 	cmd.Flags().StringP("test", "t", "", "the name of the test method to run")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "test timeout")
+	cmd.Flags().Int("iterations", 1, "number of iterations")
+	cmd.Flags().Bool("until-failure", false, "run until an error is detected")
 	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
 
 	_ = cmd.MarkFlagRequired("image")
@@ -52,6 +54,12 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	testName, _ := cmd.Flags().GetString("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
+	iterations, _ := cmd.Flags().GetInt("iterations")
+	untilFailure, _ := cmd.Flags().GetBool("until-failure")
+
+	if untilFailure {
+		iterations = -1
+	}
 
 	config := &test.Config{
 		ID:              random.NewPetName(2),
@@ -61,6 +69,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		Test:            testName,
 		Env:             onitcluster.GetArgsAsEnv(sets),
 		Timeout:         timeout,
+		Iterations:      iterations,
 	}
 
 	job := &cluster.Job{
