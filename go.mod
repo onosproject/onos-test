@@ -31,6 +31,7 @@ require (
 	golang.org/x/tools v0.0.0-20191113183821-b2a5ed324b91
 	google.golang.org/grpc v1.25.0
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
+	gopkg.in/yaml.v2 v2.2.7
 	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.0.0-20190620073856-dcce3486da33
 	k8s.io/apiextensions-apiserver v0.0.0-20190325193600-475668423e9f
