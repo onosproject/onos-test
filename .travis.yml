@@ -33,6 +33,7 @@ jobs:
         - sh build/bin/trigger-docs-travis $TRAVIS_ACCESS_TOKEN
 
     - stage: integration-tests
+      name: "onos-topo integration tests"
       if: type != pull_request
       notifications:
         email:
@@ -57,6 +58,7 @@ jobs:
         - kind create cluster
         - build/bin/run-integration-tests onos-topo
     - # stage name not required, will continue to use `integration-tests`
+      name: "onos-config integration tests"
       if: type != pull_request
       script:
         # Download and install kubectl
