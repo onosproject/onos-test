@@ -34,11 +34,12 @@ func getTestCommand() *cobra.Command {
 		Short:   "Run tests on Kubernetes",
 		RunE:    runTestCommand,
 	}
+	defaultSlice := make([]string, 0)
 	cmd.Flags().StringP("image", "i", "", "the test image to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringToString("set", map[string]string{}, "cluster argument overrides")
-	cmd.Flags().StringP("suite", "s", "", "the test suite to run")
-	cmd.Flags().StringP("test", "t", "", "the name of the test method to run")
+	cmd.Flags().StringSliceP("suite", "s", defaultSlice, "the name of test suite to run")
+	cmd.Flags().StringSliceP("test", "t", defaultSlice, "the name of the test method to run")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "test timeout")
 	cmd.Flags().Int("iterations", 1, "number of iterations")
 	cmd.Flags().Bool("until-failure", false, "run until an error is detected")
@@ -53,8 +54,8 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 
 	image, _ := cmd.Flags().GetString("image")
 	sets, _ := cmd.Flags().GetStringToString("set")
-	suite, _ := cmd.Flags().GetString("suite")
-	testName, _ := cmd.Flags().GetString("test")
+	suites, _ := cmd.Flags().GetStringSlice("suite")
+	testNames, _ := cmd.Flags().GetStringSlice("test")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	iterations, _ := cmd.Flags().GetInt("iterations")
@@ -68,8 +69,8 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		ID:              random.NewPetName(2),
 		Image:           image,
 		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
-		Suite:           suite,
-		Test:            testName,
+		Suites:          suites,
+		Tests:           testNames,
 		Env:             onitcluster.GetArgsAsEnv(sets),
 		Timeout:         timeout,
 		Iterations:      iterations,

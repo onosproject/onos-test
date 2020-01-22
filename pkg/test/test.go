@@ -20,7 +20,6 @@ import (
 	"reflect"
 	"regexp"
 	"runtime/debug"
-	"strings"
 	"testing"
 )
 
@@ -137,11 +136,11 @@ func testFilter(name string, config *Config) (bool, error) {
 		return false, nil
 	}
 
-	if config.Test == "" {
+	if config.Tests[0] == "" {
 		return true, nil
 	}
-	tests := strings.Split(config.Test, ",")
-	for _, test := range tests {
+
+	for _, test := range config.Tests {
 		if test == name {
 			return true, nil
 		}
