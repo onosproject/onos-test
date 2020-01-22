@@ -15,11 +15,12 @@
 package test
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 type testContext string
@@ -33,6 +34,7 @@ const (
 	testSuiteEnv           = "TEST_SUITE"
 	testNameEnv            = "TEST_NAME"
 	testIterationsEnv      = "TEST_ITERATIONS"
+	testVerbose            = "VERBOSE_LOGGING"
 )
 
 const (
@@ -50,6 +52,7 @@ func GetConfigFromEnv() *Config {
 	}
 
 	iterations, _ := strconv.Atoi(os.Getenv(testIterationsEnv))
+	verbose, _ := strconv.ParseBool(os.Getenv(testVerbose))
 	return &Config{
 		ID:              os.Getenv(testJobEnv),
 		Image:           os.Getenv(testImageEnv),
@@ -57,6 +60,7 @@ func GetConfigFromEnv() *Config {
 		Suites:          strings.Split(os.Getenv(testSuiteEnv), ","),
 		Iterations:      iterations,
 		Tests:           strings.Split(os.Getenv(testNameEnv), ","),
+		Verbose:         verbose,
 		Env:             env,
 	}
 }
@@ -71,6 +75,7 @@ type Config struct {
 	Env             map[string]string
 	Timeout         time.Duration
 	Iterations      int
+	Verbose         bool
 }
 
 func toCSL(names []string) string {
@@ -86,6 +91,10 @@ func (c *Config) ToEnv() map[string]string {
 	env[testSuiteEnv] = toCSL(c.Suites)
 	env[testIterationsEnv] = strconv.Itoa(c.Iterations)
 	env[testNameEnv] = toCSL(c.Tests)
+	if c.Verbose {
+		env[testVerbose] = strconv.FormatBool(c.Verbose)
+	}
+
 	return env
 }
 

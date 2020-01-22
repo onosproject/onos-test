@@ -15,13 +15,16 @@
 package cli
 
 import (
+	"time"
+
+	"github.com/onosproject/onos-test/pkg/util/logging"
+
 	"github.com/onosproject/onos-test/pkg/cluster"
 	onitcluster "github.com/onosproject/onos-test/pkg/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	"time"
 )
 
 func getTestCommand() *cobra.Command {
@@ -71,6 +74,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		Env:             onitcluster.GetArgsAsEnv(sets),
 		Timeout:         timeout,
 		Iterations:      iterations,
+		Verbose:         logging.GetVerbose(),
 	}
 
 	job := &cluster.Job{
