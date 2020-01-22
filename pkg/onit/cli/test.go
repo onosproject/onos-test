@@ -31,11 +31,11 @@ func getTestCommand() *cobra.Command {
 		Short:   "Run tests on Kubernetes",
 		RunE:    runTestCommand,
 	}
-	defaultSlice := []string{""}
+	defaultSlice := make([]string, 0)
 	cmd.Flags().StringP("image", "i", "", "the test image to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	cmd.Flags().StringToString("set", map[string]string{}, "cluster argument overrides")
-	cmd.Flags().StringSliceP("suite", "s", []string{""}, "the test suite to run")
+	cmd.Flags().StringSliceP("suite", "s", defaultSlice, "the name of test suite to run")
 	cmd.Flags().StringSliceP("test", "t", defaultSlice, "the name of the test method to run")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "test timeout")
 	cmd.Flags().Int("iterations", 1, "number of iterations")
