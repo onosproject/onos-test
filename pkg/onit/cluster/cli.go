@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/onosproject/onos-test/pkg/util/logging"
+	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -84,14 +85,27 @@ func (c *CLI) Setup() error {
 	return nil
 }
 
+type cliConfigMapData struct {
+	Controller string `yaml:"controller"`
+	Namespace  string `yaml:"namespace"`
+	Group      string `yaml:"Group"`
+	App        string `yaml:"App"`
+}
+
 // createConfigMap creates a ConfigMap to configure the onos-cli service
 func (c *CLI) createConfigMap() error {
-	config := fmt.Sprintf(`
-controller: atomix-controller.%s.svc.cluster.local:5679
-namespace: %s
-group: raft
-app: default
-`, c.namespace, c.namespace)
+
+	configMapData := cliConfigMapData{
+		Controller: fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", c.namespace),
+		Namespace:  c.namespace,
+		Group:      "raft",
+		App:        "defaut",
+	}
+
+	config, err := yaml.Marshal(configMapData)
+	if err != nil {
+		return err
+	}
 
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -100,10 +114,10 @@ app: default
 			Labels:    getLabels(cliType),
 		},
 		Data: map[string]string{
-			"atomix.yaml": config,
+			"atomix.yaml": string(config),
 		},
 	}
-	_, err := c.kubeClient.CoreV1().ConfigMaps(c.namespace).Create(cm)
+	_, err = c.kubeClient.CoreV1().ConfigMaps(c.namespace).Create(cm)
 	return err
 }
 
