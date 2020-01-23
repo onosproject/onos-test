@@ -53,7 +53,7 @@ type Coordinator struct {
 func (c *Coordinator) Run() error {
 	for iteration := 1; iteration <= c.config.Iterations || c.config.Iterations < 0; iteration++ {
 		suites := c.config.Suites
-		if len(suites) == 0  || suites[0] == "" {
+		if len(suites) == 0 || suites[0] == "" {
 			// No suite specified - run all of them
 			suites = make([]string, 0, len(Registry.tests))
 			for suite := range Registry.tests {
