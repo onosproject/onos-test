@@ -3,9 +3,8 @@ module github.com/onosproject/onos-test
 go 1.12
 
 require (
-	github.com/atomix/atomix-api v0.0.0-20191217054529-55159c51ab6e
-	github.com/atomix/atomix-go-client v0.0.0-20191219053757-bad855985f00
-	github.com/atomix/atomix-k8s-controller v0.0.0-20191203231043-ae7d3a341174
+	github.com/atomix/go-client v0.0.0-20200124004211-e5e19cd4730d
+	github.com/atomix/kubernetes-controller v0.0.0-20200124024416-04b783c4ede4
 	github.com/dustinkirkland/golang-petname v0.0.0-20190613200456-11339a705ed2
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
@@ -16,6 +15,7 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.3.0 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/goveralls v0.0.2 // indirect

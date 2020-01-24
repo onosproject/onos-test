@@ -15,7 +15,7 @@
 package cluster
 
 import (
-	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
+	atomixcontroller "github.com/atomix/kubernetes-controller/pkg/client/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/kube"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/kubernetes"

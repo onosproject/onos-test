@@ -17,7 +17,7 @@ package cluster
 import (
 	"context"
 	"errors"
-	atomix "github.com/atomix/atomix-go-client/pkg/client"
+	atomix "github.com/atomix/go-client/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )

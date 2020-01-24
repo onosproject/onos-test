@@ -15,7 +15,7 @@
 package cluster
 
 import (
-	atomixcontroller "github.com/atomix/atomix-k8s-controller/pkg/client/clientset/versioned"
+	atomixcontroller "github.com/atomix/kubernetes-controller/pkg/client/clientset/versioned"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
