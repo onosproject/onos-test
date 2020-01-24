@@ -27,7 +27,7 @@ import (
 
 const (
 	atomixType    = "atomix"
-	atomixImage   = "atomix/atomix-k8s-controller:latest"
+	atomixImage   = "atomix/k8s-controller:latest"
 	atomixService = "atomix-controller"
 	atomixPort    = 5679
 )

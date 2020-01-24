@@ -17,8 +17,8 @@ package cluster
 import (
 	"context"
 	"fmt"
-	atomix "github.com/atomix/atomix-go-client/pkg/client"
-	"github.com/atomix/atomix-k8s-controller/pkg/apis/k8s/v1alpha1"
+	atomix "github.com/atomix/go-client/pkg/client"
+	"github.com/atomix/k8s-controller/pkg/apis/k8s/v1alpha1"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	defaultReplicaImage   = "atomix/atomix-nopaxos-node:latest"
-	defaultSequencerImage = "atomix/atomix-nopaxos-sequencer:latest"
+	defaultReplicaImage   = "atomix/nopaxos-replica:latest"
+	defaultSequencerImage = "atomix/nopaxos-proxy:latest"
 )
 
 func newNOPaxosPartitions(partitions *Partitions) *NOPaxosPartitions {

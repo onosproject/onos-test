@@ -15,7 +15,7 @@
 package env
 
 import (
-	"github.com/atomix/atomix-go-client/pkg/client"
+	"github.com/atomix/go-client/pkg/client"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 )
 
