@@ -52,8 +52,16 @@ type Coordinator struct {
 // Run runs the tests
 func (c *Coordinator) Run() error {
 	for iteration := 1; iteration <= c.config.Iterations || c.config.Iterations < 0; iteration++ {
-		workers := make([]*WorkerTask, len(c.config.Suites))
-		for i, suite := range c.config.Suites {
+		suites := c.config.Suites
+		if len(suites) == 0 || suites[0] == "" {
+			// No suite specified - run all of them
+			suites = make([]string, 0, len(Registry.tests))
+			for suite := range Registry.tests {
+				suites = append(suites, suite)
+			}
+		}
+		workers := make([]*WorkerTask, len(suites))
+		for i, suite := range suites {
 			jobID := newJobID(c.config.ID+"-"+strconv.Itoa(iteration), suite)
 			config := &Config{
 				ID:              jobID,
