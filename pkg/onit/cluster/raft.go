@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 	atomix "github.com/atomix/go-client/pkg/client"
-	"github.com/atomix/k8s-controller/pkg/apis/k8s/v1alpha1"
+	"github.com/atomix/kubernetes-controller/pkg/apis/k8s/v1alpha1"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

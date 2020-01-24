@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/atomix/go-client v0.0.0-20200124004211-e5e19cd4730d
-	github.com/atomix/k8s-controller v0.0.0-20200124013532-4b18d03d788b
+	github.com/atomix/kubernetes-controller v0.0.0-20200124024416-04b783c4ede4
 	github.com/dustinkirkland/golang-petname v0.0.0-20190613200456-11339a705ed2
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
