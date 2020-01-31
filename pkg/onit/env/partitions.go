@@ -28,7 +28,7 @@ type PartitionsEnv interface {
 	Get(name string) PartitionEnv
 
 	// Connect connects to the partition group
-	Connect() (*client.PartitionGroup, error)
+	Connect() (*client.Database, error)
 }
 
 // clusterPartitionsEnv is an implementation of the Partitions interface
@@ -57,6 +57,6 @@ func (e *clusterPartitionsEnv) Get(name string) PartitionEnv {
 	}
 }
 
-func (e *clusterPartitionsEnv) Connect() (*client.PartitionGroup, error) {
+func (e *clusterPartitionsEnv) Connect() (*client.Database, error) {
 	return e.partitions.Connect()
 }

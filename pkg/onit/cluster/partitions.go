@@ -85,12 +85,12 @@ func (s *Partitions) Partitions() []*Partition {
 }
 
 // Connect connects to the partition group
-func (s *Partitions) Connect() (*atomix.PartitionGroup, error) {
+func (s *Partitions) Connect() (*atomix.Database, error) {
 	client, err := atomix.NewClient("atomix-controller:5679", atomix.WithNamespace(s.namespace))
 	if err != nil {
 		return nil, err
 	}
-	return client.GetGroup(context.Background(), s.group)
+	return client.GetDatabase(context.Background(), s.group)
 }
 
 // Setup sets up a partition set
