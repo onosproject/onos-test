@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 	atomix "github.com/atomix/go-client/pkg/client"
-	"github.com/atomix/kubernetes-controller/pkg/apis/k8s/v1alpha1"
+	"github.com/atomix/kubernetes-controller/pkg/apis/cloud/v1beta1"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,6 +43,7 @@ func newRaftPartitions(partitions *Partitions) *RaftPartitions {
 type RaftPartitions struct {
 	*Partitions
 	partitions int
+	clusters   int
 	replicas   int
 	image      string
 	pullPolicy corev1.PullPolicy
@@ -56,6 +57,16 @@ func (s *RaftPartitions) NumPartitions() int {
 // SetPartitions sets the number of partitions in the group
 func (s *RaftPartitions) SetPartitions(partitions int) {
 	s.partitions = partitions
+}
+
+// Clusters returns the number of clusters in each partition
+func (s *RaftPartitions) Clusters() int {
+	return GetArg(s.group, "clusters").Int(s.clusters)
+}
+
+// SetClusters sets the number of clusters in each partition
+func (s *RaftPartitions) SetClusters(clusters int) {
+	s.clusters = clusters
 }
 
 // Replicas returns the number of replicas in each partition
@@ -108,8 +119,8 @@ func (s *RaftPartitions) Connect() (*atomix.PartitionGroup, error) {
 func (s *RaftPartitions) Setup() error {
 	step := logging.NewStep(s.namespace, "Setup Raft partitions")
 	step.Start()
-	step.Log("Creating Raft PartitionSet")
-	if err := s.createPartitionSet(); err != nil {
+	step.Log("Creating Raft Database")
+	if err := s.createDatabase(); err != nil {
 		step.Fail(err)
 		return err
 	}
@@ -122,22 +133,20 @@ func (s *RaftPartitions) Setup() error {
 	return nil
 }
 
-// createPartitionSet creates a Raft partition set from the configuration
-func (s *RaftPartitions) createPartitionSet() error {
-	set := &v1alpha1.PartitionSet{
+// createDatabase creates a Raft partition set from the configuration
+func (s *RaftPartitions) createDatabase() error {
+	database := &v1beta1.Database{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),
 			Namespace: s.namespace,
 		},
-		Spec: v1alpha1.PartitionSetSpec{
-			Partitions: s.NumPartitions(),
-			Template: v1alpha1.PartitionTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: s.getLabels(),
-				},
-				Spec: v1alpha1.PartitionSpec{
-					Size: int32(s.Replicas()),
-					Raft: &v1alpha1.RaftProtocol{
+		Spec: v1beta1.DatabaseSpec{
+			Clusters:   int32(s.Clusters()),
+			Partitions: int32(s.NumPartitions()),
+			Template: v1beta1.ClusterTemplateSpec{
+				Spec: v1beta1.ClusterSpec{
+					Backend: v1beta1.Backend{
+						Replicas:        int32(s.Replicas()),
 						Image:           s.Image(),
 						ImagePullPolicy: s.PullPolicy(),
 					},
@@ -145,17 +154,17 @@ func (s *RaftPartitions) createPartitionSet() error {
 			},
 		},
 	}
-	_, err := s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Create(set)
+	_, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Create(database)
 	return err
 }
 
 // AwaitReady waits for partitions to complete startup
 func (s *RaftPartitions) AwaitReady() error {
 	for {
-		set, err := s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Get(s.group, metav1.GetOptions{})
+		database, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Get(s.group, metav1.GetOptions{})
 		if err != nil {
 			return err
-		} else if int(set.Status.ReadyPartitions) == set.Spec.Partitions {
+		} else if database.Status.ReadyPartitions == database.Spec.Partitions {
 			return nil
 		} else {
 			time.Sleep(100 * time.Millisecond)

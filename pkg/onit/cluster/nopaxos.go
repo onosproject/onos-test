@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 	atomix "github.com/atomix/go-client/pkg/client"
-	"github.com/atomix/kubernetes-controller/pkg/apis/k8s/v1alpha1"
+	"github.com/atomix/kubernetes-controller/pkg/apis/cloud/v1beta1"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -148,44 +148,40 @@ func (s *NOPaxosPartitions) Setup() error {
 }
 
 func (s *NOPaxosPartitions) createPartitionSet() error {
-	set := &v1alpha1.PartitionSet{
+	database := &v1beta1.Database{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),
 			Namespace: s.namespace,
 		},
-		Spec: v1alpha1.PartitionSetSpec{
-			Partitions: s.NumPartitions(),
-			Template: v1alpha1.PartitionTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: s.getLabels(),
-				},
-				Spec: v1alpha1.PartitionSpec{
-					Size: int32(s.Replicas()),
-					NOPaxos: &v1alpha1.NOPaxosProtocol{
-						Sequencer: v1alpha1.NOPaxosSequencerSpec{
-							Image:           s.SequencerImage(),
-							ImagePullPolicy: s.SequencerPullPolicy(),
-						},
-						Protocol: v1alpha1.NOPaxosProtocolSpec{
-							Image:           s.ReplicaImage(),
-							ImagePullPolicy: s.ReplicaPullPolicy(),
-						},
+		Spec: v1beta1.DatabaseSpec{
+			Clusters:   int32(s.NumPartitions()),
+			Partitions: 1,
+			Template: v1beta1.ClusterTemplateSpec{
+				Spec: v1beta1.ClusterSpec{
+					Proxy: &v1beta1.Proxy{
+						Image:           s.SequencerImage(),
+						ImagePullPolicy: s.SequencerPullPolicy(),
+					},
+					Backend: v1beta1.Backend{
+						Replicas:        int32(s.Replicas()),
+						Image:           s.ReplicaImage(),
+						ImagePullPolicy: s.ReplicaPullPolicy(),
 					},
 				},
 			},
 		},
 	}
-	_, err := s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Create(set)
+	_, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Create(database)
 	return err
 }
 
 // AwaitReady waits for partitions to complete startup
 func (s *NOPaxosPartitions) AwaitReady() error {
 	for {
-		set, err := s.atomixClient.K8sV1alpha1().PartitionSets(s.namespace).Get(s.group, metav1.GetOptions{})
+		set, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Get(s.group, metav1.GetOptions{})
 		if err != nil {
 			return err
-		} else if int(set.Status.ReadyPartitions) == set.Spec.Partitions {
+		} else if set.Status.ReadyPartitions == set.Spec.Partitions {
 			return nil
 		} else {
 			time.Sleep(100 * time.Millisecond)

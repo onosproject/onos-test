@@ -19,48 +19,56 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// RaftPartitionsSetup is an interface for setting up Raft partitions
-type RaftPartitionsSetup interface {
+// RaftDatabaseSetup is an interface for setting up Raft partitions
+type RaftDatabaseSetup interface {
 	// SetPartitions sets the number of partitions to deploy
-	SetPartitions(partitions int) RaftPartitionsSetup
+	SetPartitions(partitions int) RaftDatabaseSetup
 
-	// SetReplicasPerPartition sets the number of replicas per partition
-	SetReplicasPerPartition(replicas int) RaftPartitionsSetup
+	// SetClusters sets the number of clusters in the database
+	SetClusters(clusters int) RaftDatabaseSetup
+
+	// SetReplicas sets the number of replicas per partition
+	SetReplicas(replicas int) RaftDatabaseSetup
 
 	// SetImage sets the Raft image to deploy
-	SetImage(image string) RaftPartitionsSetup
+	SetImage(image string) RaftDatabaseSetup
 
 	// SetPullPolicy sets the image pull policy
-	SetPullPolicy(pullPolicy corev1.PullPolicy) RaftPartitionsSetup
+	SetPullPolicy(pullPolicy corev1.PullPolicy) RaftDatabaseSetup
 }
 
-var _ RaftPartitionsSetup = &clusterRaftPartitionsSetup{}
+var _ RaftDatabaseSetup = &clusterRaftDatabaseSetup{}
 
-// clusterRaftPartitionsSetup is an implementation of the RaftPartitionsSetup interface
-type clusterRaftPartitionsSetup struct {
+// clusterRaftDatabaseSetup is an implementation of the RaftDatabaseSetup interface
+type clusterRaftDatabaseSetup struct {
 	raft *cluster.RaftPartitions
 }
 
-func (s *clusterRaftPartitionsSetup) SetPartitions(partitions int) RaftPartitionsSetup {
+func (s *clusterRaftDatabaseSetup) SetPartitions(partitions int) RaftDatabaseSetup {
 	s.raft.SetPartitions(partitions)
 	return s
 }
 
-func (s *clusterRaftPartitionsSetup) SetReplicasPerPartition(replicas int) RaftPartitionsSetup {
+func (s *clusterRaftDatabaseSetup) SetClusters(clusters int) RaftDatabaseSetup {
+	s.raft.SetClusters(clusters)
+	return s
+}
+
+func (s *clusterRaftDatabaseSetup) SetReplicas(replicas int) RaftDatabaseSetup {
 	s.raft.SetReplicas(replicas)
 	return s
 }
 
-func (s *clusterRaftPartitionsSetup) SetImage(image string) RaftPartitionsSetup {
+func (s *clusterRaftDatabaseSetup) SetImage(image string) RaftDatabaseSetup {
 	s.raft.SetImage(image)
 	return s
 }
 
-func (s *clusterRaftPartitionsSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) RaftPartitionsSetup {
+func (s *clusterRaftDatabaseSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) RaftDatabaseSetup {
 	s.raft.SetPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterRaftPartitionsSetup) setup() error {
+func (s *clusterRaftDatabaseSetup) setup() error {
 	return s.raft.Setup()
 }

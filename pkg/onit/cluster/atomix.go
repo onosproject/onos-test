@@ -52,8 +52,13 @@ type Atomix struct {
 func (s *Atomix) Setup() error {
 	step := logging.NewStep(s.namespace, "Setup Atomix controller")
 	step.Start()
-	step.Log("Creating PartitionSet resource")
-	if err := s.createPartitionSetResource(); err != nil {
+	step.Log("Creating Database resource")
+	if err := s.createDatabaseResource(); err != nil {
+		step.Fail(err)
+		return err
+	}
+	step.Log("Creating Cluster resource")
+	if err := s.createClusterResource(); err != nil {
 		step.Fail(err)
 		return err
 	}
@@ -81,22 +86,51 @@ func (s *Atomix) Setup() error {
 	return nil
 }
 
-// createPartitionSetResource creates the PartitionSet custom resource definition in the k8s cluster
-func (s *Atomix) createPartitionSetResource() error {
+// createDatabaseResource creates the PartitionSet custom resource definition in the k8s cluster
+func (s *Atomix) createDatabaseResource() error {
 	crd := &apiextensionv1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "partitionsets.k8s.atomix.io",
+			Name: "databases.cloud.atomix.io",
 		},
 		Spec: apiextensionv1beta1.CustomResourceDefinitionSpec{
-			Group: "k8s.atomix.io",
+			Group: "cloud.atomix.io",
 			Names: apiextensionv1beta1.CustomResourceDefinitionNames{
-				Kind:     "PartitionSet",
-				ListKind: "PartitionSetList",
-				Plural:   "partitionsets",
-				Singular: "partitionset",
+				Kind:     "Database",
+				ListKind: "DatabaseList",
+				Plural:   "databases",
+				Singular: "database",
 			},
 			Scope:   apiextensionv1beta1.NamespaceScoped,
-			Version: "v1alpha1",
+			Version: "v1beta1",
+			Subresources: &apiextensionv1beta1.CustomResourceSubresources{
+				Status: &apiextensionv1beta1.CustomResourceSubresourceStatus{},
+			},
+		},
+	}
+
+	_, err := s.extensionsClient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd)
+	if err != nil && !k8serrors.IsAlreadyExists(err) {
+		return err
+	}
+	return nil
+}
+
+// createClusterResource creates the Cluster custom resource definition in the k8s cluster
+func (s *Atomix) createClusterResource() error {
+	crd := &apiextensionv1beta1.CustomResourceDefinition{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "clusters.cloud.atomix.io",
+		},
+		Spec: apiextensionv1beta1.CustomResourceDefinitionSpec{
+			Group: "cloud.atomix.io",
+			Names: apiextensionv1beta1.CustomResourceDefinitionNames{
+				Kind:     "Cluster",
+				ListKind: "ClusterList",
+				Plural:   "clusters",
+				Singular: "cluster",
+			},
+			Scope:   apiextensionv1beta1.NamespaceScoped,
+			Version: "v1beta1",
 			Subresources: &apiextensionv1beta1.CustomResourceSubresources{
 				Status: &apiextensionv1beta1.CustomResourceSubresourceStatus{},
 			},
@@ -114,10 +148,10 @@ func (s *Atomix) createPartitionSetResource() error {
 func (s *Atomix) createPartitionResource() error {
 	crd := &apiextensionv1beta1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "partitions.k8s.atomix.io",
+			Name: "partitions.cloud.atomix.io",
 		},
 		Spec: apiextensionv1beta1.CustomResourceDefinitionSpec{
-			Group: "k8s.atomix.io",
+			Group: "cloud.atomix.io",
 			Names: apiextensionv1beta1.CustomResourceDefinitionNames{
 				Kind:     "Partition",
 				ListKind: "PartitionList",
@@ -125,7 +159,7 @@ func (s *Atomix) createPartitionResource() error {
 				Singular: "partition",
 			},
 			Scope:   apiextensionv1beta1.NamespaceScoped,
-			Version: "v1alpha1",
+			Version: "v1beta1",
 			Subresources: &apiextensionv1beta1.CustomResourceSubresources{
 				Status: &apiextensionv1beta1.CustomResourceSubresourceStatus{},
 			},

@@ -21,10 +21,10 @@ import (
 // PartitionsSetup is an interface for setting up Raft partitions
 type PartitionsSetup interface {
 	// Raft configures the partitions to use the Raft consensus protocol
-	Raft() RaftPartitionsSetup
+	Raft() RaftDatabaseSetup
 
 	// NOPaxos configures the partitions to use the NOPaxos consensus protocol
-	NOPaxos() NOPaxosPartitionsSetup
+	NOPaxos() NOPaxosDatabaseSetup
 }
 
 var _ PartitionsSetup = &clusterPartitionsSetup{}
@@ -34,13 +34,13 @@ type clusterPartitionsSetup struct {
 	group *cluster.Partitions
 }
 
-func (s *clusterPartitionsSetup) Raft() RaftPartitionsSetup {
-	return &clusterRaftPartitionsSetup{
+func (s *clusterPartitionsSetup) Raft() RaftDatabaseSetup {
+	return &clusterRaftDatabaseSetup{
 		raft: s.group.Raft(),
 	}
 }
 
-func (s *clusterPartitionsSetup) NOPaxos() NOPaxosPartitionsSetup {
+func (s *clusterPartitionsSetup) NOPaxos() NOPaxosDatabaseSetup {
 	return &clusterNOPaxosPartitionsSetup{
 		nopaxos: s.group.NOPaxos(),
 	}

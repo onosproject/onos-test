@@ -71,7 +71,7 @@ func (s *Partitions) getLabels() map[string]string {
 // Partitions lists the partitions in the group
 func (s *Partitions) Partitions() []*Partition {
 	labelSelector := metav1.LabelSelector{MatchLabels: s.getLabels()}
-	list, err := s.atomixClient.K8sV1alpha1().Partitions(s.namespace).List(metav1.ListOptions{
+	list, err := s.atomixClient.CloudV1beta1().Partitions(s.namespace).List(metav1.ListOptions{
 		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
 	if err != nil {
 		panic(err)
