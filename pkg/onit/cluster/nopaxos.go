@@ -154,10 +154,10 @@ func (s *NOPaxosPartitions) createPartitionSet() error {
 			Namespace: s.namespace,
 		},
 		Spec: v1beta1.DatabaseSpec{
-			Clusters:   int32(s.NumPartitions()),
-			Partitions: 1,
+			Clusters: int32(s.NumPartitions()),
 			Template: v1beta1.ClusterTemplateSpec{
 				Spec: v1beta1.ClusterSpec{
+					Partitions: 1,
 					Proxy: &v1beta1.Proxy{
 						Image:           s.SequencerImage(),
 						ImagePullPolicy: s.SequencerPullPolicy(),
@@ -178,10 +178,10 @@ func (s *NOPaxosPartitions) createPartitionSet() error {
 // AwaitReady waits for partitions to complete startup
 func (s *NOPaxosPartitions) AwaitReady() error {
 	for {
-		set, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Get(s.group, metav1.GetOptions{})
+		database, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Get(s.group, metav1.GetOptions{})
 		if err != nil {
 			return err
-		} else if set.Status.ReadyPartitions == set.Spec.Partitions {
+		} else if database.Status.ReadyClusters == database.Spec.Clusters {
 			return nil
 		} else {
 			time.Sleep(100 * time.Millisecond)

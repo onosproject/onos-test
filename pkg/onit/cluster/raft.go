@@ -33,6 +33,7 @@ func newRaftPartitions(partitions *Partitions) *RaftPartitions {
 	return &RaftPartitions{
 		Partitions: partitions,
 		partitions: 1,
+		clusters:   1,
 		replicas:   1,
 		image:      defaultRaftImage,
 		pullPolicy: corev1.PullIfNotPresent,
@@ -141,10 +142,10 @@ func (s *RaftPartitions) createDatabase() error {
 			Namespace: s.namespace,
 		},
 		Spec: v1beta1.DatabaseSpec{
-			Clusters:   int32(s.Clusters()),
-			Partitions: int32(s.NumPartitions()),
+			Clusters: int32(s.Clusters()),
 			Template: v1beta1.ClusterTemplateSpec{
 				Spec: v1beta1.ClusterSpec{
+					Partitions: int32(s.NumPartitions()),
 					Backend: v1beta1.Backend{
 						Replicas:        int32(s.Replicas()),
 						Image:           s.Image(),
@@ -164,7 +165,7 @@ func (s *RaftPartitions) AwaitReady() error {
 		database, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Get(s.group, metav1.GetOptions{})
 		if err != nil {
 			return err
-		} else if database.Status.ReadyPartitions == database.Spec.Partitions {
+		} else if database.Status.ReadyClusters == database.Spec.Clusters {
 			return nil
 		} else {
 			time.Sleep(100 * time.Millisecond)

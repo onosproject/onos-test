@@ -146,6 +146,10 @@ github.com/atomix/kubernetes-controller v0.0.0-20200131001506-bdf8deafceb0 h1:+j
 github.com/atomix/kubernetes-controller v0.0.0-20200131001506-bdf8deafceb0/go.mod h1:BS2fOjydow0qgKFL9fxSdSUMPyb/htZar29unAxIsAQ=
 github.com/atomix/kubernetes-controller v0.0.0-20200131002046-980e3c07f50b h1:jZ2QyYE7qzsGqbYW3Rwup2mH9YMFjEXYXMzCoWYrt3g=
 github.com/atomix/kubernetes-controller v0.0.0-20200131002046-980e3c07f50b/go.mod h1:BS2fOjydow0qgKFL9fxSdSUMPyb/htZar29unAxIsAQ=
+github.com/atomix/kubernetes-controller v0.0.0-20200201012737-2abbc626d103 h1:pd9eWHUh4GJNUuzJscs+4uLKSJfsqWBQ/c/D5speYjI=
+github.com/atomix/kubernetes-controller v0.0.0-20200201012737-2abbc626d103/go.mod h1:BS2fOjydow0qgKFL9fxSdSUMPyb/htZar29unAxIsAQ=
+github.com/atomix/kubernetes-controller v0.0.0-20200201013117-72fd7fbb71f9 h1:+IlQptZLV0zfvBVFMVYl3wUM2L3vn1YkonSAhbuJBZI=
+github.com/atomix/kubernetes-controller v0.0.0-20200201013117-72fd7fbb71f9/go.mod h1:BS2fOjydow0qgKFL9fxSdSUMPyb/htZar29unAxIsAQ=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
