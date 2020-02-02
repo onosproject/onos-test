@@ -17,6 +17,9 @@ package cluster
 import (
 	"bufio"
 	"errors"
+	"os"
+	"time"
+
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
@@ -25,8 +28,6 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"os"
-	"time"
 )
 
 const namespace = "kube-test"
@@ -239,7 +240,7 @@ func (r *Runner) createClusterRole() error {
 			},
 			{
 				APIGroups: []string{
-					"k8s.atomix.io",
+					"cloud.atomix.io",
 				},
 				Resources: []string{
 					"*",
