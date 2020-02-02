@@ -18,13 +18,13 @@ import "strings"
 
 const (
 	partitionType  = "partition"
-	groupLabel     = "group"
+	databaseLabel  = "database"
 	partitionLabel = "partition"
 )
 
 func newPartition(cluster *Cluster, name string) *Partition {
 	labels := getLabels(partitionType)
-	labels[groupLabel] = name[:strings.LastIndex(name, "-")]
+	labels[databaseLabel] = name[:strings.LastIndex(name, "-")]
 	labels[partitionLabel] = name[strings.LastIndex(name, "-")+1:]
 	deployment := newDeployment(cluster)
 	deployment.SetName(name)

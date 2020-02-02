@@ -64,11 +64,11 @@ func (s *Database) Partition(name string) *Partition {
 // getLabels returns the labels for the database
 func (s *Database) getLabels() map[string]string {
 	labels := getLabels(partitionType)
-	labels[groupLabel] = s.name
+	labels[databaseLabel] = s.name
 	return labels
 }
 
-// Database lists the partitions in the database
+// Partitions lists the partitions in the database
 func (s *Database) Partitions() []*Partition {
 	labelSelector := metav1.LabelSelector{MatchLabels: s.getLabels()}
 	list, err := s.atomixClient.CloudV1beta1().Partitions(s.namespace).List(metav1.ListOptions{

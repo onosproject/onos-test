@@ -113,13 +113,6 @@ func (s *NOPaxosDatabase) SetReplicaPullPolicy(pullPolicy corev1.PullPolicy) {
 	s.replicaPullPolicy = pullPolicy
 }
 
-// getLabels returns the labels for the partition group
-func (s *NOPaxosDatabase) getLabels() map[string]string {
-	labels := getLabels(partitionType)
-	labels[groupLabel] = s.name
-	return labels
-}
-
 // Connect connects to the partition group
 func (s *NOPaxosDatabase) Connect() (*atomix.PartitionGroup, error) {
 	client, err := atomix.NewClient(fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", s.namespace), atomix.WithNamespace(s.namespace))
@@ -129,12 +122,12 @@ func (s *NOPaxosDatabase) Connect() (*atomix.PartitionGroup, error) {
 	return client.GetGroup(context.Background(), s.name)
 }
 
-// Setup sets up a partition set
+// Setup sets up a NOPaxos database
 func (s *NOPaxosDatabase) Setup() error {
 	step := logging.NewStep(s.namespace, "Setup NOPaxos partitions")
 	step.Start()
 	step.Log("Creating NOPaxos PartitionSet")
-	if err := s.createPartitionSet(); err != nil {
+	if err := s.createDatabase(); err != nil {
 		step.Fail(err)
 		return err
 	}
@@ -147,7 +140,7 @@ func (s *NOPaxosDatabase) Setup() error {
 	return nil
 }
 
-func (s *NOPaxosDatabase) createPartitionSet() error {
+func (s *NOPaxosDatabase) createDatabase() error {
 	database := &v1beta1.Database{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),

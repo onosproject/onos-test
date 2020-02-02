@@ -101,13 +101,6 @@ func (s *RaftDatabase) SetPullPolicy(pullPolicy corev1.PullPolicy) {
 	s.pullPolicy = pullPolicy
 }
 
-// getLabels returns the labels for the partition group
-func (s *RaftDatabase) getLabels() map[string]string {
-	labels := getLabels(partitionType)
-	labels[groupLabel] = s.name
-	return labels
-}
-
 // Connect connects to the partition group
 func (s *RaftDatabase) Connect() (*atomix.PartitionGroup, error) {
 	client, err := atomix.NewClient(fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", s.namespace), atomix.WithNamespace(s.namespace))
@@ -117,7 +110,7 @@ func (s *RaftDatabase) Connect() (*atomix.PartitionGroup, error) {
 	return client.GetGroup(context.Background(), s.name)
 }
 
-// Setup sets up a partition set
+// Setup sets up a database
 func (s *RaftDatabase) Setup() error {
 	step := logging.NewStep(s.namespace, "Setup Raft partitions")
 	step.Start()
@@ -135,7 +128,7 @@ func (s *RaftDatabase) Setup() error {
 	return nil
 }
 
-// createDatabase creates a Raft partition set from the configuration
+// createDatabase creates a Raft database from the configuration
 func (s *RaftDatabase) createDatabase() error {
 	var volumeClaim *corev1.PersistentVolumeClaim
 	storageClass := GetArg(s.name, "storage", "class").String("")
