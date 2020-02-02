@@ -3,7 +3,7 @@ module github.com/onosproject/onos-test
 go 1.12
 
 require (
-	github.com/atomix/go-client v0.0.0-20200131190220-8a987e7da756
+	github.com/atomix/go-client v0.0.0-20200202124444-2b0271852fac
 	github.com/atomix/kubernetes-controller v0.0.0-20200202101151-b31765af9a0f
 	github.com/dustinkirkland/golang-petname v0.0.0-20190613200456-11339a705ed2
 	github.com/fatih/color v1.7.0
