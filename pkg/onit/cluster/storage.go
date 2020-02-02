@@ -14,28 +14,27 @@
 
 package cluster
 
-import "strings"
-
-const (
-	partitionType  = "partition"
-	databaseLabel  = "database"
-	partitionLabel = "partition"
-)
-
-func newPartition(cluster *Cluster, name string) *Partition {
-	labels := getLabels(partitionType)
-	labels[databaseLabel] = name[:strings.LastIndex(name, "-")]
-	labels[partitionLabel] = name[strings.LastIndex(name, "-")+1:]
-	deployment := newDeployment(cluster)
-	deployment.SetName(name)
-	deployment.SetLabels(labels)
-
-	return &Partition{
-		Deployment: deployment,
+func newStorage(cluster *Cluster) *Storage {
+	return &Storage{
+		client:    cluster.client,
+		cluster:   cluster,
+		databases: make(map[string]*Database),
 	}
 }
 
-// Partition provides methods for querying a database partition
-type Partition struct {
-	*Deployment
+// Storage provides methods for managing Atomix storage
+type Storage struct {
+	*client
+	cluster   *Cluster
+	databases map[string]*Database
+}
+
+// Database returns a database by name
+func (s *Storage) Database(name string) *Database {
+	if database, ok := s.databases[name]; ok {
+		return database
+	}
+	database := newDatabase(s.cluster, name)
+	s.databases[name] = database
+	return database
 }

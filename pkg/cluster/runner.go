@@ -239,6 +239,7 @@ func (r *Runner) createClusterRole() error {
 			},
 			{
 				APIGroups: []string{
+					"cloud.atomix.io",
 					"k8s.atomix.io",
 				},
 				Resources: []string{

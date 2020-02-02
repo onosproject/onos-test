@@ -12,30 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cluster
+package env
 
-import "strings"
-
-const (
-	partitionType  = "partition"
-	databaseLabel  = "database"
-	partitionLabel = "partition"
+import (
+	"github.com/onosproject/onos-test/pkg/onit/cluster"
 )
 
-func newPartition(cluster *Cluster, name string) *Partition {
-	labels := getLabels(partitionType)
-	labels[databaseLabel] = name[:strings.LastIndex(name, "-")]
-	labels[partitionLabel] = name[strings.LastIndex(name, "-")+1:]
-	deployment := newDeployment(cluster)
-	deployment.SetName(name)
-	deployment.SetLabels(labels)
-
-	return &Partition{
-		Deployment: deployment,
-	}
+// StorageEnv provides the storage environment
+type StorageEnv interface {
+	// Database returns all database partitions
+	Database(name string) DatabaseEnv
 }
 
-// Partition provides methods for querying a database partition
-type Partition struct {
-	*Deployment
+var _ StorageEnv = &clusterStorageEnv{}
+
+// clusterStorageEnv is an implementation of the Database interface
+type clusterStorageEnv struct {
+	database *cluster.Storage
+}
+
+func (e *clusterStorageEnv) Database(name string) DatabaseEnv {
+	return &clusterDatabaseEnv{
+		database: e.database.Database(name),
+	}
 }

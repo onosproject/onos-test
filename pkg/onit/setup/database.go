@@ -18,34 +18,34 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 )
 
-// PartitionsSetup is an interface for setting up Raft partitions
-type PartitionsSetup interface {
+// DatabaseSetup is an interface for setting up a database
+type DatabaseSetup interface {
 	// Raft configures the partitions to use the Raft consensus protocol
-	Raft() RaftPartitionsSetup
+	Raft() RaftDatabaseSetup
 
 	// NOPaxos configures the partitions to use the NOPaxos consensus protocol
-	NOPaxos() NOPaxosPartitionsSetup
+	NOPaxos() NOPaxosDatabaseSetup
 }
 
-var _ PartitionsSetup = &clusterPartitionsSetup{}
+var _ DatabaseSetup = &clusterDatabaseSetup{}
 
-// clusterPartitionsSetup is an implementation of the PartitionsSetup interface
-type clusterPartitionsSetup struct {
-	group *cluster.Partitions
+// clusterDatabaseSetup is an implementation of the DatabaseSetup interface
+type clusterDatabaseSetup struct {
+	group *cluster.Database
 }
 
-func (s *clusterPartitionsSetup) Raft() RaftPartitionsSetup {
-	return &clusterRaftPartitionsSetup{
+func (s *clusterDatabaseSetup) Raft() RaftDatabaseSetup {
+	return &clusterRaftDatabaseSetup{
 		raft: s.group.Raft(),
 	}
 }
 
-func (s *clusterPartitionsSetup) NOPaxos() NOPaxosPartitionsSetup {
+func (s *clusterDatabaseSetup) NOPaxos() NOPaxosDatabaseSetup {
 	return &clusterNOPaxosPartitionsSetup{
 		nopaxos: s.group.NOPaxos(),
 	}
 }
 
-func (s *clusterPartitionsSetup) setup() error {
+func (s *clusterDatabaseSetup) setup() error {
 	return s.group.Setup()
 }

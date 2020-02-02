@@ -19,60 +19,60 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// NOPaxosPartitionsSetup is an interface for setting up NOPaxos partitions
-type NOPaxosPartitionsSetup interface {
+// NOPaxosDatabaseSetup is an interface for setting up NOPaxos partitions
+type NOPaxosDatabaseSetup interface {
 	// SetPartitions sets the number of partitions to deploy
-	SetPartitions(partitions int) NOPaxosPartitionsSetup
+	SetPartitions(partitions int) NOPaxosDatabaseSetup
 
 	// SetReplicasPerPartition sets the number of replicas per partition
-	SetReplicasPerPartition(replicas int) NOPaxosPartitionsSetup
+	SetReplicasPerPartition(replicas int) NOPaxosDatabaseSetup
 
 	// SetSequencerImage sets the sequencer image to deploy
-	SetSequencerImage(image string) NOPaxosPartitionsSetup
+	SetSequencerImage(image string) NOPaxosDatabaseSetup
 
 	// SetSequencerPullPolicy sets the sequencer image pull policy
-	SetSequencerPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosPartitionsSetup
+	SetSequencerPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosDatabaseSetup
 
 	// SetReplicaImage sets the replica image to deploy
-	SetReplicaImage(image string) NOPaxosPartitionsSetup
+	SetReplicaImage(image string) NOPaxosDatabaseSetup
 
 	// SetReplicaPullPolicy sets the replica image pull policy
-	SetReplicaPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosPartitionsSetup
+	SetReplicaPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosDatabaseSetup
 }
 
-var _ NOPaxosPartitionsSetup = &clusterNOPaxosPartitionsSetup{}
+var _ NOPaxosDatabaseSetup = &clusterNOPaxosPartitionsSetup{}
 
-// clusterNOPaxosPartitionsSetup is an implementation of the NOPaxosPartitionsSetup interface
+// clusterNOPaxosPartitionsSetup is an implementation of the NOPaxosDatabaseSetup interface
 type clusterNOPaxosPartitionsSetup struct {
-	nopaxos *cluster.NOPaxosPartitions
+	nopaxos *cluster.NOPaxosDatabase
 }
 
-func (s *clusterNOPaxosPartitionsSetup) SetPartitions(partitions int) NOPaxosPartitionsSetup {
+func (s *clusterNOPaxosPartitionsSetup) SetPartitions(partitions int) NOPaxosDatabaseSetup {
 	s.nopaxos.SetPartitions(partitions)
 	return s
 }
 
-func (s *clusterNOPaxosPartitionsSetup) SetReplicasPerPartition(replicas int) NOPaxosPartitionsSetup {
+func (s *clusterNOPaxosPartitionsSetup) SetReplicasPerPartition(replicas int) NOPaxosDatabaseSetup {
 	s.nopaxos.SetReplicas(replicas)
 	return s
 }
 
-func (s *clusterNOPaxosPartitionsSetup) SetSequencerImage(image string) NOPaxosPartitionsSetup {
+func (s *clusterNOPaxosPartitionsSetup) SetSequencerImage(image string) NOPaxosDatabaseSetup {
 	s.nopaxos.SetSequencerImage(image)
 	return s
 }
 
-func (s *clusterNOPaxosPartitionsSetup) SetSequencerPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosPartitionsSetup {
+func (s *clusterNOPaxosPartitionsSetup) SetSequencerPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosDatabaseSetup {
 	s.nopaxos.SetSequencerPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterNOPaxosPartitionsSetup) SetReplicaImage(image string) NOPaxosPartitionsSetup {
+func (s *clusterNOPaxosPartitionsSetup) SetReplicaImage(image string) NOPaxosDatabaseSetup {
 	s.nopaxos.SetReplicaImage(image)
 	return s
 }
 
-func (s *clusterNOPaxosPartitionsSetup) SetReplicaPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosPartitionsSetup {
+func (s *clusterNOPaxosPartitionsSetup) SetReplicaPullPolicy(pullPolicy corev1.PullPolicy) NOPaxosDatabaseSetup {
 	s.nopaxos.SetReplicaPullPolicy(pullPolicy)
 	return s
 }
