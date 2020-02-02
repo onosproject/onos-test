@@ -30,9 +30,9 @@ const (
 	defaultSequencerImage = "atomix/nopaxos-proxy:latest"
 )
 
-func newNOPaxosPartitions(partitions *Partitions) *NOPaxosPartitions {
-	return &NOPaxosPartitions{
-		Partitions:          partitions,
+func newNOPaxosDatabase(database *Database) *NOPaxosDatabase {
+	return &NOPaxosDatabase{
+		Database:            database,
 		partitions:          1,
 		replicas:            1,
 		sequencerImage:      defaultSequencerImage,
@@ -42,9 +42,9 @@ func newNOPaxosPartitions(partitions *Partitions) *NOPaxosPartitions {
 	}
 }
 
-// NOPaxosPartitions provides methods for adding and modifying NOPaxos partitions
-type NOPaxosPartitions struct {
-	*Partitions
+// NOPaxosDatabase provides methods for adding and modifying NOPaxos partitions
+type NOPaxosDatabase struct {
+	*Database
 	partitions          int
 	replicas            int
 	sequencerImage      string
@@ -54,83 +54,83 @@ type NOPaxosPartitions struct {
 }
 
 // NumPartitions returns the number of partitions
-func (s *NOPaxosPartitions) NumPartitions() int {
-	return GetArg(s.group, "partitions").Int(1)
+func (s *NOPaxosDatabase) NumPartitions() int {
+	return GetArg(s.name, "partitions").Int(1)
 }
 
 // SetPartitions sets the number of partitions in the group
-func (s *NOPaxosPartitions) SetPartitions(partitions int) {
+func (s *NOPaxosDatabase) SetPartitions(partitions int) {
 	s.partitions = partitions
 }
 
 // Replicas returns the number of replicas in each partition
-func (s *NOPaxosPartitions) Replicas() int {
-	return GetArg(s.group, "replicas").Int(1)
+func (s *NOPaxosDatabase) Replicas() int {
+	return GetArg(s.name, "replicas").Int(1)
 }
 
 // SetReplicas sets the number of nodes in each partition
-func (s *NOPaxosPartitions) SetReplicas(replicas int) {
+func (s *NOPaxosDatabase) SetReplicas(replicas int) {
 	s.replicas = replicas
 }
 
 // SequencerImage returns the image for the partition group
-func (s *NOPaxosPartitions) SequencerImage() string {
-	return GetArg(s.group, "sequencer", "image").String(s.sequencerImage)
+func (s *NOPaxosDatabase) SequencerImage() string {
+	return GetArg(s.name, "sequencer", "image").String(s.sequencerImage)
 }
 
 // SetSequencerImage sets the image for the partition group sequencer
-func (s *NOPaxosPartitions) SetSequencerImage(image string) {
+func (s *NOPaxosDatabase) SetSequencerImage(image string) {
 	s.sequencerImage = image
 }
 
 // SequencerPullPolicy returns the image pull policy for the partition group
-func (s *NOPaxosPartitions) SequencerPullPolicy() corev1.PullPolicy {
-	return corev1.PullPolicy(GetArg(s.group, "sequencer", "pullPolicy").String(string(s.sequencerPullPolicy)))
+func (s *NOPaxosDatabase) SequencerPullPolicy() corev1.PullPolicy {
+	return corev1.PullPolicy(GetArg(s.name, "sequencer", "pullPolicy").String(string(s.sequencerPullPolicy)))
 }
 
 // SetSequencerPullPolicy sets the image pull policy for the partition group
-func (s *NOPaxosPartitions) SetSequencerPullPolicy(pullPolicy corev1.PullPolicy) {
+func (s *NOPaxosDatabase) SetSequencerPullPolicy(pullPolicy corev1.PullPolicy) {
 	s.sequencerPullPolicy = pullPolicy
 }
 
 // ReplicaImage returns the image for the partition group
-func (s *NOPaxosPartitions) ReplicaImage() string {
-	return GetArg(s.group, "replica", "image").String(s.replicaImage)
+func (s *NOPaxosDatabase) ReplicaImage() string {
+	return GetArg(s.name, "replica", "image").String(s.replicaImage)
 }
 
 // SetReplicaImage sets the image for the partition group replicas
-func (s *NOPaxosPartitions) SetReplicaImage(image string) {
+func (s *NOPaxosDatabase) SetReplicaImage(image string) {
 	s.replicaImage = image
 }
 
 // ReplicaPullPolicy returns the image pull policy for the partition group
-func (s *NOPaxosPartitions) ReplicaPullPolicy() corev1.PullPolicy {
-	return corev1.PullPolicy(GetArg(s.group, "replica", "pullPolicy").String(string(s.replicaPullPolicy)))
+func (s *NOPaxosDatabase) ReplicaPullPolicy() corev1.PullPolicy {
+	return corev1.PullPolicy(GetArg(s.name, "replica", "pullPolicy").String(string(s.replicaPullPolicy)))
 }
 
 // SetReplicaPullPolicy sets the image pull policy for the partition group
-func (s *NOPaxosPartitions) SetReplicaPullPolicy(pullPolicy corev1.PullPolicy) {
+func (s *NOPaxosDatabase) SetReplicaPullPolicy(pullPolicy corev1.PullPolicy) {
 	s.replicaPullPolicy = pullPolicy
 }
 
 // getLabels returns the labels for the partition group
-func (s *NOPaxosPartitions) getLabels() map[string]string {
+func (s *NOPaxosDatabase) getLabels() map[string]string {
 	labels := getLabels(partitionType)
-	labels[groupLabel] = s.group
+	labels[groupLabel] = s.name
 	return labels
 }
 
 // Connect connects to the partition group
-func (s *NOPaxosPartitions) Connect() (*atomix.PartitionGroup, error) {
+func (s *NOPaxosDatabase) Connect() (*atomix.PartitionGroup, error) {
 	client, err := atomix.NewClient(fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", s.namespace), atomix.WithNamespace(s.namespace))
 	if err != nil {
 		return nil, err
 	}
-	return client.GetGroup(context.Background(), s.group)
+	return client.GetGroup(context.Background(), s.name)
 }
 
 // Setup sets up a partition set
-func (s *NOPaxosPartitions) Setup() error {
+func (s *NOPaxosDatabase) Setup() error {
 	step := logging.NewStep(s.namespace, "Setup NOPaxos partitions")
 	step.Start()
 	step.Log("Creating NOPaxos PartitionSet")
@@ -147,7 +147,7 @@ func (s *NOPaxosPartitions) Setup() error {
 	return nil
 }
 
-func (s *NOPaxosPartitions) createPartitionSet() error {
+func (s *NOPaxosDatabase) createPartitionSet() error {
 	database := &v1beta1.Database{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),
@@ -176,9 +176,9 @@ func (s *NOPaxosPartitions) createPartitionSet() error {
 }
 
 // AwaitReady waits for partitions to complete startup
-func (s *NOPaxosPartitions) AwaitReady() error {
+func (s *NOPaxosDatabase) AwaitReady() error {
 	for {
-		database, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Get(s.group, metav1.GetOptions{})
+		database, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Get(s.name, metav1.GetOptions{})
 		if err != nil {
 			return err
 		} else if database.Status.ReadyClusters == database.Spec.Clusters {

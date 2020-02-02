@@ -41,7 +41,7 @@ var _ RaftDatabaseSetup = &clusterRaftDatabaseSetup{}
 
 // clusterRaftDatabaseSetup is an implementation of the RaftDatabaseSetup interface
 type clusterRaftDatabaseSetup struct {
-	raft *cluster.RaftPartitions
+	raft *cluster.RaftDatabase
 }
 
 func (s *clusterRaftDatabaseSetup) SetPartitions(partitions int) RaftDatabaseSetup {

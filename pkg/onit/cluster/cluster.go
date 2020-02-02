@@ -34,7 +34,7 @@ func New(kube kube.API) *Cluster {
 		client: client,
 	}
 	cluster.atomix = newAtomix(cluster)
-	cluster.database = newDatabase(cluster)
+	cluster.database = newStorage(cluster)
 	cluster.cli = newCLI(cluster)
 	cluster.topo = newTopo(cluster)
 	cluster.config = newConfig(cluster)
@@ -48,7 +48,7 @@ func New(kube kube.API) *Cluster {
 type Cluster struct {
 	*client
 	atomix     *Atomix
-	database   *Database
+	database   *Storage
 	cli        *CLI
 	topo       *Topo
 	config     *Config
@@ -63,7 +63,7 @@ func (c *Cluster) Atomix() *Atomix {
 }
 
 // Database returns the database service
-func (c *Cluster) Database() *Database {
+func (c *Cluster) Database() *Storage {
 	return c.database
 }
 

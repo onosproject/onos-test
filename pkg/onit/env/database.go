@@ -15,24 +15,48 @@
 package env
 
 import (
+	"github.com/atomix/go-client/pkg/client"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 )
 
-// DatabaseEnv provides the database environment
+// DatabaseEnv is an Atomix database
 type DatabaseEnv interface {
-	// Partitions returns all database partitions
-	Partitions(group string) PartitionsEnv
-}
+	// List returns a list of partitions in the database
+	List() []PartitionEnv
 
-var _ DatabaseEnv = &clusterDatabaseEnv{}
+	// Get returns the environment for a partition service by name
+	Get(name string) PartitionEnv
+
+	// Connect connects to the partition group
+	Connect() (*client.Database, error)
+}
 
 // clusterDatabaseEnv is an implementation of the Database interface
 type clusterDatabaseEnv struct {
 	database *cluster.Database
 }
 
-func (e *clusterDatabaseEnv) Partitions(group string) PartitionsEnv {
-	return &clusterPartitionsEnv{
-		partitions: e.database.Partitions(group),
+func (e *clusterDatabaseEnv) List() []PartitionEnv {
+	clusterPartitions := e.database.Partitions()
+	partitions := make([]PartitionEnv, len(clusterPartitions))
+	for i, partition := range clusterPartitions {
+		partitions[i] = &clusterPartitionEnv{
+			clusterDeploymentEnv: &clusterDeploymentEnv{
+				deployment: partition.Deployment,
+			},
+		}
 	}
+	return partitions
+}
+
+func (e *clusterDatabaseEnv) Get(name string) PartitionEnv {
+	return &clusterPartitionEnv{
+		clusterDeploymentEnv: &clusterDeploymentEnv{
+			deployment: e.database.Partition(name).Deployment,
+		},
+	}
+}
+
+func (e *clusterDatabaseEnv) Connect() (*client.Database, error) {
+	return e.database.Connect()
 }

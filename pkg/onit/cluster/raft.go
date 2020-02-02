@@ -30,9 +30,9 @@ const (
 	defaultRaftImage = "atomix/raft-replica:latest"
 )
 
-func newRaftPartitions(partitions *Partitions) *RaftPartitions {
-	return &RaftPartitions{
-		Partitions: partitions,
+func newRaftDatabase(database *Database) *RaftDatabase {
+	return &RaftDatabase{
+		Database:   database,
 		partitions: 1,
 		clusters:   1,
 		replicas:   1,
@@ -41,9 +41,9 @@ func newRaftPartitions(partitions *Partitions) *RaftPartitions {
 	}
 }
 
-// RaftPartitions provides methods for adding and modifying Raft partitions
-type RaftPartitions struct {
-	*Partitions
+// RaftDatabase provides methods for adding and modifying Raft partitions
+type RaftDatabase struct {
+	*Database
 	partitions int
 	clusters   int
 	replicas   int
@@ -52,73 +52,73 @@ type RaftPartitions struct {
 }
 
 // NumPartitions returns the number of partitions
-func (s *RaftPartitions) NumPartitions() int {
-	return GetArg(s.group, "partitions").Int(s.partitions)
+func (s *RaftDatabase) NumPartitions() int {
+	return GetArg(s.name, "partitions").Int(s.partitions)
 }
 
 // SetPartitions sets the number of partitions in the group
-func (s *RaftPartitions) SetPartitions(partitions int) {
+func (s *RaftDatabase) SetPartitions(partitions int) {
 	s.partitions = partitions
 }
 
 // Clusters returns the number of clusters in each partition
-func (s *RaftPartitions) Clusters() int {
-	return GetArg(s.group, "clusters").Int(s.clusters)
+func (s *RaftDatabase) Clusters() int {
+	return GetArg(s.name, "clusters").Int(s.clusters)
 }
 
 // SetClusters sets the number of clusters in each partition
-func (s *RaftPartitions) SetClusters(clusters int) {
+func (s *RaftDatabase) SetClusters(clusters int) {
 	s.clusters = clusters
 }
 
 // Replicas returns the number of replicas in each partition
-func (s *RaftPartitions) Replicas() int {
-	return GetArg(s.group, "replicas").Int(s.replicas)
+func (s *RaftDatabase) Replicas() int {
+	return GetArg(s.name, "replicas").Int(s.replicas)
 }
 
 // SetReplicas sets the number of nodes in each partition
-func (s *RaftPartitions) SetReplicas(replicas int) {
+func (s *RaftDatabase) SetReplicas(replicas int) {
 	s.replicas = replicas
 }
 
 // Image returns the image for the partition group
-func (s *RaftPartitions) Image() string {
-	return GetArg(s.group, "image").String(s.image)
+func (s *RaftDatabase) Image() string {
+	return GetArg(s.name, "image").String(s.image)
 }
 
 // SetImage sets the image for the partition group
-func (s *RaftPartitions) SetImage(image string) {
+func (s *RaftDatabase) SetImage(image string) {
 	s.image = image
 }
 
 // PullPolicy returns the image pull policy for the partition group
-func (s *RaftPartitions) PullPolicy() corev1.PullPolicy {
-	return corev1.PullPolicy(GetArg(s.group, "pullPolicy").String(string(s.pullPolicy)))
+func (s *RaftDatabase) PullPolicy() corev1.PullPolicy {
+	return corev1.PullPolicy(GetArg(s.name, "pullPolicy").String(string(s.pullPolicy)))
 }
 
 // SetPullPolicy sets the image pull policy for the partition group
-func (s *RaftPartitions) SetPullPolicy(pullPolicy corev1.PullPolicy) {
+func (s *RaftDatabase) SetPullPolicy(pullPolicy corev1.PullPolicy) {
 	s.pullPolicy = pullPolicy
 }
 
 // getLabels returns the labels for the partition group
-func (s *RaftPartitions) getLabels() map[string]string {
+func (s *RaftDatabase) getLabels() map[string]string {
 	labels := getLabels(partitionType)
-	labels[groupLabel] = s.group
+	labels[groupLabel] = s.name
 	return labels
 }
 
 // Connect connects to the partition group
-func (s *RaftPartitions) Connect() (*atomix.PartitionGroup, error) {
+func (s *RaftDatabase) Connect() (*atomix.PartitionGroup, error) {
 	client, err := atomix.NewClient(fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", s.namespace), atomix.WithNamespace(s.namespace))
 	if err != nil {
 		return nil, err
 	}
-	return client.GetGroup(context.Background(), s.group)
+	return client.GetGroup(context.Background(), s.name)
 }
 
 // Setup sets up a partition set
-func (s *RaftPartitions) Setup() error {
+func (s *RaftDatabase) Setup() error {
 	step := logging.NewStep(s.namespace, "Setup Raft partitions")
 	step.Start()
 	step.Log("Creating Raft Database")
@@ -136,11 +136,11 @@ func (s *RaftPartitions) Setup() error {
 }
 
 // createDatabase creates a Raft partition set from the configuration
-func (s *RaftPartitions) createDatabase() error {
+func (s *RaftDatabase) createDatabase() error {
 	var volumeClaim *corev1.PersistentVolumeClaim
-	storageClass := GetArg(s.group, "storage", "class").String("")
+	storageClass := GetArg(s.name, "storage", "class").String("")
 	if storageClass != "" {
-		storageSize := GetArg(s.group, "storage", "size").String("1G")
+		storageSize := GetArg(s.name, "storage", "size").String("1G")
 		volumeClaim = &corev1.PersistentVolumeClaim{
 			Spec: corev1.PersistentVolumeClaimSpec{
 				StorageClassName: &storageClass,
@@ -181,9 +181,9 @@ func (s *RaftPartitions) createDatabase() error {
 }
 
 // AwaitReady waits for partitions to complete startup
-func (s *RaftPartitions) AwaitReady() error {
+func (s *RaftDatabase) AwaitReady() error {
 	for {
-		database, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Get(s.group, metav1.GetOptions{})
+		database, err := s.atomixClient.CloudV1beta1().Databases(s.namespace).Get(s.name, metav1.GetOptions{})
 		if err != nil {
 			return err
 		} else if database.Status.ReadyClusters == database.Spec.Clusters {

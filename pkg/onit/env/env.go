@@ -42,7 +42,7 @@ func Atomix() AtomixEnv {
 }
 
 // Database returns the database environment
-func Database() DatabaseEnv {
+func Database() StorageEnv {
 	return getEnv().Database()
 }
 
@@ -117,7 +117,7 @@ type ClusterEnv interface {
 	Atomix() AtomixEnv
 
 	// Database returns the database environment
-	Database() DatabaseEnv
+	Database() StorageEnv
 
 	// CLI returns the CLI environment
 	CLI() CLIEnv
@@ -174,8 +174,8 @@ func (e *clusterEnv) Atomix() AtomixEnv {
 	}
 }
 
-func (e *clusterEnv) Database() DatabaseEnv {
-	return &clusterDatabaseEnv{
+func (e *clusterEnv) Database() StorageEnv {
+	return &clusterStorageEnv{
 		database: e.cluster.Database(),
 	}
 }

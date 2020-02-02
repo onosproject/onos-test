@@ -24,7 +24,7 @@ import (
 func New(kube kube.API) ClusterSetup {
 	return &clusterSetup{
 		cluster:    cluster.New(kube),
-		partitions: make(map[string]PartitionsSetup),
+		partitions: make(map[string]DatabaseSetup),
 		apps:       make(map[string]AppSetup),
 	}
 }
@@ -44,9 +44,9 @@ func Atomix() AtomixSetup {
 	return getSetup().Atomix()
 }
 
-// Partitions returns the setup configuration for a database partition set
-func Partitions(name ...string) PartitionsSetup {
-	return getSetup().Partitions(name...)
+// Database returns the setup configuration for a database
+func Database(name ...string) DatabaseSetup {
+	return getSetup().Database(name...)
 }
 
 // CLI returns the setup configuration for the CLI service
@@ -84,8 +84,8 @@ type ClusterSetup interface {
 	// Atomix returns the setup configuration for the Atomix controller
 	Atomix() AtomixSetup
 
-	// Partitions returns the setup configuration for a partition set
-	Partitions(name ...string) PartitionsSetup
+	// Database returns the setup configuration for a database
+	Database(name ...string) DatabaseSetup
 
 	// CLI returns the setup configuration for the ONSO CLI service
 	CLI() CLISetup
@@ -114,7 +114,7 @@ type serviceSetup interface {
 // clusterSetup is an implementation of the Setup interface
 type clusterSetup struct {
 	cluster    *cluster.Cluster
-	partitions map[string]PartitionsSetup
+	partitions map[string]DatabaseSetup
 	apps       map[string]AppSetup
 }
 
@@ -124,7 +124,7 @@ func (s *clusterSetup) Atomix() AtomixSetup {
 	}
 }
 
-func (s *clusterSetup) Partitions(name ...string) PartitionsSetup {
+func (s *clusterSetup) Database(name ...string) DatabaseSetup {
 	if len(name) == 0 {
 		name = []string{"database"}
 	}
@@ -132,8 +132,8 @@ func (s *clusterSetup) Partitions(name ...string) PartitionsSetup {
 		return partitions
 	}
 
-	partitions := &clusterPartitionsSetup{
-		group: s.cluster.Database().Partitions(name[0]),
+	partitions := &clusterDatabaseSetup{
+		group: s.cluster.Database().Database(name[0]),
 	}
 	s.partitions[name[0]] = partitions
 	return partitions

@@ -44,7 +44,7 @@ var _ NOPaxosDatabaseSetup = &clusterNOPaxosPartitionsSetup{}
 
 // clusterNOPaxosPartitionsSetup is an implementation of the NOPaxosDatabaseSetup interface
 type clusterNOPaxosPartitionsSetup struct {
-	nopaxos *cluster.NOPaxosPartitions
+	nopaxos *cluster.NOPaxosDatabase
 }
 
 func (s *clusterNOPaxosPartitionsSetup) SetPartitions(partitions int) NOPaxosDatabaseSetup {
