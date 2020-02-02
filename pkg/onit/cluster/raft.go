@@ -21,6 +21,7 @@ import (
 	"github.com/atomix/kubernetes-controller/pkg/apis/cloud/v1beta1"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
@@ -136,6 +137,25 @@ func (s *RaftPartitions) Setup() error {
 
 // createDatabase creates a Raft partition set from the configuration
 func (s *RaftPartitions) createDatabase() error {
+	var volumeClaim *corev1.PersistentVolumeClaim
+	storageClass := GetArg(s.group, "storage", "class").String("")
+	if storageClass != "" {
+		storageSize := GetArg(s.group, "storage", "size").String("1G")
+		volumeClaim = &corev1.PersistentVolumeClaim{
+			Spec: corev1.PersistentVolumeClaimSpec{
+				StorageClassName: &storageClass,
+				AccessModes: []corev1.PersistentVolumeAccessMode{
+					"ReadWriteOnce",
+				},
+				Resources: corev1.ResourceRequirements{
+					Requests: corev1.ResourceList{
+						"storage": resource.MustParse(storageSize),
+					},
+				},
+			},
+		}
+	}
+
 	database := &v1beta1.Database{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),
@@ -150,6 +170,7 @@ func (s *RaftPartitions) createDatabase() error {
 						Replicas:        int32(s.Replicas()),
 						Image:           s.Image(),
 						ImagePullPolicy: s.PullPolicy(),
+						VolumeClaim:     volumeClaim,
 					},
 				},
 			},

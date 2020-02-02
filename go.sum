@@ -21,6 +21,7 @@ github.com/atomix/api v0.0.0-20200127203446-04e1f5a64ca3 h1:bDuig57FGIQckqGF5kHv
 github.com/atomix/api v0.0.0-20200127203446-04e1f5a64ca3/go.mod h1:Ec7OEwfv1qGASdRZdXxi6TUvwmayT4IkkewDcm7pItI=
 github.com/atomix/api v0.0.0-20200130225951-1a2e0356dab7 h1:ygZeqH+G7VlGfecS6xxbus9PLz5qPmt+orgOz6CTwrM=
 github.com/atomix/api v0.0.0-20200130225951-1a2e0356dab7/go.mod h1:Ec7OEwfv1qGASdRZdXxi6TUvwmayT4IkkewDcm7pItI=
+github.com/atomix/api v0.0.0-20200202100958-13b24edbe32d/go.mod h1:Ec7OEwfv1qGASdRZdXxi6TUvwmayT4IkkewDcm7pItI=
 github.com/atomix/atomix-api v0.0.0-20190820204356-60f1a3d2c6c0/go.mod h1:joWKUd0zIeYbAQ0vmYHGsnV03ZgRalhceHgnJ3EN0mI=
 github.com/atomix/atomix-api v0.0.0-20190826211343-dd8f4db3bf77 h1:+PUuY9wDRp+VAg/JbEguzdOMJj6ruUw6Kw/y+QYHB6s=
 github.com/atomix/atomix-api v0.0.0-20190826211343-dd8f4db3bf77/go.mod h1:joWKUd0zIeYbAQ0vmYHGsnV03ZgRalhceHgnJ3EN0mI=
@@ -150,6 +151,10 @@ github.com/atomix/kubernetes-controller v0.0.0-20200201012737-2abbc626d103 h1:pd
 github.com/atomix/kubernetes-controller v0.0.0-20200201012737-2abbc626d103/go.mod h1:BS2fOjydow0qgKFL9fxSdSUMPyb/htZar29unAxIsAQ=
 github.com/atomix/kubernetes-controller v0.0.0-20200201013117-72fd7fbb71f9 h1:+IlQptZLV0zfvBVFMVYl3wUM2L3vn1YkonSAhbuJBZI=
 github.com/atomix/kubernetes-controller v0.0.0-20200201013117-72fd7fbb71f9/go.mod h1:BS2fOjydow0qgKFL9fxSdSUMPyb/htZar29unAxIsAQ=
+github.com/atomix/kubernetes-controller v0.0.0-20200201015708-ef679b424acb h1:wndmV8tcYB6H0fNbm2Zd42k39NJdFJcTmcO7GR4r2mY=
+github.com/atomix/kubernetes-controller v0.0.0-20200201015708-ef679b424acb/go.mod h1:BS2fOjydow0qgKFL9fxSdSUMPyb/htZar29unAxIsAQ=
+github.com/atomix/kubernetes-controller v0.0.0-20200202101151-b31765af9a0f h1:nqP97ZUi2T4cAyouMhMifklYMW5EjRDgYQLeOQN0nW8=
+github.com/atomix/kubernetes-controller v0.0.0-20200202101151-b31765af9a0f/go.mod h1:ud/7iiSYTsZ6mrzCMTpfMnUT6wCx9e/9tHavM7ZMYWA=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
