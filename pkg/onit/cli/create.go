@@ -88,5 +88,6 @@ func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
 	setup.Database().Raft()
 	setup.Topo().SetReplicas(1)
 	setup.Config().SetReplicas(1)
+	setup.Ran().SetReplicas(1)
 	return setup.Setup()
 }
