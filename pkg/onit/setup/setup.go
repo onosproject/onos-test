@@ -15,9 +15,10 @@
 package setup
 
 import (
+	"sync"
+
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
-	"sync"
 )
 
 // New returns a new onit ClusterSetup
@@ -64,6 +65,11 @@ func Topo() TopoSetup {
 	return getSetup().Topo()
 }
 
+// Ran returns the setup  configuration for the ran service
+func Ran() RanSetup {
+	return getSetup().Ran()
+}
+
 // Config returns the setup configuration for the config service
 func Config() ConfigSetup {
 	return getSetup().Config()
@@ -95,6 +101,9 @@ type ClusterSetup interface {
 
 	// Config returns the setup configuration for the ONOS config service
 	Config() ConfigSetup
+
+	// Ran returns the setup configuration for the ONOS ran service
+	Ran() RanSetup
 
 	// App returns the setup configuration for an application
 	App(name string) AppSetup
@@ -151,6 +160,12 @@ func (s *clusterSetup) Topo() TopoSetup {
 	}
 }
 
+func (s *clusterSetup) Ran() RanSetup {
+	return &clusterRanSetup{
+		ran: s.cluster.Ran(),
+	}
+}
+
 func (s *clusterSetup) Config() ConfigSetup {
 	return &clusterConfigSetup{
 		config: s.cluster.Config(),
@@ -187,6 +202,7 @@ func (s *clusterSetup) Setup() error {
 	setupService(s.CLI().(serviceSetup), wg, errCh)
 	setupService(s.Topo().(serviceSetup), wg, errCh)
 	setupService(s.Config().(serviceSetup), wg, errCh)
+	setupService(s.Ran().(serviceSetup), wg, errCh)
 	for _, app := range s.apps {
 		setupService(app.(serviceSetup), wg, errCh)
 	}
