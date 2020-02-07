@@ -78,7 +78,7 @@ __onit_get_cluster() {
 }
 
 __onit_custom_func() {
-
+	return
 }
 `
 
