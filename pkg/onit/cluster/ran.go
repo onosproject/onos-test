@@ -31,6 +31,7 @@ var ranArgs = []string{
 	"-caPath=/certs/onf.cacrt",
 	"-keyPath=/certs/onos-ran.key",
 	"-certPath=/certs/onos-ran.crt",
+	"-simulator=ran-simulator:5150",
 }
 
 // Enabled indicates whether the Ran is enabled

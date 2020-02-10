@@ -15,12 +15,10 @@
 package cli
 
 import (
-	"io/ioutil"
-
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/env"
-
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -40,8 +38,9 @@ var (
 )
 
 const (
-	defaultMininetImage   = "opennetworking/mn-stratum:latest"
-	defaultSimulatorImage = "onosproject/device-simulator:latest"
+	defaultMininetImage      = "opennetworking/mn-stratum:latest"
+	defaultSimulatorImage    = "onosproject/device-simulator:latest"
+	defaultRanSimulatorImage = "onosproject/ran-simulator:latest"
 )
 
 // getAddCommand returns a cobra "add" command for adding resources to the cluster
@@ -52,6 +51,7 @@ func getAddCommand() *cobra.Command {
 		Example: addExample,
 	}
 	cmd.AddCommand(getAddSimulatorCommand())
+	cmd.AddCommand(getAddRanSimulatorCommand())
 	cmd.AddCommand(getAddNetworkCommand())
 	cmd.AddCommand(getAddAppCommand())
 	return cmd
@@ -132,13 +132,14 @@ func runAddSimulatorCommand(cmd *cobra.Command, _ []string) error {
 	_, err = env.Simulators().
 		New().
 		SetName(getName(cmd)).
+		SetPort(11161).
 		SetImage(image).
 		SetPullPolicy(pullPolicy).
 		Add()
 	return err
 }
 
-// getAddSimulatorCommand returns a cobra command for deploying a device simulator
+// getAddAppCommand returns a cobra command for deploying an app
 func getAddAppCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "app [args]",
@@ -206,5 +207,43 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 		setup.SetUser(user)
 	}
 	_, err = setup.Add()
+	return err
+}
+
+// getAddRanSimulatorCommand returns a cobra command for deploying a device simulator
+func getAddRanSimulatorCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "ran-simulator [args]",
+		Short: "Add a RAN simulator to the test cluster",
+		Args:  cobra.NoArgs,
+		RunE:  runInCluster(runAddRanSimulatorCommand),
+	}
+
+	cmd.Flags().StringP("name", "n", "", "the name to assign to the device simulator")
+	cmd.Flags().StringP("image", "i", defaultRanSimulatorImage, "the image to deploy")
+	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	return cmd
+}
+
+func runAddRanSimulatorCommand(cmd *cobra.Command, _ []string) error {
+	setupCommand(cmd)
+
+	image, _ := cmd.Flags().GetString("image")
+	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
+	pullPolicy := corev1.PullPolicy(imagePullPolicy)
+
+	kubeAPI, err := kube.GetAPI(getCluster(cmd))
+	if err != nil {
+		return err
+	}
+
+	env := env.New(kubeAPI)
+	_, err = env.Simulators().
+		New().
+		SetName("ran-simulator").
+		SetPort(5150).
+		SetImage(image).
+		SetPullPolicy(pullPolicy).
+		Add()
 	return err
 }
