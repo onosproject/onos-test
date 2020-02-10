@@ -357,7 +357,7 @@ func (s *Simulator) createPod() error {
 						},
 						{
 							Name:  gnmiInsecurePortEnv,
-							Value: fmt.Sprintf("%d", simulatorInsecurePort),
+							Value: fmt.Sprintf("%d", s.Port()),
 						},
 					},
 					Ports: []corev1.ContainerPort{
@@ -367,13 +367,13 @@ func (s *Simulator) createPod() error {
 						},
 						{
 							Name:          simulatorInsecurePortName,
-							ContainerPort: simulatorInsecurePort,
+							ContainerPort: int32(s.Port()),
 						},
 					},
 					ReadinessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
 							TCPSocket: &corev1.TCPSocketAction{
-								Port: intstr.FromInt(simulatorInsecurePort),
+								Port: intstr.FromInt(s.Port()),
 							},
 						},
 						PeriodSeconds:    1,
@@ -382,7 +382,7 @@ func (s *Simulator) createPod() error {
 					LivenessProbe: &corev1.Probe{
 						Handler: corev1.Handler{
 							TCPSocket: &corev1.TCPSocketAction{
-								Port: intstr.FromInt(simulatorInsecurePort),
+								Port: intstr.FromInt(s.Port()),
 							},
 						},
 						InitialDelaySeconds: 15,
@@ -433,7 +433,7 @@ func (s *Simulator) createService() error {
 				},
 				{
 					Name: simulatorInsecurePortName,
-					Port: simulatorInsecurePort,
+					Port: int32(s.Port()),
 				},
 			},
 		},

@@ -15,10 +15,10 @@
 package cluster
 
 const (
-	ranType    = "ran"
-	ranImage   = "onosproject/onos-ran:latest"
-	ranService = "onos-ran"
-	ranPort    = 5150
+	ranType       = "ran"
+	ranImage      = "onosproject/onos-ran:latest"
+	ranService    = "onos-ran"
+	ranPort       = 5150
 )
 
 var ranSecrets = map[string]string{
@@ -31,6 +31,7 @@ var ranArgs = []string{
 	"-caPath=/certs/onf.cacrt",
 	"-keyPath=/certs/onos-ran.key",
 	"-certPath=/certs/onos-ran.crt",
+	"-simulator=ran-simulator:5150",
 }
 
 // Enabled indicates whether the Ran is enabled

@@ -56,6 +56,9 @@ type SimulatorSetup interface {
 
 	// AddOrDie deploys the simulator and panics if the deployment fails
 	AddOrDie() SimulatorEnv
+
+	// SetPort sets the simulator port
+	SetPort(port int) SimulatorSetup
 }
 
 var _ SimulatorSetup = &clusterSimulatorSetup{}
@@ -97,6 +100,11 @@ func (s *clusterSimulatorSetup) SetDeviceTimeout(timeout time.Duration) Simulato
 
 func (s *clusterSimulatorSetup) SetAddDevice(addDevice bool) SimulatorSetup {
 	s.simulator.SetAddDevice(addDevice)
+	return s
+}
+
+func (s *clusterSimulatorSetup) SetPort(port int) SimulatorSetup {
+	s.simulator.SetPort(port)
 	return s
 }
 
