@@ -15,10 +15,10 @@
 package cluster
 
 const (
-	ranType       = "ran"
-	ranImage      = "onosproject/onos-ran:latest"
-	ranService    = "onos-ran"
-	ranPort       = 5150
+	ranType    = "ran"
+	ranImage   = "onosproject/onos-ran:latest"
+	ranService = "onos-ran"
+	ranPort    = 5150
 )
 
 var ranSecrets = map[string]string{

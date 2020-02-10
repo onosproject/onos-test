@@ -220,7 +220,7 @@ func newSimulator(cluster *Cluster, name string) *Simulator {
 	node := newNode(cluster)
 	node.SetName(name)
 	node.SetImage(simulatorImage)
-	node.SetPort(11161)
+	node.SetPort(simulatorInsecurePort)
 	return &Simulator{
 		Node:          node,
 		add:           true,

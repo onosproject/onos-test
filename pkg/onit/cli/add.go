@@ -38,8 +38,8 @@ var (
 )
 
 const (
-	defaultMininetImage   = "opennetworking/mn-stratum:latest"
-	defaultSimulatorImage = "onosproject/device-simulator:latest"
+	defaultMininetImage      = "opennetworking/mn-stratum:latest"
+	defaultSimulatorImage    = "onosproject/device-simulator:latest"
 	defaultRanSimulatorImage = "onosproject/ran-simulator:latest"
 )
 
@@ -210,7 +210,7 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	return err
 }
 
-// getAddSimulatorCommand returns a cobra command for deploying a device simulator
+// getAddRanSimulatorCommand returns a cobra command for deploying a device simulator
 func getAddRanSimulatorCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ran-simulator [args]",
