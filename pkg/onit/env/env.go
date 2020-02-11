@@ -56,9 +56,9 @@ func Topo() TopoEnv {
 	return getEnv().Topo()
 }
 
-// Ran returns the onos-ran environment
-func Ran() RanEnv {
-	return getEnv().Ran()
+// RAN returns the onos-ran environment
+func RAN() RANEnv {
+	return getEnv().RAN()
 }
 
 // Config returns the onos-config environment
@@ -96,7 +96,7 @@ func Network(name string) NetworkEnv {
 	return getEnv().Network(name)
 }
 
-// NewNetwork returns the setup configuration for a new netwpork
+// NewNetwork returns the setup configuration for a new network
 func NewNetwork() NetworkSetup {
 	return getEnv().NewNetwork()
 }
@@ -130,8 +130,8 @@ type ClusterEnv interface {
 	// Topo returns the topo environment
 	Topo() TopoEnv
 
-	// Ran returns the RAN environment
-	Ran() RanEnv
+	// RAN returns the RAN environment
+	RAN() RANEnv
 
 	// Config returns the config environment
 	Config() ConfigEnv
@@ -207,13 +207,13 @@ func (e *clusterEnv) Topo() TopoEnv {
 	}
 }
 
-func (e *clusterEnv) Ran() RanEnv {
-	return &clusterRanEnv{
+func (e *clusterEnv) RAN() RANEnv {
+	return &clusterRANEnv{
 		clusterServiceEnv: &clusterServiceEnv{
 			clusterDeploymentEnv: &clusterDeploymentEnv{
-				deployment: e.cluster.Ran().Deployment,
+				deployment: e.cluster.RAN().Deployment,
 			},
-			service: e.cluster.Ran().Service,
+			service: e.cluster.RAN().Service,
 		},
 	}
 }

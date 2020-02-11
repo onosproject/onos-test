@@ -40,7 +40,7 @@ var (
 const (
 	defaultMininetImage      = "opennetworking/mn-stratum:latest"
 	defaultSimulatorImage    = "onosproject/device-simulator:latest"
-	defaultRanSimulatorImage = "onosproject/ran-simulator:latest"
+	defaultRANSimulatorImage = "onosproject/ran-simulator:latest"
 )
 
 // getAddCommand returns a cobra "add" command for adding resources to the cluster
@@ -51,7 +51,7 @@ func getAddCommand() *cobra.Command {
 		Example: addExample,
 	}
 	cmd.AddCommand(getAddSimulatorCommand())
-	cmd.AddCommand(getAddRanSimulatorCommand())
+	cmd.AddCommand(getAddRANSimulatorCommand())
 	cmd.AddCommand(getAddNetworkCommand())
 	cmd.AddCommand(getAddAppCommand())
 	return cmd
@@ -210,22 +210,22 @@ func runAddAppCommand(cmd *cobra.Command, args []string) error {
 	return err
 }
 
-// getAddRanSimulatorCommand returns a cobra command for deploying a device simulator
-func getAddRanSimulatorCommand() *cobra.Command {
+// getAddRANSimulatorCommand returns a cobra command for deploying a device simulator
+func getAddRANSimulatorCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ran-simulator [args]",
 		Short: "Add a RAN simulator to the test cluster",
 		Args:  cobra.NoArgs,
-		RunE:  runInCluster(runAddRanSimulatorCommand),
+		RunE:  runInCluster(runAddRANSimulatorCommand),
 	}
 
 	cmd.Flags().StringP("name", "n", "", "the name to assign to the device simulator")
-	cmd.Flags().StringP("image", "i", defaultRanSimulatorImage, "the image to deploy")
+	cmd.Flags().StringP("image", "i", defaultRANSimulatorImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
 	return cmd
 }
 
-func runAddRanSimulatorCommand(cmd *cobra.Command, _ []string) error {
+func runAddRANSimulatorCommand(cmd *cobra.Command, _ []string) error {
 	setupCommand(cmd)
 
 	image, _ := cmd.Flags().GetString("image")

@@ -19,27 +19,27 @@ import (
 	"google.golang.org/grpc"
 )
 
-// RanEnv provides the topo environment
-type RanEnv interface {
+// RANEnv provides the topo environment
+type RANEnv interface {
 	ServiceEnv
 
-	// NewRanC1ServiceClient returns a RAN C1 service client
-	NewRanC1ServiceClient() (nb.C1InterfaceServiceClient, error)
+	// NewRANC1ServiceClient returns a RAN C1 service client
+	NewRANC1ServiceClient() (nb.C1InterfaceServiceClient, error)
 }
 
-var _ RanEnv = &clusterRanEnv{}
+var _ RANEnv = &clusterRANEnv{}
 
-// clusterRanEnv is an implementation of the RAN interface
-type clusterRanEnv struct {
+// clusterRANEnv is an implementation of the RAN interface
+type clusterRANEnv struct {
 	*clusterServiceEnv
 }
 
-func (e *clusterRanEnv) NewRanC1ServiceClient() (nb.C1InterfaceServiceClient, error) {
+func (e *clusterRANEnv) NewRANC1ServiceClient() (nb.C1InterfaceServiceClient, error) {
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
 	}
 
-	conn, connErr := grpc.Dial(env.Ran().Address(), opts...)
+	conn, connErr := grpc.Dial(env.RAN().Address(), opts...)
 	if connErr != nil {
 		return nil, connErr
 	}
