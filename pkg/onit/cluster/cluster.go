@@ -42,6 +42,7 @@ func New(kube kube.API) *Cluster {
 	cluster.apps = newApps(cluster)
 	cluster.simulators = newSimulators(cluster)
 	cluster.networks = newNetworks(cluster)
+	cluster.history = newHistory(cluster)
 	return cluster
 }
 
@@ -57,6 +58,7 @@ type Cluster struct {
 	apps       *Apps
 	simulators *Simulators
 	networks   *Networks
+	history    *History
 }
 
 // Atomix returns the Atomix service
@@ -102,4 +104,9 @@ func (c *Cluster) Simulators() *Simulators {
 // Networks returns the cluster networks
 func (c *Cluster) Networks() *Networks {
 	return c.networks
+}
+
+// History returns the cluster history
+func (c *Cluster) History() *History {
+	return c.history
 }

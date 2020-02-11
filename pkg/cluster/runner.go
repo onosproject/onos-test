@@ -17,6 +17,9 @@ package cluster
 import (
 	"bufio"
 	"errors"
+	"os"
+	"time"
+
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
@@ -25,8 +28,6 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"os"
-	"time"
 )
 
 const namespace = "kube-test"
@@ -39,6 +40,7 @@ type Job struct {
 	Args            []string
 	Env             map[string]string
 	Timeout         time.Duration
+	Type            string
 }
 
 // NewRunner returns a new test job runner
@@ -336,7 +338,8 @@ func (r *Runner) createJob(job *Job) error {
 			Name:      job.ID,
 			Namespace: namespace,
 			Annotations: map[string]string{
-				"job": job.ID,
+				"job":  job.ID,
+				"type": job.Type,
 			},
 		},
 		Spec: batchv1.JobSpec{
@@ -346,7 +349,8 @@ func (r *Runner) createJob(job *Job) error {
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"job": job.ID,
+						"job":  job.ID,
+						"type": job.Type,
 					},
 				},
 				Spec: corev1.PodSpec{

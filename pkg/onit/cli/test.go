@@ -83,6 +83,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
 		Env:             config.ToEnv(),
 		Timeout:         timeout,
+		Type:            "test",
 	}
 
 	// Create a job runner and run the test job

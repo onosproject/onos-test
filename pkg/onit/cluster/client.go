@@ -16,6 +16,7 @@ package cluster
 
 import (
 	atomixcontroller "github.com/atomix/kubernetes-controller/pkg/client/v1beta1/clientset/versioned"
+	v1 "k8s.io/api/core/v1"
 	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -30,6 +31,16 @@ type client struct {
 	kubeClient       *kubernetes.Clientset
 	atomixClient     *atomixcontroller.Clientset
 	extensionsClient *apiextension.Clientset
+}
+
+func (c *client) getPods(matchLabels map[string]string, namespace string) *v1.PodList {
+	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
+	pods, err := c.kubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{
+		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
+	if err != nil {
+		panic(err)
+	}
+	return pods
 }
 
 func (c *client) listPods(matchLabels map[string]string) []string {

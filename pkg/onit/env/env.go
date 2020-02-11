@@ -96,6 +96,11 @@ func Network(name string) NetworkEnv {
 	return getEnv().Network(name)
 }
 
+// History returns the environment for the history
+func History() HistoryEnv {
+	return getEnv().History()
+}
+
 // NewNetwork returns the setup configuration for a new network
 func NewNetwork() NetworkSetup {
 	return getEnv().NewNetwork()
@@ -153,6 +158,9 @@ type ClusterEnv interface {
 
 	// Network returns the environment for a network by name
 	Network(name string) NetworkEnv
+
+	// History returns the environment for the history
+	History() HistoryEnv
 
 	// NewNetwork returns a new NetworkSetup for adding a network to the cluster
 	NewNetwork() NetworkSetup
@@ -253,6 +261,12 @@ func (e *clusterEnv) AddSimulators(simulators ...SimulatorSetup) SimulatorsSetup
 func (e *clusterEnv) Networks() NetworksEnv {
 	return &clusterNetworksEnv{
 		networks: e.cluster.Networks(),
+	}
+}
+
+func (e *clusterEnv) History() HistoryEnv {
+	return &clusterHistoryEnv{
+		history: e.cluster.History(),
 	}
 }
 
