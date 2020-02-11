@@ -56,6 +56,11 @@ func Topo() TopoEnv {
 	return getEnv().Topo()
 }
 
+// Ran returns the onos-ran environment
+func Ran() RanEnv {
+	return getEnv().Ran()
+}
+
 // Config returns the onos-config environment
 func Config() ConfigEnv {
 	return getEnv().Config()
@@ -124,6 +129,9 @@ type ClusterEnv interface {
 
 	// Topo returns the topo environment
 	Topo() TopoEnv
+
+	// Ran returns the RAN environment
+	Ran() RanEnv
 
 	// Config returns the config environment
 	Config() ConfigEnv
@@ -195,6 +203,17 @@ func (e *clusterEnv) Topo() TopoEnv {
 				deployment: e.cluster.Topo().Deployment,
 			},
 			service: e.cluster.Topo().Service,
+		},
+	}
+}
+
+func (e *clusterEnv) Ran() RanEnv {
+	return &clusterRanEnv{
+		clusterServiceEnv: &clusterServiceEnv{
+			clusterDeploymentEnv: &clusterDeploymentEnv{
+				deployment: e.cluster.Ran().Deployment,
+			},
+			service: e.cluster.Ran().Service,
 		},
 	}
 }
