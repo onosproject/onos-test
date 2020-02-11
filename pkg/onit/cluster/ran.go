@@ -35,16 +35,16 @@ var ranArgs = []string{
 }
 
 // Enabled indicates whether the Ran is enabled
-func (c *Ran) Enabled() bool {
+func (c *RAN) Enabled() bool {
 	return GetArg(c.name, "enabled").Bool(c.enabled)
 }
 
 // SetEnabled sets whether the Ran is enabled
-func (c *Ran) SetEnabled(enabled bool) {
+func (c *RAN) SetEnabled(enabled bool) {
 	c.enabled = enabled
 }
 
-func newRan(cluster *Cluster) *Ran {
+func newRAN(cluster *Cluster) *RAN {
 	service := newService(cluster)
 	ports := []Port{{Name: "grpc", Port: ranPort}}
 	service.SetArgs(ranArgs...)
@@ -53,13 +53,13 @@ func newRan(cluster *Cluster) *Ran {
 	service.SetLabels(getLabels(ranType))
 	service.SetImage(ranImage)
 	service.SetName(ranService)
-	return &Ran{
+	return &RAN{
 		Service: service,
 	}
 }
 
-// Ran provides methods for managing the onos-ran service
-type Ran struct {
+// RAN provides methods for managing the onos-ran service
+type RAN struct {
 	*Service
 	enabled bool
 }
