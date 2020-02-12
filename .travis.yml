@@ -69,7 +69,7 @@ jobs:
         - kind create cluster
         - build/bin/run-integration-tests onos-config
     - # stage name not required, will continue to use `integration-tests`
-      name: "onos-config integration tests"
+      name: "onos-ran integration tests"
       if: type != pull_request
       script:
         # Download and install kubectl
