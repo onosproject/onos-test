@@ -68,6 +68,20 @@ jobs:
         - git checkout go.mod go.sum
         - kind create cluster
         - build/bin/run-integration-tests onos-config
+    - # stage name not required, will continue to use `integration-tests`
+      name: "onos-config integration tests"
+      if: type != pull_request
+      script:
+        # Download and install kubectl
+        - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+
+        # Download and install KinD
+        - GO111MODULE=on go get sigs.k8s.io/kind
+        - git checkout go.mod go.sum
+        - GO111MODULE=on go get github.com/onosproject/onos-test/cmd/onit
+        - git checkout go.mod go.sum
+        - kind create cluster
+        - build/bin/run-integration-tests onos-ran
 
     - stage: push images
       if: type != pull_request
