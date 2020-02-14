@@ -16,7 +16,6 @@ package simulation
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/types"
 	"math/rand"
 	"reflect"
 	"regexp"
@@ -81,7 +80,6 @@ func newSimulation(name string, suite SimulatingSuite, args map[string]string) *
 		Name:   name,
 		suite:  suite,
 		args:   args,
-		params: make(map[string]types.Param),
 		stopCh: make(chan error),
 	}
 }
@@ -92,7 +90,6 @@ type Simulation struct {
 	Name     string
 	suite    SimulatingSuite
 	args     map[string]string
-	params   map[string]types.Param
 	register Register
 	stopCh   chan error
 }
@@ -105,16 +102,6 @@ func (s *Simulation) Arg(name string) *Arg {
 		}
 	}
 	return &Arg{}
-}
-
-// SetParam sets a named parameter
-func (s *Simulation) SetParam(name string, param types.Param) {
-	s.params[name] = param
-}
-
-// Param gets a parameter by name
-func (s *Simulation) Param(name string) types.Param {
-	return s.params[name]
 }
 
 // Record records an event in the register

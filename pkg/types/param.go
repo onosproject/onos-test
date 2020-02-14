@@ -29,11 +29,17 @@ type Param interface {
 	Next() Value
 }
 
+// initParam initializes and returns the given parameter
+func initParam(param Param) Param {
+	param.Reset()
+	return param
+}
+
 // RandomChoice returns a parameter that chooses a random value from a set
 func RandomChoice(set Param) Param {
-	return &RandomChoiceParam{
+	return initParam(&RandomChoiceParam{
 		set: set,
-	}
+	})
 }
 
 // RandomChoiceParam is a parameter that chooses a random value from a set
@@ -55,10 +61,10 @@ func (p *RandomChoiceParam) Next() Value {
 
 // SetOf returns a parameter that constructs a set of values of the given parameter type
 func SetOf(valueType Param, size int) Param {
-	return &SetParam{
+	return initParam(&SetParam{
 		valueType: valueType,
 		size:      size,
-	}
+	})
 }
 
 // SetParam is a parameter that returns a random set of values
@@ -85,9 +91,9 @@ func (p *SetParam) Next() Value {
 
 // RandomString returns a random string parameter
 func RandomString(length int) Param {
-	return &RandomStringParam{
+	return initParam(&RandomStringParam{
 		length: length,
-	}
+	})
 }
 
 // RandomStringParam is a random string parameter
@@ -109,9 +115,9 @@ func (a *RandomStringParam) Next() Value {
 
 // RandomBytes returns a random bytes parameter
 func RandomBytes(length int) Param {
-	return &RandomBytesParam{
+	return initParam(&RandomBytesParam{
 		length: length,
-	}
+	})
 }
 
 // RandomBytesParam is a random string parameter
