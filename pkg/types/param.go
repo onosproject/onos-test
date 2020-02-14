@@ -12,17 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package params
+package types
 
 import (
-	"github.com/onosproject/onos-test/pkg/benchmark"
 	"math/rand"
 )
 
 const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNNOPQRSTUVWXYZ1234567890"
 
+// Param is an interface for parameters
+type Param interface {
+	// Reset resets the parameter
+	Reset()
+
+	// Next returns the Next parameter value
+	Next() Value
+}
+
 // RandomChoice returns a parameter that chooses a random value from a set
-func RandomChoice(set benchmark.Param) benchmark.Param {
+func RandomChoice(set Param) Param {
 	return &RandomChoiceParam{
 		set: set,
 	}
@@ -30,23 +38,23 @@ func RandomChoice(set benchmark.Param) benchmark.Param {
 
 // RandomChoiceParam is a parameter that chooses a random value from a set
 type RandomChoiceParam struct {
-	set    benchmark.Param
-	values []interface{}
+	set    Param
+	values []Value
 }
 
 // Reset resets the parameter
 func (p *RandomChoiceParam) Reset() {
 	p.set.Reset()
-	p.values = p.set.Next().([]interface{})
+	p.values = p.set.Next().Slice()
 }
 
 // Next returns the next random value from the set
-func (p *RandomChoiceParam) Next() interface{} {
+func (p *RandomChoiceParam) Next() Value {
 	return p.values[rand.Intn(len(p.values))]
 }
 
 // SetOf returns a parameter that constructs a set of values of the given parameter type
-func SetOf(valueType benchmark.Param, size int) benchmark.Param {
+func SetOf(valueType Param, size int) Param {
 	return &SetParam{
 		valueType: valueType,
 		size:      size,
@@ -55,27 +63,28 @@ func SetOf(valueType benchmark.Param, size int) benchmark.Param {
 
 // SetParam is a parameter that returns a random set of values
 type SetParam struct {
-	valueType benchmark.Param
+	valueType Param
 	size      int
-	set       []interface{}
+	set       Value
 }
 
 // Reset resets the parameter
 func (p *SetParam) Reset() {
 	p.valueType.Reset()
-	p.set = make([]interface{}, p.size)
+	set := make([]Value, p.size)
 	for i := 0; i < p.size; i++ {
-		p.set[i] = p.valueType.Next()
+		set[i] = p.valueType.Next()
 	}
+	p.set = NewValue(set)
 }
 
 // Next returns the random set
-func (p *SetParam) Next() interface{} {
+func (p *SetParam) Next() Value {
 	return p.set
 }
 
 // RandomString returns a random string parameter
-func RandomString(length int) benchmark.Param {
+func RandomString(length int) Param {
 	return &RandomStringParam{
 		length: length,
 	}
@@ -90,16 +99,16 @@ type RandomStringParam struct {
 func (a *RandomStringParam) Reset() {}
 
 // Next returns a random string
-func (a *RandomStringParam) Next() interface{} {
+func (a *RandomStringParam) Next() Value {
 	bytes := make([]byte, a.length)
 	for j := 0; j < a.length; j++ {
 		bytes[j] = chars[rand.Intn(len(chars))]
 	}
-	return string(bytes)
+	return NewValue(string(bytes))
 }
 
 // RandomBytes returns a random bytes parameter
-func RandomBytes(length int) benchmark.Param {
+func RandomBytes(length int) Param {
 	return &RandomBytesParam{
 		length: length,
 	}
@@ -114,10 +123,10 @@ type RandomBytesParam struct {
 func (a *RandomBytesParam) Reset() {}
 
 // Next returns a random byte slice
-func (a *RandomBytesParam) Next() interface{} {
+func (a *RandomBytesParam) Next() Value {
 	bytes := make([]byte, a.length)
 	for j := 0; j < a.length; j++ {
 		bytes[j] = chars[rand.Intn(len(chars))]
 	}
-	return bytes
+	return NewValue(bytes)
 }

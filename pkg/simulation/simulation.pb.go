@@ -5,6 +5,7 @@ package simulation
 
 import (
 	context "context"
+	encoding_binary "encoding/binary"
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
@@ -31,19 +32,115 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// SimulationRequest is a simulation request
-type SimulationRequest struct {
-	// simulation is the simulation suite
+// SimulationLifecycleRequest is a simulation request
+type SimulationLifecycleRequest struct {
+	// simulation is the simulation name
 	Simulation string `protobuf:"bytes,1,opt,name=simulation,proto3" json:"simulation,omitempty"`
 	// args is the simulation arguments
 	Args map[string]string `protobuf:"bytes,2,rep,name=args,proto3" json:"args,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (m *SimulationLifecycleRequest) Reset()         { *m = SimulationLifecycleRequest{} }
+func (m *SimulationLifecycleRequest) String() string { return proto.CompactTextString(m) }
+func (*SimulationLifecycleRequest) ProtoMessage()    {}
+func (*SimulationLifecycleRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_17e12b66aec6c312, []int{0}
+}
+func (m *SimulationLifecycleRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SimulationLifecycleRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SimulationLifecycleRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SimulationLifecycleRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SimulationLifecycleRequest.Merge(m, src)
+}
+func (m *SimulationLifecycleRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *SimulationLifecycleRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SimulationLifecycleRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SimulationLifecycleRequest proto.InternalMessageInfo
+
+func (m *SimulationLifecycleRequest) GetSimulation() string {
+	if m != nil {
+		return m.Simulation
+	}
+	return ""
+}
+
+func (m *SimulationLifecycleRequest) GetArgs() map[string]string {
+	if m != nil {
+		return m.Args
+	}
+	return nil
+}
+
+// SimulationLifecycleResponse is a response to a SimulationRequest
+type SimulationLifecycleResponse struct {
+}
+
+func (m *SimulationLifecycleResponse) Reset()         { *m = SimulationLifecycleResponse{} }
+func (m *SimulationLifecycleResponse) String() string { return proto.CompactTextString(m) }
+func (*SimulationLifecycleResponse) ProtoMessage()    {}
+func (*SimulationLifecycleResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_17e12b66aec6c312, []int{1}
+}
+func (m *SimulationLifecycleResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SimulationLifecycleResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SimulationLifecycleResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SimulationLifecycleResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SimulationLifecycleResponse.Merge(m, src)
+}
+func (m *SimulationLifecycleResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *SimulationLifecycleResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SimulationLifecycleResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SimulationLifecycleResponse proto.InternalMessageInfo
+
+// SimulationRequest is a request to run a simulation
+type SimulationRequest struct {
+	// simulation is the simulation name
+	Simulation string `protobuf:"bytes,1,opt,name=simulation,proto3" json:"simulation,omitempty"`
+	// rate is the rate at which to simulate operations
+	Rate time.Duration `protobuf:"bytes,2,opt,name=rate,proto3,stdduration" json:"rate"`
+	// jitter is the jitter to apply to the rate
+	Jitter float64 `protobuf:"fixed64,3,opt,name=jitter,proto3" json:"jitter,omitempty"`
+	// args is the simulation arguments
+	Args map[string]string `protobuf:"bytes,4,rep,name=args,proto3" json:"args,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (m *SimulationRequest) Reset()         { *m = SimulationRequest{} }
 func (m *SimulationRequest) String() string { return proto.CompactTextString(m) }
 func (*SimulationRequest) ProtoMessage()    {}
 func (*SimulationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_17e12b66aec6c312, []int{0}
+	return fileDescriptor_17e12b66aec6c312, []int{2}
 }
 func (m *SimulationRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -79,6 +176,20 @@ func (m *SimulationRequest) GetSimulation() string {
 	return ""
 }
 
+func (m *SimulationRequest) GetRate() time.Duration {
+	if m != nil {
+		return m.Rate
+	}
+	return 0
+}
+
+func (m *SimulationRequest) GetJitter() float64 {
+	if m != nil {
+		return m.Jitter
+	}
+	return 0
+}
+
 func (m *SimulationRequest) GetArgs() map[string]string {
 	if m != nil {
 		return m.Args
@@ -86,15 +197,19 @@ func (m *SimulationRequest) GetArgs() map[string]string {
 	return nil
 }
 
-// SimulationResponse is a response to a SimulationRequest
+// SimulationResponse is a response indicating a simulation output
 type SimulationResponse struct {
+	// result is the simulation output
+	Result []byte `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+	// error is a simulation error
+	Error string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 }
 
 func (m *SimulationResponse) Reset()         { *m = SimulationResponse{} }
 func (m *SimulationResponse) String() string { return proto.CompactTextString(m) }
 func (*SimulationResponse) ProtoMessage()    {}
 func (*SimulationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_17e12b66aec6c312, []int{1}
+	return fileDescriptor_17e12b66aec6c312, []int{3}
 }
 func (m *SimulationResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -123,174 +238,60 @@ func (m *SimulationResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SimulationResponse proto.InternalMessageInfo
 
-// StepRequest is a simulation step request
-type StepRequest struct {
-	// simulation is the simulation
-	Simulation string `protobuf:"bytes,1,opt,name=simulation,proto3" json:"simulation,omitempty"`
-	// step is the step to run
-	Step string `protobuf:"bytes,2,opt,name=step,proto3" json:"step,omitempty"`
-	// args is the simulation arguments
-	Args map[string]string `protobuf:"bytes,3,rep,name=args,proto3" json:"args,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-}
-
-func (m *StepRequest) Reset()         { *m = StepRequest{} }
-func (m *StepRequest) String() string { return proto.CompactTextString(m) }
-func (*StepRequest) ProtoMessage()    {}
-func (*StepRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_17e12b66aec6c312, []int{2}
-}
-func (m *StepRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *StepRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_StepRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *StepRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_StepRequest.Merge(m, src)
-}
-func (m *StepRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *StepRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_StepRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_StepRequest proto.InternalMessageInfo
-
-func (m *StepRequest) GetSimulation() string {
+func (m *SimulationResponse) GetResult() []byte {
 	if m != nil {
-		return m.Simulation
-	}
-	return ""
-}
-
-func (m *StepRequest) GetStep() string {
-	if m != nil {
-		return m.Step
-	}
-	return ""
-}
-
-func (m *StepRequest) GetArgs() map[string]string {
-	if m != nil {
-		return m.Args
+		return m.Result
 	}
 	return nil
 }
 
-// StpResponse is a step response
-type StepResponse struct {
-	// simulation is the simulation suite
-	Simulation string `protobuf:"bytes,1,opt,name=simulation,proto3" json:"simulation,omitempty"`
-	// step is the step to run
-	Step string `protobuf:"bytes,2,opt,name=step,proto3" json:"step,omitempty"`
-	// duration is the duration of the step run
-	Duration time.Duration `protobuf:"bytes,3,opt,name=duration,proto3,stdduration" json:"duration"`
-}
-
-func (m *StepResponse) Reset()         { *m = StepResponse{} }
-func (m *StepResponse) String() string { return proto.CompactTextString(m) }
-func (*StepResponse) ProtoMessage()    {}
-func (*StepResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_17e12b66aec6c312, []int{3}
-}
-func (m *StepResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *StepResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_StepResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *StepResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_StepResponse.Merge(m, src)
-}
-func (m *StepResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *StepResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_StepResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_StepResponse proto.InternalMessageInfo
-
-func (m *StepResponse) GetSimulation() string {
+func (m *SimulationResponse) GetError() string {
 	if m != nil {
-		return m.Simulation
+		return m.Error
 	}
 	return ""
-}
-
-func (m *StepResponse) GetStep() string {
-	if m != nil {
-		return m.Step
-	}
-	return ""
-}
-
-func (m *StepResponse) GetDuration() time.Duration {
-	if m != nil {
-		return m.Duration
-	}
-	return 0
 }
 
 func init() {
+	proto.RegisterType((*SimulationLifecycleRequest)(nil), "onos.test.simulation.SimulationLifecycleRequest")
+	proto.RegisterMapType((map[string]string)(nil), "onos.test.simulation.SimulationLifecycleRequest.ArgsEntry")
+	proto.RegisterType((*SimulationLifecycleResponse)(nil), "onos.test.simulation.SimulationLifecycleResponse")
 	proto.RegisterType((*SimulationRequest)(nil), "onos.test.simulation.SimulationRequest")
 	proto.RegisterMapType((map[string]string)(nil), "onos.test.simulation.SimulationRequest.ArgsEntry")
 	proto.RegisterType((*SimulationResponse)(nil), "onos.test.simulation.SimulationResponse")
-	proto.RegisterType((*StepRequest)(nil), "onos.test.simulation.StepRequest")
-	proto.RegisterMapType((map[string]string)(nil), "onos.test.simulation.StepRequest.ArgsEntry")
-	proto.RegisterType((*StepResponse)(nil), "onos.test.simulation.StepResponse")
 }
 
 func init() { proto.RegisterFile("simulation/simulation.proto", fileDescriptor_17e12b66aec6c312) }
 
 var fileDescriptor_17e12b66aec6c312 = []byte{
-	// 427 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x92, 0xcf, 0xae, 0xd2, 0x40,
-	0x14, 0xc6, 0x3b, 0xf4, 0x5e, 0xbd, 0x9c, 0x5e, 0xff, 0x4d, 0xba, 0xa8, 0x35, 0x19, 0xb0, 0x1b,
-	0x9b, 0x98, 0x4c, 0x23, 0x2e, 0x34, 0x6e, 0x8c, 0x04, 0xd6, 0x26, 0xad, 0xc6, 0xad, 0x05, 0xc6,
-	0x86, 0x80, 0x9d, 0x3a, 0x33, 0xc5, 0xb0, 0xf6, 0x05, 0x5c, 0xba, 0xf5, 0x19, 0x5c, 0xfa, 0x02,
-	0x2c, 0x59, 0xba, 0x52, 0x03, 0x2f, 0x62, 0x98, 0x96, 0x96, 0xc4, 0x3f, 0x10, 0x03, 0xbb, 0x33,
-	0xa7, 0xdf, 0x7c, 0x67, 0x7e, 0xfd, 0x0e, 0xdc, 0x91, 0xe3, 0xb7, 0xf9, 0x34, 0x56, 0x63, 0x9e,
-	0x06, 0x75, 0x49, 0x33, 0xc1, 0x15, 0xc7, 0x36, 0x4f, 0xb9, 0xa4, 0x8a, 0x49, 0x45, 0xeb, 0x6f,
-	0xae, 0x9d, 0xf0, 0x84, 0x6b, 0x41, 0xb0, 0xa9, 0x0a, 0xad, 0x4b, 0x12, 0xce, 0x93, 0x29, 0x0b,
-	0xf4, 0x69, 0x90, 0xbf, 0x09, 0x46, 0xb9, 0xd8, 0xf1, 0xf2, 0xbe, 0x20, 0xb8, 0x15, 0x55, 0x26,
-	0x21, 0x7b, 0x97, 0x33, 0xa9, 0x30, 0x01, 0xa8, 0x9d, 0x1d, 0xd4, 0x46, 0x7e, 0x33, 0xdc, 0xe9,
-	0xe0, 0x3e, 0x9c, 0xc5, 0x22, 0x91, 0x4e, 0xa3, 0x6d, 0xfa, 0x56, 0xe7, 0x01, 0xfd, 0xd3, 0x83,
-	0xe8, 0x6f, 0xb6, 0xf4, 0x99, 0x48, 0x64, 0x3f, 0x55, 0x62, 0x1e, 0xea, 0xeb, 0xee, 0x23, 0x68,
-	0x56, 0x2d, 0x7c, 0x13, 0xcc, 0x09, 0x9b, 0x97, 0xc3, 0x36, 0x25, 0xb6, 0xe1, 0x7c, 0x16, 0x4f,
-	0x73, 0xe6, 0x34, 0x74, 0xaf, 0x38, 0x3c, 0x69, 0x3c, 0x46, 0x9e, 0x0d, 0x78, 0xd7, 0x5d, 0x66,
-	0x3c, 0x95, 0xcc, 0xfb, 0x8a, 0xc0, 0x8a, 0x14, 0xcb, 0x0e, 0xa5, 0xc0, 0x70, 0x26, 0x15, 0xcb,
-	0x4a, 0x7b, 0x5d, 0xe3, 0xa7, 0x25, 0x99, 0xa9, 0xc9, 0xee, 0xff, 0x85, 0xac, 0x1e, 0x72, 0x3c,
-	0xa6, 0x0f, 0x08, 0x2e, 0x0b, 0xe3, 0x02, 0xe7, 0x3f, 0x9f, 0x7f, 0xb1, 0x0d, 0xd8, 0x31, 0xdb,
-	0xc8, 0xb7, 0x3a, 0xb7, 0x69, 0xb1, 0x01, 0x74, 0xbb, 0x01, 0xb4, 0x57, 0x0a, 0xba, 0x17, 0x8b,
-	0xef, 0x2d, 0xe3, 0xd3, 0x8f, 0x16, 0x0a, 0xab, 0x4b, 0x9d, 0xcf, 0xe7, 0x70, 0xed, 0x15, 0x17,
-	0x13, 0x26, 0x22, 0x26, 0x66, 0xe3, 0x21, 0xc3, 0x23, 0xb8, 0x11, 0x31, 0x95, 0x67, 0xf5, 0x0f,
-	0xc7, 0xf7, 0x0e, 0x0c, 0xdc, 0xf5, 0xf7, 0x0b, 0x4b, 0xd8, 0x04, 0xf0, 0x0b, 0x16, 0x8b, 0x1e,
-	0x7f, 0x9f, 0x9e, 0x76, 0xd0, 0x6b, 0xb0, 0x34, 0x4e, 0x01, 0x79, 0x8a, 0x09, 0x43, 0xb8, 0xbe,
-	0x45, 0x39, 0xdd, 0x90, 0x10, 0x9a, 0x45, 0x2a, 0x9b, 0xd4, 0xef, 0xee, 0x5d, 0x53, 0xd7, 0xfb,
-	0x97, 0xa4, 0xf4, 0x7c, 0x09, 0x97, 0x55, 0x06, 0x47, 0xb4, 0x7d, 0x0e, 0x57, 0xc3, 0xfc, 0x60,
-	0xc7, 0xfd, 0x92, 0xae, 0xb3, 0x58, 0x11, 0xb4, 0x5c, 0x11, 0xf4, 0x73, 0x45, 0xd0, 0xc7, 0x35,
-	0x31, 0x96, 0x6b, 0x62, 0x7c, 0x5b, 0x13, 0x63, 0x70, 0x45, 0x2f, 0xf9, 0xc3, 0x5f, 0x01, 0x00,
-	0x00, 0xff, 0xff, 0xa2, 0x6f, 0x0b, 0x9f, 0x3f, 0x05, 0x00, 0x00,
+	// 430 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x92, 0xb1, 0x6e, 0xd4, 0x40,
+	0x10, 0x86, 0xbd, 0xf6, 0x11, 0x91, 0x09, 0x22, 0x61, 0x75, 0x42, 0xc6, 0x11, 0x9b, 0xd3, 0x35,
+	0xb8, 0x5a, 0x27, 0x47, 0x11, 0x94, 0x8e, 0x53, 0xd2, 0x21, 0x0a, 0x9b, 0x17, 0x70, 0xcc, 0x9c,
+	0x65, 0x30, 0x5e, 0xb3, 0xbb, 0x3e, 0xe4, 0x9e, 0x07, 0xa0, 0xe4, 0x85, 0x90, 0x52, 0x46, 0x54,
+	0x54, 0x80, 0xee, 0x5e, 0x04, 0x79, 0xed, 0xc4, 0x2e, 0x82, 0x92, 0x48, 0x90, 0x6e, 0xfe, 0xd9,
+	0xd9, 0xef, 0x1f, 0xff, 0x5e, 0xd8, 0x55, 0xd9, 0x87, 0x2a, 0x8f, 0x75, 0x26, 0x8a, 0xa0, 0x2f,
+	0x79, 0x29, 0x85, 0x16, 0x74, 0x2c, 0x0a, 0xa1, 0xb8, 0x46, 0xa5, 0x79, 0x7f, 0xe6, 0x8d, 0x53,
+	0x91, 0x0a, 0x33, 0x10, 0x34, 0x55, 0x3b, 0xeb, 0xb1, 0x54, 0x88, 0x34, 0xc7, 0xc0, 0xa8, 0xd3,
+	0x6a, 0x11, 0xbc, 0xad, 0xe4, 0x80, 0x35, 0xfd, 0x46, 0xc0, 0x8b, 0x2e, 0x21, 0xaf, 0xb2, 0x05,
+	0x26, 0x75, 0x92, 0x63, 0x88, 0x1f, 0x2b, 0x54, 0x9a, 0x32, 0x80, 0xde, 0xc2, 0x25, 0x13, 0xe2,
+	0x6f, 0x86, 0x83, 0x0e, 0x7d, 0x0d, 0xa3, 0x58, 0xa6, 0xca, 0xb5, 0x27, 0x8e, 0xbf, 0x35, 0x3b,
+	0xe2, 0x57, 0x6d, 0xc6, 0xff, 0xce, 0xe7, 0x2f, 0x65, 0xaa, 0x4e, 0x0a, 0x2d, 0xeb, 0xd0, 0x70,
+	0xbc, 0x43, 0xd8, 0xbc, 0x6c, 0xd1, 0x1d, 0x70, 0xde, 0x63, 0xdd, 0xb9, 0x36, 0x25, 0x1d, 0xc3,
+	0xbd, 0x65, 0x9c, 0x57, 0xe8, 0xda, 0xa6, 0xd7, 0x8a, 0x23, 0xfb, 0x05, 0x99, 0x3e, 0x85, 0xdd,
+	0x2b, 0x6d, 0x54, 0x29, 0x0a, 0x85, 0xd3, 0xcf, 0x36, 0x3c, 0xea, 0xcf, 0x6f, 0xfa, 0x75, 0x87,
+	0x30, 0x92, 0xb1, 0x6e, 0xdd, 0xb6, 0x66, 0x4f, 0x78, 0x9b, 0x25, 0xbf, 0xc8, 0x92, 0x1f, 0x77,
+	0x59, 0xce, 0xef, 0x9f, 0xfd, 0xdc, 0xb3, 0xbe, 0xfe, 0xda, 0x23, 0xa1, 0xb9, 0x40, 0x1f, 0xc3,
+	0xc6, 0xbb, 0x4c, 0x6b, 0x94, 0xae, 0x33, 0x21, 0x3e, 0x09, 0x3b, 0x45, 0x4f, 0xba, 0xb8, 0x46,
+	0x26, 0xae, 0x83, 0xeb, 0xe2, 0xfa, 0xe7, 0x29, 0xcd, 0x81, 0x0e, 0xe9, 0x6d, 0x38, 0xcd, 0xb6,
+	0x12, 0x55, 0x95, 0x6b, 0x03, 0x79, 0x10, 0x76, 0xaa, 0xe1, 0xa0, 0x94, 0x42, 0x5e, 0x70, 0x8c,
+	0x98, 0x7d, 0x77, 0x60, 0xa7, 0x83, 0x08, 0x19, 0xa1, 0x5c, 0x66, 0x09, 0xd2, 0x25, 0x6c, 0x47,
+	0xa8, 0xab, 0xb2, 0xa7, 0xd3, 0xfd, 0xdb, 0x3e, 0x06, 0xef, 0xe0, 0x16, 0x37, 0xba, 0xd5, 0x6b,
+	0xa0, 0x6f, 0x30, 0x96, 0xc7, 0xe2, 0x53, 0x71, 0xd7, 0xd6, 0x0b, 0xd8, 0x8e, 0x74, 0x2c, 0xf5,
+	0xc0, 0xf7, 0xd9, 0x0d, 0x7f, 0xa8, 0xe7, 0x5f, 0x3f, 0xd8, 0xba, 0xec, 0x13, 0x9a, 0xc0, 0xc3,
+	0x48, 0x8b, 0xf2, 0xbf, 0xda, 0xcc, 0xdd, 0xb3, 0x15, 0x23, 0xe7, 0x2b, 0x46, 0x7e, 0xaf, 0x18,
+	0xf9, 0xb2, 0x66, 0xd6, 0xf9, 0x9a, 0x59, 0x3f, 0xd6, 0xcc, 0x3a, 0xdd, 0x30, 0xaf, 0xfd, 0xf9,
+	0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xc8, 0x2b, 0xd8, 0xef, 0x92, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -301,292 +302,284 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// WorkerServiceClient is the client API for WorkerService service.
+// SimulatorServiceClient is the client API for SimulatorService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type WorkerServiceClient interface {
-	SetupSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error)
-	TearDownSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error)
-	SetupWorker(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error)
-	TearDownWorker(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error)
-	SetupStep(ctx context.Context, in *StepRequest, opts ...grpc.CallOption) (*StepResponse, error)
-	TearDownStep(ctx context.Context, in *StepRequest, opts ...grpc.CallOption) (*StepResponse, error)
-	RunStep(ctx context.Context, in *StepRequest, opts ...grpc.CallOption) (*StepRequest, error)
+type SimulatorServiceClient interface {
+	SetupSimulation(ctx context.Context, in *SimulationLifecycleRequest, opts ...grpc.CallOption) (*SimulationLifecycleResponse, error)
+	TearDownSimulation(ctx context.Context, in *SimulationLifecycleRequest, opts ...grpc.CallOption) (*SimulationLifecycleResponse, error)
+	StartSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (SimulatorService_StartSimulationClient, error)
+	StopSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error)
 }
 
-type workerServiceClient struct {
+type simulatorServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewWorkerServiceClient(cc *grpc.ClientConn) WorkerServiceClient {
-	return &workerServiceClient{cc}
+func NewSimulatorServiceClient(cc *grpc.ClientConn) SimulatorServiceClient {
+	return &simulatorServiceClient{cc}
 }
 
-func (c *workerServiceClient) SetupSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error) {
+func (c *simulatorServiceClient) SetupSimulation(ctx context.Context, in *SimulationLifecycleRequest, opts ...grpc.CallOption) (*SimulationLifecycleResponse, error) {
+	out := new(SimulationLifecycleResponse)
+	err := c.cc.Invoke(ctx, "/onos.test.simulation.SimulatorService/SetupSimulation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *simulatorServiceClient) TearDownSimulation(ctx context.Context, in *SimulationLifecycleRequest, opts ...grpc.CallOption) (*SimulationLifecycleResponse, error) {
+	out := new(SimulationLifecycleResponse)
+	err := c.cc.Invoke(ctx, "/onos.test.simulation.SimulatorService/TearDownSimulation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *simulatorServiceClient) StartSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (SimulatorService_StartSimulationClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_SimulatorService_serviceDesc.Streams[0], "/onos.test.simulation.SimulatorService/StartSimulation", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &simulatorServiceStartSimulationClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SimulatorService_StartSimulationClient interface {
+	Recv() (*SimulationResponse, error)
+	grpc.ClientStream
+}
+
+type simulatorServiceStartSimulationClient struct {
+	grpc.ClientStream
+}
+
+func (x *simulatorServiceStartSimulationClient) Recv() (*SimulationResponse, error) {
+	m := new(SimulationResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *simulatorServiceClient) StopSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error) {
 	out := new(SimulationResponse)
-	err := c.cc.Invoke(ctx, "/onos.test.simulation.WorkerService/SetupSimulation", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/onos.test.simulation.SimulatorService/StopSimulation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *workerServiceClient) TearDownSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error) {
-	out := new(SimulationResponse)
-	err := c.cc.Invoke(ctx, "/onos.test.simulation.WorkerService/TearDownSimulation", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+// SimulatorServiceServer is the server API for SimulatorService service.
+type SimulatorServiceServer interface {
+	SetupSimulation(context.Context, *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error)
+	TearDownSimulation(context.Context, *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error)
+	StartSimulation(*SimulationRequest, SimulatorService_StartSimulationServer) error
+	StopSimulation(context.Context, *SimulationRequest) (*SimulationResponse, error)
 }
 
-func (c *workerServiceClient) SetupWorker(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error) {
-	out := new(SimulationResponse)
-	err := c.cc.Invoke(ctx, "/onos.test.simulation.WorkerService/SetupWorker", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+// UnimplementedSimulatorServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedSimulatorServiceServer struct {
 }
 
-func (c *workerServiceClient) TearDownWorker(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error) {
-	out := new(SimulationResponse)
-	err := c.cc.Invoke(ctx, "/onos.test.simulation.WorkerService/TearDownWorker", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *workerServiceClient) SetupStep(ctx context.Context, in *StepRequest, opts ...grpc.CallOption) (*StepResponse, error) {
-	out := new(StepResponse)
-	err := c.cc.Invoke(ctx, "/onos.test.simulation.WorkerService/SetupStep", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *workerServiceClient) TearDownStep(ctx context.Context, in *StepRequest, opts ...grpc.CallOption) (*StepResponse, error) {
-	out := new(StepResponse)
-	err := c.cc.Invoke(ctx, "/onos.test.simulation.WorkerService/TearDownStep", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *workerServiceClient) RunStep(ctx context.Context, in *StepRequest, opts ...grpc.CallOption) (*StepRequest, error) {
-	out := new(StepRequest)
-	err := c.cc.Invoke(ctx, "/onos.test.simulation.WorkerService/RunStep", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// WorkerServiceServer is the server API for WorkerService service.
-type WorkerServiceServer interface {
-	SetupSimulation(context.Context, *SimulationRequest) (*SimulationResponse, error)
-	TearDownSimulation(context.Context, *SimulationRequest) (*SimulationResponse, error)
-	SetupWorker(context.Context, *SimulationRequest) (*SimulationResponse, error)
-	TearDownWorker(context.Context, *SimulationRequest) (*SimulationResponse, error)
-	SetupStep(context.Context, *StepRequest) (*StepResponse, error)
-	TearDownStep(context.Context, *StepRequest) (*StepResponse, error)
-	RunStep(context.Context, *StepRequest) (*StepRequest, error)
-}
-
-// UnimplementedWorkerServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedWorkerServiceServer struct {
-}
-
-func (*UnimplementedWorkerServiceServer) SetupSimulation(ctx context.Context, req *SimulationRequest) (*SimulationResponse, error) {
+func (*UnimplementedSimulatorServiceServer) SetupSimulation(ctx context.Context, req *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetupSimulation not implemented")
 }
-func (*UnimplementedWorkerServiceServer) TearDownSimulation(ctx context.Context, req *SimulationRequest) (*SimulationResponse, error) {
+func (*UnimplementedSimulatorServiceServer) TearDownSimulation(ctx context.Context, req *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TearDownSimulation not implemented")
 }
-func (*UnimplementedWorkerServiceServer) SetupWorker(ctx context.Context, req *SimulationRequest) (*SimulationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetupWorker not implemented")
+func (*UnimplementedSimulatorServiceServer) StartSimulation(req *SimulationRequest, srv SimulatorService_StartSimulationServer) error {
+	return status.Errorf(codes.Unimplemented, "method StartSimulation not implemented")
 }
-func (*UnimplementedWorkerServiceServer) TearDownWorker(ctx context.Context, req *SimulationRequest) (*SimulationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TearDownWorker not implemented")
-}
-func (*UnimplementedWorkerServiceServer) SetupStep(ctx context.Context, req *StepRequest) (*StepResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetupStep not implemented")
-}
-func (*UnimplementedWorkerServiceServer) TearDownStep(ctx context.Context, req *StepRequest) (*StepResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TearDownStep not implemented")
-}
-func (*UnimplementedWorkerServiceServer) RunStep(ctx context.Context, req *StepRequest) (*StepRequest, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RunStep not implemented")
+func (*UnimplementedSimulatorServiceServer) StopSimulation(ctx context.Context, req *SimulationRequest) (*SimulationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StopSimulation not implemented")
 }
 
-func RegisterWorkerServiceServer(s *grpc.Server, srv WorkerServiceServer) {
-	s.RegisterService(&_WorkerService_serviceDesc, srv)
+func RegisterSimulatorServiceServer(s *grpc.Server, srv SimulatorServiceServer) {
+	s.RegisterService(&_SimulatorService_serviceDesc, srv)
 }
 
-func _WorkerService_SetupSimulation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _SimulatorService_SetupSimulation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulationLifecycleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SimulatorServiceServer).SetupSimulation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/onos.test.simulation.SimulatorService/SetupSimulation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SimulatorServiceServer).SetupSimulation(ctx, req.(*SimulationLifecycleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SimulatorService_TearDownSimulation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulationLifecycleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SimulatorServiceServer).TearDownSimulation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/onos.test.simulation.SimulatorService/TearDownSimulation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SimulatorServiceServer).TearDownSimulation(ctx, req.(*SimulationLifecycleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SimulatorService_StartSimulation_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SimulationRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SimulatorServiceServer).StartSimulation(m, &simulatorServiceStartSimulationServer{stream})
+}
+
+type SimulatorService_StartSimulationServer interface {
+	Send(*SimulationResponse) error
+	grpc.ServerStream
+}
+
+type simulatorServiceStartSimulationServer struct {
+	grpc.ServerStream
+}
+
+func (x *simulatorServiceStartSimulationServer) Send(m *SimulationResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _SimulatorService_StopSimulation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SimulationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WorkerServiceServer).SetupSimulation(ctx, in)
+		return srv.(SimulatorServiceServer).StopSimulation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/onos.test.simulation.WorkerService/SetupSimulation",
+		FullMethod: "/onos.test.simulation.SimulatorService/StopSimulation",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkerServiceServer).SetupSimulation(ctx, req.(*SimulationRequest))
+		return srv.(SimulatorServiceServer).StopSimulation(ctx, req.(*SimulationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _WorkerService_TearDownSimulation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WorkerServiceServer).TearDownSimulation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/onos.test.simulation.WorkerService/TearDownSimulation",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkerServiceServer).TearDownSimulation(ctx, req.(*SimulationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WorkerService_SetupWorker_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WorkerServiceServer).SetupWorker(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/onos.test.simulation.WorkerService/SetupWorker",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkerServiceServer).SetupWorker(ctx, req.(*SimulationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WorkerService_TearDownWorker_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WorkerServiceServer).TearDownWorker(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/onos.test.simulation.WorkerService/TearDownWorker",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkerServiceServer).TearDownWorker(ctx, req.(*SimulationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WorkerService_SetupStep_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StepRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WorkerServiceServer).SetupStep(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/onos.test.simulation.WorkerService/SetupStep",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkerServiceServer).SetupStep(ctx, req.(*StepRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WorkerService_TearDownStep_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StepRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WorkerServiceServer).TearDownStep(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/onos.test.simulation.WorkerService/TearDownStep",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkerServiceServer).TearDownStep(ctx, req.(*StepRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WorkerService_RunStep_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StepRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WorkerServiceServer).RunStep(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/onos.test.simulation.WorkerService/RunStep",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkerServiceServer).RunStep(ctx, req.(*StepRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _WorkerService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "onos.test.simulation.WorkerService",
-	HandlerType: (*WorkerServiceServer)(nil),
+var _SimulatorService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "onos.test.simulation.SimulatorService",
+	HandlerType: (*SimulatorServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "SetupSimulation",
-			Handler:    _WorkerService_SetupSimulation_Handler,
+			Handler:    _SimulatorService_SetupSimulation_Handler,
 		},
 		{
 			MethodName: "TearDownSimulation",
-			Handler:    _WorkerService_TearDownSimulation_Handler,
+			Handler:    _SimulatorService_TearDownSimulation_Handler,
 		},
 		{
-			MethodName: "SetupWorker",
-			Handler:    _WorkerService_SetupWorker_Handler,
-		},
-		{
-			MethodName: "TearDownWorker",
-			Handler:    _WorkerService_TearDownWorker_Handler,
-		},
-		{
-			MethodName: "SetupStep",
-			Handler:    _WorkerService_SetupStep_Handler,
-		},
-		{
-			MethodName: "TearDownStep",
-			Handler:    _WorkerService_TearDownStep_Handler,
-		},
-		{
-			MethodName: "RunStep",
-			Handler:    _WorkerService_RunStep_Handler,
+			MethodName: "StopSimulation",
+			Handler:    _SimulatorService_StopSimulation_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StartSimulation",
+			Handler:       _SimulatorService_StartSimulation_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "simulation/simulation.proto",
+}
+
+func (m *SimulationLifecycleRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SimulationLifecycleRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SimulationLifecycleRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Args) > 0 {
+		for k := range m.Args {
+			v := m.Args[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintSimulation(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintSimulation(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintSimulation(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Simulation) > 0 {
+		i -= len(m.Simulation)
+		copy(dAtA[i:], m.Simulation)
+		i = encodeVarintSimulation(dAtA, i, uint64(len(m.Simulation)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SimulationLifecycleResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SimulationLifecycleResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SimulationLifecycleResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
 }
 
 func (m *SimulationRequest) Marshal() (dAtA []byte, err error) {
@@ -625,9 +618,23 @@ func (m *SimulationRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0xa
 			i = encodeVarintSimulation(dAtA, i, uint64(baseI-i))
 			i--
-			dAtA[i] = 0x12
+			dAtA[i] = 0x22
 		}
 	}
+	if m.Jitter != 0 {
+		i -= 8
+		encoding_binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.Jitter))))
+		i--
+		dAtA[i] = 0x19
+	}
+	n1, err1 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.Rate, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.Rate):])
+	if err1 != nil {
+		return 0, err1
+	}
+	i -= n1
+	i = encodeVarintSimulation(dAtA, i, uint64(n1))
+	i--
+	dAtA[i] = 0x12
 	if len(m.Simulation) > 0 {
 		i -= len(m.Simulation)
 		copy(dAtA[i:], m.Simulation)
@@ -658,104 +665,17 @@ func (m *SimulationResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *StepRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *StepRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *StepRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Args) > 0 {
-		for k := range m.Args {
-			v := m.Args[k]
-			baseI := i
-			i -= len(v)
-			copy(dAtA[i:], v)
-			i = encodeVarintSimulation(dAtA, i, uint64(len(v)))
-			i--
-			dAtA[i] = 0x12
-			i -= len(k)
-			copy(dAtA[i:], k)
-			i = encodeVarintSimulation(dAtA, i, uint64(len(k)))
-			i--
-			dAtA[i] = 0xa
-			i = encodeVarintSimulation(dAtA, i, uint64(baseI-i))
-			i--
-			dAtA[i] = 0x1a
-		}
-	}
-	if len(m.Step) > 0 {
-		i -= len(m.Step)
-		copy(dAtA[i:], m.Step)
-		i = encodeVarintSimulation(dAtA, i, uint64(len(m.Step)))
+	if len(m.Error) > 0 {
+		i -= len(m.Error)
+		copy(dAtA[i:], m.Error)
+		i = encodeVarintSimulation(dAtA, i, uint64(len(m.Error)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Simulation) > 0 {
-		i -= len(m.Simulation)
-		copy(dAtA[i:], m.Simulation)
-		i = encodeVarintSimulation(dAtA, i, uint64(len(m.Simulation)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *StepResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *StepResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *StepResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	n1, err1 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.Duration, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.Duration):])
-	if err1 != nil {
-		return 0, err1
-	}
-	i -= n1
-	i = encodeVarintSimulation(dAtA, i, uint64(n1))
-	i--
-	dAtA[i] = 0x1a
-	if len(m.Step) > 0 {
-		i -= len(m.Step)
-		copy(dAtA[i:], m.Step)
-		i = encodeVarintSimulation(dAtA, i, uint64(len(m.Step)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Simulation) > 0 {
-		i -= len(m.Simulation)
-		copy(dAtA[i:], m.Simulation)
-		i = encodeVarintSimulation(dAtA, i, uint64(len(m.Simulation)))
+	if len(m.Result) > 0 {
+		i -= len(m.Result)
+		copy(dAtA[i:], m.Result)
+		i = encodeVarintSimulation(dAtA, i, uint64(len(m.Result)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -773,6 +693,36 @@ func encodeVarintSimulation(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *SimulationLifecycleRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Simulation)
+	if l > 0 {
+		n += 1 + l + sovSimulation(uint64(l))
+	}
+	if len(m.Args) > 0 {
+		for k, v := range m.Args {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovSimulation(uint64(len(k))) + 1 + len(v) + sovSimulation(uint64(len(v)))
+			n += mapEntrySize + 1 + sovSimulation(uint64(mapEntrySize))
+		}
+	}
+	return n
+}
+
+func (m *SimulationLifecycleResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
 func (m *SimulationRequest) Size() (n int) {
 	if m == nil {
 		return 0
@@ -782,6 +732,11 @@ func (m *SimulationRequest) Size() (n int) {
 	l = len(m.Simulation)
 	if l > 0 {
 		n += 1 + l + sovSimulation(uint64(l))
+	}
+	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.Rate)
+	n += 1 + l + sovSimulation(uint64(l))
+	if m.Jitter != 0 {
+		n += 9
 	}
 	if len(m.Args) > 0 {
 		for k, v := range m.Args {
@@ -800,50 +755,14 @@ func (m *SimulationResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	return n
-}
-
-func (m *StepRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Simulation)
+	l = len(m.Result)
 	if l > 0 {
 		n += 1 + l + sovSimulation(uint64(l))
 	}
-	l = len(m.Step)
+	l = len(m.Error)
 	if l > 0 {
 		n += 1 + l + sovSimulation(uint64(l))
 	}
-	if len(m.Args) > 0 {
-		for k, v := range m.Args {
-			_ = k
-			_ = v
-			mapEntrySize := 1 + len(k) + sovSimulation(uint64(len(k))) + 1 + len(v) + sovSimulation(uint64(len(v)))
-			n += mapEntrySize + 1 + sovSimulation(uint64(mapEntrySize))
-		}
-	}
-	return n
-}
-
-func (m *StepResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Simulation)
-	if l > 0 {
-		n += 1 + l + sovSimulation(uint64(l))
-	}
-	l = len(m.Step)
-	if l > 0 {
-		n += 1 + l + sovSimulation(uint64(l))
-	}
-	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.Duration)
-	n += 1 + l + sovSimulation(uint64(l))
 	return n
 }
 
@@ -852,6 +771,271 @@ func sovSimulation(x uint64) (n int) {
 }
 func sozSimulation(x uint64) (n int) {
 	return sovSimulation(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *SimulationLifecycleRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowSimulation
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SimulationLifecycleRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SimulationLifecycleRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Simulation", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSimulation
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSimulation
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSimulation
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Simulation = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Args", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSimulation
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthSimulation
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthSimulation
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Args == nil {
+				m.Args = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowSimulation
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowSimulation
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthSimulation
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthSimulation
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowSimulation
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthSimulation
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthSimulation
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipSimulation(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthSimulation
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Args[mapkey] = mapvalue
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipSimulation(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthSimulation
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthSimulation
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SimulationLifecycleResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowSimulation
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SimulationLifecycleResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SimulationLifecycleResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipSimulation(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthSimulation
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthSimulation
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *SimulationRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
@@ -915,6 +1099,50 @@ func (m *SimulationRequest) Unmarshal(dAtA []byte) error {
 			m.Simulation = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rate", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSimulation
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthSimulation
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthSimulation
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.Rate, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 1 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Jitter", wireType)
+			}
+			var v uint64
+			if (iNdEx + 8) > l {
+				return io.ErrUnexpectedEOF
+			}
+			v = uint64(encoding_binary.LittleEndian.Uint64(dAtA[iNdEx:]))
+			iNdEx += 8
+			m.Jitter = float64(math.Float64frombits(v))
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Args", wireType)
 			}
@@ -1094,64 +1322,11 @@ func (m *SimulationResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: SimulationResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipSimulation(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *StepRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowSimulation
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: StepRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: StepRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Simulation", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Result", wireType)
 			}
-			var stringLen uint64
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSimulation
@@ -1161,27 +1336,29 @@ func (m *StepRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthSimulation
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthSimulation
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Simulation = string(dAtA[iNdEx:postIndex])
+			m.Result = append(m.Result[:0], dAtA[iNdEx:postIndex]...)
+			if m.Result == nil {
+				m.Result = []byte{}
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Step", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Error", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1209,284 +1386,7 @@ func (m *StepRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Step = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Args", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSimulation
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Args == nil {
-				m.Args = make(map[string]string)
-			}
-			var mapkey string
-			var mapvalue string
-			for iNdEx < postIndex {
-				entryPreIndex := iNdEx
-				var wire uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowSimulation
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					wire |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				fieldNum := int32(wire >> 3)
-				if fieldNum == 1 {
-					var stringLenmapkey uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowSimulation
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						stringLenmapkey |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					intStringLenmapkey := int(stringLenmapkey)
-					if intStringLenmapkey < 0 {
-						return ErrInvalidLengthSimulation
-					}
-					postStringIndexmapkey := iNdEx + intStringLenmapkey
-					if postStringIndexmapkey < 0 {
-						return ErrInvalidLengthSimulation
-					}
-					if postStringIndexmapkey > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
-					iNdEx = postStringIndexmapkey
-				} else if fieldNum == 2 {
-					var stringLenmapvalue uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowSimulation
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						stringLenmapvalue |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					intStringLenmapvalue := int(stringLenmapvalue)
-					if intStringLenmapvalue < 0 {
-						return ErrInvalidLengthSimulation
-					}
-					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
-					if postStringIndexmapvalue < 0 {
-						return ErrInvalidLengthSimulation
-					}
-					if postStringIndexmapvalue > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
-					iNdEx = postStringIndexmapvalue
-				} else {
-					iNdEx = entryPreIndex
-					skippy, err := skipSimulation(dAtA[iNdEx:])
-					if err != nil {
-						return err
-					}
-					if skippy < 0 {
-						return ErrInvalidLengthSimulation
-					}
-					if (iNdEx + skippy) > postIndex {
-						return io.ErrUnexpectedEOF
-					}
-					iNdEx += skippy
-				}
-			}
-			m.Args[mapkey] = mapvalue
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipSimulation(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *StepResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowSimulation
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: StepResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: StepResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Simulation", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSimulation
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Simulation = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Step", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSimulation
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Step = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSimulation
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.Duration, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Error = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

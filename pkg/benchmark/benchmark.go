@@ -15,6 +15,7 @@
 package benchmark
 
 import (
+	"github.com/onosproject/onos-test/pkg/types"
 	"math"
 	"reflect"
 	"sort"
@@ -139,7 +140,7 @@ func (b *Benchmark) getResult() *RunResponse {
 }
 
 // Run runs the benchmark with the given parameters
-func (b *Benchmark) Run(f interface{}, params ...Param) {
+func (b *Benchmark) Run(f interface{}, params ...types.Param) {
 	// Prepare the benchmark arguments
 	handler := b.prepare(f, params)
 
@@ -174,7 +175,7 @@ func (b *Benchmark) Run(f interface{}, params ...Param) {
 }
 
 // prepare prepares the benchmark
-func (b *Benchmark) prepare(next interface{}, params []Param) func(...interface{}) {
+func (b *Benchmark) prepare(next interface{}, params []types.Param) func(...interface{}) {
 	v := reflect.ValueOf(next)
 	f := func(args ...interface{}) {
 		vargs := make([]reflect.Value, len(args))
@@ -197,7 +198,7 @@ func (b *Benchmark) prepare(next interface{}, params []Param) func(...interface{
 }
 
 // warm warms up the benchmark
-func (b *Benchmark) warm(f func(...interface{}), params []Param) {
+func (b *Benchmark) warm(f func(...interface{}), params []types.Param) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
 	requestCh := make(chan []interface{}, b.parallelism)
@@ -216,7 +217,7 @@ func (b *Benchmark) warm(f func(...interface{}), params []Param) {
 	for time.Since(start) < warmUpDuration {
 		args := make([]interface{}, len(params))
 		for j, arg := range params {
-			args[j] = arg.Next()
+			args[j] = arg.Next().Interface()
 		}
 		requestCh <- args
 	}
@@ -227,7 +228,7 @@ func (b *Benchmark) warm(f func(...interface{}), params []Param) {
 }
 
 // run runs the benchmark
-func (b *Benchmark) run(f func(...interface{}), params []Param) (int, time.Duration, []time.Duration) {
+func (b *Benchmark) run(f func(...interface{}), params []types.Param) (int, time.Duration, []time.Duration) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
 	requestCh := make(chan []interface{}, b.parallelism)
@@ -292,7 +293,7 @@ func (b *Benchmark) run(f func(...interface{}), params []Param) (int, time.Durat
 	for (b.requests == 0 || requests < b.requests) && (b.duration == nil || time.Since(start) < *b.duration) {
 		args := make([]interface{}, len(params))
 		for j, arg := range params {
-			args[j] = arg.Next()
+			args[j] = arg.Next().Interface()
 		}
 		requestCh <- args
 		requests++
@@ -317,15 +318,6 @@ func (b *Benchmark) run(f func(...interface{}), params []Param) (int, time.Durat
 		return results[i] < results[j]
 	})
 	return requests, duration, results
-}
-
-// Param is an interface for benchmark parameters
-type Param interface {
-	// Reset resets the benchmark parameter
-	Reset()
-
-	// Next returns the Next instance of the benchmark parameter
-	Next() interface{}
 }
 
 // getBenchmarks returns a list of benchmarks in the given suite
