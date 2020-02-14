@@ -187,11 +187,6 @@ func (s *clusterSetup) App(name string) AppSetup {
 }
 
 func (s *clusterSetup) Setup() error {
-	// Set up the Atomix controller
-	if err := s.Atomix().(serviceSetup).setup(); err != nil {
-		return err
-	}
-
 	// Create the database and services concurrently
 	wg := &sync.WaitGroup{}
 	errCh := make(chan error)
@@ -203,6 +198,7 @@ func (s *clusterSetup) Setup() error {
 	setupService(s.Topo().(serviceSetup), wg, errCh)
 	setupService(s.Config().(serviceSetup), wg, errCh)
 	setupService(s.RAN().(serviceSetup), wg, errCh)
+	setupService(s.Atomix().(serviceSetup), wg, errCh)
 	for _, app := range s.apps {
 		setupService(app.(serviceSetup), wg, errCh)
 	}
