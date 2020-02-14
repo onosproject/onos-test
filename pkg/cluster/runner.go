@@ -17,6 +17,7 @@ package cluster
 import (
 	"bufio"
 	"errors"
+	"github.com/onosproject/onos-test/pkg/model"
 	"os"
 	"time"
 
@@ -363,6 +364,40 @@ func (r *Runner) createJob(job *Job) error {
 							ImagePullPolicy: job.ImagePullPolicy,
 							Args:            job.Args,
 							Env:             env,
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "models",
+									MountPath: model.StorePath,
+								},
+							},
+						},
+						{
+							Name:            "model-checker",
+							Image:           "onosproject/model-checker:latest",
+							ImagePullPolicy: job.ImagePullPolicy,
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "models",
+									MountPath: model.StorePath,
+									ReadOnly:  true,
+								},
+							},
+							Ports: []corev1.ContainerPort{
+								{
+									Name:          "model-checker",
+									ContainerPort: model.CheckerPort,
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "models",
+							VolumeSource: corev1.VolumeSource{
+								EmptyDir: &corev1.EmptyDirVolumeSource{
+									Medium: corev1.StorageMediumMemory,
+								},
+							},
 						},
 					},
 				},

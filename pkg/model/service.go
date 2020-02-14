@@ -31,7 +31,7 @@ type Service struct {
 
 // Start starts the server
 func (s *Service) Start() error {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", checkerPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", CheckerPort))
 	if err != nil {
 		return err
 	}
