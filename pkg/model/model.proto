@@ -50,8 +50,11 @@ message ModelCheckRequest {
     // model is the model to check
     string model = 1;
 
+    // traces is a series of traces to check
+    repeated Trace traces = 2;
+
     // timeout is the model checker timeout
-    google.protobuf.Duration timeout = 2;
+    google.protobuf.Duration timeout = 3;
 }
 
 // ModelCheckState is the state if a model check

@@ -38,6 +38,8 @@ type Job struct {
 	ID              string
 	Image           string
 	ImagePullPolicy corev1.PullPolicy
+	DataPath        string
+	Data            map[string]string
 	Args            []string
 	Env             map[string]string
 	Timeout         time.Duration
@@ -324,6 +326,25 @@ func (r *Runner) createJob(job *Job) error {
 	step := logging.NewStep(job.ID, "Deploy job coordinator")
 	step.Start()
 
+	if job.Data != nil && len(job.Data) > 0 {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      job.ID,
+				Namespace: namespace,
+				Annotations: map[string]string{
+					"job":  job.ID,
+					"type": job.Type,
+				},
+			},
+			Data: job.Data,
+		}
+		_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
+		if err != nil {
+			step.Fail(err)
+			return err
+		}
+	}
+
 	env := make([]corev1.EnvVar, 0, len(job.Env))
 	for key, value := range job.Env {
 		env = append(env, corev1.EnvVar{
@@ -367,7 +388,8 @@ func (r *Runner) createJob(job *Job) error {
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "models",
-									MountPath: model.StorePath,
+									MountPath: model.DataPath,
+									ReadOnly:  true,
 								},
 							},
 						},
@@ -375,13 +397,6 @@ func (r *Runner) createJob(job *Job) error {
 							Name:            "model-checker",
 							Image:           "onosproject/model-checker:latest",
 							ImagePullPolicy: job.ImagePullPolicy,
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "models",
-									MountPath: model.StorePath,
-									ReadOnly:  true,
-								},
-							},
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "model-checker",
@@ -394,8 +409,10 @@ func (r *Runner) createJob(job *Job) error {
 						{
 							Name: "models",
 							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{
-									Medium: corev1.StorageMediumMemory,
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: job.ID,
+									},
 								},
 							},
 						},

@@ -14,8 +14,66 @@
 
 package model
 
+import (
+	"context"
+	"errors"
+	"fmt"
+	"google.golang.org/grpc"
+	"io"
+)
+
+// NewChecker gets a model checker
+func NewChecker() (*Checker, error) {
+	client, err := newClient()
+	if err != nil {
+		return nil, err
+	}
+	return &Checker{
+		client: client,
+	}, nil
+}
+
+// newClient creates a model checker client
+func newClient() (ModelCheckerServiceClient, error) {
+	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", CheckerPort), grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	return NewModelCheckerServiceClient(conn), nil
+}
+
 // Checker is a model checker
-type Checker interface {
-	// Check checks the given model
-	Check(model Model) error
+type Checker struct {
+	client ModelCheckerServiceClient
+}
+
+// Check checks the model
+func (c *Checker) Check(model *Model) error {
+	request := &ModelCheckRequest{
+		Model:  model.Name,
+		Traces: model.traces,
+	}
+
+	stream, err := c.client.CheckModel(context.Background(), request)
+	if err != nil {
+		return err
+	}
+
+	for {
+		response, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		} else if err != nil {
+			return err
+		}
+
+		switch response.State {
+		case ModelCheckerState_RUNNING:
+			fmt.Println(response.Message)
+		case ModelCheckerState_PASSED:
+			return nil
+		case ModelCheckerState_FAILED:
+			return errors.New("model validation failed")
+		}
+	}
 }

@@ -551,6 +551,22 @@ func (t *WorkerTask) checkModel(traces []*model.Trace) error {
 	if t.config.Model == "" {
 		return nil
 	}
+
+	step := logging.NewStep(t.config.ID, "Check model %s", t.config.Model)
+	step.Start()
+
+	checker, err := model.NewChecker()
+	if err != nil {
+		step.Fail(err)
+		return err
+	}
+
+	model := model.NewModel(t.config.Model, traces)
+	if err := checker.Check(model); err != nil {
+		step.Fail(err)
+		return err
+	}
+	return nil
 }
 
 // tearDown tears down the job

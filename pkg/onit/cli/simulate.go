@@ -15,7 +15,10 @@
 package cli
 
 import (
+	"github.com/onosproject/onos-test/pkg/model"
 	"github.com/onosproject/onos-test/pkg/simulation"
+	"os"
+	"path"
 	"time"
 
 	"github.com/onosproject/onos-test/pkg/cluster"
@@ -53,7 +56,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 
 	image, _ := cmd.Flags().GetString("image")
 	sim, _ := cmd.Flags().GetString("simulation")
-	model, _ := cmd.Flags().GetString("model")
+	modelPath, _ := cmd.Flags().GetString("model")
 	workers, _ := cmd.Flags().GetInt("simulators")
 	rate, _ := cmd.Flags().GetDuration("rate")
 	jitter, _ := cmd.Flags().GetFloat64("jitter")
@@ -65,12 +68,29 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
+	var modelName string
+	var data map[string]string
+	if modelPath != "" {
+		data = make(map[string]string)
+		file, err := os.Open(modelPath)
+		if err != nil {
+			return err
+		}
+		bytes := make([]byte, 0)
+		_, err = file.Read(bytes)
+		if err != nil {
+			return err
+		}
+		modelName = path.Base(modelPath)
+		data[modelPath] = string(bytes)
+	}
+
 	config := &simulation.Config{
 		ID:              random.NewPetName(2),
 		Image:           image,
 		ImagePullPolicy: pullPolicy,
 		Simulation:      sim,
-		Model:           model,
+		Model:           modelName,
 		Simulators:      workers,
 		Rate:            rate,
 		Jitter:          jitter,
@@ -86,6 +106,8 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		ImagePullPolicy: pullPolicy,
 		Env:             config.ToEnv(),
 		Timeout:         timeout,
+		DataPath:        model.DataPath,
+		Data:            data,
 		Type:            "simulation",
 	}
 

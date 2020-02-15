@@ -14,17 +14,23 @@
 
 package model
 
-// TemplatesPath is the path containing model templates
-const TemplatesPath = "./models"
-
-// StorePath is the path to which models are stored
-const StorePath = "/etc/test/models"
+// DataPath is the path to which model data is stored
+const DataPath = "/etc/model/data"
 
 // CheckerPort is the model checker port
 const CheckerPort = 8000
 
+// NewModel gets a new model
+func NewModel(name string, traces []*Trace) *Model {
+	return &Model{
+		Name:   name,
+		traces: traces,
+	}
+}
+
 // Model is a model to check
 type Model struct {
 	// Name is the name of the model
-	Name string
+	Name   string
+	traces []*Trace
 }
