@@ -16,11 +16,9 @@ package simulation
 
 import (
 	"fmt"
-	"math/rand"
 	"reflect"
 	"regexp"
 	"strconv"
-	"time"
 )
 
 // SimulatingSuite is a suite of simulators
@@ -75,23 +73,35 @@ func (a *Arg) String(def string) string {
 }
 
 // newSimulation returns a new simulation instance
-func newSimulation(name string, suite SimulatingSuite, args map[string]string) *Simulation {
+func newSimulation(name string, process int, suite SimulatingSuite, args map[string]string) *Simulation {
 	return &Simulation{
-		Name:   name,
-		suite:  suite,
-		args:   args,
-		stopCh: make(chan error),
+		Name:    name,
+		Process: process,
+		suite:   suite,
+		args:    args,
 	}
 }
 
 // Simulation is a simulator runner
 type Simulation struct {
-	// Name is the name of the simulator
-	Name     string
+	// Name is the name of the simulation
+	Name string
+	// Process is the unique identifier of the simulator process
+	Process  int
 	suite    SimulatingSuite
 	args     map[string]string
 	register Register
-	stopCh   chan error
+}
+
+// withRegister returns an instance of the simulator with the given register
+func (s *Simulation) withRegister(register Register) *Simulation {
+	return &Simulation{
+		Name:     s.Name,
+		Process:  s.Process,
+		suite:    s.suite,
+		args:     s.args,
+		register: register,
+	}
 }
 
 // Arg gets a simulator argument
@@ -104,9 +114,9 @@ func (s *Simulation) Arg(name string) *Arg {
 	return &Arg{}
 }
 
-// Record records an event in the register
-func (s *Simulation) Record(entry interface{}) {
-	s.register.Record(entry)
+// Trace records an trace in the register
+func (s *Simulation) Trace(values ...interface{}) {
+	s.register.Trace(values...)
 }
 
 // setup sets up the simulation
@@ -147,72 +157,15 @@ func (s *Simulation) teardownSimulator() {
 	}
 }
 
-// start starts running the simulation
-func (s *Simulation) start(rate time.Duration, jitter float64, register Register) {
-	s.register = register
-	go s.run(rate, jitter)
-}
-
-// run runs the simulation
-func (s *Simulation) run(rate time.Duration, jitter float64) {
-	for {
-		select {
-		case <-waitJitter(rate, jitter):
-			s.simulateRandom()
-		case <-s.stopCh:
-			s.register.close()
-			return
-		}
-	}
-}
-
-// simulateRandom calls a random simulator method
-func (s *Simulation) simulateRandom() {
-	method := s.chooseRandom()
-	method.Func.Call([]reflect.Value{reflect.ValueOf(s.suite), reflect.ValueOf(s)})
-}
-
-// chooseRandom chooses a random simulator method
-func (s *Simulation) chooseRandom() reflect.Method {
-	simulators := getSimulators(s.suite)
-	simulator := simulators[rand.Intn(len(simulators))]
+// simulate simulates the given method
+func (s *Simulation) simulate(name string, register Register) error {
 	methods := reflect.TypeOf(s.suite)
-	method, ok := methods.MethodByName(simulator)
+	method, ok := methods.MethodByName(name)
 	if !ok {
-		panic(fmt.Errorf("unknown simulator method %s", simulator))
+		return fmt.Errorf("unknown simulator method %s", name)
 	}
-	return method
-}
-
-// stop stops running the simulation
-func (s *Simulation) stop() {
-	close(s.stopCh)
-}
-
-// waitJitter returns a channel that closes after time.Duration between duration and duration + maxFactor *
-// duration.
-func waitJitter(duration time.Duration, maxFactor float64) <-chan time.Time {
-	if maxFactor <= 0.0 {
-		maxFactor = 1.0
-	}
-	delay := duration + time.Duration(rand.Float64()*maxFactor*float64(duration))
-	return time.After(delay)
-}
-
-// getSimulators returns a list of simulators in the given suite
-func getSimulators(suite SimulatingSuite) []string {
-	methodFinder := reflect.TypeOf(suite)
-	simulators := []string{}
-	for index := 0; index < methodFinder.NumMethod(); index++ {
-		method := methodFinder.Method(index)
-		ok, err := simulatorFilter(method.Name)
-		if ok {
-			simulators = append(simulators, method.Name)
-		} else if err != nil {
-			panic(err)
-		}
-	}
-	return simulators
+	method.Func.Call([]reflect.Value{reflect.ValueOf(s.suite), reflect.ValueOf(s.withRegister(register))})
+	return nil
 }
 
 // simulatorFilter filters simulation method names

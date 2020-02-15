@@ -54,7 +54,7 @@ func runCoordinator(config *Config) error {
 
 // runWorker runs a test image in the worker context
 func runWorker(config *Config) error {
-	worker, err := newWorker(config)
+	worker, err := newSimulator(config)
 	if err != nil {
 		return err
 	}

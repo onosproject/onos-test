@@ -34,10 +34,12 @@ const (
 	simulationImageEnv           = "SIMULATION_IMAGE"
 	simulationImagePullPolicyEnv = "SIMULATION_IMAGE_PULL_POLICY"
 	simulationNameEnv            = "SIMULATION_NAME"
+	simulationModelEnv           = "SIMULATION_MODEL"
 	simulationSimulatorsEnv      = "SIMULATION_SIMULATORS"
 	simulationRateEnv            = "SIMULATION_RATE"
 	simulationJitterEnv          = "SIMULATION_JITTER"
 	simulationDurationEnv        = "SIMULATION_DURATION"
+	simulationParallelismEnv     = "SIMULATION_PARALLELISM"
 	simulationArgsEnv            = "SIMULATION_ARGS"
 	simulationWorkerEnv          = "SIMULATION_WORKER"
 )
@@ -88,15 +90,21 @@ func GetConfigFromEnv() *Config {
 		}
 		duration = time.Duration(d)
 	}
+	parallelism, err := strconv.Atoi(os.Getenv(simulationParallelismEnv))
+	if err != nil {
+		panic(err)
+	}
 	return &Config{
 		ID:              os.Getenv(simulationJobEnv),
 		Image:           os.Getenv(simulationImageEnv),
 		ImagePullPolicy: corev1.PullPolicy(os.Getenv(simulationImagePullPolicyEnv)),
 		Simulation:      os.Getenv(simulationNameEnv),
+		Model:           os.Getenv(simulationModelEnv),
 		Simulators:      workers,
 		Rate:            rate,
 		Jitter:          jitter,
 		Duration:        duration,
+		Parallelism:     parallelism,
 		Args:            args,
 		Env:             env,
 	}
@@ -108,9 +116,11 @@ type Config struct {
 	Image           string
 	ImagePullPolicy corev1.PullPolicy
 	Simulation      string
+	Model           string
 	Simulators      int
 	Rate            time.Duration
 	Jitter          float64
+	Parallelism     int
 	Duration        time.Duration
 	Args            map[string]string
 	Env             map[string]string
@@ -123,10 +133,12 @@ func (c *Config) ToEnv() map[string]string {
 	env[simulationImageEnv] = c.Image
 	env[simulationImagePullPolicyEnv] = string(c.ImagePullPolicy)
 	env[simulationNameEnv] = c.Simulation
+	env[simulationModelEnv] = c.Model
 	env[simulationSimulatorsEnv] = fmt.Sprintf("%d", c.Simulators)
 	env[simulationRateEnv] = fmt.Sprintf("%d", c.Rate)
 	env[simulationJitterEnv] = fmt.Sprintf("%f", c.Jitter)
 	env[simulationDurationEnv] = fmt.Sprintf("%d", c.Duration)
+	env[simulationParallelismEnv] = fmt.Sprintf("%d", c.Parallelism)
 	env[simulationArgsEnv] = util.JoinMap(c.Args)
 	return env
 }
@@ -140,8 +152,8 @@ func getSimulationContext() simulationContext {
 	return simulationContextCoordinator
 }
 
-// getSimulationWorker returns the current simulation worker number
-func getSimulationWorker() int {
+// getSimulatorID returns the current simulation worker number
+func getSimulatorID() int {
 	worker := os.Getenv(simulationWorkerEnv)
 	if worker == "" {
 		return 0

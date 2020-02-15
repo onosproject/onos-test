@@ -14,12 +14,8 @@
 
 package model
 
-// StorePath is the path to which models are stored
-const StorePath = "/etc/test/models"
-
-// CheckerPort is the model checker port
-const CheckerPort = 8000
-
 // Checker is a model checker
 type Checker interface {
+	// Check checks the given model
+	Check(model Model) error
 }

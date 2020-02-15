@@ -33,6 +33,7 @@ func GetCommand() *cobra.Command {
 	cmd.Flags().StringP("image", "i", "", "the simulation image to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the image pull policy to use")
 	cmd.Flags().StringP("simulation", "s", "", "the simulation suite to run")
+	cmd.Flags().StringP("model", "m", "", "a model with which to verify the simulation")
 	cmd.Flags().IntP("simulators", "w", 1, "the number of simulator workers to run")
 	cmd.Flags().DurationP("rate", "r", 1*time.Second, "the rate at which to simulate operations")
 	cmd.Flags().Float64P("jitter", "j", 1, "the jitter to apply to the rate")
@@ -46,6 +47,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 	image, _ := cmd.Flags().GetString("image")
 	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	simulation, _ := cmd.Flags().GetString("simulation")
+	model, _ := cmd.Flags().GetString("model")
 	simulators, _ := cmd.Flags().GetInt("simulators")
 	rate, _ := cmd.Flags().GetDuration("rate")
 	jitter, _ := cmd.Flags().GetFloat64("jitter")
@@ -57,6 +59,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		Image:           image,
 		ImagePullPolicy: corev1.PullPolicy(pullPolicy),
 		Simulation:      simulation,
+		Model:           model,
 		Simulators:      simulators,
 		Rate:            rate,
 		Jitter:          jitter,

@@ -19,7 +19,7 @@ syntax = "proto3";
 package onos.test.simulation;
 
 import "gogoproto/gogo.proto";
-import "google/protobuf/duration.proto";
+import "model/model.proto";
 
 // SimulationLifecycleRequest is a simulation request
 message SimulationLifecycleRequest {
@@ -35,25 +35,19 @@ message SimulationLifecycleResponse {
 
 }
 
-// SimulationRequest is a request to run a simulation
-message SimulationRequest {
+// SimulateRequest is a request to run a simulation
+message SimulateRequest {
     // simulation is the simulation name
     string simulation = 1;
 
-    // rate is the rate at which to simulate operations
-    google.protobuf.Duration rate = 2[(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-
-    // jitter is the jitter to apply to the rate
-    double jitter = 3;
-
-    // args is the simulation arguments
-    map<string, string> args = 4;
+    // method is the simulation method to run
+    string method = 2;
 }
 
-// SimulationResponse is a response indicating a simulation output
-message SimulationResponse {
-    // result is the simulation output
-    bytes result = 1;
+// SimulateResponse is a response indicating a simulation output
+message SimulateResponse {
+    // trace is a simulation trace
+    onos.test.model.Trace trace = 1;
 
     // error is a simulation error
     string error = 2;
@@ -63,6 +57,7 @@ message SimulationResponse {
 service SimulatorService {
     rpc SetupSimulation (SimulationLifecycleRequest) returns (SimulationLifecycleResponse);
     rpc TearDownSimulation (SimulationLifecycleRequest) returns (SimulationLifecycleResponse);
-    rpc StartSimulation (SimulationRequest) returns (stream SimulationResponse);
-    rpc StopSimulation (SimulationRequest) returns (SimulationResponse);
+    rpc SetupSimulator (SimulationLifecycleRequest) returns (SimulationLifecycleResponse);
+    rpc TearDownSimulator (SimulationLifecycleRequest) returns (SimulationLifecycleResponse);
+    rpc Simulate (SimulateRequest) returns (stream SimulateResponse);
 }

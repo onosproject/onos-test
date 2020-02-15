@@ -14,17 +14,17 @@
 
 package simulation
 
-// Register records simulation events
+// Register records simulation traces
 type Register interface {
-	// Record records an entry to the register
-	Record(entry interface{})
+	// Trace records a trace to the register
+	Trace(values ...interface{})
 
 	// close closes the register
 	close()
 }
 
 // newChannelRegister returns a new register that records to the given channel
-func newChannelRegister(ch chan<- interface{}) Register {
+func newChannelRegister(ch chan<- []interface{}) Register {
 	return &channelRegister{
 		ch: ch,
 	}
@@ -32,33 +32,13 @@ func newChannelRegister(ch chan<- interface{}) Register {
 
 // channelRegister is a register that writes records to a channel
 type channelRegister struct {
-	ch chan<- interface{}
+	ch chan<- []interface{}
 }
 
-func (r *channelRegister) Record(entry interface{}) {
-	r.ch <- entry
+func (r *channelRegister) Trace(values ...interface{}) {
+	r.ch <- values
 }
 
 func (r *channelRegister) close() {
 	close(r.ch)
-}
-
-// newBufferedRegister returns a new register that buffers writes
-func newBufferedRegister() Register {
-	return &bufferedRegister{
-		buffer: make([]interface{}, 0),
-	}
-}
-
-// bufferedRegister is a register that buffers writes
-type bufferedRegister struct {
-	buffer []interface{}
-}
-
-func (r *bufferedRegister) Record(entry interface{}) {
-	r.buffer = append(r.buffer, entry)
-}
-
-func (r *bufferedRegister) close() {
-
 }

@@ -5,26 +5,22 @@ package simulation
 
 import (
 	context "context"
-	encoding_binary "encoding/binary"
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	_ "github.com/gogo/protobuf/types"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	io "io"
 	math "math"
 	math_bits "math/bits"
-	time "time"
+	model "model"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
-var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -124,30 +120,26 @@ func (m *SimulationLifecycleResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SimulationLifecycleResponse proto.InternalMessageInfo
 
-// SimulationRequest is a request to run a simulation
-type SimulationRequest struct {
+// SimulateRequest is a request to run a simulation
+type SimulateRequest struct {
 	// simulation is the simulation name
 	Simulation string `protobuf:"bytes,1,opt,name=simulation,proto3" json:"simulation,omitempty"`
-	// rate is the rate at which to simulate operations
-	Rate time.Duration `protobuf:"bytes,2,opt,name=rate,proto3,stdduration" json:"rate"`
-	// jitter is the jitter to apply to the rate
-	Jitter float64 `protobuf:"fixed64,3,opt,name=jitter,proto3" json:"jitter,omitempty"`
-	// args is the simulation arguments
-	Args map[string]string `protobuf:"bytes,4,rep,name=args,proto3" json:"args,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// method is the simulation method to run
+	Method string `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
 }
 
-func (m *SimulationRequest) Reset()         { *m = SimulationRequest{} }
-func (m *SimulationRequest) String() string { return proto.CompactTextString(m) }
-func (*SimulationRequest) ProtoMessage()    {}
-func (*SimulationRequest) Descriptor() ([]byte, []int) {
+func (m *SimulateRequest) Reset()         { *m = SimulateRequest{} }
+func (m *SimulateRequest) String() string { return proto.CompactTextString(m) }
+func (*SimulateRequest) ProtoMessage()    {}
+func (*SimulateRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_17e12b66aec6c312, []int{2}
 }
-func (m *SimulationRequest) XXX_Unmarshal(b []byte) error {
+func (m *SimulateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SimulationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SimulateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SimulationRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SimulateRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -157,66 +149,52 @@ func (m *SimulationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *SimulationRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SimulationRequest.Merge(m, src)
+func (m *SimulateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SimulateRequest.Merge(m, src)
 }
-func (m *SimulationRequest) XXX_Size() int {
+func (m *SimulateRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *SimulationRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_SimulationRequest.DiscardUnknown(m)
+func (m *SimulateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SimulateRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SimulationRequest proto.InternalMessageInfo
+var xxx_messageInfo_SimulateRequest proto.InternalMessageInfo
 
-func (m *SimulationRequest) GetSimulation() string {
+func (m *SimulateRequest) GetSimulation() string {
 	if m != nil {
 		return m.Simulation
 	}
 	return ""
 }
 
-func (m *SimulationRequest) GetRate() time.Duration {
+func (m *SimulateRequest) GetMethod() string {
 	if m != nil {
-		return m.Rate
+		return m.Method
 	}
-	return 0
+	return ""
 }
 
-func (m *SimulationRequest) GetJitter() float64 {
-	if m != nil {
-		return m.Jitter
-	}
-	return 0
-}
-
-func (m *SimulationRequest) GetArgs() map[string]string {
-	if m != nil {
-		return m.Args
-	}
-	return nil
-}
-
-// SimulationResponse is a response indicating a simulation output
-type SimulationResponse struct {
-	// result is the simulation output
-	Result []byte `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+// SimulateResponse is a response indicating a simulation output
+type SimulateResponse struct {
+	// trace is a simulation trace
+	Trace *model.Trace `protobuf:"bytes,1,opt,name=trace,proto3" json:"trace,omitempty"`
 	// error is a simulation error
 	Error string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 }
 
-func (m *SimulationResponse) Reset()         { *m = SimulationResponse{} }
-func (m *SimulationResponse) String() string { return proto.CompactTextString(m) }
-func (*SimulationResponse) ProtoMessage()    {}
-func (*SimulationResponse) Descriptor() ([]byte, []int) {
+func (m *SimulateResponse) Reset()         { *m = SimulateResponse{} }
+func (m *SimulateResponse) String() string { return proto.CompactTextString(m) }
+func (*SimulateResponse) ProtoMessage()    {}
+func (*SimulateResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_17e12b66aec6c312, []int{3}
 }
-func (m *SimulationResponse) XXX_Unmarshal(b []byte) error {
+func (m *SimulateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SimulationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SimulateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SimulationResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SimulateResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -226,26 +204,26 @@ func (m *SimulationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *SimulationResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SimulationResponse.Merge(m, src)
+func (m *SimulateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SimulateResponse.Merge(m, src)
 }
-func (m *SimulationResponse) XXX_Size() int {
+func (m *SimulateResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *SimulationResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_SimulationResponse.DiscardUnknown(m)
+func (m *SimulateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SimulateResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SimulationResponse proto.InternalMessageInfo
+var xxx_messageInfo_SimulateResponse proto.InternalMessageInfo
 
-func (m *SimulationResponse) GetResult() []byte {
+func (m *SimulateResponse) GetTrace() *model.Trace {
 	if m != nil {
-		return m.Result
+		return m.Trace
 	}
 	return nil
 }
 
-func (m *SimulationResponse) GetError() string {
+func (m *SimulateResponse) GetError() string {
 	if m != nil {
 		return m.Error
 	}
@@ -256,42 +234,39 @@ func init() {
 	proto.RegisterType((*SimulationLifecycleRequest)(nil), "onos.test.simulation.SimulationLifecycleRequest")
 	proto.RegisterMapType((map[string]string)(nil), "onos.test.simulation.SimulationLifecycleRequest.ArgsEntry")
 	proto.RegisterType((*SimulationLifecycleResponse)(nil), "onos.test.simulation.SimulationLifecycleResponse")
-	proto.RegisterType((*SimulationRequest)(nil), "onos.test.simulation.SimulationRequest")
-	proto.RegisterMapType((map[string]string)(nil), "onos.test.simulation.SimulationRequest.ArgsEntry")
-	proto.RegisterType((*SimulationResponse)(nil), "onos.test.simulation.SimulationResponse")
+	proto.RegisterType((*SimulateRequest)(nil), "onos.test.simulation.SimulateRequest")
+	proto.RegisterType((*SimulateResponse)(nil), "onos.test.simulation.SimulateResponse")
 }
 
 func init() { proto.RegisterFile("simulation/simulation.proto", fileDescriptor_17e12b66aec6c312) }
 
 var fileDescriptor_17e12b66aec6c312 = []byte{
-	// 430 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x92, 0xb1, 0x6e, 0xd4, 0x40,
-	0x10, 0x86, 0xbd, 0xf6, 0x11, 0x91, 0x09, 0x22, 0x61, 0x75, 0x42, 0xc6, 0x11, 0x9b, 0xd3, 0x35,
-	0xb8, 0x5a, 0x27, 0x47, 0x11, 0x94, 0x8e, 0x53, 0xd2, 0x21, 0x0a, 0x9b, 0x17, 0x70, 0xcc, 0x9c,
-	0x65, 0x30, 0x5e, 0xb3, 0xbb, 0x3e, 0xe4, 0x9e, 0x07, 0xa0, 0xe4, 0x85, 0x90, 0x52, 0x46, 0x54,
-	0x54, 0x80, 0xee, 0x5e, 0x04, 0x79, 0xed, 0xc4, 0x2e, 0x82, 0x92, 0x48, 0x90, 0x6e, 0xfe, 0xd9,
-	0xd9, 0xef, 0x1f, 0xff, 0x5e, 0xd8, 0x55, 0xd9, 0x87, 0x2a, 0x8f, 0x75, 0x26, 0x8a, 0xa0, 0x2f,
-	0x79, 0x29, 0x85, 0x16, 0x74, 0x2c, 0x0a, 0xa1, 0xb8, 0x46, 0xa5, 0x79, 0x7f, 0xe6, 0x8d, 0x53,
-	0x91, 0x0a, 0x33, 0x10, 0x34, 0x55, 0x3b, 0xeb, 0xb1, 0x54, 0x88, 0x34, 0xc7, 0xc0, 0xa8, 0xd3,
-	0x6a, 0x11, 0xbc, 0xad, 0xe4, 0x80, 0x35, 0xfd, 0x46, 0xc0, 0x8b, 0x2e, 0x21, 0xaf, 0xb2, 0x05,
-	0x26, 0x75, 0x92, 0x63, 0x88, 0x1f, 0x2b, 0x54, 0x9a, 0x32, 0x80, 0xde, 0xc2, 0x25, 0x13, 0xe2,
-	0x6f, 0x86, 0x83, 0x0e, 0x7d, 0x0d, 0xa3, 0x58, 0xa6, 0xca, 0xb5, 0x27, 0x8e, 0xbf, 0x35, 0x3b,
-	0xe2, 0x57, 0x6d, 0xc6, 0xff, 0xce, 0xe7, 0x2f, 0x65, 0xaa, 0x4e, 0x0a, 0x2d, 0xeb, 0xd0, 0x70,
-	0xbc, 0x43, 0xd8, 0xbc, 0x6c, 0xd1, 0x1d, 0x70, 0xde, 0x63, 0xdd, 0xb9, 0x36, 0x25, 0x1d, 0xc3,
-	0xbd, 0x65, 0x9c, 0x57, 0xe8, 0xda, 0xa6, 0xd7, 0x8a, 0x23, 0xfb, 0x05, 0x99, 0x3e, 0x85, 0xdd,
-	0x2b, 0x6d, 0x54, 0x29, 0x0a, 0x85, 0xd3, 0xcf, 0x36, 0x3c, 0xea, 0xcf, 0x6f, 0xfa, 0x75, 0x87,
-	0x30, 0x92, 0xb1, 0x6e, 0xdd, 0xb6, 0x66, 0x4f, 0x78, 0x9b, 0x25, 0xbf, 0xc8, 0x92, 0x1f, 0x77,
-	0x59, 0xce, 0xef, 0x9f, 0xfd, 0xdc, 0xb3, 0xbe, 0xfe, 0xda, 0x23, 0xa1, 0xb9, 0x40, 0x1f, 0xc3,
-	0xc6, 0xbb, 0x4c, 0x6b, 0x94, 0xae, 0x33, 0x21, 0x3e, 0x09, 0x3b, 0x45, 0x4f, 0xba, 0xb8, 0x46,
-	0x26, 0xae, 0x83, 0xeb, 0xe2, 0xfa, 0xe7, 0x29, 0xcd, 0x81, 0x0e, 0xe9, 0x6d, 0x38, 0xcd, 0xb6,
-	0x12, 0x55, 0x95, 0x6b, 0x03, 0x79, 0x10, 0x76, 0xaa, 0xe1, 0xa0, 0x94, 0x42, 0x5e, 0x70, 0x8c,
-	0x98, 0x7d, 0x77, 0x60, 0xa7, 0x83, 0x08, 0x19, 0xa1, 0x5c, 0x66, 0x09, 0xd2, 0x25, 0x6c, 0x47,
-	0xa8, 0xab, 0xb2, 0xa7, 0xd3, 0xfd, 0xdb, 0x3e, 0x06, 0xef, 0xe0, 0x16, 0x37, 0xba, 0xd5, 0x6b,
-	0xa0, 0x6f, 0x30, 0x96, 0xc7, 0xe2, 0x53, 0x71, 0xd7, 0xd6, 0x0b, 0xd8, 0x8e, 0x74, 0x2c, 0xf5,
-	0xc0, 0xf7, 0xd9, 0x0d, 0x7f, 0xa8, 0xe7, 0x5f, 0x3f, 0xd8, 0xba, 0xec, 0x13, 0x9a, 0xc0, 0xc3,
-	0x48, 0x8b, 0xf2, 0xbf, 0xda, 0xcc, 0xdd, 0xb3, 0x15, 0x23, 0xe7, 0x2b, 0x46, 0x7e, 0xaf, 0x18,
-	0xf9, 0xb2, 0x66, 0xd6, 0xf9, 0x9a, 0x59, 0x3f, 0xd6, 0xcc, 0x3a, 0xdd, 0x30, 0xaf, 0xfd, 0xf9,
-	0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xc8, 0x2b, 0xd8, 0xef, 0x92, 0x04, 0x00, 0x00,
+	// 390 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x94, 0x4b, 0x8b, 0xda, 0x50,
+	0x14, 0xc7, 0xbd, 0xbe, 0xa8, 0x47, 0xa8, 0x7a, 0x11, 0x09, 0x91, 0x06, 0x09, 0xb4, 0xb8, 0x28,
+	0xd1, 0xda, 0x45, 0x8b, 0xbb, 0x96, 0x76, 0x51, 0x28, 0x5d, 0x44, 0xe9, 0xa6, 0xab, 0x34, 0x9e,
+	0xc9, 0x84, 0x89, 0xb9, 0xce, 0xbd, 0x37, 0xce, 0xe4, 0x5b, 0xcc, 0x97, 0x1a, 0x98, 0xa5, 0x30,
+	0x9b, 0x59, 0x0e, 0xfa, 0x45, 0x86, 0x3c, 0x4c, 0x64, 0x70, 0x1e, 0x6e, 0xdc, 0x84, 0xf3, 0xfc,
+	0xfd, 0xf3, 0x3f, 0x84, 0x40, 0x57, 0xb8, 0xf3, 0xc0, 0xb3, 0xa4, 0xcb, 0xfc, 0x41, 0x1e, 0x1a,
+	0x0b, 0xce, 0x24, 0xa3, 0x6d, 0xe6, 0x33, 0x61, 0x48, 0x14, 0xd2, 0xc8, 0x7b, 0x6a, 0xdb, 0x61,
+	0x0e, 0x8b, 0x07, 0x06, 0x51, 0x94, 0xcc, 0xaa, 0xad, 0x39, 0x9b, 0xa1, 0x37, 0x88, 0x9f, 0x49,
+	0x49, 0xbf, 0x26, 0xa0, 0x4e, 0xb2, 0xbd, 0xdf, 0xee, 0x09, 0xda, 0xa1, 0xed, 0xa1, 0x89, 0xe7,
+	0x01, 0x0a, 0x49, 0x35, 0x80, 0x9c, 0xaa, 0x90, 0x1e, 0xe9, 0xd7, 0xcc, 0x9d, 0x0a, 0xfd, 0x03,
+	0x65, 0x8b, 0x3b, 0x42, 0x29, 0xf6, 0x4a, 0xfd, 0xfa, 0x68, 0x6c, 0xec, 0x7b, 0x19, 0xe3, 0x69,
+	0xbe, 0xf1, 0x8d, 0x3b, 0xe2, 0xa7, 0x2f, 0x79, 0x68, 0xc6, 0x1c, 0xf5, 0x0b, 0xd4, 0xb2, 0x12,
+	0x6d, 0x42, 0xe9, 0x0c, 0xc3, 0x54, 0x35, 0x0a, 0x69, 0x1b, 0x2a, 0x4b, 0xcb, 0x0b, 0x50, 0x29,
+	0xc6, 0xb5, 0x24, 0x19, 0x17, 0xbf, 0x12, 0xfd, 0x1d, 0x74, 0xf7, 0xca, 0x88, 0x05, 0xf3, 0x05,
+	0xea, 0xbf, 0xa0, 0x91, 0xb6, 0x5f, 0x6d, 0xad, 0x03, 0xd5, 0x39, 0xca, 0x53, 0x36, 0x4b, 0xc5,
+	0xd2, 0x4c, 0xff, 0x0b, 0xcd, 0x1c, 0x95, 0xe0, 0xe9, 0x47, 0xa8, 0x48, 0x6e, 0xd9, 0x18, 0x63,
+	0xea, 0xa3, 0xce, 0xce, 0x1d, 0x92, 0x63, 0x4f, 0xa3, 0xae, 0x99, 0x0c, 0x45, 0x2e, 0x90, 0x73,
+	0xc6, 0xb7, 0x2e, 0xe2, 0x64, 0x74, 0x5b, 0xce, 0xc0, 0x8c, 0x4f, 0x90, 0x2f, 0x5d, 0x1b, 0xe9,
+	0x12, 0x1a, 0x13, 0x94, 0xc1, 0x22, 0xf7, 0x46, 0x87, 0x87, 0x1e, 0x59, 0xfd, 0x74, 0xc0, 0x46,
+	0x6a, 0x28, 0x04, 0x3a, 0x45, 0x8b, 0xff, 0x60, 0x17, 0xfe, 0xb1, 0xa5, 0x03, 0x78, 0xbb, 0x6b,
+	0x99, 0xf1, 0xe3, 0xc8, 0x5e, 0x42, 0xeb, 0x91, 0xe3, 0x63, 0x29, 0xff, 0x83, 0x37, 0xdb, 0x0f,
+	0x8a, 0xbe, 0x7f, 0x76, 0x3d, 0x53, 0xf9, 0xf0, 0xd2, 0x58, 0x82, 0x1e, 0x92, 0xef, 0xca, 0xcd,
+	0x5a, 0x23, 0xab, 0xb5, 0x46, 0xee, 0xd7, 0x1a, 0xb9, 0xda, 0x68, 0x85, 0xd5, 0x46, 0x2b, 0xdc,
+	0x6d, 0xb4, 0xc2, 0xff, 0x6a, 0xfc, 0x03, 0xf8, 0xfc, 0x10, 0x00, 0x00, 0xff, 0xff, 0xb6, 0xbc,
+	0x4c, 0xb6, 0x5e, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -308,8 +283,9 @@ const _ = grpc.SupportPackageIsVersion4
 type SimulatorServiceClient interface {
 	SetupSimulation(ctx context.Context, in *SimulationLifecycleRequest, opts ...grpc.CallOption) (*SimulationLifecycleResponse, error)
 	TearDownSimulation(ctx context.Context, in *SimulationLifecycleRequest, opts ...grpc.CallOption) (*SimulationLifecycleResponse, error)
-	StartSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (SimulatorService_StartSimulationClient, error)
-	StopSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error)
+	SetupSimulator(ctx context.Context, in *SimulationLifecycleRequest, opts ...grpc.CallOption) (*SimulationLifecycleResponse, error)
+	TearDownSimulator(ctx context.Context, in *SimulationLifecycleRequest, opts ...grpc.CallOption) (*SimulationLifecycleResponse, error)
+	Simulate(ctx context.Context, in *SimulateRequest, opts ...grpc.CallOption) (SimulatorService_SimulateClient, error)
 }
 
 type simulatorServiceClient struct {
@@ -338,12 +314,30 @@ func (c *simulatorServiceClient) TearDownSimulation(ctx context.Context, in *Sim
 	return out, nil
 }
 
-func (c *simulatorServiceClient) StartSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (SimulatorService_StartSimulationClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_SimulatorService_serviceDesc.Streams[0], "/onos.test.simulation.SimulatorService/StartSimulation", opts...)
+func (c *simulatorServiceClient) SetupSimulator(ctx context.Context, in *SimulationLifecycleRequest, opts ...grpc.CallOption) (*SimulationLifecycleResponse, error) {
+	out := new(SimulationLifecycleResponse)
+	err := c.cc.Invoke(ctx, "/onos.test.simulation.SimulatorService/SetupSimulator", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &simulatorServiceStartSimulationClient{stream}
+	return out, nil
+}
+
+func (c *simulatorServiceClient) TearDownSimulator(ctx context.Context, in *SimulationLifecycleRequest, opts ...grpc.CallOption) (*SimulationLifecycleResponse, error) {
+	out := new(SimulationLifecycleResponse)
+	err := c.cc.Invoke(ctx, "/onos.test.simulation.SimulatorService/TearDownSimulator", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *simulatorServiceClient) Simulate(ctx context.Context, in *SimulateRequest, opts ...grpc.CallOption) (SimulatorService_SimulateClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_SimulatorService_serviceDesc.Streams[0], "/onos.test.simulation.SimulatorService/Simulate", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &simulatorServiceSimulateClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -353,38 +347,30 @@ func (c *simulatorServiceClient) StartSimulation(ctx context.Context, in *Simula
 	return x, nil
 }
 
-type SimulatorService_StartSimulationClient interface {
-	Recv() (*SimulationResponse, error)
+type SimulatorService_SimulateClient interface {
+	Recv() (*SimulateResponse, error)
 	grpc.ClientStream
 }
 
-type simulatorServiceStartSimulationClient struct {
+type simulatorServiceSimulateClient struct {
 	grpc.ClientStream
 }
 
-func (x *simulatorServiceStartSimulationClient) Recv() (*SimulationResponse, error) {
-	m := new(SimulationResponse)
+func (x *simulatorServiceSimulateClient) Recv() (*SimulateResponse, error) {
+	m := new(SimulateResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *simulatorServiceClient) StopSimulation(ctx context.Context, in *SimulationRequest, opts ...grpc.CallOption) (*SimulationResponse, error) {
-	out := new(SimulationResponse)
-	err := c.cc.Invoke(ctx, "/onos.test.simulation.SimulatorService/StopSimulation", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // SimulatorServiceServer is the server API for SimulatorService service.
 type SimulatorServiceServer interface {
 	SetupSimulation(context.Context, *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error)
 	TearDownSimulation(context.Context, *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error)
-	StartSimulation(*SimulationRequest, SimulatorService_StartSimulationServer) error
-	StopSimulation(context.Context, *SimulationRequest) (*SimulationResponse, error)
+	SetupSimulator(context.Context, *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error)
+	TearDownSimulator(context.Context, *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error)
+	Simulate(*SimulateRequest, SimulatorService_SimulateServer) error
 }
 
 // UnimplementedSimulatorServiceServer can be embedded to have forward compatible implementations.
@@ -397,11 +383,14 @@ func (*UnimplementedSimulatorServiceServer) SetupSimulation(ctx context.Context,
 func (*UnimplementedSimulatorServiceServer) TearDownSimulation(ctx context.Context, req *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TearDownSimulation not implemented")
 }
-func (*UnimplementedSimulatorServiceServer) StartSimulation(req *SimulationRequest, srv SimulatorService_StartSimulationServer) error {
-	return status.Errorf(codes.Unimplemented, "method StartSimulation not implemented")
+func (*UnimplementedSimulatorServiceServer) SetupSimulator(ctx context.Context, req *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetupSimulator not implemented")
 }
-func (*UnimplementedSimulatorServiceServer) StopSimulation(ctx context.Context, req *SimulationRequest) (*SimulationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StopSimulation not implemented")
+func (*UnimplementedSimulatorServiceServer) TearDownSimulator(ctx context.Context, req *SimulationLifecycleRequest) (*SimulationLifecycleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TearDownSimulator not implemented")
+}
+func (*UnimplementedSimulatorServiceServer) Simulate(req *SimulateRequest, srv SimulatorService_SimulateServer) error {
+	return status.Errorf(codes.Unimplemented, "method Simulate not implemented")
 }
 
 func RegisterSimulatorServiceServer(s *grpc.Server, srv SimulatorServiceServer) {
@@ -444,43 +433,61 @@ func _SimulatorService_TearDownSimulation_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SimulatorService_StartSimulation_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(SimulationRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(SimulatorServiceServer).StartSimulation(m, &simulatorServiceStartSimulationServer{stream})
-}
-
-type SimulatorService_StartSimulationServer interface {
-	Send(*SimulationResponse) error
-	grpc.ServerStream
-}
-
-type simulatorServiceStartSimulationServer struct {
-	grpc.ServerStream
-}
-
-func (x *simulatorServiceStartSimulationServer) Send(m *SimulationResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func _SimulatorService_StopSimulation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SimulationRequest)
+func _SimulatorService_SetupSimulator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulationLifecycleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SimulatorServiceServer).StopSimulation(ctx, in)
+		return srv.(SimulatorServiceServer).SetupSimulator(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/onos.test.simulation.SimulatorService/StopSimulation",
+		FullMethod: "/onos.test.simulation.SimulatorService/SetupSimulator",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SimulatorServiceServer).StopSimulation(ctx, req.(*SimulationRequest))
+		return srv.(SimulatorServiceServer).SetupSimulator(ctx, req.(*SimulationLifecycleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _SimulatorService_TearDownSimulator_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulationLifecycleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SimulatorServiceServer).TearDownSimulator(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/onos.test.simulation.SimulatorService/TearDownSimulator",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SimulatorServiceServer).TearDownSimulator(ctx, req.(*SimulationLifecycleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SimulatorService_Simulate_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SimulateRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SimulatorServiceServer).Simulate(m, &simulatorServiceSimulateServer{stream})
+}
+
+type SimulatorService_SimulateServer interface {
+	Send(*SimulateResponse) error
+	grpc.ServerStream
+}
+
+type simulatorServiceSimulateServer struct {
+	grpc.ServerStream
+}
+
+func (x *simulatorServiceSimulateServer) Send(m *SimulateResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 var _SimulatorService_serviceDesc = grpc.ServiceDesc{
@@ -496,14 +503,18 @@ var _SimulatorService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _SimulatorService_TearDownSimulation_Handler,
 		},
 		{
-			MethodName: "StopSimulation",
-			Handler:    _SimulatorService_StopSimulation_Handler,
+			MethodName: "SetupSimulator",
+			Handler:    _SimulatorService_SetupSimulator_Handler,
+		},
+		{
+			MethodName: "TearDownSimulator",
+			Handler:    _SimulatorService_TearDownSimulator_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "StartSimulation",
-			Handler:       _SimulatorService_StartSimulation_Handler,
+			StreamName:    "Simulate",
+			Handler:       _SimulatorService_Simulate_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -582,7 +593,7 @@ func (m *SimulationLifecycleResponse) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
-func (m *SimulationRequest) Marshal() (dAtA []byte, err error) {
+func (m *SimulateRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -592,49 +603,23 @@ func (m *SimulationRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SimulationRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *SimulateRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SimulationRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SimulateRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Args) > 0 {
-		for k := range m.Args {
-			v := m.Args[k]
-			baseI := i
-			i -= len(v)
-			copy(dAtA[i:], v)
-			i = encodeVarintSimulation(dAtA, i, uint64(len(v)))
-			i--
-			dAtA[i] = 0x12
-			i -= len(k)
-			copy(dAtA[i:], k)
-			i = encodeVarintSimulation(dAtA, i, uint64(len(k)))
-			i--
-			dAtA[i] = 0xa
-			i = encodeVarintSimulation(dAtA, i, uint64(baseI-i))
-			i--
-			dAtA[i] = 0x22
-		}
-	}
-	if m.Jitter != 0 {
-		i -= 8
-		encoding_binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.Jitter))))
+	if len(m.Method) > 0 {
+		i -= len(m.Method)
+		copy(dAtA[i:], m.Method)
+		i = encodeVarintSimulation(dAtA, i, uint64(len(m.Method)))
 		i--
-		dAtA[i] = 0x19
+		dAtA[i] = 0x12
 	}
-	n1, err1 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.Rate, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.Rate):])
-	if err1 != nil {
-		return 0, err1
-	}
-	i -= n1
-	i = encodeVarintSimulation(dAtA, i, uint64(n1))
-	i--
-	dAtA[i] = 0x12
 	if len(m.Simulation) > 0 {
 		i -= len(m.Simulation)
 		copy(dAtA[i:], m.Simulation)
@@ -645,7 +630,7 @@ func (m *SimulationRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *SimulationResponse) Marshal() (dAtA []byte, err error) {
+func (m *SimulateResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -655,12 +640,12 @@ func (m *SimulationResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SimulationResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *SimulateResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SimulationResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SimulateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -672,10 +657,15 @@ func (m *SimulationResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Result) > 0 {
-		i -= len(m.Result)
-		copy(dAtA[i:], m.Result)
-		i = encodeVarintSimulation(dAtA, i, uint64(len(m.Result)))
+	if m.Trace != nil {
+		{
+			size, err := m.Trace.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintSimulation(dAtA, i, uint64(size))
+		}
 		i--
 		dAtA[i] = 0xa
 	}
@@ -723,7 +713,7 @@ func (m *SimulationLifecycleResponse) Size() (n int) {
 	return n
 }
 
-func (m *SimulationRequest) Size() (n int) {
+func (m *SimulateRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -733,30 +723,21 @@ func (m *SimulationRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSimulation(uint64(l))
 	}
-	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.Rate)
-	n += 1 + l + sovSimulation(uint64(l))
-	if m.Jitter != 0 {
-		n += 9
-	}
-	if len(m.Args) > 0 {
-		for k, v := range m.Args {
-			_ = k
-			_ = v
-			mapEntrySize := 1 + len(k) + sovSimulation(uint64(len(k))) + 1 + len(v) + sovSimulation(uint64(len(v)))
-			n += mapEntrySize + 1 + sovSimulation(uint64(mapEntrySize))
-		}
+	l = len(m.Method)
+	if l > 0 {
+		n += 1 + l + sovSimulation(uint64(l))
 	}
 	return n
 }
 
-func (m *SimulationResponse) Size() (n int) {
+func (m *SimulateResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Result)
-	if l > 0 {
+	if m.Trace != nil {
+		l = m.Trace.Size()
 		n += 1 + l + sovSimulation(uint64(l))
 	}
 	l = len(m.Error)
@@ -1037,7 +1018,7 @@ func (m *SimulationLifecycleResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *SimulationRequest) Unmarshal(dAtA []byte) error {
+func (m *SimulateRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1060,10 +1041,10 @@ func (m *SimulationRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: SimulationRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: SimulateRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SimulationRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SimulateRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1100,9 +1081,9 @@ func (m *SimulationRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Rate", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Method", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSimulation
@@ -1112,162 +1093,23 @@ func (m *SimulationRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthSimulation
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthSimulation
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.Rate, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 1 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Jitter", wireType)
-			}
-			var v uint64
-			if (iNdEx + 8) > l {
-				return io.ErrUnexpectedEOF
-			}
-			v = uint64(encoding_binary.LittleEndian.Uint64(dAtA[iNdEx:]))
-			iNdEx += 8
-			m.Jitter = float64(math.Float64frombits(v))
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Args", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSimulation
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthSimulation
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Args == nil {
-				m.Args = make(map[string]string)
-			}
-			var mapkey string
-			var mapvalue string
-			for iNdEx < postIndex {
-				entryPreIndex := iNdEx
-				var wire uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowSimulation
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					wire |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				fieldNum := int32(wire >> 3)
-				if fieldNum == 1 {
-					var stringLenmapkey uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowSimulation
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						stringLenmapkey |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					intStringLenmapkey := int(stringLenmapkey)
-					if intStringLenmapkey < 0 {
-						return ErrInvalidLengthSimulation
-					}
-					postStringIndexmapkey := iNdEx + intStringLenmapkey
-					if postStringIndexmapkey < 0 {
-						return ErrInvalidLengthSimulation
-					}
-					if postStringIndexmapkey > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
-					iNdEx = postStringIndexmapkey
-				} else if fieldNum == 2 {
-					var stringLenmapvalue uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowSimulation
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						stringLenmapvalue |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					intStringLenmapvalue := int(stringLenmapvalue)
-					if intStringLenmapvalue < 0 {
-						return ErrInvalidLengthSimulation
-					}
-					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
-					if postStringIndexmapvalue < 0 {
-						return ErrInvalidLengthSimulation
-					}
-					if postStringIndexmapvalue > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
-					iNdEx = postStringIndexmapvalue
-				} else {
-					iNdEx = entryPreIndex
-					skippy, err := skipSimulation(dAtA[iNdEx:])
-					if err != nil {
-						return err
-					}
-					if skippy < 0 {
-						return ErrInvalidLengthSimulation
-					}
-					if (iNdEx + skippy) > postIndex {
-						return io.ErrUnexpectedEOF
-					}
-					iNdEx += skippy
-				}
-			}
-			m.Args[mapkey] = mapvalue
+			m.Method = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1293,7 +1135,7 @@ func (m *SimulationRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *SimulationResponse) Unmarshal(dAtA []byte) error {
+func (m *SimulateResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1316,17 +1158,17 @@ func (m *SimulationResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: SimulationResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: SimulateResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SimulationResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SimulateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Result", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Trace", wireType)
 			}
-			var byteLen int
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSimulation
@@ -1336,24 +1178,26 @@ func (m *SimulationResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthSimulation
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthSimulation
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Result = append(m.Result[:0], dAtA[iNdEx:postIndex]...)
-			if m.Result == nil {
-				m.Result = []byte{}
+			if m.Trace == nil {
+				m.Trace = &model.Trace{}
+			}
+			if err := m.Trace.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
 			}
 			iNdEx = postIndex
 		case 2:

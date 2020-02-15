@@ -14,7 +14,17 @@
 
 package model
 
+// TemplatesPath is the path containing model templates
+const TemplatesPath = "./models"
+
+// StorePath is the path to which models are stored
+const StorePath = "/etc/test/models"
+
+// CheckerPort is the model checker port
+const CheckerPort = 8000
+
 // Model is a model to check
 type Model struct {
-
+	// Name is the name of the model
+	Name string
 }

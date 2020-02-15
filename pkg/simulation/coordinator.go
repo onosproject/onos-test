@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/kube"
+	"github.com/onosproject/onos-test/pkg/model"
 	"github.com/onosproject/onos-test/pkg/registry"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
@@ -29,7 +30,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
+	"math/rand"
 	"os"
+	"reflect"
 	"sync"
 	"time"
 )
@@ -72,6 +75,7 @@ func (c *Coordinator) Run() error {
 			Image:           c.config.Image,
 			ImagePullPolicy: c.config.ImagePullPolicy,
 			Simulation:      suite,
+			Model:           c.config.Model,
 			Simulators:      c.config.Simulators,
 			Rate:            c.config.Rate,
 			Jitter:          c.config.Jitter,
@@ -169,7 +173,17 @@ func (t *WorkerTask) run() error {
 	if err := t.createWorkers(); err != nil {
 		return err
 	}
-	if err := t.runSimulation(); err != nil {
+	if err := t.setupSimulation(); err != nil {
+		return err
+	}
+	if err := t.setupSimulators(); err != nil {
+		return err
+	}
+	traces, err := t.runSimulation()
+	if err != nil {
+		return err
+	}
+	if err := t.checkModel(traces); err != nil {
 		return err
 	}
 	return nil
@@ -374,106 +388,182 @@ func (t *WorkerTask) setupSimulation() error {
 	return err
 }
 
-// runSimulation runs the given simulations
-func (t *WorkerTask) runSimulation() error {
-	// Run the simulation for the configured duration
-	simulationStep := logging.NewStep(t.config.ID, "Run simulation %s", t.config.Simulation)
-	simulationStep.Start()
-
-	// Setup the simulation on one of the workers
-	if err := t.setupSimulation(); err != nil {
-		simulationStep.Fail(err)
-		return err
-	}
-
-	// Run the simulators
-	if _, err := t.runSimulators(); err != nil {
-		simulationStep.Fail(err)
-		return err
-	}
-	simulationStep.Complete()
-	return nil
-}
-
-// runSimulators runs the simulators
-func (t *WorkerTask) runSimulators() ([]Register, error) {
+// setupSimulators sets up the simulators
+func (t *WorkerTask) setupSimulators() error {
 	simulators, err := t.getSimulators()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	wg := &sync.WaitGroup{}
-	registers := make([]Register, len(simulators))
 	errCh := make(chan error)
 	for i, simulator := range simulators {
-		register := newBufferedRegister()
-		registers[i] = register
 		wg.Add(1)
-		go func(id int, simulator SimulatorServiceClient, register Register) {
-			// Run the simulation for the configured duration
-			simulatorStep := logging.NewStep(t.config.ID, "Run simulator %s/%d", t.config.Simulation, id)
-			simulatorStep.Start()
-			if err := t.runSimulator(simulator, register); err != nil {
-				simulatorStep.Fail(err)
+		go func(simulator int, client SimulatorServiceClient) {
+			if err := t.setupSimulator(simulator, client); err != nil {
 				errCh <- err
-			} else {
-				simulatorStep.Complete()
 			}
 			wg.Done()
-		}(i, simulator, register)
+		}(i, simulator)
 	}
 	wg.Wait()
 	close(errCh)
 
 	for err := range errCh {
-		return nil, err
-	}
-	return registers, nil
-}
-
-// runSimulator runs a simulator
-func (t *WorkerTask) runSimulator(simulator SimulatorServiceClient, register Register) error {
-	request := &SimulationRequest{
-		Simulation: t.config.Simulation,
-		Rate:       t.config.Rate,
-		Jitter:     t.config.Jitter,
-		Args:       t.config.Args,
-	}
-	stream, err := simulator.StartSimulation(context.Background(), request)
-	if err != nil {
 		return err
 	}
+	return nil
+}
 
-	entryCh := make(chan interface{})
-	go func() {
-		for {
-			response, err := stream.Recv()
-			if err == io.EOF {
-				close(entryCh)
-			} else if err == nil && response.Result != nil && len(response.Result) > 0 {
-				entryCh <- response.Result
+// setupSimulator sets up the given simulator
+func (t *WorkerTask) setupSimulator(simulator int, client SimulatorServiceClient) error {
+	step := logging.NewStep(t.config.ID, "Setup simulator %s/%d", t.config.Simulation, simulator)
+	step.Start()
+	request := &SimulationLifecycleRequest{
+		Simulation: t.config.Simulation,
+		Args:       t.config.Args,
+	}
+	_, err := client.SetupSimulator(context.Background(), request)
+	if err != nil {
+		step.Fail(err)
+		return err
+	}
+	step.Complete()
+	return nil
+}
+
+// runSimulation runs the given simulations
+func (t *WorkerTask) runSimulation() ([]*model.Trace, error) {
+	// Run the simulation for the configured duration
+	step := logging.NewStep(t.config.ID, "Run simulation %s", t.config.Simulation)
+	step.Start()
+
+	wg := &sync.WaitGroup{}
+	tracesCh := make(chan *model.Trace)
+	errCh := make(chan error)
+	for i := 0; i < t.config.Parallelism; i++ {
+		wg.Add(1)
+		go func() {
+			if err := t.runSimulators(tracesCh); err != nil {
+				errCh <- err
 			}
-		}
+			wg.Done()
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(tracesCh)
+		close(errCh)
 	}()
 
+	traces := make([]*model.Trace, 0)
+	for trace := range tracesCh {
+		traces = append(traces, trace)
+	}
+
+	for err := range errCh {
+		step.Fail(err)
+		return nil, err
+	}
+	step.Complete()
+	return traces, nil
+}
+
+// runSimulators runs the simulation for a goroutine
+func (t *WorkerTask) runSimulators(ch chan<- *model.Trace) error {
+	duration := time.After(t.config.Duration)
 	for {
 		select {
-		case entry := <-entryCh:
-			register.Record(entry)
-		case <-time.After(t.config.Duration):
-			request := &SimulationRequest{
-				Simulation: t.config.Simulation,
-			}
-			_, err := simulator.StopSimulation(context.Background(), request)
-			if err != nil {
-				return err
-			}
+		case <-duration:
 			return nil
+		case <-waitJitter(t.config.Rate, t.config.Jitter):
+			t.runSimulator(t.chooseSimulator(), ch)
 		}
+	}
+}
+
+// runSimulator runs a random simulator
+func (t *WorkerTask) runSimulator(simulator int, ch chan<- *model.Trace) {
+	step := logging.NewStep(t.config.ID, "Run simulator %s/%d", t.config.Simulation, simulator)
+	step.Start()
+
+	simulators, err := t.getSimulators()
+	if err != nil {
+		step.Fail(err)
+		return
+	}
+
+	client := simulators[simulator]
+	request := &SimulateRequest{
+		Simulation: t.config.Simulation,
+		Method:     t.chooseMethod(),
+	}
+	stream, err := client.Simulate(context.Background(), request)
+	if err != nil {
+		step.Fail(err)
+		return
+	}
+
+	for {
+		response, err := stream.Recv()
+		if err == io.EOF {
+			step.Complete()
+			return
+		} else if err != nil {
+			step.Fail(err)
+			return
+		}
+		ch <- response.Trace
+	}
+}
+
+// chooseSimulator chooses a random simulator
+func (t *WorkerTask) chooseSimulator() int {
+	return rand.Intn(t.config.Simulators)
+}
+
+// chooseMethod chooses a random simulator method
+func (t *WorkerTask) chooseMethod() string {
+	suite := registry.GetSimulationSuite(t.config.Simulation)
+	methods := getMethods(suite)
+	return methods[rand.Intn(len(methods))]
+}
+
+// getMethods returns a list of simulators in the given suite
+func getMethods(suite SimulatingSuite) []string {
+	methodFinder := reflect.TypeOf(suite)
+	simulators := []string{}
+	for index := 0; index < methodFinder.NumMethod(); index++ {
+		method := methodFinder.Method(index)
+		ok, err := simulatorFilter(method.Name)
+		if ok {
+			simulators = append(simulators, method.Name)
+		} else if err != nil {
+			panic(err)
+		}
+	}
+	return simulators
+}
+
+// checkModel checks the given traces against the model
+func (t *WorkerTask) checkModel(traces []*model.Trace) error {
+	if t.config.Model == "" {
+		return nil
 	}
 }
 
 // tearDown tears down the job
 func (t *WorkerTask) tearDown() error {
 	return t.cluster.Delete()
+}
+
+// waitJitter returns a channel that closes after time.Duration between duration and duration + maxFactor *
+// duration.
+func waitJitter(duration time.Duration, maxFactor float64) <-chan time.Time {
+	if maxFactor <= 0.0 {
+		maxFactor = 1.0
+	}
+	delay := duration + time.Duration(rand.Float64()*maxFactor*float64(duration))
+	return time.After(delay)
 }

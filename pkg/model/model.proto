@@ -21,6 +21,30 @@ package onos.test.model;
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 
+// Trace is a trace entry
+message Trace {
+    // values is a series of values in the trace
+    repeated Value values = 1;
+}
+
+// Value is a trace value
+message Value {
+    // Type is the type of the value
+    enum Type {
+        UNKNOWN = 0;
+        STRING = 1;
+        INTEGER = 2;
+        DECIMAL = 3;
+        BOOLEAN = 4;
+    }
+
+    // type is the type of the value
+    Type type = 1;
+
+    // bytes is the value bytes
+    bytes bytes = 2;
+}
+
 // ModelCheckRequest is a model check request
 message ModelCheckRequest {
     // model is the model to check
