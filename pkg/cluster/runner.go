@@ -352,6 +352,22 @@ func (r *Runner) createJob(job *Job) error {
 			Value: value,
 		})
 	}
+	env = append(env, corev1.EnvVar{
+		Name: "POD_NAMESPACE",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.namespace",
+			},
+		},
+	})
+	env = append(env, corev1.EnvVar{
+		Name: "POD_NAME",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.name",
+			},
+		},
+	})
 
 	zero := int32(0)
 	one := int32(1)
@@ -385,11 +401,10 @@ func (r *Runner) createJob(job *Job) error {
 							ImagePullPolicy: job.ImagePullPolicy,
 							Args:            job.Args,
 							Env:             env,
-							VolumeMounts: []corev1.VolumeMount{
+							Ports: []corev1.ContainerPort{
 								{
-									Name:      "models",
-									MountPath: model.DataPath,
-									ReadOnly:  true,
+									Name:          "management",
+									ContainerPort: 5000,
 								},
 							},
 						},
@@ -401,6 +416,13 @@ func (r *Runner) createJob(job *Job) error {
 								{
 									Name:          "model-checker",
 									ContainerPort: model.CheckerPort,
+								},
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "models",
+									MountPath: model.DataPath,
+									ReadOnly:  true,
 								},
 							},
 						},

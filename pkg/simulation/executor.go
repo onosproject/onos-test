@@ -24,7 +24,7 @@ import (
 // Main runs a test
 func Main() {
 	if err := Run(); err != nil {
-		println("Simulation failed " + err.Error())
+		println("Simulator failed " + err.Error())
 		os.Exit(1)
 	}
 	os.Exit(0)
@@ -32,20 +32,19 @@ func Main() {
 
 // Run runs a test
 func Run() error {
-	config := GetConfigFromEnv()
 	context := getSimulationContext()
 	switch context {
 	case simulationContextCoordinator:
-		return runCoordinator(config)
+		return runCoordinator()
 	case simulationContextWorker:
-		return runWorker(config)
+		return runWorker()
 	}
 	return nil
 }
 
 // runCoordinator runs a test image in the coordinator context
-func runCoordinator(config *Config) error {
-	coordinator, err := newCoordinator(config)
+func runCoordinator() error {
+	coordinator, err := newCoordinator(GetConfigFromEnv())
 	if err != nil {
 		return err
 	}
@@ -53,10 +52,10 @@ func runCoordinator(config *Config) error {
 }
 
 // runWorker runs a test image in the worker context
-func runWorker(config *Config) error {
-	worker, err := newSimulator(config)
+func runWorker() error {
+	server, err := newSimulatorServer()
 	if err != nil {
 		return err
 	}
-	return worker.Run()
+	return server.Run()
 }

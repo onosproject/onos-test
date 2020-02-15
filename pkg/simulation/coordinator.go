@@ -24,7 +24,6 @@ import (
 	"github.com/onosproject/onos-test/pkg/registry"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
-	"io"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +31,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"math/rand"
 	"os"
-	"reflect"
 	"sync"
 	"time"
 )
@@ -57,6 +55,9 @@ type Coordinator struct {
 
 // Run runs the simulations
 func (c *Coordinator) Run() error {
+	server := newRegisterServer(getAddress())
+	go server.serve()
+
 	var suites []string
 	if c.config.Simulation == "" {
 		suites = make([]string, 0, len(registry.GetSimulationSuites()))
@@ -89,9 +90,10 @@ func (c *Coordinator) Run() error {
 		}
 
 		worker := &WorkerTask{
-			client:  c.client,
-			cluster: benchCluster,
-			config:  config,
+			client:    c.client,
+			registers: server,
+			cluster:   benchCluster,
+			config:    config,
 		}
 		workers[i] = worker
 	}
@@ -145,10 +147,11 @@ func newJobID(testID, suite string) string {
 
 // WorkerTask manages a single test job for a test worker
 type WorkerTask struct {
-	client  *kubernetes.Clientset
-	cluster *cluster.Cluster
-	config  *Config
-	workers []SimulatorServiceClient
+	client    *kubernetes.Clientset
+	registers *registerServer
+	cluster   *cluster.Cluster
+	config    *Config
+	workers   []SimulatorServiceClient
 }
 
 // Run runs the worker job
@@ -438,18 +441,17 @@ func (t *WorkerTask) runSimulation() ([]*model.Trace, error) {
 	step := logging.NewStep(t.config.ID, "Run simulation %s", t.config.Simulation)
 	step.Start()
 
-	wg := &sync.WaitGroup{}
 	tracesCh := make(chan *model.Trace)
 	errCh := make(chan error)
-	for i := 0; i < t.config.Parallelism; i++ {
-		wg.Add(1)
-		go func() {
-			if err := t.runSimulators(tracesCh); err != nil {
-				errCh <- err
-			}
-			wg.Done()
-		}()
-	}
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		if err := t.runSimulators(tracesCh); err != nil {
+			errCh <- err
+		}
+		wg.Done()
+	}()
 
 	go func() {
 		wg.Wait()
@@ -472,78 +474,74 @@ func (t *WorkerTask) runSimulation() ([]*model.Trace, error) {
 
 // runSimulators runs the simulation for a goroutine
 func (t *WorkerTask) runSimulators(ch chan<- *model.Trace) error {
-	duration := time.After(t.config.Duration)
-	for {
-		select {
-		case <-duration:
-			return nil
-		case <-waitJitter(t.config.Rate, t.config.Jitter):
-			t.runSimulator(t.chooseSimulator(), ch)
-		}
-	}
-}
-
-// runSimulator runs a random simulator
-func (t *WorkerTask) runSimulator(simulator int, ch chan<- *model.Trace) {
-	step := logging.NewStep(t.config.ID, "Run simulator %s/%d", t.config.Simulation, simulator)
-	step.Start()
+	t.registers.addRegister(t.config.Simulation, ch)
 
 	simulators, err := t.getSimulators()
 	if err != nil {
-		step.Fail(err)
-		return
+		return err
 	}
 
-	client := simulators[simulator]
-	request := &SimulateRequest{
+	wg := &sync.WaitGroup{}
+	errCh := make(chan error)
+	for i := 0; i < len(simulators); i++ {
+		wg.Add(1)
+		go func(simulator int, client SimulatorServiceClient) {
+			if err := t.runSimulator(simulator, client); err != nil {
+				errCh <- err
+			}
+			wg.Done()
+		}(i, simulators[i])
+	}
+	wg.Wait()
+	return nil
+}
+
+// runSimulator runs a random simulator
+func (t *WorkerTask) runSimulator(simulator int, client SimulatorServiceClient) error {
+	step := logging.NewStep(t.config.ID, "Run simulator %s/%d", t.config.Simulation, simulator)
+	step.Start()
+
+	if err := t.startSimulator(simulator, client); err != nil {
+		step.Fail(err)
+		return err
+	}
+
+	<-time.After(t.config.Duration)
+
+	if err := t.stopSimulator(simulator, client); err != nil {
+		step.Fail(err)
+		return err
+	}
+	return nil
+}
+
+// startSimulator starts the given simulator
+func (t *WorkerTask) startSimulator(simulator int, client SimulatorServiceClient) error {
+	request := &SimulatorRequest{
 		Simulation: t.config.Simulation,
-		Method:     t.chooseMethod(),
+		Register:   getAddress(),
+		Rate:       t.config.Rate,
+		Jitter:     t.config.Jitter,
 	}
-	stream, err := client.Simulate(context.Background(), request)
-	if err != nil {
-		step.Fail(err)
-		return
-	}
+	_, err := client.StartSimulator(context.Background(), request)
+	return err
+}
 
-	for {
-		response, err := stream.Recv()
-		if err == io.EOF {
-			step.Complete()
-			return
-		} else if err != nil {
-			step.Fail(err)
-			return
-		}
-		ch <- response.Trace
+// stopSimulator stops the given simulator
+func (t *WorkerTask) stopSimulator(simulator int, client SimulatorServiceClient) error {
+	request := &SimulatorRequest{
+		Simulation: t.config.Simulation,
+		Register:   getAddress(),
+		Rate:       t.config.Rate,
+		Jitter:     t.config.Jitter,
 	}
+	_, err := client.StopSimulator(context.Background(), request)
+	return err
 }
 
 // chooseSimulator chooses a random simulator
 func (t *WorkerTask) chooseSimulator() int {
 	return rand.Intn(t.config.Simulators)
-}
-
-// chooseMethod chooses a random simulator method
-func (t *WorkerTask) chooseMethod() string {
-	suite := registry.GetSimulationSuite(t.config.Simulation)
-	methods := getMethods(suite)
-	return methods[rand.Intn(len(methods))]
-}
-
-// getMethods returns a list of simulators in the given suite
-func getMethods(suite SimulatingSuite) []string {
-	methodFinder := reflect.TypeOf(suite)
-	simulators := []string{}
-	for index := 0; index < methodFinder.NumMethod(); index++ {
-		method := methodFinder.Method(index)
-		ok, err := simulatorFilter(method.Name)
-		if ok {
-			simulators = append(simulators, method.Name)
-		} else if err != nil {
-			panic(err)
-		}
-	}
-	return simulators
 }
 
 // checkModel checks the given traces against the model
@@ -572,14 +570,4 @@ func (t *WorkerTask) checkModel(traces []*model.Trace) error {
 // tearDown tears down the job
 func (t *WorkerTask) tearDown() error {
 	return t.cluster.Delete()
-}
-
-// waitJitter returns a channel that closes after time.Duration between duration and duration + maxFactor *
-// duration.
-func waitJitter(duration time.Duration, maxFactor float64) <-chan time.Time {
-	if maxFactor <= 0.0 {
-		maxFactor = 1.0
-	}
-	delay := duration + time.Duration(rand.Float64()*maxFactor*float64(duration))
-	return time.After(delay)
 }

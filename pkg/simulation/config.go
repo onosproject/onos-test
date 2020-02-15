@@ -39,7 +39,6 @@ const (
 	simulationRateEnv            = "SIMULATION_RATE"
 	simulationJitterEnv          = "SIMULATION_JITTER"
 	simulationDurationEnv        = "SIMULATION_DURATION"
-	simulationParallelismEnv     = "SIMULATION_PARALLELISM"
 	simulationArgsEnv            = "SIMULATION_ARGS"
 	simulationWorkerEnv          = "SIMULATION_WORKER"
 )
@@ -48,6 +47,11 @@ const (
 	simulationContextCoordinator simulationContext = "coordinator"
 	simulationContextWorker      simulationContext = "worker"
 )
+
+// getAddress returns the pod address
+func getAddress() string {
+	return fmt.Sprintf("%s.%s.svc.cluster.local:5000", os.Getenv("POD_NAME"), os.Getenv("POD_NAMESPACE"))
+}
 
 // GetConfigFromEnv returns the simulation configuration from the environment
 func GetConfigFromEnv() *Config {
@@ -90,10 +94,6 @@ func GetConfigFromEnv() *Config {
 		}
 		duration = time.Duration(d)
 	}
-	parallelism, err := strconv.Atoi(os.Getenv(simulationParallelismEnv))
-	if err != nil {
-		panic(err)
-	}
 	return &Config{
 		ID:              os.Getenv(simulationJobEnv),
 		Image:           os.Getenv(simulationImageEnv),
@@ -104,7 +104,6 @@ func GetConfigFromEnv() *Config {
 		Rate:            rate,
 		Jitter:          jitter,
 		Duration:        duration,
-		Parallelism:     parallelism,
 		Args:            args,
 		Env:             env,
 	}
@@ -120,7 +119,6 @@ type Config struct {
 	Simulators      int
 	Rate            time.Duration
 	Jitter          float64
-	Parallelism     int
 	Duration        time.Duration
 	Args            map[string]string
 	Env             map[string]string
@@ -138,7 +136,6 @@ func (c *Config) ToEnv() map[string]string {
 	env[simulationRateEnv] = fmt.Sprintf("%d", c.Rate)
 	env[simulationJitterEnv] = fmt.Sprintf("%f", c.Jitter)
 	env[simulationDurationEnv] = fmt.Sprintf("%d", c.Duration)
-	env[simulationParallelismEnv] = fmt.Sprintf("%d", c.Parallelism)
 	env[simulationArgsEnv] = util.JoinMap(c.Args)
 	return env
 }

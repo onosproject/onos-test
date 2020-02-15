@@ -48,5 +48,6 @@ type modelCheckerServer struct {
 }
 
 func (s *modelCheckerServer) CheckModel(request *ModelCheckRequest, stream ModelCheckerService_CheckModelServer) error {
+	// TODO
 	panic("implement me")
 }

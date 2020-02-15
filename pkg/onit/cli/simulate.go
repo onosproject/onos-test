@@ -43,7 +43,6 @@ func getSimulateCommand() *cobra.Command {
 	cmd.Flags().IntP("simulators", "w", 1, "the number of simulator workers to run")
 	cmd.Flags().DurationP("rate", "r", 1*time.Second, "the rate at which to simulate operations")
 	cmd.Flags().Float64P("jitter", "j", 1, "the jitter to apply to the rate")
-	cmd.Flags().IntP("parallelism", "p", 1, "the number of parallel operations to allow")
 	cmd.Flags().DurationP("duration", "d", 10*time.Minute, "the duration for which to run the simulation")
 	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named simulation arguments")
 
@@ -61,7 +60,6 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 	rate, _ := cmd.Flags().GetDuration("rate")
 	jitter, _ := cmd.Flags().GetFloat64("jitter")
 	duration, _ := cmd.Flags().GetDuration("duration")
-	parallelism, _ := cmd.Flags().GetInt("parallelism")
 	sets, _ := cmd.Flags().GetStringToString("set")
 	args, _ := cmd.Flags().GetStringToString("args")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
@@ -95,7 +93,6 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		Rate:            rate,
 		Jitter:          jitter,
 		Duration:        duration,
-		Parallelism:     parallelism,
 		Args:            args,
 		Env:             onitcluster.GetArgsAsEnv(sets),
 	}

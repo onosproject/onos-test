@@ -18,7 +18,7 @@ package model
 const DataPath = "/etc/model/data"
 
 // CheckerPort is the model checker port
-const CheckerPort = 8000
+const CheckerPort = 5000
 
 // NewModel gets a new model
 func NewModel(name string, traces []*Trace) *Model {
