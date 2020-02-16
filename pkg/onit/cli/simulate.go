@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/simulation"
+	"io/ioutil"
 	"os"
 	"path"
 	"time"
@@ -88,11 +89,11 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 				if err != nil {
 					return err
 				}
-				configBytes = make([]byte, 0)
-				_, err = file.Read(configBytes)
+				bytes, err := ioutil.ReadAll(file)
 				if err != nil {
 					return err
 				}
+				configBytes = bytes
 			} else {
 				spec, _ := cmd.Flags().GetString("spec")
 				init, _ := cmd.Flags().GetString("init")
@@ -140,8 +141,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 			if err != nil {
 				return err
 			}
-			modelBytes := make([]byte, 0)
-			_, err = file.Read(modelBytes)
+			modelBytes, err := ioutil.ReadAll(file)
 			if err != nil {
 				return err
 			}

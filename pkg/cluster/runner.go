@@ -395,6 +395,7 @@ func (r *Runner) createJob(job *Job) error {
 					"type": job.Type,
 				},
 			},
+			Data: job.ModelData,
 		}
 		_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
 		if err != nil {
