@@ -78,7 +78,6 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		modelPath, _ := cmd.Flags().GetString("model")
 		configPath, _ := cmd.Flags().GetString("config")
 
-		var modelName string
 		if modelPath != "" {
 			modelName = path.Base(modelPath)
 			modelName = modelName[:len(modelName)-len(path.Ext(modelName))]

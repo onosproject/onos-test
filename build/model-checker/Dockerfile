@@ -19,8 +19,8 @@ ADD _output/bin/model-checker-server /usr/local/bin/model-checker-server
 ADD model-checker-1.0.0.jar /opt/tlaplus/lib
 ADD Trace.tla /opt/tlaplus/module
 
-RUN echo 'alias json2tla="java -cp /opt/tlaplus/lib/tla2tools.jar:/opt/tlaplus/lib/jackson-core-2.10.2.jar:/opt/tlaplus/lib/jackson-databind-2.10.2.jar:/opt/tlaplus/lib/jackson-annotations-2.10.2.jar:/opt/tlaplus/lib/model-checker-1.0.0.jar org.onosproject.test.model.Json2Tla"' >> /root/.bashrc && \
-    echo 'alias tlc="java -DTLA-Library=/opt/tlaplus/lib/CommunityModules-202002121931.jar -cp /opt/tlaplus/lib/tla2tools.jar:/opt/tlaplus/lib/CommunityModules-202002121931.jar:/opt/tlaplus/module tlc2.TLC"' >> /root/.bashrc
+ADD json2tla /usr/local/bin/json2tla
+ADD tlc /usr/local/bin/tlc
 
 WORKDIR /root
 

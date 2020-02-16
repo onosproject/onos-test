@@ -20,6 +20,7 @@ import (
 	"io"
 	"net"
 	"os/exec"
+	"path"
 )
 
 // NewService returns a new model checker service
@@ -70,7 +71,7 @@ func (s *modelCheckerServer) prepareTraces(model *Model, stream io.Writer) error
 }
 
 func (s *modelCheckerServer) runChecker(model *Model, stream io.Writer) error {
-	cmd := exec.Command("tlc", model.specPath)
+	cmd := exec.Command("tlc", "-metadir", path.Join(DataPath, "states"), model.specPath)
 	cmd.Stdout = stream
 	cmd.Stderr = stream
 	return cmd.Run()
