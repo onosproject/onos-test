@@ -55,7 +55,7 @@ type Coordinator struct {
 
 // Run runs the simulations
 func (c *Coordinator) Run() error {
-	server := newRegisterServer(getAddress())
+	server := newRegisterServer(":5000")
 	go server.serve()
 
 	var suites []string
@@ -461,6 +461,7 @@ func (t *WorkerTask) runSimulation() ([]*model.Trace, error) {
 
 	traces := make([]*model.Trace, 0)
 	for trace := range tracesCh {
+		fmt.Println(string(trace.Bytes))
 		traces = append(traces, trace)
 	}
 

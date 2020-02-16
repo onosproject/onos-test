@@ -38,8 +38,8 @@ type Job struct {
 	ID              string
 	Image           string
 	ImagePullPolicy corev1.PullPolicy
-	DataPath        string
-	Data            map[string]string
+	ModelChecker    bool
+	ModelData       map[string]string
 	Args            []string
 	Env             map[string]string
 	Timeout         time.Duration
@@ -89,7 +89,8 @@ func (r *Runner) Run(job *Job) error {
 	}
 
 	req := r.client.CoreV1().Pods(namespace).GetLogs(pod.Name, &corev1.PodLogOptions{
-		Follow: true,
+		Container: "job",
+		Follow:    true,
 	})
 	reader, err := req.Stream()
 	if err != nil {
@@ -326,25 +327,6 @@ func (r *Runner) createJob(job *Job) error {
 	step := logging.NewStep(job.ID, "Deploy job coordinator")
 	step.Start()
 
-	if job.Data != nil && len(job.Data) > 0 {
-		cm := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      job.ID,
-				Namespace: namespace,
-				Annotations: map[string]string{
-					"job":  job.ID,
-					"type": job.Type,
-				},
-			},
-			Data: job.Data,
-		}
-		_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
-		if err != nil {
-			step.Fail(err)
-			return err
-		}
-	}
-
 	env := make([]corev1.EnvVar, 0, len(job.Env))
 	for key, value := range job.Env {
 		env = append(env, corev1.EnvVar{
@@ -352,6 +334,14 @@ func (r *Runner) createJob(job *Job) error {
 			Value: value,
 		})
 	}
+	env = append(env, corev1.EnvVar{
+		Name:  "SERVICE_NAMESPACE",
+		Value: namespace,
+	})
+	env = append(env, corev1.EnvVar{
+		Name:  "SERVICE_NAME",
+		Value: job.ID,
+	})
 	env = append(env, corev1.EnvVar{
 		Name: "POD_NAMESPACE",
 		ValueFrom: &corev1.EnvVarSource{
@@ -368,6 +358,128 @@ func (r *Runner) createJob(job *Job) error {
 			},
 		},
 	})
+
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: job.ID,
+			Labels: map[string]string{
+				"job":  job.ID,
+				"type": job.Type,
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"job": job.ID,
+			},
+			Ports: []corev1.ServicePort{
+				{
+					Name: "management",
+					Port: 5000,
+				},
+			},
+		},
+	}
+	if _, err := r.client.CoreV1().Services(namespace).Create(svc); err != nil {
+		return err
+	}
+
+	var volumes []corev1.Volume
+	var containers []corev1.Container
+	if job.ModelChecker {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      job.ID,
+				Namespace: namespace,
+				Annotations: map[string]string{
+					"job":  job.ID,
+					"type": job.Type,
+				},
+			},
+		}
+		_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
+		if err != nil {
+			step.Fail(err)
+			return err
+		}
+
+		volumes = []corev1.Volume{
+			{
+				Name: "models",
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: job.ID,
+						},
+					},
+				},
+			},
+			{
+				Name: "data",
+				VolumeSource: corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{},
+				},
+			},
+		}
+		containers = []corev1.Container{
+			{
+				Name:            "job",
+				Image:           job.Image,
+				ImagePullPolicy: job.ImagePullPolicy,
+				Args:            job.Args,
+				Env:             env,
+				Ports: []corev1.ContainerPort{
+					{
+						Name:          "management",
+						ContainerPort: 5000,
+					},
+				},
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      "data",
+						MountPath: model.DataPath,
+					},
+				},
+			},
+			{
+				Name:            "model-checker",
+				Image:           "onosproject/model-checker:latest",
+				ImagePullPolicy: job.ImagePullPolicy,
+				Ports: []corev1.ContainerPort{
+					{
+						Name:          "model-checker",
+						ContainerPort: model.CheckerPort,
+					},
+				},
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      "data",
+						MountPath: model.DataPath,
+					},
+					{
+						Name:      "models",
+						MountPath: model.ModelsPath,
+						ReadOnly:  true,
+					},
+				},
+			},
+		}
+	} else {
+		containers = []corev1.Container{
+			{
+				Name:            "job",
+				Image:           job.Image,
+				ImagePullPolicy: job.ImagePullPolicy,
+				Args:            job.Args,
+				Env:             env,
+				Ports: []corev1.ContainerPort{
+					{
+						Name:          "management",
+						ContainerPort: 5000,
+					},
+				},
+			},
+		}
+	}
 
 	zero := int32(0)
 	one := int32(1)
@@ -394,67 +506,8 @@ func (r *Runner) createJob(job *Job) error {
 				Spec: corev1.PodSpec{
 					ServiceAccountName: namespace,
 					RestartPolicy:      corev1.RestartPolicyNever,
-					Containers: []corev1.Container{
-						{
-							Name:            "job",
-							Image:           job.Image,
-							ImagePullPolicy: job.ImagePullPolicy,
-							Args:            job.Args,
-							Env:             env,
-							Ports: []corev1.ContainerPort{
-								{
-									Name:          "management",
-									ContainerPort: 5000,
-								},
-							},
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "data",
-									MountPath: model.DataPath,
-								},
-							},
-						},
-						{
-							Name:            "model-checker",
-							Image:           "onosproject/model-checker:latest",
-							ImagePullPolicy: job.ImagePullPolicy,
-							Ports: []corev1.ContainerPort{
-								{
-									Name:          "model-checker",
-									ContainerPort: model.CheckerPort,
-								},
-							},
-							VolumeMounts: []corev1.VolumeMount{
-								{
-									Name:      "data",
-									MountPath: model.DataPath,
-								},
-								{
-									Name:      "models",
-									MountPath: model.ModelsPath,
-									ReadOnly:  true,
-								},
-							},
-						},
-					},
-					Volumes: []corev1.Volume{
-						{
-							Name: "models",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: job.ID,
-									},
-								},
-							},
-						},
-						{
-							Name: "data",
-							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{},
-							},
-						},
-					},
+					Containers:         containers,
+					Volumes:            volumes,
 				},
 			},
 		},

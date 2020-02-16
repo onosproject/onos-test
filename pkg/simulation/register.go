@@ -32,19 +32,21 @@ type Register interface {
 }
 
 // newBlockingRegister returns a new register that synchronously writes traces
-func newBlockingRegister(address string) (Register, error) {
+func newBlockingRegister(simulation, address string) (Register, error) {
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
 	return &registerClient{
-		conn: conn,
+		simulation: simulation,
+		conn:       conn,
 	}, nil
 }
 
 // registerClient is a register that synchronously writes traces to the register service
 type registerClient struct {
-	conn *grpc.ClientConn
+	simulation string
+	conn       *grpc.ClientConn
 }
 
 func (r *registerClient) Trace(values ...interface{}) error {
@@ -55,9 +57,13 @@ func (r *registerClient) Trace(values ...interface{}) error {
 
 	client := NewRegisterServiceClient(r.conn)
 	request := &TraceRequest{
-		Trace: trace,
+		Simulation: r.simulation,
+		Trace:      trace,
 	}
 	_, err = client.Trace(context.Background(), request)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return err
 }
 

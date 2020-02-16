@@ -36,22 +36,22 @@ type Suite struct{}
 
 // SetupSimulation is an interface for setting up a suite of simulators
 type SetupSimulation interface {
-	SetupSimulation(s *Simulator)
+	SetupSimulation(s *Simulator) error
 }
 
 // TearDownSimulation is an interface for tearing down a suite of simulators
 type TearDownSimulation interface {
-	TearDownSimulation(s *Simulator)
+	TearDownSimulation(s *Simulator) error
 }
 
 // SetupSimulator is an interface for executing code before every simulator
 type SetupSimulator interface {
-	SetupSimulator(s *Simulator)
+	SetupSimulator(s *Simulator) error
 }
 
 // TearDownSimulator is an interface for executing code after every simulator
 type TearDownSimulator interface {
-	TearDownSimulator(s *Simulator)
+	TearDownSimulator(s *Simulator) error
 }
 
 // Arg is a simulator argument
@@ -182,7 +182,19 @@ func (s *Simulator) stop() {
 // simulate simulates a random simulator method
 func (s *Simulator) simulate() {
 	method := s.chooseMethod()
-	method.Func.Call([]reflect.Value{reflect.ValueOf(s.suite), reflect.ValueOf(s)})
+	step := logging.NewStep(fmt.Sprintf("%s/%d", s.Name, getSimulatorID()), "Run %s", method.Name)
+	step.Start()
+	results := method.Func.Call([]reflect.Value{reflect.ValueOf(s.suite), reflect.ValueOf(s)})
+	if len(results) > 0 {
+		err := results[0].Interface()
+		if err != nil {
+			step.Fail(err.(error))
+		} else {
+			step.Complete()
+		}
+	} else {
+		step.Complete()
+	}
 }
 
 // chooseMethod chooses a random method
@@ -326,7 +338,7 @@ func (s *simulatorServer) StartSimulator(ctx context.Context, request *Simulator
 		return nil, err
 	}
 
-	register, err := newBlockingRegister(request.Register)
+	register, err := newBlockingRegister(request.Simulation, request.Register)
 	if err != nil {
 		return nil, err
 	}

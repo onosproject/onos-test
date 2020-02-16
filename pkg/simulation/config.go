@@ -48,9 +48,9 @@ const (
 	simulationContextWorker      simulationContext = "worker"
 )
 
-// getAddress returns the pod address
+// getAddress returns the service address
 func getAddress() string {
-	return fmt.Sprintf("%s.%s.svc.cluster.local:5000", os.Getenv("POD_NAME"), os.Getenv("POD_NAMESPACE"))
+	return fmt.Sprintf("%s.%s.svc.cluster.local:5000", os.Getenv("SERVICE_NAME"), os.Getenv("SERVICE_NAMESPACE"))
 }
 
 // GetConfigFromEnv returns the simulation configuration from the environment

@@ -15,7 +15,6 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/model"
 	"github.com/onosproject/onos-test/pkg/simulation"
 	"os"
 	"path"
@@ -104,9 +103,9 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		ImagePullPolicy: pullPolicy,
 		Env:             config.ToEnv(),
 		Timeout:         timeout,
-		DataPath:        model.DataPath,
-		Data:            data,
 		Type:            "simulation",
+		ModelChecker:    modelPath != "",
+		ModelData:       data,
 	}
 
 	// Create a job runner and run the benchmark job
