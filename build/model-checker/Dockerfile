@@ -11,15 +11,13 @@ RUN git clone --branch master https://github.com/lemmy/Mongo2TLA && \
     mv Mongo2TLA/mongo2tla.jar /usr/lib/tlaplus/include/mongo2tla.jar
 RUN wget https://github.com/tlaplus/CommunityModules/releases/download/202002121931/CommunityModules-202002121931.jar && \
     mv CommunityModules-202002121931.jar /usr/lib/tlaplus/include/CommunityModules-202002121931.jar
-ADD TraceToTLA.java /tmp/TraceToTLA.java
-RUN javac -cp /usr/lib/tlaplus/tla2tools.jar TraceToTLA.java && \
-    mv TraceToTLA.class /usr/lib/tlaplus/include/TraceToTLA.class
 
 ADD _output/bin/model-checker-server /usr/local/bin/model-checker-server
+ADD model-checker-1.0.0.jar /usr/lib/tlaplus/include
 ADD Trace.tla /usr/lib/tlaplus/include
 
-RUN echo 'alias trace2tla="java -cp /usr/lib/tlaplus/tla2tools.jar:/usr/lib/tlaplus/include TraceToTLA"' >> /root/.bashrc && \
-    echo 'alias tlc="java -DTLA-Library=/usr/lib/tlaplus/CommunityModules-202002121931.jar -cp /usr/lib/tlaplus/tla2tools.jar:/usr/lib/tlaplus/include tlc2.TLC"' >> /root/.bashrc
+RUN echo 'alias json2tla="java -cp /usr/lib/tlaplus/tla2tools.jar:/usr/lib/tlaplus/include/model-checker-1.0.0.jar org.onosproject.test.model.Json2Tla"' >> /root/.bashrc && \
+    echo 'alias tlc="java -DTLA-Library=/usr/lib/tlaplus/CommunityModules-202002121931.jar -cp /usr/lib/tlaplus/tla2tools.jar:/usr/lib/tlaplus/include/CommunityModules-202002121931.jar tlc2.TLC"' >> /root/.bashrc
 
 WORKDIR /root
 
