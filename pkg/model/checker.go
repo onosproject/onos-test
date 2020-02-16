@@ -20,15 +20,22 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	"io"
+	"os"
 )
 
-// NewChecker gets a model checker
-func NewChecker() (*Checker, error) {
+// Checker is a model checker
+type Checker interface {
+	// CheckModel checks the given model against the given traces
+	CheckModel(model *Model, traces []*Trace) error
+}
+
+// NewChecker gets a model checker client
+func NewChecker() (Checker, error) {
 	client, err := newClient()
 	if err != nil {
 		return nil, err
 	}
-	return &Checker{
+	return &checkerClient{
 		client: client,
 	}, nil
 }
@@ -42,16 +49,39 @@ func newClient() (ModelCheckerServiceClient, error) {
 	return NewModelCheckerServiceClient(conn), nil
 }
 
-// Checker is a model checker
-type Checker struct {
+// checkerClient is a model checker client
+type checkerClient struct {
 	client ModelCheckerServiceClient
 }
 
-// Check checks the model
-func (c *Checker) Check(model *Model) error {
+func (c *checkerClient) CheckModel(model *Model, traces []*Trace) error {
+	if err := c.writeTraces(model, traces); err != nil {
+		return err
+	}
+	if err := c.callCheck(model); err != nil {
+		return err
+	}
+	return nil
+}
+
+// writeTrace writes the trace
+func (c *checkerClient) writeTraces(model *Model, traces []*Trace) error {
+	file, err := os.Create(model.dataPath)
+	if err != nil {
+		return err
+	}
+	for _, trace := range traces {
+		if _, err := fmt.Fprintln(file, string(trace.Bytes)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// callCheck calls the model checker
+func (c *checkerClient) callCheck(model *Model) error {
 	request := &ModelCheckRequest{
-		Model:  model.Name,
-		Traces: model.traces,
+		Model: model.Name,
 	}
 
 	stream, err := c.client.CheckModel(context.Background(), request)

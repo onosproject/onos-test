@@ -2,4 +2,4 @@
 
 INSTANCE IOUtils
 
-Trace == IODeserialize("trace.log", TRUE)
+Trace == IODeserialize("/etc/model-checker/data/trace.bin", FALSE)

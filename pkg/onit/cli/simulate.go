@@ -80,6 +80,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 			return err
 		}
 		modelName = path.Base(modelPath)
+		modelName = modelName[:-len(path.Ext(modelName))]
 		data[modelPath] = string(bytes)
 	}
 

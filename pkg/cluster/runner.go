@@ -407,6 +407,12 @@ func (r *Runner) createJob(job *Job) error {
 									ContainerPort: 5000,
 								},
 							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "data",
+									MountPath: model.DataPath,
+								},
+							},
 						},
 						{
 							Name:            "model-checker",
@@ -420,8 +426,12 @@ func (r *Runner) createJob(job *Job) error {
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
-									Name:      "models",
+									Name:      "data",
 									MountPath: model.DataPath,
+								},
+								{
+									Name:      "models",
+									MountPath: model.ModelsPath,
 									ReadOnly:  true,
 								},
 							},
@@ -436,6 +446,12 @@ func (r *Runner) createJob(job *Job) error {
 										Name: job.ID,
 									},
 								},
+							},
+						},
+						{
+							Name: "data",
+							VolumeSource: corev1.VolumeSource{
+								EmptyDir: &corev1.EmptyDirVolumeSource{},
 							},
 						},
 					},

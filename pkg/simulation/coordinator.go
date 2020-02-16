@@ -559,8 +559,8 @@ func (t *WorkerTask) checkModel(traces []*model.Trace) error {
 		return err
 	}
 
-	model := model.NewModel(t.config.Model, traces)
-	if err := checker.Check(model); err != nil {
+	model := model.NewModel(t.config.Model)
+	if err := checker.CheckModel(model, traces); err != nil {
 		step.Fail(err)
 		return err
 	}

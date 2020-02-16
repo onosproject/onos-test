@@ -57,45 +57,10 @@ func (ModelCheckerState) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_312ac5bcab6cbb43, []int{0}
 }
 
-// Type is the type of the value
-type Value_Type int32
-
-const (
-	Value_UNKNOWN Value_Type = 0
-	Value_STRING  Value_Type = 1
-	Value_INTEGER Value_Type = 2
-	Value_DECIMAL Value_Type = 3
-	Value_BOOLEAN Value_Type = 4
-)
-
-var Value_Type_name = map[int32]string{
-	0: "UNKNOWN",
-	1: "STRING",
-	2: "INTEGER",
-	3: "DECIMAL",
-	4: "BOOLEAN",
-}
-
-var Value_Type_value = map[string]int32{
-	"UNKNOWN": 0,
-	"STRING":  1,
-	"INTEGER": 2,
-	"DECIMAL": 3,
-	"BOOLEAN": 4,
-}
-
-func (x Value_Type) String() string {
-	return proto.EnumName(Value_Type_name, int32(x))
-}
-
-func (Value_Type) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_312ac5bcab6cbb43, []int{1, 0}
-}
-
 // Trace is a trace entry
 type Trace struct {
-	// values is a series of values in the trace
-	Values []*Value `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+	// bytes is the trace bytes
+	Bytes []byte `protobuf:"bytes,1,opt,name=bytes,proto3" json:"bytes,omitempty"`
 }
 
 func (m *Trace) Reset()         { *m = Trace{} }
@@ -131,62 +96,7 @@ func (m *Trace) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Trace proto.InternalMessageInfo
 
-func (m *Trace) GetValues() []*Value {
-	if m != nil {
-		return m.Values
-	}
-	return nil
-}
-
-// Value is a trace value
-type Value struct {
-	// type is the type of the value
-	Type Value_Type `protobuf:"varint,1,opt,name=type,proto3,enum=onos.test.model.Value_Type" json:"type,omitempty"`
-	// bytes is the value bytes
-	Bytes []byte `protobuf:"bytes,2,opt,name=bytes,proto3" json:"bytes,omitempty"`
-}
-
-func (m *Value) Reset()         { *m = Value{} }
-func (m *Value) String() string { return proto.CompactTextString(m) }
-func (*Value) ProtoMessage()    {}
-func (*Value) Descriptor() ([]byte, []int) {
-	return fileDescriptor_312ac5bcab6cbb43, []int{1}
-}
-func (m *Value) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *Value) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Value.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *Value) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Value.Merge(m, src)
-}
-func (m *Value) XXX_Size() int {
-	return m.Size()
-}
-func (m *Value) XXX_DiscardUnknown() {
-	xxx_messageInfo_Value.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Value proto.InternalMessageInfo
-
-func (m *Value) GetType() Value_Type {
-	if m != nil {
-		return m.Type
-	}
-	return Value_UNKNOWN
-}
-
-func (m *Value) GetBytes() []byte {
+func (m *Trace) GetBytes() []byte {
 	if m != nil {
 		return m.Bytes
 	}
@@ -197,8 +107,8 @@ func (m *Value) GetBytes() []byte {
 type ModelCheckRequest struct {
 	// model is the model to check
 	Model string `protobuf:"bytes,1,opt,name=model,proto3" json:"model,omitempty"`
-	// traces is a series of traces to check
-	Traces []*Trace `protobuf:"bytes,2,rep,name=traces,proto3" json:"traces,omitempty"`
+	// trace is the trace to check
+	Trace string `protobuf:"bytes,2,opt,name=trace,proto3" json:"trace,omitempty"`
 	// timeout is the model checker timeout
 	Timeout *types.Duration `protobuf:"bytes,3,opt,name=timeout,proto3" json:"timeout,omitempty"`
 }
@@ -207,7 +117,7 @@ func (m *ModelCheckRequest) Reset()         { *m = ModelCheckRequest{} }
 func (m *ModelCheckRequest) String() string { return proto.CompactTextString(m) }
 func (*ModelCheckRequest) ProtoMessage()    {}
 func (*ModelCheckRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_312ac5bcab6cbb43, []int{2}
+	return fileDescriptor_312ac5bcab6cbb43, []int{1}
 }
 func (m *ModelCheckRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -243,11 +153,11 @@ func (m *ModelCheckRequest) GetModel() string {
 	return ""
 }
 
-func (m *ModelCheckRequest) GetTraces() []*Trace {
+func (m *ModelCheckRequest) GetTrace() string {
 	if m != nil {
-		return m.Traces
+		return m.Trace
 	}
-	return nil
+	return ""
 }
 
 func (m *ModelCheckRequest) GetTimeout() *types.Duration {
@@ -269,7 +179,7 @@ func (m *ModelCheckResponse) Reset()         { *m = ModelCheckResponse{} }
 func (m *ModelCheckResponse) String() string { return proto.CompactTextString(m) }
 func (*ModelCheckResponse) ProtoMessage()    {}
 func (*ModelCheckResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_312ac5bcab6cbb43, []int{3}
+	return fileDescriptor_312ac5bcab6cbb43, []int{2}
 }
 func (m *ModelCheckResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -314,9 +224,7 @@ func (m *ModelCheckResponse) GetMessage() string {
 
 func init() {
 	proto.RegisterEnum("onos.test.model.ModelCheckerState", ModelCheckerState_name, ModelCheckerState_value)
-	proto.RegisterEnum("onos.test.model.Value_Type", Value_Type_name, Value_Type_value)
 	proto.RegisterType((*Trace)(nil), "onos.test.model.Trace")
-	proto.RegisterType((*Value)(nil), "onos.test.model.Value")
 	proto.RegisterType((*ModelCheckRequest)(nil), "onos.test.model.ModelCheckRequest")
 	proto.RegisterType((*ModelCheckResponse)(nil), "onos.test.model.ModelCheckResponse")
 }
@@ -324,36 +232,29 @@ func init() {
 func init() { proto.RegisterFile("model/model.proto", fileDescriptor_312ac5bcab6cbb43) }
 
 var fileDescriptor_312ac5bcab6cbb43 = []byte{
-	// 453 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x90, 0xcf, 0x6e, 0xd3, 0x40,
-	0x10, 0xc6, 0xb3, 0xf9, 0xab, 0x4e, 0x10, 0xb8, 0x4b, 0x85, 0x4c, 0x90, 0xac, 0xc8, 0x5c, 0x22,
-	0x0e, 0x6b, 0x94, 0x1e, 0xe8, 0x35, 0x6d, 0xdc, 0x2a, 0x22, 0xdd, 0xa0, 0x4d, 0x4a, 0xcf, 0x4e,
-	0x3a, 0xb8, 0x11, 0x49, 0x36, 0x78, 0xd7, 0x95, 0xf2, 0x12, 0x88, 0x13, 0xcf, 0xc4, 0xb1, 0x47,
-	0x8e, 0x28, 0x79, 0x11, 0xb4, 0x6b, 0x5b, 0x14, 0xa8, 0x72, 0x59, 0xed, 0x37, 0xf3, 0x8d, 0x66,
-	0xbe, 0x1f, 0x1c, 0x2e, 0xe5, 0x0d, 0x2e, 0x02, 0xfb, 0xb2, 0x75, 0x22, 0xb5, 0xa4, 0xcf, 0xe4,
-	0x4a, 0x2a, 0xa6, 0x51, 0x69, 0x66, 0xcb, 0xad, 0xa3, 0x58, 0xc6, 0xd2, 0xf6, 0x02, 0xf3, 0xcb,
-	0x6c, 0x2d, 0x2f, 0x96, 0x32, 0x5e, 0x60, 0x60, 0xd5, 0x34, 0xfd, 0x14, 0xdc, 0xa4, 0x49, 0xa4,
-	0xe7, 0x72, 0x95, 0xf5, 0xfd, 0x77, 0x50, 0x9b, 0x24, 0xd1, 0x0c, 0x29, 0x83, 0xfa, 0x5d, 0xb4,
-	0x48, 0x51, 0xb9, 0xa4, 0x5d, 0xe9, 0x34, 0xbb, 0x2f, 0xd8, 0x3f, 0x0b, 0xd8, 0x47, 0xd3, 0x16,
-	0xb9, 0xcb, 0xff, 0x4e, 0xa0, 0x66, 0x2b, 0x34, 0x80, 0xaa, 0xde, 0xac, 0xd1, 0x25, 0x6d, 0xd2,
-	0x79, 0xda, 0x7d, 0xf5, 0xf8, 0x1c, 0x9b, 0x6c, 0xd6, 0x28, 0xac, 0x91, 0x1e, 0x41, 0x6d, 0xba,
-	0xd1, 0xa8, 0xdc, 0x72, 0x9b, 0x74, 0x9e, 0x88, 0x4c, 0xf8, 0xe7, 0x50, 0x35, 0x1e, 0xda, 0x84,
-	0xc6, 0x15, 0x7f, 0xcf, 0x47, 0xd7, 0xdc, 0x29, 0x51, 0x80, 0xfa, 0x78, 0x22, 0x06, 0xfc, 0xc2,
-	0x21, 0xa6, 0x31, 0xe0, 0x93, 0xf0, 0x22, 0x14, 0x4e, 0xd9, 0x88, 0x7e, 0x78, 0x36, 0xb8, 0xec,
-	0x0d, 0x9d, 0x8a, 0x11, 0xa7, 0xa3, 0xd1, 0x30, 0xec, 0x71, 0xa7, 0xea, 0x7f, 0x25, 0x70, 0x78,
-	0x69, 0x16, 0x9f, 0xdd, 0xe2, 0xec, 0xb3, 0xc0, 0x2f, 0x29, 0x2a, 0x6d, 0x76, 0xda, 0x6b, 0xec,
-	0x95, 0x07, 0x22, 0x13, 0x26, 0xb4, 0x36, 0xe9, 0xcd, 0x29, 0x8f, 0x87, 0xb6, 0x70, 0x44, 0xee,
-	0xa2, 0xc7, 0xd0, 0xd0, 0xf3, 0x25, 0xca, 0x54, 0xbb, 0x95, 0x36, 0xe9, 0x34, 0xbb, 0x2f, 0x59,
-	0xc6, 0x97, 0x15, 0x7c, 0x59, 0x3f, 0xe7, 0x2b, 0x0a, 0xa7, 0x7f, 0x0b, 0xf4, 0xe1, 0x3d, 0x6a,
-	0x2d, 0x57, 0x0a, 0xe9, 0x09, 0xd4, 0x94, 0x8e, 0x74, 0x81, 0xcd, 0xff, 0x6f, 0xf3, 0x9f, 0x19,
-	0x4c, 0xc6, 0xc6, 0x29, 0xb2, 0x01, 0xea, 0x42, 0x63, 0x89, 0x4a, 0x45, 0x31, 0x5a, 0x80, 0x07,
-	0xa2, 0x90, 0x6f, 0x4e, 0x1e, 0x26, 0xcf, 0xa7, 0x0c, 0x1c, 0x71, 0xc5, 0xb9, 0x61, 0x68, 0x79,
-	0x7e, 0xe8, 0x8d, 0xc7, 0x61, 0xdf, 0x21, 0xe6, 0x7f, 0xde, 0x1b, 0x0c, 0xc3, 0xbe, 0x53, 0xee,
-	0xae, 0xe0, 0xf9, 0x5f, 0x93, 0x98, 0xdc, 0xcd, 0x67, 0x48, 0xaf, 0x01, 0x6c, 0xc5, 0xf6, 0xe8,
-	0xbe, 0x1b, 0x73, 0xce, 0xad, 0xd7, 0x7b, 0x3d, 0x59, 0xf6, 0xb7, 0xe4, 0xd4, 0xfd, 0xb1, 0xf5,
-	0xc8, 0xfd, 0xd6, 0x23, 0xbf, 0xb6, 0x1e, 0xf9, 0xb6, 0xf3, 0x4a, 0xf7, 0x3b, 0xaf, 0xf4, 0x73,
-	0xe7, 0x95, 0xa6, 0x75, 0x4b, 0xf2, 0xf8, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff, 0xae, 0x5c, 0xce,
-	0xd9, 0xf3, 0x02, 0x00, 0x00,
+	// 343 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x50, 0x41, 0x4f, 0x32, 0x31,
+	0x10, 0xdd, 0xf2, 0x05, 0xc8, 0x37, 0x7c, 0xf9, 0x84, 0xca, 0x61, 0x25, 0xb1, 0x21, 0xeb, 0x85,
+	0x78, 0xe8, 0x1a, 0xb8, 0x70, 0x45, 0x41, 0x43, 0xa2, 0xc4, 0x2c, 0x1a, 0xcf, 0x0b, 0x8c, 0x0b,
+	0x11, 0xb6, 0xb8, 0xed, 0x9a, 0xf8, 0x2f, 0xfc, 0x59, 0x1e, 0x39, 0x7a, 0x34, 0xf0, 0x47, 0x4c,
+	0x5b, 0x36, 0xa2, 0x07, 0x2e, 0x4d, 0xdf, 0x9b, 0xf7, 0x66, 0xde, 0x0c, 0x54, 0x16, 0x62, 0x82,
+	0x73, 0xdf, 0xbc, 0x7c, 0x99, 0x08, 0x25, 0xe8, 0x81, 0x88, 0x85, 0xe4, 0x0a, 0xa5, 0xe2, 0x86,
+	0xae, 0x55, 0x23, 0x11, 0x09, 0x53, 0xf3, 0xf5, 0xcf, 0xca, 0x6a, 0x2c, 0x12, 0x22, 0x9a, 0xa3,
+	0x6f, 0xd0, 0x28, 0x7d, 0xf4, 0x27, 0x69, 0x12, 0xaa, 0x99, 0x88, 0x6d, 0xdd, 0x3b, 0x86, 0xfc,
+	0x5d, 0x12, 0x8e, 0x91, 0x56, 0x21, 0x3f, 0x7a, 0x55, 0x28, 0x5d, 0x52, 0x27, 0x8d, 0x7f, 0x81,
+	0x05, 0x9e, 0x82, 0xca, 0x8d, 0xee, 0x7e, 0x31, 0xc5, 0xf1, 0x53, 0x80, 0xcf, 0x29, 0x4a, 0xa5,
+	0xa5, 0x66, 0xa4, 0x91, 0xfe, 0x0d, 0x2c, 0xd0, 0xac, 0xd2, 0x9d, 0xdc, 0x9c, 0x65, 0x0d, 0xa0,
+	0x2d, 0x28, 0xaa, 0xd9, 0x02, 0x45, 0xaa, 0xdc, 0x3f, 0x75, 0xd2, 0x28, 0x35, 0x8f, 0xb8, 0x4d,
+	0xc4, 0xb3, 0x44, 0xbc, 0xbb, 0x4d, 0x14, 0x64, 0x4a, 0x6f, 0x0a, 0x74, 0x77, 0xaa, 0x5c, 0x8a,
+	0x58, 0x22, 0x6d, 0x43, 0x5e, 0xaa, 0x50, 0xa1, 0x19, 0xfb, 0xbf, 0xe9, 0xf1, 0x5f, 0x17, 0xe0,
+	0xdf, 0x1e, 0x4c, 0x86, 0x5a, 0x19, 0x58, 0x03, 0x75, 0xa1, 0xb8, 0x40, 0x29, 0xc3, 0x28, 0x0b,
+	0x97, 0xc1, 0xd3, 0xf6, 0xee, 0x7e, 0x5b, 0x17, 0x2d, 0x41, 0x31, 0xb8, 0x1f, 0x0c, 0xfa, 0x83,
+	0xab, 0xb2, 0x43, 0x01, 0x0a, 0xb7, 0x9d, 0xe1, 0xb0, 0xd7, 0x2d, 0x13, 0xfd, 0xbf, 0xec, 0xf4,
+	0xaf, 0x7b, 0xdd, 0x72, 0xae, 0x19, 0xc3, 0xe1, 0x0f, 0x27, 0x26, 0x2f, 0xb3, 0x31, 0xd2, 0x07,
+	0x00, 0xc3, 0x98, 0x1a, 0xdd, 0x97, 0x71, 0x7b, 0xcd, 0xda, 0xc9, 0x5e, 0x8d, 0xdd, 0xfd, 0x8c,
+	0x9c, 0xbb, 0xef, 0x6b, 0x46, 0x56, 0x6b, 0x46, 0x3e, 0xd7, 0x8c, 0xbc, 0x6d, 0x98, 0xb3, 0xda,
+	0x30, 0xe7, 0x63, 0xc3, 0x9c, 0x51, 0xc1, 0x5c, 0xb2, 0xf5, 0x15, 0x00, 0x00, 0xff, 0xff, 0x21,
+	0x95, 0xe4, 0x40, 0x25, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -483,54 +384,12 @@ func (m *Trace) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Values) > 0 {
-		for iNdEx := len(m.Values) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Values[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintModel(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *Value) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Value) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Value) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
 	if len(m.Bytes) > 0 {
 		i -= len(m.Bytes)
 		copy(dAtA[i:], m.Bytes)
 		i = encodeVarintModel(dAtA, i, uint64(len(m.Bytes)))
 		i--
-		dAtA[i] = 0x12
-	}
-	if m.Type != 0 {
-		i = encodeVarintModel(dAtA, i, uint64(m.Type))
-		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -567,19 +426,12 @@ func (m *ModelCheckRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.Traces) > 0 {
-		for iNdEx := len(m.Traces) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Traces[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintModel(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
+	if len(m.Trace) > 0 {
+		i -= len(m.Trace)
+		copy(dAtA[i:], m.Trace)
+		i = encodeVarintModel(dAtA, i, uint64(len(m.Trace)))
+		i--
+		dAtA[i] = 0x12
 	}
 	if len(m.Model) > 0 {
 		i -= len(m.Model)
@@ -643,24 +495,6 @@ func (m *Trace) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.Values) > 0 {
-		for _, e := range m.Values {
-			l = e.Size()
-			n += 1 + l + sovModel(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *Value) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Type != 0 {
-		n += 1 + sovModel(uint64(m.Type))
-	}
 	l = len(m.Bytes)
 	if l > 0 {
 		n += 1 + l + sovModel(uint64(l))
@@ -678,11 +512,9 @@ func (m *ModelCheckRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovModel(uint64(l))
 	}
-	if len(m.Traces) > 0 {
-		for _, e := range m.Traces {
-			l = e.Size()
-			n += 1 + l + sovModel(uint64(l))
-		}
+	l = len(m.Trace)
+	if l > 0 {
+		n += 1 + l + sovModel(uint64(l))
 	}
 	if m.Timeout != nil {
 		l = m.Timeout.Size()
@@ -743,112 +575,6 @@ func (m *Trace) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Values", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowModel
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthModel
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthModel
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Values = append(m.Values, &Value{})
-			if err := m.Values[len(m.Values)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipModel(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthModel
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthModel
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Value) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowModel
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Value: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Value: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
-			}
-			m.Type = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowModel
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Type |= Value_Type(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Bytes", wireType)
 			}
@@ -969,9 +695,9 @@ func (m *ModelCheckRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Traces", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Trace", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowModel
@@ -981,25 +707,23 @@ func (m *ModelCheckRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthModel
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthModel
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Traces = append(m.Traces, &Trace{})
-			if err := m.Traces[len(m.Traces)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Trace = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {

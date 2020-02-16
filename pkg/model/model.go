@@ -14,23 +14,41 @@
 
 package model
 
+import (
+	"fmt"
+	"path"
+)
+
+// ModelsPath is the path to which models are stored
+const ModelsPath = "/etc/model-checker/models"
+
 // DataPath is the path to which model data is stored
-const DataPath = "/etc/model/data"
+const DataPath = "/etc/model-checker/data"
 
 // CheckerPort is the model checker port
 const CheckerPort = 5000
 
 // NewModel gets a new model
-func NewModel(name string, traces []*Trace) *Model {
+func NewModel(name string) *Model {
+	specFile := fmt.Sprintf("%s.tla", name)
+	specPath := path.Join(ModelsPath, specFile)
+	dataFile := fmt.Sprintf("%s.json", name)
+	dataPath := path.Join(DataPath, dataFile)
 	return &Model{
-		Name:   name,
-		traces: traces,
+		Name:     name,
+		specFile: specFile,
+		specPath: specPath,
+		dataFile: dataFile,
+		dataPath: dataPath,
 	}
 }
 
 // Model is a model to check
 type Model struct {
 	// Name is the name of the model
-	Name   string
-	traces []*Trace
+	Name     string
+	specFile string
+	specPath string
+	dataFile string
+	dataPath string
 }

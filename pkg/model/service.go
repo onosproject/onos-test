@@ -17,7 +17,9 @@ package model
 import (
 	"fmt"
 	"google.golang.org/grpc"
+	"io"
 	"net"
+	"os/exec"
 )
 
 // NewService returns a new model checker service
@@ -44,10 +46,47 @@ func (s *Service) Start() error {
 }
 
 // modelCheckerServer is a model checker service server
-type modelCheckerServer struct {
-}
+type modelCheckerServer struct{}
 
 func (s *modelCheckerServer) CheckModel(request *ModelCheckRequest, stream ModelCheckerService_CheckModelServer) error {
-	// TODO
-	panic("implement me")
+	model := NewModel(request.Model)
+	writer := &streamWriter{
+		stream: stream,
+	}
+	if err := s.prepareTraces(model, writer); err != nil {
+		return err
+	}
+	if err := s.runChecker(model, writer); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *modelCheckerServer) prepareTraces(model *Model, stream io.Writer) error {
+	cmd := exec.Command("json2tla", model.dataPath, traceBinaryFile)
+	cmd.Stdout = stream
+	cmd.Stderr = stream
+	return cmd.Run()
+}
+
+func (s *modelCheckerServer) runChecker(model *Model, stream io.Writer) error {
+	cmd := exec.Command("tlc", model.specPath)
+	cmd.Stdout = stream
+	cmd.Stderr = stream
+	return cmd.Run()
+}
+
+type streamWriter struct {
+	stream ModelCheckerService_CheckModelServer
+}
+
+func (w *streamWriter) Write(bytes []byte) (int, error) {
+	err := w.stream.Send(&ModelCheckResponse{
+		State:   ModelCheckerState_RUNNING,
+		Message: string(bytes),
+	})
+	if err != nil {
+		return 0, err
+	}
+	return len(bytes), nil
 }
