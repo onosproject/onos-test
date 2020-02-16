@@ -49,7 +49,7 @@ license_check: # @HELP examine and ensure license headers exist
 	./../build-tools/licensing/boilerplate.py -v --rootdir=${CURDIR}
 
 
-proto: # @HELP build Protobuf/gRPC generated types
+proto: # @HELP build Protobuf/gRPC input types
 proto:
 	docker run -it -v `pwd`:/go/src/github.com/onosproject/onos-test \
 		-w /go/src/github.com/onosproject/onos-test \

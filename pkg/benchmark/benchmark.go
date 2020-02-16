@@ -15,7 +15,7 @@
 package benchmark
 
 import (
-	"github.com/onosproject/onos-test/pkg/types"
+	"github.com/onosproject/onos-test/pkg/input"
 	"math"
 	"reflect"
 	"sort"
@@ -140,7 +140,7 @@ func (b *Benchmark) getResult() *RunResponse {
 }
 
 // Run runs the benchmark with the given parameters
-func (b *Benchmark) Run(f interface{}, params ...types.Param) {
+func (b *Benchmark) Run(f interface{}, params ...input.Source) {
 	// Prepare the benchmark arguments
 	handler := b.prepare(f, params)
 
@@ -175,7 +175,7 @@ func (b *Benchmark) Run(f interface{}, params ...types.Param) {
 }
 
 // prepare prepares the benchmark
-func (b *Benchmark) prepare(next interface{}, params []types.Param) func(...interface{}) {
+func (b *Benchmark) prepare(next interface{}, params []input.Source) func(...interface{}) {
 	v := reflect.ValueOf(next)
 	f := func(args ...interface{}) {
 		vargs := make([]reflect.Value, len(args))
@@ -198,7 +198,7 @@ func (b *Benchmark) prepare(next interface{}, params []types.Param) func(...inte
 }
 
 // warm warms up the benchmark
-func (b *Benchmark) warm(f func(...interface{}), params []types.Param) {
+func (b *Benchmark) warm(f func(...interface{}), params []input.Source) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
 	requestCh := make(chan []interface{}, b.parallelism)
@@ -228,7 +228,7 @@ func (b *Benchmark) warm(f func(...interface{}), params []types.Param) {
 }
 
 // run runs the benchmark
-func (b *Benchmark) run(f func(...interface{}), params []types.Param) (int, time.Duration, []time.Duration) {
+func (b *Benchmark) run(f func(...interface{}), params []input.Source) (int, time.Duration, []time.Duration) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
 	requestCh := make(chan []interface{}, b.parallelism)
