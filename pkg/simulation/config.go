@@ -36,8 +36,6 @@ const (
 	simulationNameEnv            = "SIMULATION_NAME"
 	simulationModelEnv           = "SIMULATION_MODEL"
 	simulationSimulatorsEnv      = "SIMULATION_SIMULATORS"
-	simulationRateEnv            = "SIMULATION_RATE"
-	simulationJitterEnv          = "SIMULATION_JITTER"
 	simulationDurationEnv        = "SIMULATION_DURATION"
 	simulationArgsEnv            = "SIMULATION_ARGS"
 	simulationWorkerEnv          = "SIMULATION_WORKER"
@@ -72,19 +70,6 @@ func GetConfigFromEnv() *Config {
 	if err != nil {
 		panic(err)
 	}
-	var rate time.Duration
-	rateEnv := os.Getenv(simulationRateEnv)
-	if rateEnv != "" {
-		d, err := strconv.Atoi(rateEnv)
-		if err != nil {
-			panic(err)
-		}
-		rate = time.Duration(d)
-	}
-	jitter, err := strconv.ParseFloat(os.Getenv(simulationJitterEnv), 64)
-	if err != nil {
-		panic(err)
-	}
 	var duration time.Duration
 	durationEnv := os.Getenv(simulationDurationEnv)
 	if durationEnv != "" {
@@ -101,8 +86,6 @@ func GetConfigFromEnv() *Config {
 		Simulation:      os.Getenv(simulationNameEnv),
 		Model:           os.Getenv(simulationModelEnv),
 		Simulators:      workers,
-		Rate:            rate,
-		Jitter:          jitter,
 		Duration:        duration,
 		Args:            args,
 		Env:             env,
@@ -117,8 +100,6 @@ type Config struct {
 	Simulation      string
 	Model           string
 	Simulators      int
-	Rate            time.Duration
-	Jitter          float64
 	Duration        time.Duration
 	Args            map[string]string
 	Env             map[string]string
@@ -133,8 +114,6 @@ func (c *Config) ToEnv() map[string]string {
 	env[simulationNameEnv] = c.Simulation
 	env[simulationModelEnv] = c.Model
 	env[simulationSimulatorsEnv] = fmt.Sprintf("%d", c.Simulators)
-	env[simulationRateEnv] = fmt.Sprintf("%d", c.Rate)
-	env[simulationJitterEnv] = fmt.Sprintf("%f", c.Jitter)
 	env[simulationDurationEnv] = fmt.Sprintf("%d", c.Duration)
 	env[simulationArgsEnv] = util.JoinMap(c.Args)
 	return env

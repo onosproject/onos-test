@@ -22,9 +22,8 @@ import (
 	"google.golang.org/grpc"
 	"math/rand"
 	"net"
-	"reflect"
-	"regexp"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -33,6 +32,11 @@ type SimulatingSuite interface{}
 
 // Suite is an identifier interface for simulation suites
 type Suite struct{}
+
+// ScheduleSimulator is an interface for scheduling operations for a simulation
+type ScheduleSimulator interface {
+	ScheduleSimulator(s *Simulator)
+}
 
 // SetupSimulation is an interface for setting up a suite of simulators
 type SetupSimulation interface {
@@ -86,7 +90,7 @@ func newSimulation(name string, process int, suite SimulatingSuite, args map[str
 		Process: process,
 		suite:   suite,
 		args:    args,
-		stopCh:  make(chan error),
+		ops:     make(map[string]*operation),
 	}
 }
 
@@ -98,8 +102,9 @@ type Simulator struct {
 	Process  int
 	suite    SimulatingSuite
 	args     map[string]string
+	ops      map[string]*operation
+	mu       sync.Mutex
 	register Register
-	stopCh   chan error
 }
 
 // Arg gets a simulator argument
@@ -115,6 +120,28 @@ func (s *Simulator) Arg(name string) *Arg {
 // Trace records an trace in the register
 func (s *Simulator) Trace(values ...interface{}) {
 	s.register.Trace(values...)
+}
+
+// Schedule schedules an operation
+func (s *Simulator) Schedule(name string, f func(*Simulator) error, rate time.Duration, jitter float64) {
+	s.ops[name] = &operation{
+		name:      name,
+		f:         f,
+		rate:      rate,
+		jitter:    jitter,
+		simulator: s,
+		stopCh:    make(chan error),
+	}
+}
+
+// lock locks the simulation
+func (s *Simulator) lock() {
+	s.mu.Lock()
+}
+
+// unlock unlocks the simulator
+func (s *Simulator) unlock() {
+	s.mu.Unlock()
 }
 
 // setup sets up the simulation
@@ -146,6 +173,9 @@ func (s *Simulator) setupSimulator() {
 	if setupSuite, ok := s.suite.(SetupSimulator); ok {
 		setupSuite.SetupSimulator(s)
 	}
+	if setupSuite, ok := s.suite.(ScheduleSimulator); ok {
+		setupSuite.ScheduleSimulator(s)
+	}
 }
 
 // teardownSimulator tears down the simulator
@@ -156,63 +186,19 @@ func (s *Simulator) teardownSimulator() {
 }
 
 // start starts the simulator
-func (s *Simulator) start(rate time.Duration, jitter float64, register Register) {
+func (s *Simulator) start(register Register) {
 	s.register = register
-	go s.run(rate, jitter)
-}
-
-// run runs the simulator
-func (s *Simulator) run(rate time.Duration, jitter float64) {
-	for {
-		select {
-		case <-waitJitter(rate, jitter):
-			s.simulate()
-		case <-s.stopCh:
-			s.register.close()
-			return
-		}
+	for _, op := range s.ops {
+		go op.start()
 	}
 }
 
 // stop stops the simulator
 func (s *Simulator) stop() {
-	close(s.stopCh)
-}
-
-// simulate simulates a random simulator method
-func (s *Simulator) simulate() {
-	method := s.chooseMethod()
-	step := logging.NewStep(fmt.Sprintf("%s/%d", s.Name, getSimulatorID()), "Run %s", method.Name)
-	step.Start()
-	results := method.Func.Call([]reflect.Value{reflect.ValueOf(s.suite), reflect.ValueOf(s)})
-	if len(results) > 0 {
-		err := results[0].Interface()
-		if err != nil {
-			step.Fail(err.(error))
-		} else {
-			step.Complete()
-		}
-	} else {
-		step.Complete()
+	for _, op := range s.ops {
+		op.stop()
 	}
-}
-
-// chooseMethod chooses a random method
-func (s *Simulator) chooseMethod() reflect.Method {
-	suiteType := reflect.TypeOf(s.suite)
-	methods := make(map[string]reflect.Method)
-	names := []string{}
-	for index := 0; index < suiteType.NumMethod(); index++ {
-		method := suiteType.Method(index)
-		ok, err := methodFilter(method.Name)
-		if ok {
-			methods[method.Name] = method
-			names = append(names, method.Name)
-		} else if err != nil {
-			panic(err)
-		}
-	}
-	return methods[names[rand.Intn(len(names))]]
+	s.register.close()
 }
 
 // waitJitter returns a channel that closes after time.Duration between duration and duration + maxFactor *
@@ -225,12 +211,44 @@ func waitJitter(duration time.Duration, maxFactor float64) <-chan time.Time {
 	return time.After(delay)
 }
 
-// methodFilter filters simulation method names
-func methodFilter(name string) (bool, error) {
-	if ok, _ := regexp.MatchString("^Simulate", name); !ok {
-		return false, nil
+// operation is a simulator operation
+type operation struct {
+	name      string
+	f         func(*Simulator) error
+	rate      time.Duration
+	jitter    float64
+	simulator *Simulator
+	stopCh    chan error
+}
+
+// start starts the operation simulator
+func (o *operation) start() {
+	for {
+		select {
+		case <-waitJitter(o.rate, o.jitter):
+			o.simulator.lock()
+			o.run()
+			o.simulator.unlock()
+		case <-o.stopCh:
+			return
+		}
 	}
-	return true, nil
+}
+
+// run runs the operation
+func (o *operation) run() {
+	step := logging.NewStep(fmt.Sprintf("%s/%d", o.simulator.Name, getSimulatorID()), "Run %s", o.name)
+	step.Start()
+	if err := o.f(o.simulator); err != nil {
+		step.Fail(err)
+	} else {
+		step.Complete()
+	}
+}
+
+// stop stops the operation simulator
+func (o *operation) stop() {
+	close(o.stopCh)
 }
 
 // newSimulatorServer returns a new simulator server
@@ -343,7 +361,7 @@ func (s *simulatorServer) StartSimulator(ctx context.Context, request *Simulator
 		return nil, err
 	}
 
-	go simulation.start(request.Rate, request.Jitter, register)
+	go simulation.start(register)
 	step.Complete()
 	return &SimulatorResponse{}, nil
 }

@@ -78,8 +78,6 @@ func (c *Coordinator) Run() error {
 			Simulation:      suite,
 			Model:           c.config.Model,
 			Simulators:      c.config.Simulators,
-			Rate:            c.config.Rate,
-			Jitter:          c.config.Jitter,
 			Duration:        c.config.Duration,
 			Args:            c.config.Args,
 			Env:             c.config.Env,
@@ -521,8 +519,6 @@ func (t *WorkerTask) startSimulator(simulator int, client SimulatorServiceClient
 	request := &SimulatorRequest{
 		Simulation: t.config.Simulation,
 		Register:   getAddress(),
-		Rate:       t.config.Rate,
-		Jitter:     t.config.Jitter,
 	}
 	_, err := client.StartSimulator(context.Background(), request)
 	return err
@@ -533,8 +529,6 @@ func (t *WorkerTask) stopSimulator(simulator int, client SimulatorServiceClient)
 	request := &SimulatorRequest{
 		Simulation: t.config.Simulation,
 		Register:   getAddress(),
-		Rate:       t.config.Rate,
-		Jitter:     t.config.Jitter,
 	}
 	_, err := client.StopSimulator(context.Background(), request)
 	return err

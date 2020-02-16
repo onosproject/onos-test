@@ -26,7 +26,7 @@ const ModelsPath = "/etc/model-checker/models"
 const DataPath = "/etc/model-checker/data"
 
 // CheckerPort is the model checker port
-const CheckerPort = 5000
+const CheckerPort = 6000
 
 // NewModel gets a new model
 func NewModel(name string) *Model {

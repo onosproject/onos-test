@@ -19,7 +19,6 @@ syntax = "proto3";
 package onos.test.simulation;
 
 import "gogoproto/gogo.proto";
-import "google/protobuf/duration.proto";
 
 // SimulationLifecycleRequest is a simulation request
 message SimulationLifecycleRequest {
@@ -42,12 +41,6 @@ message SimulatorRequest {
 
     // register is the register address
     string register = 2;
-
-    // rate is the simulator rate
-    google.protobuf.Duration rate = 3 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-
-    // jitter is the simulator jitter
-    double jitter = 4;
 }
 
 // SimulatorResponse is a response indicating a simulation output

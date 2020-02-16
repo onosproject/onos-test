@@ -41,13 +41,11 @@ func getSimulateCommand() *cobra.Command {
 	cmd.Flags().StringToString("set", map[string]string{}, "cluster argument overrides")
 	cmd.Flags().StringP("simulation", "s", "", "the simulation to run")
 	cmd.Flags().IntP("simulators", "w", 1, "the number of simulator workers to run")
-	cmd.Flags().DurationP("rate", "r", 1*time.Second, "the rate at which to simulate operations")
-	cmd.Flags().Float64P("jitter", "j", 1, "the jitter to apply to the rate")
 	cmd.Flags().DurationP("duration", "d", 10*time.Minute, "the duration for which to run the simulation")
 	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named simulation arguments")
-	cmd.Flags().BoolP("verify", "v", false, "whether to verify the simulation against a formal model")
+	cmd.Flags().Bool("verify", false, "whether to verify the simulation against a formal model")
 	cmd.Flags().StringP("model", "m", "", "a model with which to verify the simulation")
-	cmd.Flags().StringP("config", "c", "", "the model configuration")
+	cmd.Flags().String("config", "", "the model configuration")
 	cmd.Flags().String("spec", "", "the model specification")
 	cmd.Flags().String("init", "", "an init predicate")
 	cmd.Flags().String("next", "", "a next state predicate")
@@ -66,8 +64,6 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 	image, _ := cmd.Flags().GetString("image")
 	sim, _ := cmd.Flags().GetString("simulation")
 	workers, _ := cmd.Flags().GetInt("simulators")
-	rate, _ := cmd.Flags().GetDuration("rate")
-	jitter, _ := cmd.Flags().GetFloat64("jitter")
 	duration, _ := cmd.Flags().GetDuration("duration")
 	sets, _ := cmd.Flags().GetStringToString("set")
 	args, _ := cmd.Flags().GetStringToString("args")
@@ -85,7 +81,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		var modelName string
 		if modelPath != "" {
 			modelName = path.Base(modelPath)
-			modelName = modelName[:-len(path.Ext(modelName))]
+			modelName = modelName[:len(modelName)-len(path.Ext(modelName))]
 
 			var configBytes []byte
 			if configPath != "" {
@@ -162,8 +158,6 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		Simulation:      sim,
 		Model:           modelName,
 		Simulators:      workers,
-		Rate:            rate,
-		Jitter:          jitter,
 		Duration:        duration,
 		Args:            args,
 		Env:             onitcluster.GetArgsAsEnv(sets),

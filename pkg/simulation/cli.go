@@ -35,8 +35,6 @@ func GetCommand() *cobra.Command {
 	cmd.Flags().StringP("simulation", "s", "", "the simulation suite to run")
 	cmd.Flags().StringP("model", "m", "", "a model with which to verify the simulation")
 	cmd.Flags().IntP("simulators", "w", 1, "the number of simulator workers to run")
-	cmd.Flags().DurationP("rate", "r", 1*time.Second, "the rate at which to simulate operations")
-	cmd.Flags().Float64P("jitter", "j", 1, "the jitter to apply to the rate")
 	cmd.Flags().DurationP("duration", "d", 10*time.Minute, "the duration for which to run the simulation")
 	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named simulation arguments")
 	return cmd
@@ -49,8 +47,6 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 	simulation, _ := cmd.Flags().GetString("simulation")
 	model, _ := cmd.Flags().GetString("model")
 	simulators, _ := cmd.Flags().GetInt("simulators")
-	rate, _ := cmd.Flags().GetDuration("rate")
-	jitter, _ := cmd.Flags().GetFloat64("jitter")
 	duration, _ := cmd.Flags().GetDuration("duration")
 	args, _ := cmd.Flags().GetStringToString("args")
 
@@ -61,8 +57,6 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		Simulation:      simulation,
 		Model:           model,
 		Simulators:      simulators,
-		Rate:            rate,
-		Jitter:          jitter,
 		Duration:        duration,
 		Args:            args,
 	}
