@@ -84,7 +84,7 @@ func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
 	args, _ := cmd.Flags().GetStringToString("set")
 	onitcluster.SetArgs(args)
 	setup := setup.New(api)
-	setup.Atomix()
+	setup.Atomix().SetReplicas(1)
 	setup.Database().Raft()
 	setup.Topo().SetReplicas(1)
 	setup.Config().SetReplicas(1)

@@ -26,6 +26,9 @@ type AtomixSetup interface {
 
 	// SetPullPolicy sets the image pull policy
 	SetPullPolicy(pullPolicy corev1.PullPolicy) AtomixSetup
+
+	// SetReplicas sets the number of replicas to deploy
+	SetReplicas(replicas int) AtomixSetup
 }
 
 var _ AtomixSetup = &clusterAtomixSetup{}
@@ -42,6 +45,11 @@ func (s *clusterAtomixSetup) SetImage(image string) AtomixSetup {
 
 func (s *clusterAtomixSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) AtomixSetup {
 	s.atomix.SetPullPolicy(pullPolicy)
+	return s
+}
+
+func (s *clusterAtomixSetup) SetReplicas(replicas int) AtomixSetup {
+	s.atomix.SetReplicas(replicas)
 	return s
 }
 

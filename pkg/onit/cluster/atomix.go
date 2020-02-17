@@ -15,8 +15,6 @@
 package cluster
 
 import (
-	"time"
-
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -33,23 +31,28 @@ const (
 )
 
 func newAtomix(cluster *Cluster) *Atomix {
-	deployment := newDeployment(cluster)
-	deployment.SetLabels(getLabels(atomixType))
-	deployment.SetImage(atomixImage)
-	deployment.SetName(atomixService)
+	service := newService(cluster)
+	ports := []Port{{Name: "control", Port: atomixPort}}
+	service.SetLabels(getLabels(atomixType))
+	service.SetImage(atomixImage)
+	service.SetName(atomixService)
+	service.SetPorts(ports)
 
 	return &Atomix{
-		Deployment: deployment,
+		Service: service,
 	}
 }
 
 // Atomix provides methods for managing the Atomix controller
 type Atomix struct {
-	*Deployment
+	*Service
 }
 
 // Setup sets up the Atomix controller and associated resources
 func (s *Atomix) Setup() error {
+	if s.Replicas() == 0 {
+		return nil
+	}
 	step := logging.NewStep(s.namespace, "Setup Atomix controller")
 	step.Start()
 	step.Log("Creating Database resource")
@@ -78,7 +81,7 @@ func (s *Atomix) Setup() error {
 		return err
 	}
 	step.Log("Waiting for controller to become ready")
-	if err := s.awaitReady(); err != nil {
+	if err := s.AwaitReady(); err != nil {
 		step.Fail(err)
 		return err
 	}
@@ -175,7 +178,7 @@ func (s *Atomix) createPartitionResource() error {
 
 // createDeployment creates the Atomix controller Deployment
 func (s *Atomix) createDeployment() error {
-	replicas := int32(1)
+	replicas := int32(s.Replicas())
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),
@@ -255,40 +258,4 @@ func (s *Atomix) createDeployment() error {
 	}
 	_, err := s.kubeClient.AppsV1().Deployments(s.namespace).Create(deployment)
 	return err
-}
-
-// createService creates a service for the controller
-func (s *Atomix) createService() error {
-	service := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.Name(),
-			Namespace: s.namespace,
-			Labels:    s.labels,
-		},
-		Spec: corev1.ServiceSpec{
-			Selector: s.labels,
-			Ports: []corev1.ServicePort{
-				{
-					Name: "control",
-					Port: atomixPort,
-				},
-			},
-		},
-	}
-	_, err := s.kubeClient.CoreV1().Services(s.namespace).Create(service)
-	return err
-}
-
-// awaitReady blocks until the Atomix controller is ready
-func (s *Atomix) awaitReady() error {
-	for {
-		dep, err := s.kubeClient.AppsV1().Deployments(s.namespace).Get(s.name, metav1.GetOptions{})
-		if err != nil {
-			return err
-		} else if dep.Status.ReadyReplicas == 1 {
-			return nil
-		} else {
-			time.Sleep(100 * time.Millisecond)
-		}
-	}
 }
