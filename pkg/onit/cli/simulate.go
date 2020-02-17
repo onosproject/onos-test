@@ -46,6 +46,7 @@ func getSimulateCommand() *cobra.Command {
 	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named simulation arguments")
 	cmd.Flags().Bool("verify", false, "whether to verify the simulation against a formal model")
 	cmd.Flags().StringP("model", "m", "", "a model with which to verify the simulation")
+	cmd.Flags().StringArray("module", []string{}, "modules to add to the model")
 	cmd.Flags().String("config", "", "the model configuration")
 	cmd.Flags().String("spec", "", "the model specification")
 	cmd.Flags().String("init", "", "an init predicate")
@@ -77,6 +78,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 	var modelData map[string]string
 	if verify {
 		modelPath, _ := cmd.Flags().GetString("model")
+		modulePaths, _ := cmd.Flags().GetStringArray("module")
 		configPath, _ := cmd.Flags().GetString("config")
 
 		if modelPath != "" {
@@ -98,7 +100,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 				spec, _ := cmd.Flags().GetString("spec")
 				init, _ := cmd.Flags().GetString("init")
 				next, _ := cmd.Flags().GetString("next")
-				invariants, _ := cmd.Flags().GetStringArray("invariants")
+				invariants, _ := cmd.Flags().GetStringArray("invariant")
 				constants, _ := cmd.Flags().GetStringArray("constant")
 				constraints, _ := cmd.Flags().GetStringArray("constraint")
 				properties, _ := cmd.Flags().GetStringArray("property")
@@ -147,6 +149,18 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 			}
 			modelData[fmt.Sprintf("%s.tla", modelName)] = string(modelBytes)
 			modelData[fmt.Sprintf("%s.cfg", modelName)] = string(configBytes)
+
+			for _, modulePath := range modulePaths {
+				file, err := os.Open(modulePath)
+				if err != nil {
+					return err
+				}
+				moduleBytes, err := ioutil.ReadAll(file)
+				if err != nil {
+					return err
+				}
+				modelData[path.Base(modulePath)] = string(moduleBytes)
+			}
 		}
 	}
 
