@@ -32,28 +32,29 @@ func Main() {
 
 // Run runs a test
 func Run() error {
+	config := GetConfigFromEnv()
 	context := getSimulationContext()
 	switch context {
 	case simulationContextCoordinator:
-		return runCoordinator()
+		return runCoordinator(config)
 	case simulationContextWorker:
-		return runWorker()
+		return runSimulator(config)
 	}
 	return nil
 }
 
 // runCoordinator runs a test image in the coordinator context
-func runCoordinator() error {
-	coordinator, err := newCoordinator(GetConfigFromEnv())
+func runCoordinator(config *Config) error {
+	coordinator, err := newCoordinator(config)
 	if err != nil {
 		return err
 	}
 	return coordinator.Run()
 }
 
-// runWorker runs a test image in the worker context
-func runWorker() error {
-	server, err := newSimulatorServer()
+// runSimulator runs a test image in the worker context
+func runSimulator(config *Config) error {
+	server, err := newSimulatorServer(config)
 	if err != nil {
 		return err
 	}

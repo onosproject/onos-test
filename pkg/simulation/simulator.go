@@ -83,13 +83,14 @@ func (a *Arg) String(def string) string {
 	return a.value
 }
 
-// newSimulation returns a new simulation instance
-func newSimulation(name string, process int, suite SimulatingSuite, args map[string]string) *Simulator {
+// newSimulator returns a new simulation instance
+func newSimulator(name string, process int, suite SimulatingSuite, args map[string]string, config *Config) *Simulator {
 	return &Simulator{
 		Name:    name,
 		Process: process,
 		suite:   suite,
 		args:    args,
+		config:  config,
 		ops:     make(map[string]*operation),
 	}
 }
@@ -100,6 +101,7 @@ type Simulator struct {
 	Name string
 	// Process is the unique identifier of the simulator process
 	Process  int
+	config   *Config
 	suite    SimulatingSuite
 	args     map[string]string
 	ops      map[string]*operation
@@ -134,6 +136,12 @@ func (s *Simulator) TraceValues(values ...interface{}) error {
 
 // Schedule schedules an operation
 func (s *Simulator) Schedule(name string, f func(*Simulator) error, rate time.Duration, jitter float64) {
+	if override, ok := s.config.Rates[name]; ok {
+		rate = override
+	}
+	if override, ok := s.config.Jitter[name]; ok {
+		jitter = override
+	}
 	s.ops[name] = &operation{
 		name:      name,
 		f:         f,
@@ -262,14 +270,16 @@ func (o *operation) stop() {
 }
 
 // newSimulatorServer returns a new simulator server
-func newSimulatorServer() (*simulatorServer, error) {
+func newSimulatorServer(config *Config) (*simulatorServer, error) {
 	return &simulatorServer{
+		config:      config,
 		simulations: make(map[string]*Simulator),
 	}, nil
 }
 
 // simulatorServer listens for simulator requests
 type simulatorServer struct {
+	config      *Config
 	simulations map[string]*Simulator
 }
 
@@ -290,7 +300,7 @@ func (s *simulatorServer) getSimulation(name string, args map[string]string) (*S
 	}
 	suite := registry.GetSimulationSuite(name)
 	if suite != nil {
-		simulation := newSimulation(name, getSimulatorID(), suite, args)
+		simulation := newSimulator(name, getSimulatorID(), suite, args, s.config)
 		s.simulations[name] = simulation
 		return simulation, nil
 	}

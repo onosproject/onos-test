@@ -79,6 +79,8 @@ func (c *Coordinator) Run() error {
 			Model:           c.config.Model,
 			Simulators:      c.config.Simulators,
 			Duration:        c.config.Duration,
+			Rates:           c.config.Rates,
+			Jitter:          c.config.Jitter,
 			Args:            c.config.Args,
 			Env:             c.config.Env,
 		}

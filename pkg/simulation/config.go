@@ -37,6 +37,8 @@ const (
 	simulationModelEnv           = "SIMULATION_MODEL"
 	simulationSimulatorsEnv      = "SIMULATION_SIMULATORS"
 	simulationDurationEnv        = "SIMULATION_DURATION"
+	simulationRatesEnv           = "SIMULATION_RATES"
+	simulationJittersEnv         = "SIMULATION_JITTERS"
 	simulationArgsEnv            = "SIMULATION_ARGS"
 	simulationWorkerEnv          = "SIMULATION_WORKER"
 )
@@ -70,6 +72,22 @@ func GetConfigFromEnv() *Config {
 	if err != nil {
 		panic(err)
 	}
+	rates := make(map[string]time.Duration)
+	for key, value := range util.SplitMap(os.Getenv(simulationRatesEnv)) {
+		d, err := strconv.Atoi(value)
+		if err != nil {
+			panic(err)
+		}
+		rates[key] = time.Duration(d)
+	}
+	jitter := make(map[string]float64)
+	for key, value := range util.SplitMap(os.Getenv(simulationJittersEnv)) {
+		f, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			panic(err)
+		}
+		jitter[key] = f
+	}
 	var duration time.Duration
 	durationEnv := os.Getenv(simulationDurationEnv)
 	if durationEnv != "" {
@@ -87,6 +105,8 @@ func GetConfigFromEnv() *Config {
 		Model:           os.Getenv(simulationModelEnv),
 		Simulators:      workers,
 		Duration:        duration,
+		Rates:           rates,
+		Jitter:          jitter,
 		Args:            args,
 		Env:             env,
 	}
@@ -100,6 +120,8 @@ type Config struct {
 	Simulation      string
 	Model           string
 	Simulators      int
+	Rates           map[string]time.Duration
+	Jitter          map[string]float64
 	Duration        time.Duration
 	Args            map[string]string
 	Env             map[string]string
@@ -115,6 +137,16 @@ func (c *Config) ToEnv() map[string]string {
 	env[simulationModelEnv] = c.Model
 	env[simulationSimulatorsEnv] = fmt.Sprintf("%d", c.Simulators)
 	env[simulationDurationEnv] = fmt.Sprintf("%d", c.Duration)
+	rates := make(map[string]string)
+	for key, rate := range c.Rates {
+		rates[key] = fmt.Sprintf("%d", rate)
+	}
+	env[simulationRatesEnv] = util.JoinMap(rates)
+	jitters := make(map[string]string)
+	for key, jitter := range c.Jitter {
+		jitters[key] = strconv.FormatFloat(jitter, 'E', -1, 64)
+	}
+	env[simulationJittersEnv] = util.JoinMap(jitters)
 	env[simulationArgsEnv] = util.JoinMap(c.Args)
 	return env
 }

@@ -21,6 +21,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/onosproject/onos-test/pkg/cluster"
@@ -44,6 +46,7 @@ func getSimulateCommand() *cobra.Command {
 	cmd.Flags().IntP("simulators", "w", 1, "the number of simulator workers to run")
 	cmd.Flags().DurationP("duration", "d", 10*time.Minute, "the duration for which to run the simulation")
 	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named simulation arguments")
+	cmd.Flags().StringToStringP("schedule", "r", map[string]string{}, "a mapping of operations to schedule")
 	cmd.Flags().Bool("verify", false, "whether to verify the simulation against a formal model")
 	cmd.Flags().StringP("model", "m", "", "a model with which to verify the simulation")
 	cmd.Flags().StringArray("module", []string{}, "modules to add to the model")
@@ -69,6 +72,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 	duration, _ := cmd.Flags().GetDuration("duration")
 	sets, _ := cmd.Flags().GetStringToString("set")
 	args, _ := cmd.Flags().GetStringToString("args")
+	operations, _ := cmd.Flags().GetStringToString("schedule")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	verify, _ := cmd.Flags().GetBool("verify")
@@ -164,6 +168,29 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		}
 	}
 
+	rates := make(map[string]time.Duration)
+	jitters := make(map[string]float64)
+	for name, value := range operations {
+		var rate string
+		index := strings.Index(value, ",")
+		if index == -1 {
+			rate = value
+		} else {
+			rate = value[:index]
+			jitter := value[index+1:]
+			f, err := strconv.ParseFloat(jitter, 64)
+			if err != nil {
+				return err
+			}
+			jitters[name] = f
+		}
+		d, err := time.ParseDuration(rate)
+		if err != nil {
+			return err
+		}
+		rates[name] = d
+	}
+
 	config := &simulation.Config{
 		ID:              random.NewPetName(2),
 		Image:           image,
@@ -172,6 +199,8 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		Model:           modelName,
 		Simulators:      workers,
 		Duration:        duration,
+		Rates:           rates,
+		Jitter:          jitters,
 		Args:            args,
 		Env:             onitcluster.GetArgsAsEnv(sets),
 	}
