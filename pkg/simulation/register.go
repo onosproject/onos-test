@@ -24,8 +24,14 @@ import (
 
 // Register records simulation traces
 type Register interface {
-	// Trace records a trace to the register
-	Trace(values ...interface{}) error
+	// Trace records the given object as a trace
+	Trace(value struct{}) error
+
+	// TraceFields records a trace of fields and values to the register
+	TraceFields(fieldsAndValues ...interface{}) error
+
+	// TraceValues records a trace to the register
+	TraceValues(values ...interface{}) error
 
 	// close closes the register
 	close()
@@ -49,18 +55,37 @@ type registerClient struct {
 	conn       *grpc.ClientConn
 }
 
-func (r *registerClient) Trace(values ...interface{}) error {
-	trace, err := model.NewTrace(values...)
+func (r *registerClient) Trace(value struct{}) error {
+	trace, err := model.NewTrace(value)
 	if err != nil {
 		return err
 	}
+	return r.trace(trace)
+}
 
+func (r *registerClient) TraceFields(fieldsAndValues ...interface{}) error {
+	trace, err := model.NewTraceFields(fieldsAndValues...)
+	if err != nil {
+		return err
+	}
+	return r.trace(trace)
+}
+
+func (r *registerClient) TraceValues(values ...interface{}) error {
+	trace, err := model.NewTraceValues(values...)
+	if err != nil {
+		return err
+	}
+	return r.trace(trace)
+}
+
+func (r *registerClient) trace(trace *model.Trace) error {
 	client := NewRegisterServiceClient(r.conn)
 	request := &TraceRequest{
 		Simulation: r.simulation,
 		Trace:      trace,
 	}
-	_, err = client.Trace(context.Background(), request)
+	_, err := client.Trace(context.Background(), request)
 	if err != nil {
 		fmt.Println(err)
 	}

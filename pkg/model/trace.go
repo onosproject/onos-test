@@ -16,18 +16,29 @@ package model
 
 import (
 	"encoding/json"
-	"path"
 )
 
-var traceBinaryFile = path.Join(DataPath, "trace.bin")
-
-// NewTrace returns a new model Trace from the given values
-func NewTrace(values ...interface{}) (*Trace, error) {
-	bytes, err := json.Marshal(values)
+// NewTrace returns a new model trace for the given object
+func NewTrace(object interface{}) (*Trace, error) {
+	bytes, err := json.Marshal(object)
 	if err != nil {
 		return nil, err
 	}
 	return &Trace{
 		Bytes: bytes,
 	}, nil
+}
+
+// NewTraceFields returns a new model Trace for the given fields and values
+func NewTraceFields(fieldsAndValues ...interface{}) (*Trace, error) {
+	values := make(map[string]interface{})
+	for i := 0; i < len(fieldsAndValues); i += 2 {
+		values[fieldsAndValues[i].(string)] = fieldsAndValues[i+1]
+	}
+	return NewTrace(values)
+}
+
+// NewTraceValues returns a new model Trace from the given values
+func NewTraceValues(values ...interface{}) (*Trace, error) {
+	return NewTrace(values)
 }

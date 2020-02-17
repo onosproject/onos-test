@@ -1,7 +1,7 @@
 ------------------------- MODULE Trace -------------------------
 
-INSTANCE IOUtils
+INSTANCE JSONUtils
 
-Trace == IODeserialize("/etc/model-checker/data/trace.bin", FALSE)
+Trace == JSONDeserialize("/etc/model-checker/data/trace.json")
 
 =============================================================================

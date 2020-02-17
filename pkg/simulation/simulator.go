@@ -117,9 +117,19 @@ func (s *Simulator) Arg(name string) *Arg {
 	return &Arg{}
 }
 
-// Trace records an trace in the register
-func (s *Simulator) Trace(values ...interface{}) {
-	s.register.Trace(values...)
+// Trace records the given object as a trace
+func (s *Simulator) Trace(value struct{}) error {
+	return s.register.Trace(value)
+}
+
+// TraceFields records a trace of fields and values to the register
+func (s *Simulator) TraceFields(fieldsAndValues ...interface{}) error {
+	return s.register.TraceFields(fieldsAndValues...)
+}
+
+// TraceValues records an trace in the register
+func (s *Simulator) TraceValues(values ...interface{}) error {
+	return s.register.TraceValues(values...)
 }
 
 // Schedule schedules an operation

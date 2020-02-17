@@ -19,9 +19,12 @@ import (
 	"google.golang.org/grpc"
 	"io"
 	"net"
+	"os"
 	"os/exec"
 	"path"
 )
+
+var traceFile = path.Join(DataPath, "trace.json")
 
 // NewService returns a new model checker service
 func NewService() *Service {
@@ -64,10 +67,7 @@ func (s *modelCheckerServer) CheckModel(request *ModelCheckRequest, stream Model
 }
 
 func (s *modelCheckerServer) prepareTraces(model *Model, stream io.Writer) error {
-	cmd := exec.Command("json2tla", model.dataPath, traceBinaryFile)
-	cmd.Stdout = stream
-	cmd.Stderr = stream
-	return cmd.Run()
+	return os.Rename(model.dataPath, traceFile)
 }
 
 func (s *modelCheckerServer) runChecker(model *Model, stream io.Writer) error {
