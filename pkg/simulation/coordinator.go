@@ -190,12 +190,12 @@ func (t *WorkerTask) run() error {
 	return nil
 }
 
-func getWorkerName(worker int) string {
-	return fmt.Sprintf("worker-%d", worker)
+func getSimulatorName(worker int) string {
+	return fmt.Sprintf("simulator-%d", worker)
 }
 
 func (t *WorkerTask) getWorkerAddress(worker int) string {
-	return fmt.Sprintf("%s.%s.svc.cluster.local:5000", getWorkerName(worker), t.config.ID)
+	return fmt.Sprintf("%s.%s.svc.cluster.local:5000", getSimulatorName(worker), t.config.ID)
 }
 
 // createWorkers creates the simulation workers
@@ -226,7 +226,7 @@ func (t *WorkerTask) createWorker(worker int) error {
 
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: getWorkerName(worker),
+			Name: getSimulatorName(worker),
 			Labels: map[string]string{
 				"simulation": t.config.ID,
 				"worker":     fmt.Sprintf("%d", worker),
@@ -267,7 +267,7 @@ func (t *WorkerTask) createWorker(worker int) error {
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: getWorkerName(worker),
+			Name: getSimulatorName(worker),
 			Labels: map[string]string{
 				"simulation": t.config.ID,
 			},
@@ -304,7 +304,7 @@ func (t *WorkerTask) streamWorkerLogs(worker int) {
 		if len(pod.Status.ContainerStatuses) > 0 &&
 			(pod.Status.ContainerStatuses[0].State.Running != nil ||
 				pod.Status.ContainerStatuses[0].State.Terminated != nil) {
-			req := t.client.CoreV1().Pods(t.config.ID).GetLogs(getWorkerName(worker), &corev1.PodLogOptions{
+			req := t.client.CoreV1().Pods(t.config.ID).GetLogs(getSimulatorName(worker), &corev1.PodLogOptions{
 				Follow: true,
 			})
 			reader, err := req.Stream()
@@ -367,7 +367,7 @@ func (t *WorkerTask) getSimulators() ([]SimulatorServiceClient, error) {
 
 // getPod finds the Pod for the given test
 func (t *WorkerTask) getPod(worker int) (*corev1.Pod, error) {
-	pod, err := t.client.CoreV1().Pods(t.config.ID).Get(getWorkerName(worker), metav1.GetOptions{})
+	pod, err := t.client.CoreV1().Pods(t.config.ID).Get(getSimulatorName(worker), metav1.GetOptions{})
 	if err != nil && !k8serrors.IsNotFound(err) {
 		return nil, err
 	}
