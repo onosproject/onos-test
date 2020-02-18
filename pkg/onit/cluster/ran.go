@@ -54,15 +54,6 @@ func newRAN(cluster *Cluster) *RAN {
 	service.SetImage(ranImage)
 	service.SetName(ranService)
 
-	container := newContainer(cluster)
-	var containers []*Container
-	container.SetName(ranService)
-	container.SetImage(ranImage)
-	container.SetArgs(ranArgs...)
-	containers = append(containers, container)
-
-	service.SetContainers(containers)
-
 	return &RAN{
 		Service: service,
 	}

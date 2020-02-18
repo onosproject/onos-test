@@ -15,16 +15,53 @@
 package cluster
 
 const (
-	configType    = "config"
-	configImage   = "onosproject/onos-config:latest"
-	configService = "onos-config"
-	configPort    = 5150
+	configType          = "config"
+	configImage         = "onosproject/onos-config:latest"
+	cmTestdeviceImageV1 = "onosproject/config-model-testdevice-1.0.0:latest"
+	cmTestdeviceImageV2 = "onosproject/config-model-testdevice-2.0.0:latest"
+	cmDevicesimImage    = "onosproject/config-model-devicesim-1.0.0:latest"
+	cmStratumImage      = "onosproject/config-model-stratum-1.0.0:latest"
+	configService       = "onos-config"
+	configPort          = 5150
 )
 
 var configSecrets = map[string]string{
 	"/certs/onf.cacrt":       caCert,
 	"/certs/onos-config.crt": configCert,
 	"/certs/onos-config.key": configKey,
+}
+
+const (
+	volumeName         = "shared-data"
+	volumePath         = "/usr/local/lib"
+	testDeviceNameV1   = "config-model-testdevice-1-0-0"
+	testDeviceNameV2   = "config-model-testdevice-2-0-0"
+	deviceSimName      = "config-model-devicesim-1-0-0"
+	stratumName        = "config-model-stratum-1-0-0"
+	modelPluginCommand = "/copylibandstay"
+)
+
+var testDeviceV1Args = []string{
+	"testdevice.so.1.0.0",
+	"/usr/local/lib/testdevice.so.1.0.0",
+	"stayrunning",
+}
+var testDeviceV2Args = []string{
+	"testdevice.so.2.0.0",
+	"/usr/local/lib/testdevice.so.2.0.0",
+	"stayrunning",
+}
+
+var deviceSimArgs = []string{
+	"devicesim.so.1.0.0",
+	"/usr/local/lib/devicesim.so.1.0.0",
+	"stayrunning",
+}
+
+var stratumArgs = []string{
+	"stratum.so.1.0.0",
+	"/usr/local/lib/stratum.so.1.0.0",
+	"stayrunning",
 }
 
 var configArgs = []string{
@@ -40,21 +77,57 @@ var configArgs = []string{
 func newConfig(cluster *Cluster) *Config {
 	service := newService(cluster)
 	ports := []Port{{Name: "grpc", Port: configPort}}
-	//service.SetArgs(configArgs...)
+	service.SetArgs(configArgs...)
 	service.SetSecrets(configSecrets)
 	service.SetPorts(ports)
 	service.SetLabels(getLabels(configType))
-	//service.SetImage(configImage)
+	service.SetImage(configImage)
 	service.SetName(configService)
 
-	container := newContainer(cluster)
-	var containers []*Container
-	container.SetName(configService)
-	container.SetImage(configImage)
-	container.SetArgs(configArgs...)
-	containers = append(containers, container)
+	// Add model plugin sidecar containers
+	var sideContainers []*Container
 
-	service.SetContainers(containers)
+	// testdevice.so.1.0.0 model plugin
+	container := newContainer(cluster)
+	container.SetName(testDeviceNameV1)
+	container.SetImage(cmTestdeviceImageV1)
+	container.SetArgs(testDeviceV1Args...)
+	container.SetCommand(modelPluginCommand)
+	volume := VolumeMount{name: volumeName, path: volumePath}
+	container.SetVolume(volume)
+	sideContainers = append(sideContainers, container)
+
+	// testdevice.so.2.0.0 model plugin
+	container = newContainer(cluster)
+	container.SetName(testDeviceNameV2)
+	container.SetImage(cmTestdeviceImageV2)
+	container.SetArgs(testDeviceV2Args...)
+	container.SetCommand(modelPluginCommand)
+	volume = VolumeMount{name: volumeName, path: volumePath}
+	container.SetVolume(volume)
+	sideContainers = append(sideContainers, container)
+
+	// devicesim.so.1.0.0 model plugin
+	container = newContainer(cluster)
+	container.SetName(deviceSimName)
+	container.SetImage(cmDevicesimImage)
+	container.SetArgs(deviceSimArgs...)
+	container.SetCommand(modelPluginCommand)
+	volume = VolumeMount{name: volumeName, path: volumePath}
+	container.SetVolume(volume)
+	sideContainers = append(sideContainers, container)
+
+	// stratum.so.1.0.0 model plugin
+	container = newContainer(cluster)
+	container.SetName(stratumName)
+	container.SetImage(cmStratumImage)
+	container.SetArgs(stratumArgs...)
+	container.SetCommand(modelPluginCommand)
+	volume = VolumeMount{name: volumeName, path: volumePath}
+	container.SetVolume(volume)
+	sideContainers = append(sideContainers, container)
+
+	service.SetContainers(sideContainers)
 
 	return &Config{
 		Service: service,

@@ -429,6 +429,17 @@ func (s *Service) createDeployment() error {
 		}
 	}
 
+	if len(s.containers) > 0 {
+		// This volume is used for sidecar containers
+		volumeContainer := corev1.Volume{
+			Name: "shared-data",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		}
+		volumes = append(volumes, volumeContainer)
+	}
+
 	var readinessProbe *corev1.Probe
 	var livenessProbe *corev1.Probe
 	if len(s.ports) > 0 {
@@ -486,20 +497,45 @@ func (s *Service) createDeployment() error {
 			Value: value,
 		})
 	}
-
 	var corv1Containers []corev1.Container
+
+	// Adds service container
+	serviceContainer := corev1.Container{
+		Name:            s.Name(),
+		Image:           s.Image(),
+		ImagePullPolicy: s.PullPolicy(),
+		Env:             env,
+		Args:            s.args,
+		Ports:           ports,
+		ReadinessProbe:  readinessProbe,
+		LivenessProbe:   livenessProbe,
+		VolumeMounts:    volumeMounts,
+		SecurityContext: securityContext,
+		Resources:       s.createResourceRequirements(),
+	}
+	corv1Containers = append(corv1Containers, serviceContainer)
+
+	// Adds sidecar containers
 	for _, container := range s.containers {
+		volumeMountContainers := make([]corev1.VolumeMount, 0, len(container.volumes))
+		for _, volume := range container.volumes {
+			volumeMount := corev1.VolumeMount{
+				Name:      volume.name,
+				MountPath: volume.path,
+				SubPath:   getKey(volume.path),
+			}
+			volumeMountContainers = append(volumeMountContainers, volumeMount)
+		}
+
 		corev1Container := corev1.Container{
 			Name:            container.Name(),
 			Image:           container.Image(),
 			ImagePullPolicy: container.PullPolicy(),
-			Env:             env,
 			Args:            container.Args(),
 			Command:         container.Command(),
-			Ports:           ports,
 			ReadinessProbe:  readinessProbe,
+			VolumeMounts:    volumeMountContainers,
 			LivenessProbe:   livenessProbe,
-			VolumeMounts:    volumeMounts,
 			SecurityContext: securityContext,
 		}
 		corv1Containers = append(corv1Containers, corev1Container)
