@@ -138,8 +138,3 @@ func (s *registerServer) Trace(ctx context.Context, request *TraceRequest) (*Tra
 	}
 	return &TraceResponse{}, nil
 }
-
-// stop stops the server
-func (s *registerServer) stop() {
-	s.server.Stop()
-}

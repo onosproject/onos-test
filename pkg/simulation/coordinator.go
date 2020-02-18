@@ -29,7 +29,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
-	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -56,14 +55,13 @@ type Coordinator struct {
 // Run runs the simulations
 func (c *Coordinator) Run() error {
 	server := newRegisterServer(":5000")
-	go server.serve()
+	go func() {
+		_ = server.serve()
+	}()
 
 	var suites []string
 	if c.config.Simulation == "" {
-		suites = make([]string, 0, len(registry.GetSimulationSuites()))
-		for _, suite := range registry.GetSimulationSuites() {
-			suites = append(suites, suite)
-		}
+		suites = registry.GetSimulationSuites()
 	} else {
 		suites = []string{c.config.Simulation}
 	}
@@ -534,11 +532,6 @@ func (t *WorkerTask) stopSimulator(simulator int, client SimulatorServiceClient)
 	}
 	_, err := client.StopSimulator(context.Background(), request)
 	return err
-}
-
-// chooseSimulator chooses a random simulator
-func (t *WorkerTask) chooseSimulator() int {
-	return rand.Intn(t.config.Simulators)
 }
 
 // checkModel checks the given traces against the model

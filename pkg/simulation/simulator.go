@@ -162,45 +162,39 @@ func (s *Simulator) unlock() {
 	s.mu.Unlock()
 }
 
-// setup sets up the simulation
-func (s *Simulator) setup() {
-	s.setupSimulation()
-}
-
-// teardown tears down the simulation
-func (s *Simulator) teardown() {
-	s.teardownSimulation()
-}
-
 // setupSimulation sets up the simulation
-func (s *Simulator) setupSimulation() {
+func (s *Simulator) setupSimulation() error {
 	if setupSuite, ok := s.suite.(SetupSimulation); ok {
-		setupSuite.SetupSimulation(s)
+		return setupSuite.SetupSimulation(s)
 	}
+	return nil
 }
 
 // teardownSimulation tears down the simulation
-func (s *Simulator) teardownSimulation() {
+func (s *Simulator) teardownSimulation() error {
 	if tearDownSuite, ok := s.suite.(TearDownSimulation); ok {
-		tearDownSuite.TearDownSimulation(s)
+		return tearDownSuite.TearDownSimulation(s)
 	}
+	return nil
 }
 
 // setupSimulator sets up the simulator
-func (s *Simulator) setupSimulator() {
+func (s *Simulator) setupSimulator() error {
 	if setupSuite, ok := s.suite.(SetupSimulator); ok {
-		setupSuite.SetupSimulator(s)
+		return setupSuite.SetupSimulator(s)
 	}
 	if setupSuite, ok := s.suite.(ScheduleSimulator); ok {
 		setupSuite.ScheduleSimulator(s)
 	}
+	return nil
 }
 
 // teardownSimulator tears down the simulator
-func (s *Simulator) teardownSimulator() {
+func (s *Simulator) teardownSimulator() error {
 	if tearDownSuite, ok := s.suite.(TearDownSimulator); ok {
-		tearDownSuite.TearDownSimulator(s)
+		return tearDownSuite.TearDownSimulator(s)
 	}
+	return nil
 }
 
 // start starts the simulator
@@ -317,7 +311,10 @@ func (s *simulatorServer) SetupSimulation(ctx context.Context, request *Simulati
 		step.Fail(err)
 		return nil, err
 	}
-	simulation.setupSimulation()
+	if err := simulation.setupSimulation(); err != nil {
+		step.Fail(err)
+		return nil, err
+	}
 	step.Complete()
 	return &SimulationLifecycleResponse{}, nil
 }
@@ -332,7 +329,10 @@ func (s *simulatorServer) TearDownSimulation(ctx context.Context, request *Simul
 		step.Fail(err)
 		return nil, err
 	}
-	simulation.teardownSimulation()
+	if err := simulation.teardownSimulation(); err != nil {
+		step.Fail(err)
+		return nil, err
+	}
 	step.Complete()
 	return &SimulationLifecycleResponse{}, nil
 }
@@ -346,7 +346,10 @@ func (s *simulatorServer) SetupSimulator(ctx context.Context, request *Simulatio
 		step.Fail(err)
 		return nil, err
 	}
-	simulation.setupSimulator()
+	if err := simulation.setupSimulator(); err != nil {
+		step.Fail(err)
+		return nil, err
+	}
 	step.Complete()
 	return &SimulationLifecycleResponse{}, nil
 }
@@ -360,7 +363,10 @@ func (s *simulatorServer) TearDownSimulator(ctx context.Context, request *Simula
 		step.Fail(err)
 		return nil, err
 	}
-	simulation.teardownSimulator()
+	if err := simulation.teardownSimulator(); err != nil {
+		step.Fail(err)
+		return nil, err
+	}
 	step.Complete()
 	return &SimulationLifecycleResponse{}, nil
 }
