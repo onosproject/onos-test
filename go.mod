@@ -1,6 +1,6 @@
 module github.com/onosproject/onos-test
 
-go 1.12
+go 1.13
 
 require (
 	github.com/atomix/go-client v0.0.0-20200202124444-2b0271852fac
@@ -8,13 +8,11 @@ require (
 	github.com/dustinkirkland/golang-petname v0.0.0-20190613200456-11339a705ed2
 	github.com/fatih/color v1.7.0
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-playground/overalls v0.0.0-20191218162659-7df9f728c018 // indirect
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.3.2
 	github.com/google/uuid v1.1.1
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/mattn/goveralls v0.0.5 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onosproject/onos-config v0.0.0-20200204191831-5c2803ee469d
 	github.com/onosproject/onos-ran v0.0.0-20200210203428-df3953bf0fb1
