@@ -1,6 +1,6 @@
 module github.com/onosproject/onos-test
 
-go 1.12
+go 1.13
 
 require (
 	github.com/atomix/go-client v0.0.0-20200202124444-2b0271852fac
