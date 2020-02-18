@@ -32,11 +32,27 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+var (
+	simulateExample = `
+		# Simulate operations on an Atomix map
+		onit simulate --image atomix/kubernetes-simulations --simulation map --duration 1m
+
+		# Configure the simulated Atomix cluster
+		onit simulate --image atomix/kubernetes-simulations --simulation map --duration 1m --set raft.clusters=3 --set raft.partitions=3
+
+		# Configure scheduled operations on an Atomix map
+		onit simulate --image atomix/kubernetes-simulations --simulation map --schedule put=2s --schedule get=1s,.5 --schedule remove=5s --duration 5m
+
+		# Verify an Atomix map simulation against a TLA+ model
+		onit simulate --image atomix/kubernetes-simulations --simulation map --duration 5m --verify --model models/MapCacheTrace.tla --module models/MapHistory.tla --spec Spec --invariant StateInvariant`
+)
+
 func getSimulateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "simulate",
 		Aliases: []string{"sim", "simulation"},
 		Short:   "Run simulations on Kubernetes",
+		Example: simulateExample,
 		RunE:    runSimulateCommand,
 	}
 	cmd.Flags().StringP("image", "i", "", "the simulation image to run")
