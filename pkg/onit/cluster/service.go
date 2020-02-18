@@ -57,10 +57,21 @@ type Service struct {
 	secrets       map[string]string
 	env           map[string]string
 	args          []string
+	containers    []*Container
 	cpuRequest    string
 	memoryRequest string
 	cpuLimit      string
 	memoryLimit   string
+}
+
+// SetContainers sets the service containers
+func (s *Service) SetContainers(containers []*Container) {
+	s.containers = containers
+}
+
+// Containers returns the service containers
+func (s *Service) Containers() []*Container {
+	return s.containers
 }
 
 // CPURequest returns the cpu request for a deployment container
@@ -476,6 +487,24 @@ func (s *Service) createDeployment() error {
 		})
 	}
 
+	var corv1Containers []corev1.Container
+	for _, container := range s.containers {
+		corev1Container := corev1.Container{
+			Name:            container.Name(),
+			Image:           container.Image(),
+			ImagePullPolicy: container.PullPolicy(),
+			Env:             env,
+			Args:            container.Args(),
+			Command:         container.Command(),
+			Ports:           ports,
+			ReadinessProbe:  readinessProbe,
+			LivenessProbe:   livenessProbe,
+			VolumeMounts:    volumeMounts,
+			SecurityContext: securityContext,
+		}
+		corv1Containers = append(corv1Containers, corev1Container)
+	}
+
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.Name(),
@@ -492,21 +521,7 @@ func (s *Service) createDeployment() error {
 					Labels: s.labels,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:            s.Name(),
-							Image:           s.Image(),
-							ImagePullPolicy: s.PullPolicy(),
-							Env:             env,
-							Args:            s.args,
-							Ports:           ports,
-							ReadinessProbe:  readinessProbe,
-							LivenessProbe:   livenessProbe,
-							VolumeMounts:    volumeMounts,
-							SecurityContext: securityContext,
-							Resources:       s.createResourceRequirements(),
-						},
-					},
+					Containers:      corv1Containers,
 					SecurityContext: podSecurityContext,
 					Volumes:         volumes,
 				},

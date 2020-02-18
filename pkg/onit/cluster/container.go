@@ -79,6 +79,7 @@ type Container struct {
 	name       string
 	image      string
 	pullPolicy corev1.PullPolicy
-	args       []string
 	command    []string
+	env        map[string]string
+	args       []string
 }
