@@ -57,21 +57,21 @@ type Service struct {
 	secrets       map[string]string
 	env           map[string]string
 	args          []string
-	containers    []*Container
+	sidecars      []*Sidecar
 	cpuRequest    string
 	memoryRequest string
 	cpuLimit      string
 	memoryLimit   string
 }
 
-// SetContainers sets the service containers
-func (s *Service) SetContainers(containers []*Container) {
-	s.containers = containers
+// SetSidecars sets the service sidecars
+func (s *Service) SetSidecars(sidecars []*Sidecar) {
+	s.sidecars = sidecars
 }
 
-// Containers returns the service containers
-func (s *Service) Containers() []*Container {
-	return s.containers
+// Sidecars returns the service sidecars
+func (s *Service) Sidecars() []*Sidecar {
+	return s.sidecars
 }
 
 // CPURequest returns the cpu request for a deployment container
@@ -429,7 +429,7 @@ func (s *Service) createDeployment() error {
 		}
 	}
 
-	if len(s.containers) > 0 {
+	if len(s.Sidecars()) > 0 {
 		// This volume is used for sidecar containers
 		volumeContainer := corev1.Volume{
 			Name: "shared-data",
@@ -516,23 +516,23 @@ func (s *Service) createDeployment() error {
 	corv1Containers = append(corv1Containers, serviceContainer)
 
 	// Adds sidecar containers
-	for _, container := range s.containers {
-		volumeMountContainers := make([]corev1.VolumeMount, 0, len(container.volumes))
-		for _, volume := range container.volumes {
+	for _, sidecar := range s.sidecars {
+		volumeMountContainers := make([]corev1.VolumeMount, 0, len(sidecar.volumes))
+		for _, volume := range sidecar.volumes {
 			volumeMount := corev1.VolumeMount{
-				Name:      volume.name,
-				MountPath: volume.path,
-				SubPath:   getKey(volume.path),
+				Name:      volume.Name,
+				MountPath: volume.MountPath,
+				SubPath:   getKey(volume.MountPath),
 			}
 			volumeMountContainers = append(volumeMountContainers, volumeMount)
 		}
 
 		corev1Container := corev1.Container{
-			Name:            container.Name(),
-			Image:           container.Image(),
-			ImagePullPolicy: container.PullPolicy(),
-			Args:            container.Args(),
-			Command:         container.Command(),
+			Name:            sidecar.Name(),
+			Image:           sidecar.Image(),
+			ImagePullPolicy: sidecar.PullPolicy(),
+			Args:            sidecar.Args(),
+			Command:         sidecar.Command(),
 			ReadinessProbe:  readinessProbe,
 			VolumeMounts:    volumeMountContainers,
 			LivenessProbe:   livenessProbe,

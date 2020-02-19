@@ -14,6 +14,8 @@
 
 package cluster
 
+import corev1 "k8s.io/api/core/v1"
+
 const (
 	configType          = "config"
 	configImage         = "onosproject/onos-config:latest"
@@ -85,49 +87,49 @@ func newConfig(cluster *Cluster) *Config {
 	service.SetName(configService)
 
 	// Add model plugin sidecar containers
-	var sideContainers []*Container
+	var sideCars []*Sidecar
 
 	// testdevice.so.1.0.0 model plugin
-	container := newContainer(cluster)
+	container := newSidecar(cluster)
 	container.SetName(testDeviceNameV1)
 	container.SetImage(cmTestdeviceImageV1)
 	container.SetArgs(testDeviceV1Args...)
 	container.SetCommand(modelPluginCommand)
-	volume := VolumeMount{name: volumeName, path: volumePath}
+	volume := corev1.VolumeMount{Name: volumeName, MountPath: volumePath}
 	container.SetVolume(volume)
-	sideContainers = append(sideContainers, container)
+	sideCars = append(sideCars, container)
 
 	// testdevice.so.2.0.0 model plugin
-	container = newContainer(cluster)
+	container = newSidecar(cluster)
 	container.SetName(testDeviceNameV2)
 	container.SetImage(cmTestdeviceImageV2)
 	container.SetArgs(testDeviceV2Args...)
 	container.SetCommand(modelPluginCommand)
-	volume = VolumeMount{name: volumeName, path: volumePath}
+	volume = corev1.VolumeMount{Name: volumeName, MountPath: volumePath}
 	container.SetVolume(volume)
-	sideContainers = append(sideContainers, container)
+	sideCars = append(sideCars, container)
 
 	// devicesim.so.1.0.0 model plugin
-	container = newContainer(cluster)
+	container = newSidecar(cluster)
 	container.SetName(deviceSimName)
 	container.SetImage(cmDevicesimImage)
 	container.SetArgs(deviceSimArgs...)
 	container.SetCommand(modelPluginCommand)
-	volume = VolumeMount{name: volumeName, path: volumePath}
+	volume = corev1.VolumeMount{Name: volumeName, MountPath: volumePath}
 	container.SetVolume(volume)
-	sideContainers = append(sideContainers, container)
+	sideCars = append(sideCars, container)
 
 	// stratum.so.1.0.0 model plugin
-	container = newContainer(cluster)
+	container = newSidecar(cluster)
 	container.SetName(stratumName)
 	container.SetImage(cmStratumImage)
 	container.SetArgs(stratumArgs...)
 	container.SetCommand(modelPluginCommand)
-	volume = VolumeMount{name: volumeName, path: volumePath}
+	volume = corev1.VolumeMount{Name: volumeName, MountPath: volumePath}
 	container.SetVolume(volume)
-	sideContainers = append(sideContainers, container)
+	sideCars = append(sideCars, container)
 
-	service.SetContainers(sideContainers)
+	service.SetSidecars(sideCars)
 
 	return &Config{
 		Service: service,
