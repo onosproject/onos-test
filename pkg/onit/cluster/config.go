@@ -35,7 +35,7 @@ var configSecrets = map[string]string{
 
 const (
 	volumeName         = "shared-data"
-	volumePath         = "/usr/local/lib"
+	volumePath         = "/usr/local/lib/shared"
 	testDeviceNameV1   = "config-model-testdevice-1-0-0"
 	testDeviceNameV2   = "config-model-testdevice-2-0-0"
 	deviceSimName      = "config-model-devicesim-1-0-0"
@@ -45,24 +45,24 @@ const (
 
 var testDeviceV1Args = []string{
 	"testdevice.so.1.0.0",
-	"/usr/local/lib/testdevice.so.1.0.0",
+	"/usr/local/lib/shared/testdevice.so.1.0.0",
 	"stayrunning",
 }
 var testDeviceV2Args = []string{
 	"testdevice.so.2.0.0",
-	"/usr/local/lib/testdevice.so.2.0.0",
+	"/usr/local/lib/shared/testdevice.so.2.0.0",
 	"stayrunning",
 }
 
 var deviceSimArgs = []string{
 	"devicesim.so.1.0.0",
-	"/usr/local/lib/devicesim.so.1.0.0",
+	"/usr/local/lib/shared/devicesim.so.1.0.0",
 	"stayrunning",
 }
 
 var stratumArgs = []string{
 	"stratum.so.1.0.0",
-	"/usr/local/lib/stratum.so.1.0.0",
+	"/usr/local/lib/shared/stratum.so.1.0.0",
 	"stayrunning",
 }
 
@@ -70,21 +70,23 @@ var configArgs = []string{
 	"-caPath=/certs/onf.cacrt",
 	"-keyPath=/certs/onos-config.key",
 	"-certPath=/certs/onos-config.crt",
-	"-modelPlugin=/usr/local/lib/testdevice.so.1.0.0",
-	"-modelPlugin=/usr/local/lib/testdevice.so.2.0.0",
-	"-modelPlugin=/usr/local/lib/devicesim.so.1.0.0",
-	"-modelPlugin=/usr/local/lib/stratum.so.1.0.0",
+	"-modelPlugin=/usr/local/lib/shared/testdevice.so.1.0.0",
+	"-modelPlugin=/usr/local/lib/shared/testdevice.so.2.0.0",
+	"-modelPlugin=/usr/local/lib/shared/devicesim.so.1.0.0",
+	"-modelPlugin=/usr/local/lib/shared/stratum.so.1.0.0",
 }
 
 func newConfig(cluster *Cluster) *Config {
 	service := newService(cluster)
 	ports := []Port{{Name: "grpc", Port: configPort}}
+	serviceVolume := corev1.VolumeMount{Name: volumeName, MountPath: volumePath}
 	service.SetArgs(configArgs...)
 	service.SetSecrets(configSecrets)
 	service.SetPorts(ports)
 	service.SetLabels(getLabels(configType))
 	service.SetImage(configImage)
 	service.SetName(configService)
+	service.SetVolume(serviceVolume)
 
 	// Add model plugin sidecar containers
 	var sideCars []*Sidecar

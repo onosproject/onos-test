@@ -62,6 +62,17 @@ type Service struct {
 	memoryRequest string
 	cpuLimit      string
 	memoryLimit   string
+	volumes       []corev1.VolumeMount
+}
+
+// SetVolume sets service volumes
+func (s *Service) SetVolume(volume ...corev1.VolumeMount) {
+	s.volumes = volume
+}
+
+// Volume returns the service volume
+func (s *Service) Volume() []corev1.VolumeMount {
+	return s.volumes
 }
 
 // SetSidecars sets the service sidecars
@@ -429,6 +440,17 @@ func (s *Service) createDeployment() error {
 		}
 	}
 
+	if len(s.Volume()) > 0 {
+		for _, volume := range s.volumes {
+			volumeMount := corev1.VolumeMount{
+				Name:      volume.Name,
+				MountPath: volume.MountPath,
+				SubPath:   getKey(volume.MountPath),
+			}
+			volumeMounts = append(volumeMounts, volumeMount)
+		}
+	}
+
 	if len(s.Sidecars()) > 0 {
 		// This volume is used for sidecar containers
 		volumeContainer := corev1.Volume{
@@ -517,14 +539,14 @@ func (s *Service) createDeployment() error {
 
 	// Adds sidecar containers
 	for _, sidecar := range s.sidecars {
-		volumeMountContainers := make([]corev1.VolumeMount, 0, len(sidecar.volumes))
+		volumeMountSidecars := make([]corev1.VolumeMount, 0, len(sidecar.volumes))
 		for _, volume := range sidecar.volumes {
 			volumeMount := corev1.VolumeMount{
 				Name:      volume.Name,
 				MountPath: volume.MountPath,
 				SubPath:   getKey(volume.MountPath),
 			}
-			volumeMountContainers = append(volumeMountContainers, volumeMount)
+			volumeMountSidecars = append(volumeMountSidecars, volumeMount)
 		}
 
 		corev1Container := corev1.Container{
@@ -534,7 +556,7 @@ func (s *Service) createDeployment() error {
 			Args:            sidecar.Args(),
 			Command:         sidecar.Command(),
 			ReadinessProbe:  readinessProbe,
-			VolumeMounts:    volumeMountContainers,
+			VolumeMounts:    volumeMountSidecars,
 			LivenessProbe:   livenessProbe,
 			SecurityContext: securityContext,
 		}
