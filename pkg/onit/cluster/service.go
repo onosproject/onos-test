@@ -57,10 +57,32 @@ type Service struct {
 	secrets       map[string]string
 	env           map[string]string
 	args          []string
+	sidecars      []*Sidecar
 	cpuRequest    string
 	memoryRequest string
 	cpuLimit      string
 	memoryLimit   string
+	volumes       []corev1.VolumeMount
+}
+
+// SetVolume sets service volumes
+func (s *Service) SetVolume(volume ...corev1.VolumeMount) {
+	s.volumes = volume
+}
+
+// Volume returns the service volume
+func (s *Service) Volume() []corev1.VolumeMount {
+	return s.volumes
+}
+
+// SetSidecars sets the service sidecars
+func (s *Service) SetSidecars(sidecars []*Sidecar) {
+	s.sidecars = sidecars
+}
+
+// Sidecars returns the service sidecars
+func (s *Service) Sidecars() []*Sidecar {
+	return s.sidecars
 }
 
 // CPURequest returns the cpu request for a deployment container
@@ -418,6 +440,28 @@ func (s *Service) createDeployment() error {
 		}
 	}
 
+	if len(s.Volume()) > 0 {
+		for _, volume := range s.volumes {
+			volumeMount := corev1.VolumeMount{
+				Name:      volume.Name,
+				MountPath: volume.MountPath,
+				SubPath:   getKey(volume.MountPath),
+			}
+			volumeMounts = append(volumeMounts, volumeMount)
+		}
+	}
+
+	if len(s.Sidecars()) > 0 {
+		// This volume is used for sidecar containers
+		volumeContainer := corev1.Volume{
+			Name: "shared-data",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		}
+		volumes = append(volumes, volumeContainer)
+	}
+
 	var readinessProbe *corev1.Probe
 	var livenessProbe *corev1.Probe
 	if len(s.ports) > 0 {
@@ -475,6 +519,49 @@ func (s *Service) createDeployment() error {
 			Value: value,
 		})
 	}
+	var corv1Containers []corev1.Container
+
+	// Adds service container
+	serviceContainer := corev1.Container{
+		Name:            s.Name(),
+		Image:           s.Image(),
+		ImagePullPolicy: s.PullPolicy(),
+		Env:             env,
+		Args:            s.args,
+		Ports:           ports,
+		ReadinessProbe:  readinessProbe,
+		LivenessProbe:   livenessProbe,
+		VolumeMounts:    volumeMounts,
+		SecurityContext: securityContext,
+		Resources:       s.createResourceRequirements(),
+	}
+	corv1Containers = append(corv1Containers, serviceContainer)
+
+	// Adds sidecar containers
+	for _, sidecar := range s.sidecars {
+		volumeMountSidecars := make([]corev1.VolumeMount, 0, len(sidecar.volumes))
+		for _, volume := range sidecar.volumes {
+			volumeMount := corev1.VolumeMount{
+				Name:      volume.Name,
+				MountPath: volume.MountPath,
+				SubPath:   getKey(volume.MountPath),
+			}
+			volumeMountSidecars = append(volumeMountSidecars, volumeMount)
+		}
+
+		corev1Container := corev1.Container{
+			Name:            sidecar.Name(),
+			Image:           sidecar.Image(),
+			ImagePullPolicy: sidecar.PullPolicy(),
+			Args:            sidecar.Args(),
+			Command:         sidecar.Command(),
+			ReadinessProbe:  readinessProbe,
+			VolumeMounts:    volumeMountSidecars,
+			LivenessProbe:   livenessProbe,
+			SecurityContext: securityContext,
+		}
+		corv1Containers = append(corv1Containers, corev1Container)
+	}
 
 	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -492,21 +579,7 @@ func (s *Service) createDeployment() error {
 					Labels: s.labels,
 				},
 				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:            s.Name(),
-							Image:           s.Image(),
-							ImagePullPolicy: s.PullPolicy(),
-							Env:             env,
-							Args:            s.args,
-							Ports:           ports,
-							ReadinessProbe:  readinessProbe,
-							LivenessProbe:   livenessProbe,
-							VolumeMounts:    volumeMounts,
-							SecurityContext: securityContext,
-							Resources:       s.createResourceRequirements(),
-						},
-					},
+					Containers:      corv1Containers,
 					SecurityContext: podSecurityContext,
 					Volumes:         volumes,
 				},

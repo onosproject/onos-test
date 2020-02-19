@@ -53,6 +53,7 @@ func newRAN(cluster *Cluster) *RAN {
 	service.SetLabels(getLabels(ranType))
 	service.SetImage(ranImage)
 	service.SetName(ranService)
+
 	return &RAN{
 		Service: service,
 	}
