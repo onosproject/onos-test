@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/simulation"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strconv"
@@ -79,6 +81,62 @@ func getSimulateCommand() *cobra.Command {
 	return cmd
 }
 
+// isURL returns whether the given string is a URL
+func isURL(str string) bool {
+	_, err := url.ParseRequestURI(str)
+	if err != nil {
+		return false
+	}
+	u, err := url.Parse(str)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+	return true
+}
+
+// downloadURL downloads the given URL to a []byte
+func downloadURL(url string) ([]byte, error) {
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
+}
+
+// getData gets the name and data for the given file system path or URL
+func getData(pathOrURL string) (string, []byte, error) {
+	var name string
+	var data []byte
+	if isURL(pathOrURL) {
+		bytes, err := downloadURL(pathOrURL)
+		if err != nil {
+			return "", nil, err
+		}
+		u, err := url.Parse(pathOrURL)
+		if err != nil {
+			return "", nil, err
+		}
+		name = path.Base(u.Path)
+		name = name[:len(name)-len(path.Ext(name))]
+		data = bytes
+	} else {
+		file, err := os.Open(pathOrURL)
+		if err != nil {
+			return "", nil, err
+		}
+		bytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			return "", nil, err
+		}
+		name = path.Base(pathOrURL)
+		name = name[:len(name)-len(path.Ext(name))]
+		data = bytes
+	}
+	return name, data, nil
+}
+
 func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 	setupCommand(cmd)
 
@@ -101,21 +159,22 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		modulePaths, _ := cmd.Flags().GetStringArray("module")
 		configPath, _ := cmd.Flags().GetString("config")
 
+		modelData = make(map[string]string)
 		if modelPath != "" {
-			modelName = path.Base(modelPath)
-			modelName = modelName[:len(modelName)-len(path.Ext(modelName))]
+			name, data, err := getData(modelPath)
+			if err != nil {
+				return err
+			}
+			modelName = name
+			modelData[fmt.Sprintf("%s.tla", name)] = string(data)
 
 			var configBytes []byte
 			if configPath != "" {
-				file, err := os.Open(configPath)
+				_, data, err := getData(configPath)
 				if err != nil {
 					return err
 				}
-				bytes, err := ioutil.ReadAll(file)
-				if err != nil {
-					return err
-				}
-				configBytes = bytes
+				configBytes = data
 			} else {
 				spec, _ := cmd.Flags().GetString("spec")
 				init, _ := cmd.Flags().GetString("init")
@@ -157,29 +216,14 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 				}
 				configBytes = buf.Bytes()
 			}
-
-			modelData = make(map[string]string)
-			file, err := os.Open(modelPath)
-			if err != nil {
-				return err
-			}
-			modelBytes, err := ioutil.ReadAll(file)
-			if err != nil {
-				return err
-			}
-			modelData[fmt.Sprintf("%s.tla", modelName)] = string(modelBytes)
 			modelData[fmt.Sprintf("%s.cfg", modelName)] = string(configBytes)
 
 			for _, modulePath := range modulePaths {
-				file, err := os.Open(modulePath)
+				name, data, err := getData(modulePath)
 				if err != nil {
 					return err
 				}
-				moduleBytes, err := ioutil.ReadAll(file)
-				if err != nil {
-					return err
-				}
-				modelData[path.Base(modulePath)] = string(moduleBytes)
+				modelData[fmt.Sprintf("%s.tla", name)] = string(data)
 			}
 		}
 	}
