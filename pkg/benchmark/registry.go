@@ -14,22 +14,10 @@
 
 package benchmark
 
+import "github.com/onosproject/onos-test/pkg/registry"
+
 // Register registers a benchmark suite
+// Deprecated: Use registry.RegisterBenchmarkSuite instead
 func Register(name string, suite BenchmarkingSuite) {
-	Registry.register(name, suite)
-}
-
-// Registry is the global benchmark registry
-var Registry = &benchmarkRegistry{
-	benchmarks: make(map[string]BenchmarkingSuite),
-}
-
-// benchmarkRegistry is a registry of runnable benchmarks
-type benchmarkRegistry struct {
-	benchmarks map[string]BenchmarkingSuite
-}
-
-// register registers a benchmark suite
-func (s *benchmarkRegistry) register(name string, suite BenchmarkingSuite) {
-	s.benchmarks[name] = suite
+	registry.RegisterBenchmarkSuite(name, suite)
 }

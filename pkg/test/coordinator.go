@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/kube"
+	"github.com/onosproject/onos-test/pkg/registry"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -54,11 +55,7 @@ func (c *Coordinator) Run() error {
 	for iteration := 1; iteration <= c.config.Iterations || c.config.Iterations < 0; iteration++ {
 		suites := c.config.Suites
 		if len(suites) == 0 || suites[0] == "" {
-			// No suite specified - run all of them
-			suites = make([]string, 0, len(Registry.tests))
-			for suite := range Registry.tests {
-				suites = append(suites, suite)
-			}
+			suites = registry.GetTestSuites()
 		}
 		workers := make([]*WorkerTask, len(suites))
 		for i, suite := range suites {
