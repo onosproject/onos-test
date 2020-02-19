@@ -14,22 +14,10 @@
 
 package test
 
+import "github.com/onosproject/onos-test/pkg/registry"
+
 // Register registers a test suite
+// Deprecated: Use registry.RegisterTestSuite instead
 func Register(name string, suite TestingSuite) {
-	Registry.register(name, suite)
-}
-
-// Registry is the global test registry
-var Registry = &testRegistry{
-	tests: make(map[string]TestingSuite),
-}
-
-// testRegistry is a registry of runnable tests
-type testRegistry struct {
-	tests map[string]TestingSuite
-}
-
-// register registers a test suite
-func (s *testRegistry) register(name string, suite TestingSuite) {
-	s.tests[name] = suite
+	registry.RegisterTestSuite(name, suite)
 }

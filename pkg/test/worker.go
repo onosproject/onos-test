@@ -17,6 +17,7 @@ package test
 import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/kube"
+	"github.com/onosproject/onos-test/pkg/registry"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
@@ -42,8 +43,8 @@ type Worker struct {
 
 // Run runs a test
 func (w *Worker) Run() error {
-	test, ok := Registry.tests[w.config.Suites[0]]
-	if !ok {
+	test := registry.GetTestSuite(w.config.Suites[0])
+	if test == nil {
 		return fmt.Errorf("unknown test suite %s", w.config.Suites[0])
 	}
 

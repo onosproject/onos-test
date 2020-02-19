@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/kube"
+	"github.com/onosproject/onos-test/pkg/registry"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
 	"net"
@@ -59,7 +60,7 @@ func (w *Worker) getSuite(name string) (BenchmarkingSuite, error) {
 	if suite, ok := w.suites[name]; ok {
 		return suite, nil
 	}
-	if suite, ok := Registry.benchmarks[name]; ok {
+	if suite := registry.GetBenchmarkSuite(name); suite != nil {
 		w.suites[name] = suite
 		return suite, nil
 	}

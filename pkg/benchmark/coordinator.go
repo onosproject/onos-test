@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/kube"
+	"github.com/onosproject/onos-test/pkg/registry"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
@@ -56,10 +57,7 @@ type Coordinator struct {
 func (c *Coordinator) Run() error {
 	var suites []string
 	if c.config.Suite == "" {
-		suites = make([]string, 0, len(Registry.benchmarks))
-		for suite := range Registry.benchmarks {
-			suites = append(suites, suite)
-		}
+		suites = registry.GetBenchmarkSuites()
 	} else {
 		suites = []string{c.config.Suite}
 	}
@@ -465,7 +463,7 @@ func (t *WorkerTask) runBenchmarks() error {
 	} else {
 		suiteStep := logging.NewStep(t.config.ID, "Run benchmark suite %s", t.config.Suite)
 		suiteStep.Start()
-		suite := Registry.benchmarks[t.config.Suite]
+		suite := registry.GetBenchmarkSuite(t.config.Suite)
 		benchmarks := getBenchmarks(suite)
 		for _, benchmark := range benchmarks {
 			benchmarkSuite := logging.NewStep(t.config.ID, "Run benchmark %s", benchmark)
