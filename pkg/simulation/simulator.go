@@ -181,7 +181,9 @@ func (s *Simulator) teardownSimulation() error {
 // setupSimulator sets up the simulator
 func (s *Simulator) setupSimulator() error {
 	if setupSuite, ok := s.suite.(SetupSimulator); ok {
-		return setupSuite.SetupSimulator(s)
+		if err := setupSuite.SetupSimulator(s); err != nil {
+			return err
+		}
 	}
 	if setupSuite, ok := s.suite.(ScheduleSimulator); ok {
 		setupSuite.ScheduleSimulator(s)
