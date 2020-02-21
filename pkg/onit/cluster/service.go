@@ -332,6 +332,10 @@ func (s *Service) createResourceRequirements() corev1.ResourceRequirements {
 
 // createService creates a Service to expose the Deployment to other pods
 func (s *Service) createService() error {
+	if len(s.ports) == 0 {
+		return nil
+	}
+
 	ports := make([]corev1.ServicePort, len(s.ports))
 	for i, port := range s.ports {
 		ports[i] = corev1.ServicePort{
