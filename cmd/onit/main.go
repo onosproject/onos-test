@@ -16,8 +16,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/onit/cli"
 	"os"
+
+	"github.com/onosproject/onos-test/pkg/onit/cli"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 func main() {
