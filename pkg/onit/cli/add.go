@@ -15,10 +15,11 @@
 package cli
 
 import (
+	"io/ioutil"
+
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -240,7 +241,7 @@ func runAddRANSimulatorCommand(cmd *cobra.Command, _ []string) error {
 	env := env.New(kubeAPI)
 	_, err = env.Simulators().
 		New().
-		SetName("ran-simulator").
+		SetName(getName(cmd)).
 		SetPort(5150).
 		SetImage(image).
 		SetPullPolicy(pullPolicy).
