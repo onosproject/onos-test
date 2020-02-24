@@ -56,7 +56,7 @@ func Topo() TopoEnv {
 	return getEnv().Topo()
 }
 
-// RAN returns the onos-ran environment
+// RAN returns the onos-ric environment
 func RAN() RANEnv {
 	return getEnv().RAN()
 }
