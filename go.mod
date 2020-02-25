@@ -13,8 +13,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/onosproject/onos-config v0.0.0-20200204191831-5c2803ee469d
-	github.com/onosproject/onos-ran v0.0.0-20200210203428-df3953bf0fb1
-	github.com/onosproject/onos-ric v0.0.0-00010101000000-000000000000
+	github.com/onosproject/onos-ric v0.0.0-20200225182040-dcf370614b8e
 	github.com/onosproject/onos-topo v0.0.0-20200218171206-55029b503689
 	github.com/openconfig/gnmi v0.0.0-20190823184014-89b2bf29312c
 	github.com/spf13/cobra v0.0.6
@@ -33,5 +32,3 @@ require (
 	k8s.io/klog v1.0.0
 	sigs.k8s.io/controller-runtime v0.1.12
 )
-
-replace github.com/onosproject/onos-ric => ../onos-ric
