@@ -28,7 +28,7 @@ type RANSetup interface {
 	// SetReplicas sets the number of ran replicas to deploy
 	SetReplicas(replicas int) RANSetup
 
-	// SetImage sets the onos-ran image to deploy
+	// SetImage sets the onos-ric image to deploy
 	SetImage(image string) RANSetup
 
 	// SetPullPolicy sets the image pull policy

@@ -15,7 +15,7 @@
 package env
 
 import (
-	"github.com/onosproject/onos-ran/api/nb"
+	"github.com/onosproject/onos-ric/api/nb"
 	"google.golang.org/grpc"
 )
 

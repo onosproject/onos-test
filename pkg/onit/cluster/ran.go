@@ -16,21 +16,21 @@ package cluster
 
 const (
 	ranType    = "ran"
-	ranImage   = "onosproject/onos-ran:latest"
-	ranService = "onos-ran"
+	ranImage   = "onosproject/onos-ric:latest"
+	ranService = "onos-ric"
 	ranPort    = 5150
 )
 
 var ranSecrets = map[string]string{
 	"/certs/onf.cacrt":    caCert,
-	"/certs/onos-ran.crt": ranCert,
-	"/certs/onos-ran.key": ranKey,
+	"/certs/onos-ric.crt": ranCert,
+	"/certs/onos-ric.key": ranKey,
 }
 
 var ranArgs = []string{
 	"-caPath=/certs/onf.cacrt",
-	"-keyPath=/certs/onos-ran.key",
-	"-certPath=/certs/onos-ran.crt",
+	"-keyPath=/certs/onos-ric.key",
+	"-certPath=/certs/onos-ric.crt",
 	"-simulator=ran-simulator:5150",
 }
 
@@ -59,7 +59,7 @@ func newRAN(cluster *Cluster) *RAN {
 	}
 }
 
-// RAN provides methods for managing the onos-ran service
+// RAN provides methods for managing the onos-ric service
 type RAN struct {
 	*Service
 	enabled bool
