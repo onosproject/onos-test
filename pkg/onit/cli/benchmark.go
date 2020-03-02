@@ -40,6 +40,7 @@ func getBenchCommand() *cobra.Command {
 	cmd.Flags().IntP("workers", "w", 1, "the number of workers to run")
 	cmd.Flags().IntP("parallel", "p", 1, "the number of concurrent goroutines per client")
 	cmd.Flags().IntP("requests", "n", 0, "the number of requests to run")
+	cmd.Flags().IntP("max-latency", "m", 0, "maximum latency allowed in milliseconds")
 	cmd.Flags().DurationP("duration", "d", 0, "the duration for which to run the test")
 	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named benchmark arguments")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "benchmark timeout")
@@ -61,6 +62,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	sets, _ := cmd.Flags().GetStringToString("set")
 	args, _ := cmd.Flags().GetStringToString("args")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
+	maxLatencyMS, _ := cmd.Flags().GetInt("max-latency")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
 
@@ -86,6 +88,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		Args:            args,
 		Env:             onitcluster.GetArgsAsEnv(sets),
 		Timeout:         timeout,
+		MaxLatencyMS:    int64(maxLatencyMS),
 	}
 
 	job := &cluster.Job{

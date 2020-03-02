@@ -75,6 +75,7 @@ func (c *Coordinator) Run() error {
 			Parallelism:     c.config.Parallelism,
 			Requests:        c.config.Requests,
 			Duration:        c.config.Duration,
+			MaxLatencyMS:    c.config.MaxLatencyMS,
 			Args:            c.config.Args,
 			Env:             c.config.Env,
 		}
@@ -489,7 +490,14 @@ func (t *WorkerTask) runBenchmarks() error {
 			result.latencyPercentiles[.5], result.latencyPercentiles[.75],
 			result.latencyPercentiles[.95], result.latencyPercentiles[.99]))
 	}
+
 	writer.Flush()
+
+	for _, result := range results {
+		if result.maxLatencyMS > 0 && result.meanLatency.Milliseconds() >= result.maxLatencyMS {
+			return fmt.Errorf("mean latency of %d exceeds maximum of %d", result.meanLatency.Milliseconds(), result.maxLatencyMS)
+		}
+	}
 	return nil
 }
 
@@ -513,12 +521,13 @@ func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
 		wg.Add(1)
 		go func(worker WorkerServiceClient, requests int, duration *time.Duration) {
 			result, err := worker.RunBenchmark(context.Background(), &RunRequest{
-				Suite:       t.config.Suite,
-				Benchmark:   benchmark,
-				Requests:    uint32(requests),
-				Duration:    duration,
-				Parallelism: uint32(t.config.Parallelism),
-				Args:        t.config.Args,
+				Suite:        t.config.Suite,
+				Benchmark:    benchmark,
+				Requests:     uint32(requests),
+				Duration:     duration,
+				MaxLatencyMS: t.config.MaxLatencyMS,
+				Parallelism:  uint32(t.config.Parallelism),
+				Args:         t.config.Args,
 			})
 			if err != nil {
 				errCh <- err
@@ -544,6 +553,7 @@ func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
 	var latency75Sum time.Duration
 	var latency95Sum time.Duration
 	var latency99Sum time.Duration
+	var maxLatencyMS int64
 	for result := range resultCh {
 		requests += result.Requests
 		duration = time.Duration(math.Max(float64(duration), float64(result.Duration)))
@@ -552,6 +562,7 @@ func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
 		latency75Sum += result.Latency75
 		latency95Sum += result.Latency95
 		latency99Sum += result.Latency99
+		maxLatencyMS = result.MaxLatencyMS
 	}
 
 	throughput := float64(requests) / (float64(duration) / float64(time.Second))
@@ -568,6 +579,7 @@ func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
 		duration:           duration,
 		throughput:         throughput,
 		meanLatency:        meanLatency,
+		maxLatencyMS:       maxLatencyMS,
 		latencyPercentiles: latencyPercentiles,
 	}, nil
 }
@@ -578,6 +590,7 @@ type result struct {
 	duration           time.Duration
 	throughput         float64
 	meanLatency        time.Duration
+	maxLatencyMS       int64
 	latencyPercentiles map[float32]time.Duration
 }
 

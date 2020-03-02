@@ -65,6 +65,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		Requests:        requests,
 		Args:            args,
 		Timeout:         timeout,
+		MaxLatencyMS:    10,
 	}
 
 	job := &cluster.Job{

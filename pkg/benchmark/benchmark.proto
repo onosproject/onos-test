@@ -71,6 +71,9 @@ message RunRequest {
 
     // args is the benchmark arguments
     map<string, string> args = 6;
+
+    // maximum allowed latency in milliseconds before the benchmark will fail. 0 means don't check
+    int64 maxLatencyMS = 7;
 }
 
 // RunResponse is a benchmark run response
@@ -95,6 +98,9 @@ message RunResponse {
     google.protobuf.Duration latency75 = 7 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
     google.protobuf.Duration latency95 = 8 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
     google.protobuf.Duration latency99 = 9 [(gogoproto.stdduration) = true, (gogoproto.nullable) = false];
+
+    // maximum allowed latency in milliseconds before the benchmark will fail. 0 means don't check
+    int64 maxLatencyMS = 10;
 }
 
 // WorkerService is a benchmark worker service
