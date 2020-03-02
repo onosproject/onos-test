@@ -521,13 +521,13 @@ func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
 		wg.Add(1)
 		go func(worker WorkerServiceClient, requests int, duration *time.Duration) {
 			result, err := worker.RunBenchmark(context.Background(), &RunRequest{
-				Suite:        t.config.Suite,
-				Benchmark:    benchmark,
-				Requests:     uint32(requests),
-				Duration:     duration,
-				MaxLatency:   t.config.MaxLatency,
-				Parallelism:  uint32(t.config.Parallelism),
-				Args:         t.config.Args,
+				Suite:       t.config.Suite,
+				Benchmark:   benchmark,
+				Requests:    uint32(requests),
+				Duration:    duration,
+				MaxLatency:  t.config.MaxLatency,
+				Parallelism: uint32(t.config.Parallelism),
+				Args:        t.config.Args,
 			})
 			if err != nil {
 				errCh <- err

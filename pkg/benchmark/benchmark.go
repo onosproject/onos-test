@@ -114,12 +114,12 @@ func (a *Arg) String(def string) string {
 
 func newBenchmark(name string, requests int, duration *time.Duration, parallelism int, maxLatency *time.Duration, context *Context) *Benchmark {
 	return &Benchmark{
-		Context:      context,
-		requests:     requests,
-		duration:     duration,
-		maxLatency: maxLatency,
-		parallelism:  parallelism,
-		Name:         name,
+		Context:     context,
+		requests:    requests,
+		duration:    duration,
+		maxLatency:  maxLatency,
+		parallelism: parallelism,
+		Name:        name,
 	}
 }
 
@@ -128,12 +128,12 @@ type Benchmark struct {
 	*Context
 
 	// Name is the name of the benchmark
-	Name         string
-	requests     int
-	duration     *time.Duration
-	parallelism  int
-	result       *RunResponse
-	maxLatency   *time.Duration
+	Name        string
+	requests    int
+	duration    *time.Duration
+	parallelism int
+	result      *RunResponse
+	maxLatency  *time.Duration
 }
 
 // getResult returns the benchmark result
@@ -166,13 +166,13 @@ func (b *Benchmark) Run(f interface{}, params ...input.Source) {
 	latency99 := results[int(math.Max(float64(len(results)-(len(results)/100)-1), 0))]
 
 	b.result = &RunResponse{
-		Requests:     uint32(requests),
-		Duration:     runTime,
-		Latency:      meanLatency,
-		Latency50:    latency50,
-		Latency75:    latency75,
-		Latency95:    latency95,
-		Latency99:    latency99,
+		Requests:  uint32(requests),
+		Duration:  runTime,
+		Latency:   meanLatency,
+		Latency50: latency50,
+		Latency75: latency75,
+		Latency95: latency95,
+		Latency99: latency99,
 	}
 }
 
