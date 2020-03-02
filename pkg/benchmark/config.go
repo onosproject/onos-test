@@ -77,6 +77,8 @@ func GetConfigFromEnv() *Config {
 		panic(err)
 	}
 	var duration *time.Duration
+	var maxLatency *time.Duration
+
 	durationEnv := os.Getenv(benchmarkDurationEnv)
 	if durationEnv != "" {
 		d, err := strconv.Atoi(durationEnv)
@@ -86,7 +88,15 @@ func GetConfigFromEnv() *Config {
 		dur := time.Duration(d)
 		duration = &dur
 	}
-	maxLatencyMS, _ := strconv.Atoi(os.Getenv(benchmarkMaxLatencyMSEnv))
+	maxLatencyEnv := os.Getenv(benchmarkMaxLatencyMSEnv)
+	if maxLatencyEnv != "" {
+		d, err := strconv.Atoi(maxLatencyEnv)
+		if err != nil {
+			panic(err)
+		}
+		dur := time.Duration(d)
+		maxLatency = &dur
+	}
 
 	return &Config{
 		ID:              os.Getenv(benchmarkJobEnv),
@@ -94,7 +104,7 @@ func GetConfigFromEnv() *Config {
 		ImagePullPolicy: corev1.PullPolicy(os.Getenv(benchmarkImagePullPolicyEnv)),
 		Suite:           os.Getenv(benchmarkSuiteEnv),
 		Benchmark:       os.Getenv(benchmarkNameEnv),
-		MaxLatencyMS:    int64(maxLatencyMS),
+		MaxLatency:      maxLatency,
 		Workers:         workers,
 		Parallelism:     parallelism,
 		Requests:        requests,
@@ -118,7 +128,7 @@ type Config struct {
 	Args            map[string]string
 	Env             map[string]string
 	Timeout         time.Duration
-	MaxLatencyMS    int64
+	MaxLatency      *time.Duration
 }
 
 // ToEnv returns the configuration as a mapping of environment variables
@@ -132,7 +142,9 @@ func (c *Config) ToEnv() map[string]string {
 	env[benchmarkWorkersEnv] = fmt.Sprintf("%d", c.Workers)
 	env[benchmarkParallelismEnv] = fmt.Sprintf("%d", c.Parallelism)
 	env[benchmarkRequestsEnv] = fmt.Sprintf("%d", c.Requests)
-	env[benchmarkMaxLatencyMSEnv] = fmt.Sprintf("%d", c.MaxLatencyMS)
+	if c.MaxLatency != nil {
+		env[benchmarkMaxLatencyMSEnv] = fmt.Sprintf("%d", *c.MaxLatency)
+	}
 	if c.Duration != nil {
 		env[benchmarkDurationEnv] = fmt.Sprintf("%d", *c.Duration)
 	}

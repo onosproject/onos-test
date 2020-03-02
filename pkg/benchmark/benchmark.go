@@ -112,12 +112,12 @@ func (a *Arg) String(def string) string {
 	return a.value
 }
 
-func newBenchmark(name string, requests int, duration *time.Duration, parallelism int, maxLatencyMS int64, context *Context) *Benchmark {
+func newBenchmark(name string, requests int, duration *time.Duration, parallelism int, maxLatency *time.Duration, context *Context) *Benchmark {
 	return &Benchmark{
 		Context:      context,
 		requests:     requests,
 		duration:     duration,
-		maxLatencyMS: maxLatencyMS,
+		maxLatency: maxLatency,
 		parallelism:  parallelism,
 		Name:         name,
 	}
@@ -133,7 +133,7 @@ type Benchmark struct {
 	duration     *time.Duration
 	parallelism  int
 	result       *RunResponse
-	maxLatencyMS int64
+	maxLatency   *time.Duration
 }
 
 // getResult returns the benchmark result

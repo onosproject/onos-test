@@ -72,8 +72,8 @@ message RunRequest {
     // args is the benchmark arguments
     map<string, string> args = 6;
 
-    // maximum allowed latency in milliseconds before the benchmark will fail. 0 means don't check
-    int64 maxLatencyMS = 7;
+    // maximum allowed latency before the benchmark will fail
+    google.protobuf.Duration maxLatency = 7 [(gogoproto.stdduration) = true];
 }
 
 // RunResponse is a benchmark run response
