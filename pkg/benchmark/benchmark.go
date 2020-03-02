@@ -173,7 +173,6 @@ func (b *Benchmark) Run(f interface{}, params ...input.Source) {
 		Latency75:    latency75,
 		Latency95:    latency95,
 		Latency99:    latency99,
-		MaxLatencyMS: b.maxLatencyMS,
 	}
 }
 
