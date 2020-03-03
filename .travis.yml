@@ -34,7 +34,7 @@ jobs:
 
     - stage: integration-tests
       name: "onos-topo integration tests"
-
+      if: type != pull_request
       notifications:
         email:
           - andrea@opennetworking.org
@@ -56,7 +56,7 @@ jobs:
         - build/bin/run-integration-tests onos-topo
     - # stage name not required, will continue to use `integration-tests`
       name: "onos-config integration tests"
-      #if: type != pull_request
+      if: type != pull_request
       script:
         # Download and install kubectl
         - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
