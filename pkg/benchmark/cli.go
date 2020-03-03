@@ -53,6 +53,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	requests, _ := cmd.Flags().GetInt("requests")
 	args, _ := cmd.Flags().GetStringToString("args")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
+	maxLatency, _ := cmd.Flags().GetDuration("max-latency")
 
 	config := &Config{
 		ID:              random.NewPetName(2),
@@ -65,6 +66,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		Requests:        requests,
 		Args:            args,
 		Timeout:         timeout,
+		MaxLatency:      &maxLatency,
 	}
 
 	job := &cluster.Job{

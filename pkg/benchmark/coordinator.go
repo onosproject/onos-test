@@ -75,6 +75,7 @@ func (c *Coordinator) Run() error {
 			Parallelism:     c.config.Parallelism,
 			Requests:        c.config.Requests,
 			Duration:        c.config.Duration,
+			MaxLatency:      c.config.MaxLatency,
 			Args:            c.config.Args,
 			Env:             c.config.Env,
 		}
@@ -489,7 +490,14 @@ func (t *WorkerTask) runBenchmarks() error {
 			result.latencyPercentiles[.5], result.latencyPercentiles[.75],
 			result.latencyPercentiles[.95], result.latencyPercentiles[.99]))
 	}
+
 	writer.Flush()
+
+	for _, result := range results {
+		if t.config.MaxLatency != nil && result.meanLatency >= *t.config.MaxLatency {
+			return fmt.Errorf("mean latency of %d exceeds maximum of %v", result.meanLatency.Milliseconds(), t.config.MaxLatency)
+		}
+	}
 	return nil
 }
 
@@ -517,6 +525,7 @@ func (t *WorkerTask) runBenchmark(benchmark string) (result, error) {
 				Benchmark:   benchmark,
 				Requests:    uint32(requests),
 				Duration:    duration,
+				MaxLatency:  t.config.MaxLatency,
 				Parallelism: uint32(t.config.Parallelism),
 				Args:        t.config.Args,
 			})
