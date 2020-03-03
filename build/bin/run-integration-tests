@@ -31,6 +31,8 @@ case "$testSuite" in
     make kind
     # temporary fix - only run one controller until problems with subscribe are fixed.
     onit test --image onosproject/onos-config-tests:latest --suite gnmi --suite cli --set onos-config.replicas=1
+    onit benchmark --image onosproject/onos-config-benchmarks:latest --requests 5000 --max-latency 5ms --benchmark BenchmarkGet
+    onit benchmark --image onosproject/onos-config-benchmarks:latest --requests 5000 --max-latency 20ms --benchmark BenchmarkSet
     popd;;
 
 "onos-ric")
