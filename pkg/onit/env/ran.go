@@ -16,7 +16,6 @@ package env
 
 import (
 	"github.com/onosproject/onos-ric/api/nb"
-	"google.golang.org/grpc"
 )
 
 // RANEnv provides the topo environment
@@ -35,11 +34,7 @@ type clusterRANEnv struct {
 }
 
 func (e *clusterRANEnv) NewRANC1ServiceClient() (nb.C1InterfaceServiceClient, error) {
-	opts := []grpc.DialOption{
-		grpc.WithInsecure(),
-	}
-
-	conn, connErr := grpc.Dial(env.RAN().Address(), opts...)
+	conn, connErr := e.Connect()
 	if connErr != nil {
 		return nil, connErr
 	}
