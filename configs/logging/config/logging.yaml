@@ -1,0 +1,18 @@
+logging:
+  loggers:
+    #- name: "test-stdout"
+    #  level: "info"
+    #  encoding: "json"
+    #  sink: "stdout"
+    #- name: "test-kafka"
+    #  level: "info"
+    #  encoding: "json"
+    #  sink: "kafka"
+  sinks:
+    #- name: "kafka1"
+    #  uri: "kafka:9092"
+    #  topic: "traces"
+    #  key: "test"
+    #  type: "kafka"
+    #- name: "stdout1"
+    #  type: "stdout"

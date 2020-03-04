@@ -55,6 +55,8 @@ type Service struct {
 	user          *int
 	privileged    bool
 	secrets       map[string]string
+	configMaps    []*ConfigMap
+	logConfigPath string
 	env           map[string]string
 	args          []string
 	sidecars      []*Sidecar
@@ -65,6 +67,16 @@ type Service struct {
 	volumes       []corev1.VolumeMount
 }
 
+// LogConfigPath returns log config path
+func (s *Service) LogConfigPath() string {
+	return GetArg(s.name, "log-config-path").String(s.logConfigPath)
+}
+
+// SetLogConfigPath sets log config path
+func (s *Service) SetLogConfigPath(path string) {
+	s.logConfigPath = path
+}
+
 // SetVolume sets service volumes
 func (s *Service) SetVolume(volume ...corev1.VolumeMount) {
 	s.volumes = volume
@@ -73,6 +85,16 @@ func (s *Service) SetVolume(volume ...corev1.VolumeMount) {
 // Volume returns the service volume
 func (s *Service) Volume() []corev1.VolumeMount {
 	return s.volumes
+}
+
+// SetConfigMaps sets config maps
+func (s *Service) SetConfigMaps(configMaps []*ConfigMap) {
+	s.configMaps = configMaps
+}
+
+// ConfigMaps returns config maps
+func (s *Service) ConfigMaps() []*ConfigMap {
+	return s.configMaps
 }
 
 // SetSidecars sets the service sidecars
@@ -262,6 +284,11 @@ func (s *Service) Setup() error {
 		step.Fail(err)
 		return err
 	}
+	step.Logf("Creating %s ConfigMap", s.Name())
+	if err := s.createConfigMaps(); err != nil {
+		step.Fail(err)
+		return err
+	}
 	step.Logf("Creating %s Deployment", s.Name())
 	if err := s.createDeployment(); err != nil {
 		step.Fail(err)
@@ -278,6 +305,28 @@ func (s *Service) Setup() error {
 
 func getKey(key string) string {
 	return strings.ReplaceAll(path.Base(key), "/", "-")
+}
+
+func (s *Service) createConfigMaps() error {
+
+	if len(s.ConfigMaps()) > 0 {
+		for _, configMap := range s.configMaps {
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      configMap.name,
+					Namespace: s.namespace,
+					Labels:    s.labels,
+				},
+				Data: map[string]string{
+					configMap.dataKey: configMap.dataValue,
+				},
+			}
+			_, err := s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
+			return err
+
+		}
+	}
+	return nil
 }
 
 // createSecret creates the service Secret
