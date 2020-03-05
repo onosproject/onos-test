@@ -65,9 +65,9 @@ func Topo() TopoSetup {
 	return getSetup().Topo()
 }
 
-// RAN returns the setup  configuration for the ran service
-func RAN() RANSetup {
-	return getSetup().RAN()
+// RIC returns the setup  configuration for the ran service
+func RIC() RICSetup {
+	return getSetup().RIC()
 }
 
 // Config returns the setup configuration for the config service
@@ -102,8 +102,8 @@ type ClusterSetup interface {
 	// Config returns the setup configuration for the ONOS config service
 	Config() ConfigSetup
 
-	// RAN returns the setup configuration for the ONOS ran service
-	RAN() RANSetup
+	// RIC returns the setup configuration for the ONOS RIC service
+	RIC() RICSetup
 
 	// App returns the setup configuration for an application
 	App(name string) AppSetup
@@ -160,8 +160,8 @@ func (s *clusterSetup) Topo() TopoSetup {
 	}
 }
 
-func (s *clusterSetup) RAN() RANSetup {
-	return &clusterRANSetup{
+func (s *clusterSetup) RIC() RICSetup {
+	return &clusterRICSetup{
 		ran: s.cluster.RIC(),
 	}
 }
@@ -202,7 +202,7 @@ func (s *clusterSetup) Setup() error {
 	setupService(s.CLI().(serviceSetup), wg, errCh)
 	setupService(s.Topo().(serviceSetup), wg, errCh)
 	setupService(s.Config().(serviceSetup), wg, errCh)
-	setupService(s.RAN().(serviceSetup), wg, errCh)
+	setupService(s.RIC().(serviceSetup), wg, errCh)
 	for _, app := range s.apps {
 		setupService(app.(serviceSetup), wg, errCh)
 	}
