@@ -28,7 +28,7 @@ type RICEnv interface {
 
 var _ RICEnv = &clusterRICEnv{}
 
-// clusterRICEnv is an implementation of the RAN interface
+// clusterRICEnv is an implementation of the RIC interface
 type clusterRICEnv struct {
 	*clusterServiceEnv
 }
