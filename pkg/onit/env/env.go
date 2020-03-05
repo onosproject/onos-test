@@ -56,8 +56,8 @@ func Topo() TopoEnv {
 	return getEnv().Topo()
 }
 
-// RAN returns the onos-ric environment
-func RAN() RICEnv {
+// RIC returns the onos-ric environment
+func RIC() RICEnv {
 	return getEnv().RIC()
 }
 
@@ -135,7 +135,7 @@ type ClusterEnv interface {
 	// Topo returns the topo environment
 	Topo() TopoEnv
 
-	// RIC returns the RAN environment
+	// RIC returns the RIC environment
 	RIC() RICEnv
 
 	// Config returns the config environment
@@ -219,9 +219,9 @@ func (e *clusterEnv) RIC() RICEnv {
 	return &clusterRICEnv{
 		clusterServiceEnv: &clusterServiceEnv{
 			clusterDeploymentEnv: &clusterDeploymentEnv{
-				deployment: e.cluster.RAN().Deployment,
+				deployment: e.cluster.RIC().Deployment,
 			},
-			service: e.cluster.RAN().Service,
+			service: e.cluster.RIC().Service,
 		},
 	}
 }

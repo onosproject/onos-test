@@ -38,7 +38,7 @@ func New(kube kube.API) *Cluster {
 	cluster.cli = newCLI(cluster)
 	cluster.topo = newTopo(cluster)
 	cluster.config = newConfig(cluster)
-	cluster.ran = newRAN(cluster)
+	cluster.ric = newRIC(cluster)
 	cluster.apps = newApps(cluster)
 	cluster.simulators = newSimulators(cluster)
 	cluster.networks = newNetworks(cluster)
@@ -54,7 +54,7 @@ type Cluster struct {
 	cli        *CLI
 	topo       *Topo
 	config     *Config
-	ran        *RAN
+	ric        *RIC
 	apps       *Apps
 	simulators *Simulators
 	networks   *Networks
@@ -81,9 +81,9 @@ func (c *Cluster) Topo() *Topo {
 	return c.topo
 }
 
-// RAN returns the ran service
-func (c *Cluster) RAN() *RAN {
-	return c.ran
+// RIC returns the ran service
+func (c *Cluster) RIC() *RIC {
+	return c.ric
 }
 
 // Config returns the configuration service

@@ -162,7 +162,7 @@ func (s *clusterSetup) Topo() TopoSetup {
 
 func (s *clusterSetup) RAN() RANSetup {
 	return &clusterRANSetup{
-		ran: s.cluster.RAN(),
+		ran: s.cluster.RIC(),
 	}
 }
 

@@ -51,7 +51,7 @@ var _ RANSetup = &clusterRANSetup{}
 
 // clusterRANSetup is an implementation of the Ran interface
 type clusterRANSetup struct {
-	ran *cluster.RAN
+	ran *cluster.RIC
 }
 
 func (s *clusterRANSetup) SetEnabled() RANSetup {

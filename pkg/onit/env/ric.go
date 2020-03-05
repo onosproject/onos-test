@@ -18,11 +18,11 @@ import (
 	"github.com/onosproject/onos-ric/api/nb"
 )
 
-// RANEnv provides the topo environment
+// RICEnv provides the RIC environment
 type RICEnv interface {
 	ServiceEnv
 
-	// NewRANC1ServiceClient returns a RAN C1 service client
+	// NewRICC1ServiceClient returns a RIC C1 service client
 	NewRICC1ServiceClient() (nb.C1InterfaceServiceClient, error)
 }
 

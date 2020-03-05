@@ -15,10 +15,10 @@
 package cluster
 
 const (
-	ranType    = "ran"
-	ranImage   = "onosproject/onos-ric:latest"
-	ranService = "onos-ric"
-	ranPort    = 5150
+	ricType    = "ric"
+	ricImage   = "onosproject/onos-ric:latest"
+	ricService = "onos-ric"
+	ricPort    = 5150
 )
 
 var ranSecrets = map[string]string{
@@ -35,32 +35,32 @@ var ranArgs = []string{
 }
 
 // Enabled indicates whether the Ran is enabled
-func (c *RAN) Enabled() bool {
+func (c *RIC) Enabled() bool {
 	return GetArg(c.name, "enabled").Bool(c.enabled)
 }
 
 // SetEnabled sets whether the Ran is enabled
-func (c *RAN) SetEnabled(enabled bool) {
+func (c *RIC) SetEnabled(enabled bool) {
 	c.enabled = enabled
 }
 
-func newRAN(cluster *Cluster) *RAN {
+func newRIC(cluster *Cluster) *RIC {
 	service := newService(cluster)
-	ports := []Port{{Name: "grpc", Port: ranPort}}
+	ports := []Port{{Name: "grpc", Port: ricPort}}
 	service.SetArgs(ranArgs...)
 	service.SetSecrets(ranSecrets)
 	service.SetPorts(ports)
-	service.SetLabels(getLabels(ranType))
-	service.SetImage(ranImage)
-	service.SetName(ranService)
+	service.SetLabels(getLabels(ricType))
+	service.SetImage(ricImage)
+	service.SetName(ricService)
 
-	return &RAN{
+	return &RIC{
 		Service: service,
 	}
 }
 
-// RAN provides methods for managing the onos-ric service
-type RAN struct {
+// RIC provides methods for managing the onos-ric service
+type RIC struct {
 	*Service
 	enabled bool
 }
