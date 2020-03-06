@@ -18,22 +18,22 @@ import (
 	"github.com/onosproject/onos-ric/api/nb"
 )
 
-// RANEnv provides the topo environment
-type RANEnv interface {
+// RICEnv provides the RIC environment
+type RICEnv interface {
 	ServiceEnv
 
-	// NewRANC1ServiceClient returns a RAN C1 service client
-	NewRANC1ServiceClient() (nb.C1InterfaceServiceClient, error)
+	// NewRICC1ServiceClient returns a RIC C1 service client
+	NewRICC1ServiceClient() (nb.C1InterfaceServiceClient, error)
 }
 
-var _ RANEnv = &clusterRANEnv{}
+var _ RICEnv = &clusterRICEnv{}
 
-// clusterRANEnv is an implementation of the RAN interface
-type clusterRANEnv struct {
+// clusterRICEnv is an implementation of the RIC interface
+type clusterRICEnv struct {
 	*clusterServiceEnv
 }
 
-func (e *clusterRANEnv) NewRANC1ServiceClient() (nb.C1InterfaceServiceClient, error) {
+func (e *clusterRICEnv) NewRICC1ServiceClient() (nb.C1InterfaceServiceClient, error) {
 	conn, connErr := e.Connect()
 	if connErr != nil {
 		return nil, connErr

@@ -19,81 +19,81 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// RANSetup is an interface for setting up ran nodes
-type RANSetup interface {
+// RICSetup is an interface for setting up ran nodes
+type RICSetup interface {
 
 	// SetEnabled enables the Ran subsystem
-	SetEnabled() RANSetup
+	SetEnabled() RICSetup
 
 	// SetReplicas sets the number of ran replicas to deploy
-	SetReplicas(replicas int) RANSetup
+	SetReplicas(replicas int) RICSetup
 
 	// SetImage sets the onos-ric image to deploy
-	SetImage(image string) RANSetup
+	SetImage(image string) RICSetup
 
 	// SetPullPolicy sets the image pull policy
-	SetPullPolicy(pullPolicy corev1.PullPolicy) RANSetup
+	SetPullPolicy(pullPolicy corev1.PullPolicy) RICSetup
 
 	// SetCpuRequest sets the cpu request
-	SetCPURequest(cpuRequest string) RANSetup
+	SetCPURequest(cpuRequest string) RICSetup
 
 	// SetMemoryRequest sets memory request
-	SetMemoryRequest(memoryRequest string) RANSetup
+	SetMemoryRequest(memoryRequest string) RICSetup
 
 	// SetMemoryLimit sets memory limit
-	SetMemoryLimit(memoryLimit string) RANSetup
+	SetMemoryLimit(memoryLimit string) RICSetup
 
 	// SetCPULimit sets cpu limit
-	SetCPULimit(cpuLimit string) RANSetup
+	SetCPULimit(cpuLimit string) RICSetup
 }
 
-var _ RANSetup = &clusterRANSetup{}
+var _ RICSetup = &clusterRICSetup{}
 
-// clusterRANSetup is an implementation of the Ran interface
-type clusterRANSetup struct {
-	ran *cluster.RAN
+// clusterRICSetup is an implementation of the Ran interface
+type clusterRICSetup struct {
+	ran *cluster.RIC
 }
 
-func (s *clusterRANSetup) SetEnabled() RANSetup {
+func (s *clusterRICSetup) SetEnabled() RICSetup {
 	s.ran.SetEnabled(true)
 	return s
 }
 
-func (s *clusterRANSetup) SetReplicas(replicas int) RANSetup {
+func (s *clusterRICSetup) SetReplicas(replicas int) RICSetup {
 	s.ran.SetReplicas(replicas)
 	return s
 }
 
-func (s *clusterRANSetup) SetImage(image string) RANSetup {
+func (s *clusterRICSetup) SetImage(image string) RICSetup {
 	s.ran.SetImage(image)
 	return s
 }
 
-func (s *clusterRANSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) RANSetup {
+func (s *clusterRICSetup) SetPullPolicy(pullPolicy corev1.PullPolicy) RICSetup {
 	s.ran.SetPullPolicy(pullPolicy)
 	return s
 }
 
-func (s *clusterRANSetup) SetCPURequest(cpuRequest string) RANSetup {
+func (s *clusterRICSetup) SetCPURequest(cpuRequest string) RICSetup {
 	s.ran.SetCPURequest(cpuRequest)
 	return s
 }
 
-func (s *clusterRANSetup) SetMemoryRequest(memoryRequest string) RANSetup {
+func (s *clusterRICSetup) SetMemoryRequest(memoryRequest string) RICSetup {
 	s.ran.SetMemoryRequest(memoryRequest)
 	return s
 }
 
-func (s *clusterRANSetup) SetMemoryLimit(memoryLimit string) RANSetup {
+func (s *clusterRICSetup) SetMemoryLimit(memoryLimit string) RICSetup {
 	s.ran.SetMemoryLimit(memoryLimit)
 	return s
 }
 
-func (s *clusterRANSetup) SetCPULimit(cpuLimit string) RANSetup {
+func (s *clusterRICSetup) SetCPULimit(cpuLimit string) RICSetup {
 	s.ran.SetCPULimit(cpuLimit)
 	return s
 }
 
-func (s *clusterRANSetup) setup() error {
+func (s *clusterRICSetup) setup() error {
 	return s.ran.Setup()
 }
