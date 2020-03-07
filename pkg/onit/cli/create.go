@@ -60,6 +60,7 @@ func getCreateClusterCommand() *cobra.Command {
 		RunE:  runInCluster(runCreateClusterCommand),
 	}
 	cmd.Flags().StringToString("set", map[string]string{}, "set a cluster argument")
+	cmd.Flags().StringToString("loggers", map[string]string{}, "set required logger config files")
 	return cmd
 }
 
@@ -82,6 +83,7 @@ func runCreateClusterCommand(cmd *cobra.Command, _ []string) error {
 	}
 
 	args, _ := cmd.Flags().GetStringToString("set")
+
 	onitcluster.SetArgs(args)
 	setup := setup.New(api)
 	setup.Atomix()

@@ -17,9 +17,12 @@ package cluster
 import (
 	"bufio"
 	"errors"
-	"github.com/onosproject/onos-test/pkg/model"
 	"os"
 	"time"
+
+	"github.com/onosproject/onos-test/pkg/util/io"
+
+	"github.com/onosproject/onos-test/pkg/model"
 
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
@@ -40,6 +43,7 @@ type Job struct {
 	ImagePullPolicy corev1.PullPolicy
 	ModelChecker    bool
 	ModelData       map[string]string
+	Loggers         map[string]string
 	Args            []string
 	Env             map[string]string
 	Timeout         time.Duration
@@ -480,6 +484,32 @@ func (r *Runner) createJob(job *Job) error {
 				},
 			},
 		}
+	}
+
+	if len(job.Loggers) > 0 {
+		for loggerKey, loggerConfigPath := range job.Loggers {
+			name, data, _ := io.GetData(loggerConfigPath)
+
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      loggerKey,
+					Namespace: namespace,
+					Annotations: map[string]string{
+						"job":  job.ID,
+						"type": job.Type,
+					},
+				},
+				Data: map[string]string{
+					name + ".yaml": string(data),
+				},
+			}
+			_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
+			if err != nil && !k8serrors.IsAlreadyExists(err) {
+				step.Fail(err)
+				return err
+			}
+		}
+
 	}
 
 	zero := int32(0)

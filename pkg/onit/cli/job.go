@@ -16,11 +16,12 @@ package cli
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
-	"os"
 )
 
 const (
@@ -60,6 +61,11 @@ func runInCluster(command func(cmd *cobra.Command, args []string) error) func(cm
 			timeout = 0
 		}
 
+		loggers, err := cmd.Flags().GetStringToString("loggers")
+		if err != nil {
+			loggers = make(map[string]string)
+		}
+
 		runner, err := cluster.NewRunner()
 		if err != nil {
 			return err
@@ -74,6 +80,7 @@ func runInCluster(command func(cmd *cobra.Command, args []string) error) func(cm
 				cliContextEnv: string(k8sContext),
 			},
 			Timeout: timeout,
+			Loggers: loggers,
 		}
 		return runner.Run(job)
 	}

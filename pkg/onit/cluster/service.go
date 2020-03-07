@@ -16,6 +16,7 @@ package cluster
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"path"
 	"strings"
@@ -55,8 +56,6 @@ type Service struct {
 	user          *int
 	privileged    bool
 	secrets       map[string]string
-	configMaps    []*ConfigMap
-	logConfigPath string
 	env           map[string]string
 	args          []string
 	sidecars      []*Sidecar
@@ -67,16 +66,6 @@ type Service struct {
 	volumes       []corev1.VolumeMount
 }
 
-// LogConfigPath returns log config path
-func (s *Service) LogConfigPath() string {
-	return GetArg(s.name, "log-config-path").String(s.logConfigPath)
-}
-
-// SetLogConfigPath sets log config path
-func (s *Service) SetLogConfigPath(path string) {
-	s.logConfigPath = path
-}
-
 // SetVolume sets service volumes
 func (s *Service) SetVolume(volume ...corev1.VolumeMount) {
 	s.volumes = volume
@@ -85,16 +74,6 @@ func (s *Service) SetVolume(volume ...corev1.VolumeMount) {
 // Volume returns the service volume
 func (s *Service) Volume() []corev1.VolumeMount {
 	return s.volumes
-}
-
-// SetConfigMaps sets config maps
-func (s *Service) SetConfigMaps(configMaps []*ConfigMap) {
-	s.configMaps = configMaps
-}
-
-// ConfigMaps returns config maps
-func (s *Service) ConfigMaps() []*ConfigMap {
-	return s.configMaps
 }
 
 // SetSidecars sets the service sidecars
@@ -284,11 +263,6 @@ func (s *Service) Setup() error {
 		step.Fail(err)
 		return err
 	}
-	step.Logf("Creating %s ConfigMap", s.Name())
-	if err := s.createConfigMaps(); err != nil {
-		step.Fail(err)
-		return err
-	}
 	step.Logf("Creating %s Deployment", s.Name())
 	if err := s.createDeployment(); err != nil {
 		step.Fail(err)
@@ -307,26 +281,36 @@ func getKey(key string) string {
 	return strings.ReplaceAll(path.Base(key), "/", "-")
 }
 
-func (s *Service) createConfigMaps() error {
+func (s *Service) createLogConfigMaps() (corev1.Volume, corev1.VolumeMount, error) {
+	configMapsAPI := s.kubeClient.CoreV1().ConfigMaps(s.namespace)
+	configMaps, err := configMapsAPI.List(metav1.ListOptions{})
+	if err != nil {
+		return corev1.Volume{}, corev1.VolumeMount{}, err
+	}
 
-	if len(s.ConfigMaps()) > 0 {
-		for _, configMap := range s.configMaps {
-			cm := &corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      configMap.name,
-					Namespace: s.namespace,
-					Labels:    s.labels,
-				},
-				Data: map[string]string{
-					configMap.dataKey: configMap.dataValue,
+	for _, configMap := range configMaps.Items {
+		if configMap.Name == s.Name() {
+			volume := corev1.Volume{
+				Name: "logging",
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: configMap.Name,
+						},
+					},
 				},
 			}
-			_, err := s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
-			return err
+			volumeMount := corev1.VolumeMount{
+				Name:      "logging",
+				MountPath: "/usr/local/configs",
+				ReadOnly:  true,
+			}
 
+			return volume, volumeMount, nil
 		}
 	}
-	return nil
+
+	return corev1.Volume{}, corev1.VolumeMount{}, errors.New("No logging config file is availble")
 }
 
 // createSecret creates the service Secret
@@ -470,6 +454,7 @@ func (s *Service) createDeployment() error {
 	// Mount secrets if necessary
 	var volumes []corev1.Volume
 	var volumeMounts []corev1.VolumeMount
+
 	if len(s.secrets) > 0 {
 		volumes = []corev1.Volume{
 			{
@@ -513,6 +498,12 @@ func (s *Service) createDeployment() error {
 			},
 		}
 		volumes = append(volumes, volumeContainer)
+	}
+
+	volume, volumeMount, err := s.createLogConfigMaps()
+	if err == nil {
+		volumes = append(volumes, volume)
+		volumeMounts = append(volumeMounts, volumeMount)
 	}
 
 	var readinessProbe *corev1.Probe
@@ -639,7 +630,7 @@ func (s *Service) createDeployment() error {
 			},
 		},
 	}
-	_, err := s.kubeClient.AppsV1().Deployments(s.namespace).Create(dep)
+	_, err = s.kubeClient.AppsV1().Deployments(s.namespace).Create(dep)
 	return err
 }
 

@@ -68,12 +68,47 @@ type Cluster struct {
 
 // Create creates the cluster
 func (c *Cluster) Create() error {
-	return c.setupNamespace()
+	err := c.setupNamespace()
+	if err != nil {
+		return err
+	}
+	err = c.createConfigMaps()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Delete deletes the cluster
 func (c *Cluster) Delete() error {
 	return c.teardownNamespace()
+}
+
+func (c *Cluster) createConfigMaps() error {
+	step := logging.NewStep(c.namespace, "Setup ConfigMaps")
+	configMapsAPI := c.client.CoreV1().ConfigMaps("kube-test")
+	configMaps, err := configMapsAPI.List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, configMap := range configMaps.Items {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        configMap.Name,
+				Namespace:   c.namespace,
+				Annotations: map[string]string{},
+			},
+			Data: configMap.Data,
+		}
+		_, err := c.client.CoreV1().ConfigMaps(c.namespace).Create(cm)
+		if err != nil && !k8serrors.IsAlreadyExists(err) {
+			step.Fail(err)
+			return err
+		}
+	}
+	step.Complete()
+	return nil
 }
 
 // setupNamespace sets up the test namespace
@@ -87,13 +122,14 @@ func (c *Cluster) setupNamespace() error {
 		},
 	}
 	step := logging.NewStep(c.namespace, "Setup namespace")
-	step.Start()
 	_, err := c.client.CoreV1().Namespaces().Create(ns)
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		step.Fail(err)
 		return err
 	}
+
 	step.Complete()
+
 	return c.setupRBAC()
 }
 
