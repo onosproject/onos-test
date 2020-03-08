@@ -46,6 +46,7 @@ func downloadURL(url string) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
+// GetData gets data from a file or URL
 func GetData(pathOrURL string) (string, []byte, error) {
 	var name string
 	var data []byte

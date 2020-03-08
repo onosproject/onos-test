@@ -31,9 +31,11 @@ type Configuration struct {
 	data   []byte
 }
 
+// ConfigYaml yaml data structure for the configuration file
 type ConfigYaml struct {
 	Services []struct {
-		Tracing struct {
+		Configuration string `yaml:"Configuration"`
+		Tracing       struct {
 			Logging struct {
 				Loggers []struct {
 					Encoding string `yaml:"encoding"`
@@ -50,7 +52,7 @@ type ConfigYaml struct {
 				} `yaml:"sinks"`
 			} `yaml:"logging"`
 		} `yaml:"Tracing"`
-		Service_name string `yaml:"service-name"`
+		ServiceName string `yaml:"service-name"`
 	} `yaml:"services"`
 }
 

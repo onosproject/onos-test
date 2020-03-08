@@ -297,7 +297,7 @@ func (s *Service) createLogConfigMaps() (corev1.Volume, corev1.VolumeMount, erro
 	}
 	configData := config.GetConfig()
 	for _, service := range configData.Services {
-		if service.Service_name == s.Name() {
+		if service.ServiceName == s.Name() {
 			data, _ := yaml.Marshal(service.Tracing)
 			cm := &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
@@ -333,7 +333,7 @@ func (s *Service) createLogConfigMaps() (corev1.Volume, corev1.VolumeMount, erro
 		}
 	}
 
-	return corev1.Volume{}, corev1.VolumeMount{}, errors.New("No logging config file is availble")
+	return corev1.Volume{}, corev1.VolumeMount{}, errors.New("config file is not found")
 }
 
 // createSecret creates the service Secret

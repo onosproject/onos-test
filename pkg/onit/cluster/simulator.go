@@ -16,11 +16,13 @@ package cluster
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"k8s.io/apimachinery/pkg/watch"
 	"time"
+
+	"k8s.io/apimachinery/pkg/watch"
 
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"github.com/onosproject/onos-topo/api/device"
@@ -45,176 +47,6 @@ const (
 	gnmiPortEnv               = "GNMI_PORT"
 	gnmiInsecurePortEnv       = "GNMI_INSECURE_PORT"
 )
-
-/* This is the initial OpenConfig model that is
-   used in for the gnmi simulator.
-*/
-// TODO It would be better to find a solution to read it from file (if it is possible).
-const simulatorConfig = `
-{
-  "interfaces": {
-    "interface": [
-      {
-        "name": "admin",
-        "config": {
-          "name": "admin"
-        }
-      }
-    ]
-  },
-  "system": {
-    "aaa": {
-      "authentication": {
-        "admin-user": {
-          "config": {
-            "admin-password": "password"
-          }
-        },
-        "config": {
-          "authentication-method": [
-            "openconfig-aaa-types:LOCAL"
-          ]
-        }
-      }
-    },
-    "clock": {
-      "config": {
-        "timezone-name": "Europe/Dublin"
-      }
-    },
-    "config": {
-      "hostname": "replace-device-name",
-      "domain-name": "opennetworking.org",
-      "login-banner": "This device is for authorized use only",
-      "motd-banner": "replace-motd-banner"
-    },
-    "state" : {
-      "boot-time": "1575415411",
-      "current-datetime": "2019-12-04T10:00:00Z-05:00",
-      "hostname": "replace-device-name",
-      "domain-name": "opennetworking.org",
-      "login-banner": "This device is for authorized use only",
-      "motd-banner": "replace-motd-banner"
-
-    },
-    "openflow": {
-      "agent": {
-        "config": {
-          "backoff-interval": 5,
-          "datapath-id": "00:16:3e:00:00:00:00:00",
-          "failure-mode": "SECURE",
-          "inactivity-probe": 10,
-          "max-backoff": 10
-        }
-      },
-      "controllers": {
-        "controller": [
-          {
-            "config": {
-              "name": "main"
-            },
-            "connections": {
-              "connection": [
-                {
-                  "aux-id": 0,
-                  "config": {
-                    "address": "192.0.2.10",
-                    "aux-id": 0,
-                    "port": 6633,
-                    "priority": 1,
-                    "source-interface": "admin",
-                    "transport": "TLS"
-                  },
-                  "state": {
-                    "address": "192.0.2.10",
-                    "aux-id": 0,
-                    "port": 6633,
-                    "priority": 1,
-                    "source-interface": "admin",
-                    "transport": "TLS"
-                  }
-                },
-                {
-                  "aux-id": 1,
-                  "config": {
-                    "address": "192.0.2.11",
-                    "aux-id": 1,
-                    "port": 6653,
-                    "priority": 2,
-                    "source-interface": "admin",
-                    "transport": "TLS"
-                  },
-                  "state": {
-                    "address": "192.0.2.11",
-                    "aux-id": 1,
-                    "port": 6653,
-                    "priority": 2,
-                    "source-interface": "admin",
-                    "transport": "TLS"
-                  }
-                }
-
-              ]
-             
-            },
-            "name": "main"
-          },
-          {
-            "config": {
-              "name": "second"
-            },
-            "connections": {
-              "connection": [
-                {
-                  "aux-id": 0,
-                  "config": {
-                    "address": "192.0.3.10",
-                    "aux-id": 0,
-                    "port": 6633,
-                    "priority": 1,
-                    "source-interface": "admin",
-                    "transport": "TLS"
-                  },
-                  "state": {
-                    "address": "192.0.3.10",
-                    "aux-id": 0,
-                    "port": 6633,
-                    "priority": 1,
-                    "source-interface": "admin",
-                    "transport": "TLS"
-                  }
-                },
-                {
-                  "aux-id": 1,
-                  "config": {
-                    "address": "192.0.3.11",
-                    "aux-id": 1,
-                    "port": 6653,
-                    "priority": 2,
-                    "source-interface": "admin",
-                    "transport": "TLS"
-                  },
-                  "state": {
-                    "address": "192.0.3.11",
-                    "aux-id": 1,
-                    "port": 6653,
-                    "priority": 2,
-                    "source-interface": "admin",
-                    "transport": "TLS"
-                  }
-                }
-
-              ]
-             
-            },
-            "name": "second"
-          }
-        ]
-      }
-    }
-  }
-}
-`
 
 func newSimulator(cluster *Cluster, name string) *Simulator {
 	node := newNode(cluster)
@@ -322,6 +154,27 @@ func (s *Simulator) getLabels() map[string]string {
 
 // createConfigMap creates a simulator configuration
 func (s *Simulator) createConfigMap() error {
+	configMapsAPI := s.kubeClient.CoreV1().ConfigMaps(s.namespace)
+	configMap, err := configMapsAPI.Get("config", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	config := NewConfig([]byte(configMap.Data["config.yaml"]))
+	err = config.Parse()
+	if err != nil {
+		return err
+	}
+	configData := config.GetConfig()
+	var simConfig []byte
+	for _, service := range configData.Services {
+		if service.ServiceName == simulatorService {
+			simConfig, err = json.Marshal(service.Configuration)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.name,
@@ -329,10 +182,10 @@ func (s *Simulator) createConfigMap() error {
 			Labels:    s.getLabels(),
 		},
 		Data: map[string]string{
-			"config.json": simulatorConfig,
+			"config.json": string(simConfig),
 		},
 	}
-	_, err := s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
+	_, err = s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
 	return err
 }
 
