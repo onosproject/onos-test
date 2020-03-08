@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/onosproject/onos-test/pkg/util/logging"
@@ -30,6 +31,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -283,25 +285,46 @@ func getKey(key string) string {
 
 func (s *Service) createLogConfigMaps() (corev1.Volume, corev1.VolumeMount, error) {
 	configMapsAPI := s.kubeClient.CoreV1().ConfigMaps(s.namespace)
-	configMaps, err := configMapsAPI.List(metav1.ListOptions{})
+	configMap, err := configMapsAPI.Get("config", metav1.GetOptions{})
 	if err != nil {
 		return corev1.Volume{}, corev1.VolumeMount{}, err
 	}
 
-	for _, configMap := range configMaps.Items {
-		if configMap.Name == s.Name() {
+	config := NewConfig([]byte(configMap.Data["config.yaml"]))
+	err = config.Parse()
+	if err != nil {
+		return corev1.Volume{}, corev1.VolumeMount{}, err
+	}
+	configData := config.GetConfig()
+	for _, service := range configData.Services {
+		if service.Service_name == s.Name() {
+			data, _ := yaml.Marshal(service.Tracing)
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      s.Name() + "-tracing",
+					Namespace: s.namespace,
+				},
+				Data: map[string]string{
+					"logging.yaml": string(data),
+				},
+			}
+			_, err := s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
+			if err != nil && !k8serrors.IsAlreadyExists(err) {
+				return corev1.Volume{}, corev1.VolumeMount{}, err
+			}
+
 			volume := corev1.Volume{
-				Name: "logging",
+				Name: "tracing",
 				VolumeSource: corev1.VolumeSource{
 					ConfigMap: &corev1.ConfigMapVolumeSource{
 						LocalObjectReference: corev1.LocalObjectReference{
-							Name: configMap.Name,
+							Name: s.Name() + "-tracing",
 						},
 					},
 				},
 			}
 			volumeMount := corev1.VolumeMount{
-				Name:      "logging",
+				Name:      "tracing",
 				MountPath: "/usr/local/configs",
 				ReadOnly:  true,
 			}

@@ -43,7 +43,7 @@ type Job struct {
 	ImagePullPolicy corev1.PullPolicy
 	ModelChecker    bool
 	ModelData       map[string]string
-	Loggers         map[string]string
+	Config          string
 	Args            []string
 	Env             map[string]string
 	Timeout         time.Duration
@@ -486,28 +486,24 @@ func (r *Runner) createJob(job *Job) error {
 		}
 	}
 
-	if len(job.Loggers) > 0 {
-		for loggerKey, loggerConfigPath := range job.Loggers {
-			name, data, _ := io.GetData(loggerConfigPath)
-
-			cm := &corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      loggerKey,
-					Namespace: namespace,
-					Annotations: map[string]string{
-						"job":  job.ID,
-						"type": job.Type,
-					},
+	if job.Config != "" {
+		name, data, _ := io.GetData(job.Config)
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "config",
+				Namespace: namespace,
+				Labels: map[string]string{
+					"config": "config",
 				},
-				Data: map[string]string{
-					name + ".yaml": string(data),
-				},
-			}
-			_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
-			if err != nil && !k8serrors.IsAlreadyExists(err) {
-				step.Fail(err)
-				return err
-			}
+			},
+			Data: map[string]string{
+				name + ".yaml": string(data),
+			},
+		}
+		_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
+		if err != nil && !k8serrors.IsAlreadyExists(err) {
+			step.Fail(err)
+			return err
 		}
 
 	}

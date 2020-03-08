@@ -61,9 +61,9 @@ func runInCluster(command func(cmd *cobra.Command, args []string) error) func(cm
 			timeout = 0
 		}
 
-		loggers, err := cmd.Flags().GetStringToString("loggers")
+		config, err := cmd.Flags().GetString("config")
 		if err != nil {
-			loggers = make(map[string]string)
+			config = ""
 		}
 
 		runner, err := cluster.NewRunner()
@@ -80,7 +80,7 @@ func runInCluster(command func(cmd *cobra.Command, args []string) error) func(cm
 				cliContextEnv: string(k8sContext),
 			},
 			Timeout: timeout,
-			Loggers: loggers,
+			Config:  config,
 		}
 		return runner.Run(job)
 	}

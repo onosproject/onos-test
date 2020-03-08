@@ -1,30 +1,33 @@
-onos-config:
-   logging:
-     loggers:
-       - name: "southbound/synchronizer"
+services:
+ - service-name: "onos-config"
+   Tracing:
+      logging:
+        loggers:
+         - name: "southbound/synchronizer"
+           level: "info"
+           encoding: "json"
+           sink: "kafka"
+        sinks:
+         - name: "kafka"
+           uri: "kafka:9092"
+           topic: "traces"
+           key: "test"
+           type: "kafka"
+         - name: "stdout"
+           type: "stdout"
+ - service-name: "onos-topo"
+   Tracing:
+     logging:
+      loggers:
+       - name: "manager"
          level: "info"
          encoding: "json"
          sink: "kafka"
-     sinks:
-      - name: "kafka"
-        uri: "kafka:9092"
-        topic: "traces"
-        key: "test"
-        type: "kafka"
-      - name: "stdout"
-        type: "stdout"
-onos-topo:
-  logging:
-    loggers:
-      - name: "manager"
-        level: "info"
-        encoding: "json"
-        sink: "kafka"
-    sinks:
-      - name: "kafka"
-        uri: "kafka:9092"
-        topic: "traces"
-        key: "test"
-        type: "kafka"
-      - name: "stdout"
-        type: "stdout"
+      sinks:
+       - name: "kafka"
+         uri: "kafka:9092"
+         topic: "traces"
+         key: "test"
+         type: "kafka"
+       - name: "stdout"
+         type: "stdout"

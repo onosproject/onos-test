@@ -60,7 +60,7 @@ func getCreateClusterCommand() *cobra.Command {
 		RunE:  runInCluster(runCreateClusterCommand),
 	}
 	cmd.Flags().StringToString("set", map[string]string{}, "set a cluster argument")
-	cmd.Flags().StringToString("loggers", map[string]string{}, "set required logger config files")
+	cmd.Flags().String("config", "", "set required config file")
 	return cmd
 }
 

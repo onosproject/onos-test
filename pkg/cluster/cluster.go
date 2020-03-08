@@ -95,9 +95,9 @@ func (c *Cluster) createConfigMaps() error {
 	for _, configMap := range configMaps.Items {
 		cm := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:        configMap.Name,
-				Namespace:   c.namespace,
-				Annotations: map[string]string{},
+				Name:      configMap.Name,
+				Namespace: c.namespace,
+				Labels:    configMap.Labels,
 			},
 			Data: configMap.Data,
 		}
