@@ -514,6 +514,7 @@ func (r *Runner) createJob(job *Job) error {
 			if err != nil && !k8serrors.IsAlreadyExists(err) {
 				step.Fail(err)
 				return err
+
 			}
 		}
 

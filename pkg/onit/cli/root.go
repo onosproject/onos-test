@@ -44,6 +44,7 @@ func GetRootCommand() *cobra.Command {
 	cmd.AddCommand(getSimulateCommand())
 	cmd.AddCommand(getExecCommand())
 	cmd.AddCommand(getCompletionCommand())
+	cmd.PersistentFlags().StringSlice("config", []string{SimConfigPath}, "set required config files")
 	cmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose output")
 	cmd.PersistentFlags().StringP("cluster", "c", "", "the cluster on which to execute the command")
 	cmd.PersistentFlags().Lookup("cluster").Annotations = map[string][]string{
