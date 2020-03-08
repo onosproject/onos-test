@@ -20,6 +20,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/onosproject/onos-test/pkg/onit/cluster"
+
 	"github.com/onosproject/onos-test/pkg/util/io"
 
 	"github.com/onosproject/onos-test/pkg/model"
@@ -43,7 +45,7 @@ type Job struct {
 	ImagePullPolicy corev1.PullPolicy
 	ModelChecker    bool
 	ModelData       map[string]string
-	Config          string
+	Config          []string
 	Args            []string
 	Env             map[string]string
 	Timeout         time.Duration
@@ -486,24 +488,33 @@ func (r *Runner) createJob(job *Job) error {
 		}
 	}
 
-	if job.Config != "" {
-		name, data, _ := io.GetData(job.Config)
-		cm := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "config",
-				Namespace: namespace,
-				Labels: map[string]string{
-					"config": "config",
+	if len(job.Config) != 0 {
+		for _, cfg := range job.Config {
+			name, data, _ := io.GetData(cfg)
+			serviceConfig := cluster.NewServiceConfig(data)
+			err := serviceConfig.Parse()
+			if err != nil {
+				return err
+			}
+			parsedServiceConfig := serviceConfig.GetConfig()
+			cm := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      parsedServiceConfig.ServiceName,
+					Namespace: namespace,
+					Labels: map[string]string{
+						"type":    "configuration",
+						"service": parsedServiceConfig.ServiceName,
+					},
 				},
-			},
-			Data: map[string]string{
-				name + ".yaml": string(data),
-			},
-		}
-		_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
-		if err != nil && !k8serrors.IsAlreadyExists(err) {
-			step.Fail(err)
-			return err
+				Data: map[string]string{
+					name + ".yaml": string(data),
+				},
+			}
+			_, err = r.client.CoreV1().ConfigMaps(namespace).Create(cm)
+			if err != nil && !k8serrors.IsAlreadyExists(err) {
+				step.Fail(err)
+				return err
+			}
 		}
 
 	}

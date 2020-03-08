@@ -16,7 +16,6 @@ package cluster
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"path"
 	"strings"
@@ -283,57 +282,52 @@ func getKey(key string) string {
 	return strings.ReplaceAll(path.Base(key), "/", "-")
 }
 
-func (s *Service) createLogConfigMaps() (corev1.Volume, corev1.VolumeMount, error) {
+func (s *Service) createTraceConfigMaps() (corev1.Volume, corev1.VolumeMount, error) {
 	configMapsAPI := s.kubeClient.CoreV1().ConfigMaps(s.namespace)
-	configMap, err := configMapsAPI.Get("config", metav1.GetOptions{})
+	configMap, err := configMapsAPI.Get(s.Name(), metav1.GetOptions{})
 	if err != nil {
 		return corev1.Volume{}, corev1.VolumeMount{}, err
 	}
 
-	config := NewConfig([]byte(configMap.Data["config.yaml"]))
+	config := NewTracingConfig([]byte(configMap.Data["config.yaml"]))
 	err = config.Parse()
 	if err != nil {
 		return corev1.Volume{}, corev1.VolumeMount{}, err
 	}
 	configData := config.GetConfig()
-	for _, service := range configData.Services {
-		if service.ServiceName == s.Name() {
-			data, _ := yaml.Marshal(service.Tracing)
-			cm := &corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      s.Name() + "-tracing",
-					Namespace: s.namespace,
-				},
-				Data: map[string]string{
-					"logging.yaml": string(data),
-				},
-			}
-			_, err := s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
-			if err != nil && !k8serrors.IsAlreadyExists(err) {
-				return corev1.Volume{}, corev1.VolumeMount{}, err
-			}
-
-			volume := corev1.Volume{
-				Name: "tracing",
-				VolumeSource: corev1.VolumeSource{
-					ConfigMap: &corev1.ConfigMapVolumeSource{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: s.Name() + "-tracing",
-						},
-					},
-				},
-			}
-			volumeMount := corev1.VolumeMount{
-				Name:      "tracing",
-				MountPath: "/usr/local/configs",
-				ReadOnly:  true,
-			}
-
-			return volume, volumeMount, nil
-		}
+	data, _ := yaml.Marshal(configData.Tracing)
+	cm := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      s.Name() + "-tracing",
+			Namespace: s.namespace,
+		},
+		Data: map[string]string{
+			"logging.yaml": string(data),
+		},
+	}
+	_, err = s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
+	if err != nil && !k8serrors.IsAlreadyExists(err) {
+		return corev1.Volume{}, corev1.VolumeMount{}, err
 	}
 
-	return corev1.Volume{}, corev1.VolumeMount{}, errors.New("config file is not found")
+	volume := corev1.Volume{
+		Name: "tracing",
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: s.Name() + "-tracing",
+				},
+			},
+		},
+	}
+	volumeMount := corev1.VolumeMount{
+		Name:      "tracing",
+		MountPath: "/usr/local/configs",
+		ReadOnly:  true,
+	}
+
+	return volume, volumeMount, nil
+
 }
 
 // createSecret creates the service Secret
@@ -523,7 +517,7 @@ func (s *Service) createDeployment() error {
 		volumes = append(volumes, volumeContainer)
 	}
 
-	volume, volumeMount, err := s.createLogConfigMaps()
+	volume, volumeMount, err := s.createTraceConfigMaps()
 	if err == nil {
 		volumes = append(volumes, volume)
 		volumeMounts = append(volumeMounts, volumeMount)

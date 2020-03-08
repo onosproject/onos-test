@@ -1,0 +1,17 @@
+service-name: "onos-config"
+tracing:
+      logging:
+        loggers:
+         - name: "southbound/synchronizer"
+           level: "info"
+           encoding: "json"
+           sink: "kafka"
+        sinks:
+         - name: "kafka"
+           uri: "kafka:9092"
+           topic: "traces"
+           key: "test"
+           type: "kafka"
+         - name: "stdout"
+           type: "stdout"
+

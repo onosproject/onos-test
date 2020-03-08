@@ -1,0 +1,17 @@
+service-name: "onos-topo"
+tracing:
+      logging:
+        loggers:
+          - name: "manager"
+            level: "info"
+            encoding: "json"
+            sink: "kafka"
+        sinks:
+          - name: "kafka"
+            uri: "kafka:9092"
+            topic: "traces"
+            key: "test"
+            type: "kafka"
+          - name: "stdout"
+            type: "stdout"
+

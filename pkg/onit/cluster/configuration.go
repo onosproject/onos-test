@@ -18,51 +18,105 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// NewConfig returns an instance of Configuration data structure
-func NewConfig(data []byte) *Configuration {
-	return &Configuration{
+// NewTracingConfig creates an instance of tracing configuration
+func NewTracingConfig(data []byte) *TracingConfiguration {
+	return &TracingConfiguration{
 		data: data,
 	}
 }
 
-// Configuration config data structure for config yaml file parser
-type Configuration struct {
-	config ConfigYaml
+// NewServiceConfig creates an instance of service configuration
+func NewServiceConfig(data []byte) *ServiceConfiguration {
+	return &ServiceConfiguration{
+		data: data,
+	}
+}
+
+// NewSimulatorConfig creates an instance of simulator configuration
+func NewSimulatorConfig(data []byte) *SimulatorConfiguration {
+	return &SimulatorConfiguration{
+		data: data,
+	}
+}
+
+// SimulatorConfiguration config data structure for simulator configuration info
+type SimulatorConfiguration struct {
+	config SimulatorYamlConfig
 	data   []byte
 }
 
-// ConfigYaml yaml data structure for the configuration file
-type ConfigYaml struct {
-	Services []struct {
-		Configuration string `yaml:"Configuration"`
-		Tracing       struct {
-			Logging struct {
-				Loggers []struct {
-					Encoding string `yaml:"encoding"`
-					Level    string `yaml:"level"`
-					Name     string `yaml:"name"`
-					Sink     string `yaml:"sink"`
-				} `yaml:"loggers"`
-				Sinks []struct {
-					Key   string `yaml:"key"`
-					Name  string `yaml:"name"`
-					Topic string `yaml:"topic"`
-					Type  string `yaml:"type"`
-					URI   string `yaml:"uri"`
-				} `yaml:"sinks"`
-			} `yaml:"logging"`
-		} `yaml:"Tracing"`
-		ServiceName string `yaml:"service-name"`
-	} `yaml:"services"`
+// ServiceConfiguration config data structure for service configuration info
+type ServiceConfiguration struct {
+	config ServiceYamlConfig
+	data   []byte
 }
 
-// GetConfig return the docs yaml config data structure
-func (c *Configuration) GetConfig() ConfigYaml {
+// TracingConfiguration config data structure for tracing config file
+type TracingConfiguration struct {
+	config TracingYamlConfig
+	data   []byte
+}
+
+// ServiceYamlConfig yaml data structure for the service configuration file
+type ServiceYamlConfig struct {
+	ServiceName string `yaml:"service-name"`
+}
+
+// SimulatorYamlConfig yaml data structure for the simulator  configuration file
+type SimulatorYamlConfig struct {
+	Configuration string `yaml:"configuration"`
+}
+
+// TracingYamlConfig yaml data structure for the tracing configuration file
+type TracingYamlConfig struct {
+	Tracing struct {
+		Logging struct {
+			Loggers []struct {
+				Encoding string `yaml:"encoding"`
+				Level    string `yaml:"level"`
+				Name     string `yaml:"name"`
+				Sink     string `yaml:"sink"`
+			} `yaml:"loggers"`
+			Sinks []struct {
+				Key   string `yaml:"key"`
+				Name  string `yaml:"name"`
+				Topic string `yaml:"topic"`
+				Type  string `yaml:"type"`
+				URI   string `yaml:"uri"`
+			} `yaml:"sinks"`
+		} `yaml:"logging"`
+	} `yaml:"tracing"`
+}
+
+// GetConfig returns service configuration
+func (s *ServiceConfiguration) GetConfig() ServiceYamlConfig {
+	return s.config
+}
+
+// Parse parse service configuration
+func (s *ServiceConfiguration) Parse() error {
+	err := yaml.Unmarshal(s.data, &s.config)
+	return err
+}
+
+// GetConfig return the yaml config data structure
+func (c *TracingConfiguration) GetConfig() TracingYamlConfig {
 	return c.config
 }
 
 // Parse parse a yaml config file
-func (c *Configuration) Parse() error {
+func (c *TracingConfiguration) Parse() error {
+	err := yaml.Unmarshal(c.data, &c.config)
+	return err
+}
+
+// GetConfig return the yaml config data structure
+func (c *SimulatorConfiguration) GetConfig() SimulatorYamlConfig {
+	return c.config
+}
+
+// Parse parse a yaml config file
+func (c *SimulatorConfiguration) Parse() error {
 	err := yaml.Unmarshal(c.data, &c.config)
 	return err
 }

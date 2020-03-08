@@ -155,25 +155,21 @@ func (s *Simulator) getLabels() map[string]string {
 // createConfigMap creates a simulator configuration
 func (s *Simulator) createConfigMap() error {
 	configMapsAPI := s.kubeClient.CoreV1().ConfigMaps(s.namespace)
-	configMap, err := configMapsAPI.Get("config", metav1.GetOptions{})
+	configMap, err := configMapsAPI.Get("device-simulator", metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
-	config := NewConfig([]byte(configMap.Data["config.yaml"]))
+	config := NewSimulatorConfig([]byte(configMap.Data["config.yaml"]))
 	err = config.Parse()
 	if err != nil {
 		return err
 	}
 	configData := config.GetConfig()
 	var simConfig []byte
-	for _, service := range configData.Services {
-		if service.ServiceName == simulatorService {
-			simConfig, err = json.Marshal(service.Configuration)
-			if err != nil {
-				return err
-			}
-		}
+	simConfig, err = json.Marshal(configData.Configuration)
+	if err != nil {
+		return err
 	}
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -187,6 +183,7 @@ func (s *Simulator) createConfigMap() error {
 	}
 	_, err = s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
 	return err
+
 }
 
 // createPod creates a simulator pod
