@@ -61,9 +61,9 @@ func runInCluster(command func(cmd *cobra.Command, args []string) error) func(cm
 			timeout = 0
 		}
 
-		config, err := cmd.Flags().GetStringSlice("config")
+		config, err := cmd.Flags().GetStringToString("config")
 		if err != nil {
-			config = []string{}
+			config = map[string]string{}
 		}
 
 		runner, err := cluster.NewRunner()

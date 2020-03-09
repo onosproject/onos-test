@@ -25,13 +25,6 @@ func NewTracingConfig(data []byte) *TracingConfiguration {
 	}
 }
 
-// NewServiceConfig creates an instance of service configuration
-func NewServiceConfig(data []byte) *ServiceConfiguration {
-	return &ServiceConfiguration{
-		data: data,
-	}
-}
-
 // NewSimulatorConfig creates an instance of simulator configuration
 func NewSimulatorConfig(data []byte) *SimulatorConfiguration {
 	return &SimulatorConfiguration{
@@ -45,21 +38,10 @@ type SimulatorConfiguration struct {
 	data   []byte
 }
 
-// ServiceConfiguration config data structure for service configuration info
-type ServiceConfiguration struct {
-	config ServiceYamlConfig
-	data   []byte
-}
-
 // TracingConfiguration config data structure for tracing config file
 type TracingConfiguration struct {
 	config TracingYamlConfig
 	data   []byte
-}
-
-// ServiceYamlConfig yaml data structure for the service configuration file
-type ServiceYamlConfig struct {
-	ServiceName string `yaml:"service-name"`
 }
 
 // SimulatorYamlConfig yaml data structure for the simulator  configuration file
@@ -86,17 +68,6 @@ type TracingYamlConfig struct {
 			} `yaml:"sinks"`
 		} `yaml:"logging"`
 	} `yaml:"tracing"`
-}
-
-// GetConfig returns service configuration
-func (s *ServiceConfiguration) GetConfig() ServiceYamlConfig {
-	return s.config
-}
-
-// Parse parse service configuration
-func (s *ServiceConfiguration) Parse() error {
-	err := yaml.Unmarshal(s.data, &s.config)
-	return err
 }
 
 // GetConfig return the yaml config data structure

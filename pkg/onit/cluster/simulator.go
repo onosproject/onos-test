@@ -154,7 +154,7 @@ func (s *Simulator) getLabels() map[string]string {
 
 // createConfigMap creates a simulator configuration
 func (s *Simulator) createConfigMap() error {
-	configMapsAPI := s.kubeClient.CoreV1().ConfigMaps(s.namespace)
+	configMapsAPI := s.kubeClient.CoreV1().ConfigMaps("kube-test")
 	configMap, err := configMapsAPI.Get("device-simulator", metav1.GetOptions{})
 	if err != nil {
 		return err

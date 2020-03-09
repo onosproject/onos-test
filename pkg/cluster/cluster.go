@@ -86,7 +86,7 @@ func (c *Cluster) Delete() error {
 
 func (c *Cluster) createConfigMaps() error {
 	step := logging.NewStep(c.namespace, "Setup ConfigMaps")
-	configMapsAPI := c.client.CoreV1().ConfigMaps("kube-test")
+	configMapsAPI := c.client.CoreV1().ConfigMaps(namespace)
 	configMaps, err := configMapsAPI.List(metav1.ListOptions{})
 	if err != nil {
 		return err

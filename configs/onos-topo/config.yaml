@@ -1,4 +1,3 @@
-service-name: "onos-topo"
 tracing:
       logging:
         loggers:

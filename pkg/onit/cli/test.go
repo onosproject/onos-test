@@ -44,6 +44,7 @@ func getTestCommand() *cobra.Command {
 	cmd.Flags().Int("iterations", 1, "number of iterations")
 	cmd.Flags().Bool("until-failure", false, "run until an error is detected")
 	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
+	cmd.Flags().StringToString("config", map[string]string{"device-simulator": SimConfigPath}, "set required config files")
 
 	_ = cmd.MarkFlagRequired("image")
 	return cmd
@@ -60,6 +61,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 	pullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	iterations, _ := cmd.Flags().GetInt("iterations")
 	untilFailure, _ := cmd.Flags().GetBool("until-failure")
+	configuration, _ := cmd.Flags().GetStringToString("config")
 
 	if untilFailure {
 		iterations = -1
@@ -84,6 +86,7 @@ func runTestCommand(cmd *cobra.Command, _ []string) error {
 		Env:             config.ToEnv(),
 		Timeout:         timeout,
 		Type:            "test",
+		Config:          configuration,
 	}
 
 	// Create a job runner and run the test job

@@ -45,6 +45,7 @@ func getBenchCommand() *cobra.Command {
 	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named benchmark arguments")
 	cmd.Flags().Duration("timeout", 10*time.Minute, "benchmark timeout")
 	cmd.Flags().Bool("no-teardown", false, "do not tear down clusters following tests")
+	cmd.Flags().StringToString("config", map[string]string{"device-simulator": SimConfigPath}, "set required config files")
 
 	_ = cmd.MarkFlagRequired("image")
 	return cmd
@@ -64,6 +65,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
+	configuration, _ := cmd.Flags().GetStringToString("config")
 
 	var duration *time.Duration
 	if cmd.Flags().Changed("duration") {
@@ -103,6 +105,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		Env:             config.ToEnv(),
 		Timeout:         timeout,
 		Type:            "benchmark",
+		Config:          configuration,
 	}
 
 	// Create a job runner and run the benchmark job

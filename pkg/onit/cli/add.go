@@ -15,10 +15,11 @@
 package cli
 
 import (
+	"io/ioutil"
+
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/onit/env"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -113,6 +114,7 @@ func getAddSimulatorCommand() *cobra.Command {
 	cmd.Flags().StringP("name", "n", "", "the name to assign to the device simulator")
 	cmd.Flags().StringP("image", "i", defaultSimulatorImage, "the image to deploy")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	cmd.Flags().StringToString("config", map[string]string{"device-simulator": SimConfigPath}, "set required config files")
 	return cmd
 }
 
