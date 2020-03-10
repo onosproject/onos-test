@@ -487,27 +487,29 @@ func (r *Runner) createJob(job *Job) error {
 	}
 
 	if len(job.Config) != 0 {
+		configData := make(map[string]string, len(job.Config))
 		for serviceName, cfg := range job.Config {
-			name, data, _ := io.GetData(cfg)
-			cm := &corev1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      serviceName,
-					Namespace: namespace,
-					Labels: map[string]string{
-						"type":    "configuration",
-						"service": serviceName,
-					},
-				},
-				Data: map[string]string{
-					name + ".yaml": string(data),
-				},
-			}
-			_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
-			if err != nil && !k8serrors.IsAlreadyExists(err) {
-				step.Fail(err)
-				return err
+			_, data, _ := io.GetData(cfg)
+			configData[serviceName] = string(data)
 
-			}
+		}
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      job.ID,
+				Namespace: namespace,
+				Labels: map[string]string{
+					"type": "configuration",
+					"job":  job.ID,
+				},
+			},
+			Data: configData,
+		}
+
+		_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
+		if err != nil && !k8serrors.IsAlreadyExists(err) {
+			step.Fail(err)
+			return err
+
 		}
 
 	}

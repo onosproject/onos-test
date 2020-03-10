@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"time"
 
 	"k8s.io/apimachinery/pkg/watch"
@@ -155,34 +156,37 @@ func (s *Simulator) getLabels() map[string]string {
 // createConfigMap creates a simulator configuration
 func (s *Simulator) createConfigMap() error {
 	configMapsAPI := s.kubeClient.CoreV1().ConfigMaps("kube-test")
-	configMap, err := configMapsAPI.Get("device-simulator", metav1.GetOptions{})
+	configMap, err := configMapsAPI.Get(os.Getenv("SERVICE_NAME"), metav1.GetOptions{})
 	if err != nil {
+		return err
+	}
+	if val, ok := configMap.Data["device-simulator"]; ok {
+		config := NewSimulatorConfig([]byte(val))
+		err = config.Parse()
+		if err != nil {
+			return err
+		}
+		configData := config.GetConfig()
+		var simConfig []byte
+		simConfig, err = json.Marshal(configData.Configuration)
+		if err != nil {
+			return err
+		}
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      s.name,
+				Namespace: s.namespace,
+				Labels:    s.getLabels(),
+			},
+			Data: map[string]string{
+				"config.json": string(simConfig),
+			},
+		}
+		_, err = s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
 		return err
 	}
 
-	config := NewSimulatorConfig([]byte(configMap.Data["config.yaml"]))
-	err = config.Parse()
-	if err != nil {
-		return err
-	}
-	configData := config.GetConfig()
-	var simConfig []byte
-	simConfig, err = json.Marshal(configData.Configuration)
-	if err != nil {
-		return err
-	}
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.name,
-			Namespace: s.namespace,
-			Labels:    s.getLabels(),
-		},
-		Data: map[string]string{
-			"config.json": string(simConfig),
-		},
-	}
-	_, err = s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
-	return err
+	return errors.New("no config file found for the service")
 
 }
 

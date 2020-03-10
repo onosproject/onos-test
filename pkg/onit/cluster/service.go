@@ -16,7 +16,9 @@ package cluster
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -284,49 +286,54 @@ func getKey(key string) string {
 
 func (s *Service) createTraceConfigMaps() (corev1.Volume, corev1.VolumeMount, error) {
 	configMapsAPI := s.kubeClient.CoreV1().ConfigMaps(s.namespace)
-	configMap, err := configMapsAPI.Get(s.Name(), metav1.GetOptions{})
+	configMap, err := configMapsAPI.Get(os.Getenv("SERVICE_NAME"), metav1.GetOptions{})
+
 	if err != nil {
 		return corev1.Volume{}, corev1.VolumeMount{}, err
 	}
 
-	config := NewTracingConfig([]byte(configMap.Data["config.yaml"]))
-	err = config.Parse()
-	if err != nil {
-		return corev1.Volume{}, corev1.VolumeMount{}, err
-	}
-	configData := config.GetConfig()
-	data, _ := yaml.Marshal(configData.Tracing)
-	cm := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.Name() + "-tracing",
-			Namespace: s.namespace,
-		},
-		Data: map[string]string{
-			"logging.yaml": string(data),
-		},
-	}
-	_, err = s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
-	if err != nil && !k8serrors.IsAlreadyExists(err) {
-		return corev1.Volume{}, corev1.VolumeMount{}, err
-	}
+	if val, ok := configMap.Data[s.Name()]; ok {
+		config := NewTracingConfig([]byte(val))
+		err = config.Parse()
+		if err != nil {
+			return corev1.Volume{}, corev1.VolumeMount{}, err
+		}
+		configData := config.GetConfig()
+		data, _ := yaml.Marshal(configData.Tracing)
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      s.Name() + "-tracing",
+				Namespace: s.namespace,
+			},
+			Data: map[string]string{
+				"logging.yaml": string(data),
+			},
+		}
+		_, err = s.kubeClient.CoreV1().ConfigMaps(s.namespace).Create(cm)
+		if err != nil && !k8serrors.IsAlreadyExists(err) {
+			return corev1.Volume{}, corev1.VolumeMount{}, err
+		}
 
-	volume := corev1.Volume{
-		Name: "tracing",
-		VolumeSource: corev1.VolumeSource{
-			ConfigMap: &corev1.ConfigMapVolumeSource{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: s.Name() + "-tracing",
+		volume := corev1.Volume{
+			Name: "tracing",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: s.Name() + "-tracing",
+					},
 				},
 			},
-		},
-	}
-	volumeMount := corev1.VolumeMount{
-		Name:      "tracing",
-		MountPath: "/usr/local/configs",
-		ReadOnly:  true,
+		}
+		volumeMount := corev1.VolumeMount{
+			Name:      "tracing",
+			MountPath: "/usr/local/configs",
+			ReadOnly:  true,
+		}
+
+		return volume, volumeMount, nil
 	}
 
-	return volume, volumeMount, nil
+	return corev1.Volume{}, corev1.VolumeMount{}, errors.New("no config file found for the service")
 
 }
 

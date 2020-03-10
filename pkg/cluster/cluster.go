@@ -15,6 +15,8 @@
 package cluster
 
 import (
+	"os"
+
 	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	corev1 "k8s.io/api/core/v1"
@@ -87,7 +89,9 @@ func (c *Cluster) Delete() error {
 func (c *Cluster) createConfigMaps() error {
 	step := logging.NewStep(c.namespace, "Setup ConfigMaps")
 	configMapsAPI := c.client.CoreV1().ConfigMaps(namespace)
-	configMaps, err := configMapsAPI.List(metav1.ListOptions{})
+	configMaps, err := configMapsAPI.List(metav1.ListOptions{
+		LabelSelector: "job=" + os.Getenv("SERVICE_NAME") + "," + "type=configuration",
+	})
 	if err != nil {
 		return err
 	}
