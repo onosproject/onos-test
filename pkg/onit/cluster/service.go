@@ -333,8 +333,7 @@ func (s *Service) createTraceConfigMaps() (corev1.Volume, corev1.VolumeMount, er
 		return volume, volumeMount, nil
 	}
 
-	return corev1.Volume{}, corev1.VolumeMount{}, errors.New("no config file found for the service")
-
+	return corev1.Volume{}, corev1.VolumeMount{}, errors.New("no configmap found for the service")
 }
 
 // createSecret creates the service Secret

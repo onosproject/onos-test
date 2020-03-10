@@ -491,7 +491,6 @@ func (r *Runner) createJob(job *Job) error {
 		for serviceName, cfg := range job.Config {
 			_, data, _ := io.GetData(cfg)
 			configData[serviceName] = string(data)
-
 		}
 		cm := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
@@ -504,14 +503,12 @@ func (r *Runner) createJob(job *Job) error {
 			},
 			Data: configData,
 		}
-
 		_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
 		if err != nil && !k8serrors.IsAlreadyExists(err) {
 			step.Fail(err)
 			return err
 
 		}
-
 	}
 
 	zero := int32(0)
