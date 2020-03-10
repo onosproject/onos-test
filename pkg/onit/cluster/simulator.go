@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/onosproject/onos-test/pkg/kube"
 	"io"
 	"k8s.io/apimachinery/pkg/watch"
 	"time"
@@ -358,6 +359,15 @@ func (s *Simulator) createPod() error {
 						{
 							Name:  gnmiInsecurePortEnv,
 							Value: fmt.Sprintf("%d", s.Port()),
+						},
+						{
+							Name: kube.NamespaceEnv,
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									APIVersion: "v1",
+									FieldPath:  "metadata.namespace",
+								},
+							},
 						},
 					},
 					Ports: []corev1.ContainerPort{
