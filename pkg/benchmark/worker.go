@@ -17,31 +17,23 @@ package benchmark
 import (
 	"context"
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/registry"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
 	"net"
 	"reflect"
 	"regexp"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // newWorker returns a new benchmark worker
 func newWorker(config *Config) (*Worker, error) {
-	kubeAPI, err := kube.GetAPI(config.ID)
-	if err != nil {
-		return nil, err
-	}
 	return &Worker{
-		client: kubeAPI.Client(),
 		suites: make(map[string]BenchmarkingSuite),
 	}, nil
 }
 
 // Worker runs a benchmark job
 type Worker struct {
-	client client.Client
 	suites map[string]BenchmarkingSuite
 }
 

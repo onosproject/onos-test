@@ -22,7 +22,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"path/filepath"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // NamespaceEnv is the environment variable for setting the k8s namespace
@@ -34,10 +33,6 @@ func GetAPI(namespace string) (API, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, err := client.New(config, client.Options{})
-	if err != nil {
-		return nil, err
-	}
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -45,8 +40,7 @@ func GetAPI(namespace string) (API, error) {
 	return &kubeAPI{
 		namespace: namespace,
 		config:    config,
-		client:    client,
-		clientset: clientset,
+		client:    clientset,
 	}, nil
 }
 
@@ -91,19 +85,15 @@ type API interface {
 	// Config returns the Kubernetes REST configuration
 	Config() *rest.Config
 
-	// Client returns the Kubernetes controller runtime client
-	Client() client.Client
-
-	// Clientset returns the Kubernetes Go clientset
-	Clientset() *kubernetes.Clientset
+	// Client returns the Kubernetes Go client
+	Client() *kubernetes.Clientset
 }
 
 // kubeAPI provides the Kubernetes API
 type kubeAPI struct {
 	namespace string
 	config    *rest.Config
-	client    client.Client
-	clientset *kubernetes.Clientset
+	client    *kubernetes.Clientset
 }
 
 func (k *kubeAPI) Namespace() string {
@@ -114,30 +104,8 @@ func (k *kubeAPI) Config() *rest.Config {
 	return k.config
 }
 
-func (k *kubeAPI) Client() client.Client {
+func (k *kubeAPI) Client() *kubernetes.Clientset {
 	return k.client
-}
-
-func (k *kubeAPI) Clientset() *kubernetes.Clientset {
-	return k.clientset
-}
-
-// GetClient returns a Kubernetes client
-func GetClient() (client.Client, error) {
-	config, err := GetRestConfig()
-	if err != nil {
-		return nil, err
-	}
-	return client.New(config, client.Options{})
-}
-
-// GetClientset returns a Kubernetes clientset
-func GetClientset() (*kubernetes.Clientset, error) {
-	config, err := GetRestConfig()
-	if err != nil {
-		return nil, err
-	}
-	return kubernetes.NewForConfig(config)
 }
 
 // GetRestConfig returns the Kubernetes REST API configuration

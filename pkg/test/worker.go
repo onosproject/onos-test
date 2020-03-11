@@ -16,28 +16,20 @@ package test
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/kube"
 	"github.com/onosproject/onos-test/pkg/registry"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 )
 
 // newWorker returns a new test worker
 func newWorker(config *Config) (*Worker, error) {
-	kubeAPI, err := kube.GetAPI(config.ID)
-	if err != nil {
-		return nil, err
-	}
 	return &Worker{
-		client: kubeAPI.Client(),
 		config: config,
 	}, nil
 }
 
 // Worker runs a test job
 type Worker struct {
-	client client.Client
 	config *Config
 }
 

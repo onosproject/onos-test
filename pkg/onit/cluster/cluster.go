@@ -15,98 +15,38 @@
 package cluster
 
 import (
-	atomixcontroller "github.com/atomix/kubernetes-controller/pkg/client/v1beta1/clientset/versioned"
 	"github.com/onosproject/onos-test/pkg/kube"
-	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	"k8s.io/client-go/kubernetes"
+	metav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
 // New returns a new onit Env
-func New(kube kube.API) *Cluster {
-	client := &client{
-		namespace:        kube.Namespace(),
-		config:           kube.Config(),
-		kubeClient:       kubernetes.NewForConfigOrDie(kube.Config()),
-		atomixClient:     atomixcontroller.NewForConfigOrDie(kube.Config()),
-		extensionsClient: apiextension.NewForConfigOrDie(kube.Config()),
-	}
+func New(api kube.API) *Cluster {
+	objectsClient := metav1.NewObjectsClient(api, func(meta metav1.Object) (bool, error) {
+		return true, nil
+	})
 	cluster := &Cluster{
-		client: client,
+		Client: newClient(objectsClient),
+		API:    api,
+		charts: make(map[string]*Chart),
 	}
-	cluster.atomix = newAtomix(cluster)
-	cluster.database = newStorage(cluster)
-	cluster.cli = newCLI(cluster)
-	cluster.topo = newTopo(cluster)
-	cluster.config = newConfig(cluster)
-	cluster.ric = newRIC(cluster)
-	cluster.apps = newApps(cluster)
-	cluster.simulators = newSimulators(cluster)
-	cluster.networks = newNetworks(cluster)
-	cluster.history = newHistory(cluster)
 	return cluster
 }
 
+var _ Client = &Cluster{}
+
 // Cluster facilitates modifying subsystems in Kubernetes
 type Cluster struct {
-	*client
-	atomix     *Atomix
-	database   *Storage
-	cli        *CLI
-	topo       *Topo
-	config     *Config
-	ric        *RIC
-	apps       *Apps
-	simulators *Simulators
-	networks   *Networks
-	history    *History
+	Client
+	kube.API
+	charts map[string]*Chart
 }
 
-// Atomix returns the Atomix service
-func (c *Cluster) Atomix() *Atomix {
-	return c.atomix
-}
-
-// Database returns the database service
-func (c *Cluster) Database() *Storage {
-	return c.database
-}
-
-// CLI returns the CLI service
-func (c *Cluster) CLI() *CLI {
-	return c.cli
-}
-
-// Topo returns the topo service
-func (c *Cluster) Topo() *Topo {
-	return c.topo
-}
-
-// RIC returns the ran service
-func (c *Cluster) RIC() *RIC {
-	return c.ric
-}
-
-// Config returns the configuration service
-func (c *Cluster) Config() *Config {
-	return c.config
-}
-
-// Apps returns the cluster applications
-func (c *Cluster) Apps() *Apps {
-	return c.apps
-}
-
-// Simulators returns the cluster simulators
-func (c *Cluster) Simulators() *Simulators {
-	return c.simulators
-}
-
-// Networks returns the cluster networks
-func (c *Cluster) Networks() *Networks {
-	return c.networks
-}
-
-// History returns the cluster history
-func (c *Cluster) History() *History {
-	return c.history
+// Chart returns a chart
+func (c *Cluster) Chart(name string) *Chart {
+	chart, ok := c.charts[name]
+	if !ok {
+		chart = newChart(name, c)
+		c.charts[name] = chart
+	}
+	return chart
 }

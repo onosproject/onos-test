@@ -1,89 +1,45 @@
-// Copyright 2019-present Open Networking Foundation.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package cluster
 
 import (
-	atomixcontroller "github.com/atomix/kubernetes-controller/pkg/client/v1beta1/clientset/versioned"
-	v1 "k8s.io/api/core/v1"
-	apiextension "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
+	"github.com/onosproject/onos-test/pkg/onit/cluster/apps"
+	"github.com/onosproject/onos-test/pkg/onit/cluster/batch"
+	"github.com/onosproject/onos-test/pkg/onit/cluster/core"
+	"github.com/onosproject/onos-test/pkg/onit/cluster/extensions"
+	metav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/cluster/networking"
 )
 
-// client is the base for all Kubernetes cluster objects
+type appsClient apps.Client
+type batchClient batch.Client
+type coreClient core.Client
+type extensionsClient extensions.Client
+type networkingClient networking.Client
+
+type Client interface {
+	appsClient
+	batchClient
+	coreClient
+	extensionsClient
+	networkingClient
+}
+
+// newClient creates a new cluster client
+func newClient(objects metav1.ObjectsClient) Client {
+	return &client{
+		appsClient:       apps.NewClient(objects),
+		batchClient:      batch.NewClient(objects),
+		coreClient:       core.NewClient(objects),
+		extensionsClient: extensions.NewClient(objects),
+		networkingClient: networking.NewClient(objects),
+	}
+}
+
+// client is an implementation of the Client interface
 type client struct {
-	namespace        string
-	config           *rest.Config
-	kubeClient       *kubernetes.Clientset
-	atomixClient     *atomixcontroller.Clientset
-	extensionsClient *apiextension.Clientset
-}
-
-func (c *client) getPods(matchLabels map[string]string, namespace string) *v1.PodList {
-	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
-	pods, err := c.kubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
-	if err != nil {
-		panic(err)
-	}
-	return pods
-}
-
-func (c *client) listPods(matchLabels map[string]string) []string {
-	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
-	pods, err := c.kubeClient.CoreV1().Pods(c.namespace).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
-	if err != nil {
-		panic(err)
-	}
-
-	names := make([]string, len(pods.Items))
-	for i, dep := range pods.Items {
-		names[i] = dep.Name
-	}
-	return names
-}
-
-func (c *client) listServices(matchLabels map[string]string) []string {
-	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
-	services, err := c.kubeClient.CoreV1().Services(c.namespace).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
-	if err != nil {
-		panic(err)
-	}
-
-	names := make([]string, len(services.Items))
-	for i, dep := range services.Items {
-		names[i] = dep.Name
-	}
-	return names
-}
-
-func (c *client) listDeployments(matchLabels map[string]string) []string {
-	labelSelector := metav1.LabelSelector{MatchLabels: matchLabels}
-	deps, err := c.kubeClient.AppsV1().Deployments(c.namespace).List(metav1.ListOptions{
-		LabelSelector: labels.Set(labelSelector.MatchLabels).String()})
-	if err != nil {
-		panic(err)
-	}
-
-	names := make([]string, len(deps.Items))
-	for i, dep := range deps.Items {
-		names[i] = dep.Name
-	}
-	return names
+	appsClient
+	batchClient
+	coreClient
+	extensionsClient
+	networkingClient
+	filter metav1.ObjectFilter
 }

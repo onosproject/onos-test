@@ -43,9 +43,20 @@ func SetArg(name, value string) {
 	args[name] = value
 }
 
-// GetArgs gets the cluster arguments
-func GetArgs() map[string]string {
-	return args
+// GetArgs gets the cluster arguments with the given key
+func GetArgs(names ...string) map[string]string {
+	if len(names) == 0 {
+		return args
+	}
+
+	prefix := strings.Join(names, ".") + "."
+	results := make(map[string]string)
+	for key, value := range args {
+		if strings.HasPrefix(key, prefix) {
+			results[key[len(prefix):]] = value
+		}
+	}
+	return results
 }
 
 // GetArg gets the value of an argument

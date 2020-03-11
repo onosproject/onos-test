@@ -24,9 +24,9 @@ import (
 // New returns a new onit ClusterSetup
 func New(kube kube.API) ClusterSetup {
 	return &clusterSetup{
-		cluster:    cluster.New(kube),
-		partitions: make(map[string]DatabaseSetup),
-		apps:       make(map[string]AppSetup),
+		cluster:       cluster.New(kube),
+		charts:        make(map[string]*cluster.Chart),
+		orderedCharts: make([]*cluster.Chart, 0),
 	}
 }
 
@@ -48,6 +48,11 @@ func Atomix() AtomixSetup {
 // Database returns the setup configuration for a database
 func Database(name ...string) DatabaseSetup {
 	return getSetup().Database(name...)
+}
+
+// Kafka returns the setup configuration for Kafka
+func Kafka() KafkaSetup {
+	return getSetup().Kafka()
 }
 
 // CLI returns the setup configuration for the CLI service
@@ -93,6 +98,12 @@ type ClusterSetup interface {
 	// Database returns the setup configuration for a database
 	Database(name ...string) DatabaseSetup
 
+	// Chart returns the setup configuration for a chart
+	Chart(name string) ChartSetup
+
+	// Kafka returns the setup configuration for Kafka
+	Kafka() KafkaSetup
+
 	// CLI returns the setup configuration for the ONSO CLI service
 	CLI() CLISetup
 
@@ -122,9 +133,9 @@ type serviceSetup interface {
 
 // clusterSetup is an implementation of the Setup interface
 type clusterSetup struct {
-	cluster    *cluster.Cluster
-	partitions map[string]DatabaseSetup
-	apps       map[string]AppSetup
+	cluster       *cluster.Cluster
+	charts        map[string]*cluster.Chart
+	orderedCharts []*cluster.Chart
 }
 
 func (s *clusterSetup) Atomix() AtomixSetup {
@@ -146,6 +157,16 @@ func (s *clusterSetup) Database(name ...string) DatabaseSetup {
 	}
 	s.partitions[name[0]] = partitions
 	return partitions
+}
+
+func (s *clusterSetup) getChart(name string, f func() *cluster.Chart) *cluster.Chart {
+	chart, ok := s.charts[name]
+	if !ok {
+		chart = f()
+		s.charts[name] = chart
+		s.orderedCharts = append(s.orderedCharts, chart)
+	}
+	return chart
 }
 
 func (s *clusterSetup) CLI() CLISetup {
@@ -187,6 +208,10 @@ func (s *clusterSetup) App(name string) AppSetup {
 }
 
 func (s *clusterSetup) Setup() error {
+	for _, chart := range s.orderedCharts {
+
+	}
+
 	// Set up the Atomix controller
 	if err := s.Atomix().(serviceSetup).setup(); err != nil {
 		return err
@@ -203,6 +228,9 @@ func (s *clusterSetup) Setup() error {
 	setupService(s.Topo().(serviceSetup), wg, errCh)
 	setupService(s.Config().(serviceSetup), wg, errCh)
 	setupService(s.RIC().(serviceSetup), wg, errCh)
+	for name := range s.charts {
+		setupService(s.Chart(name).(serviceSetup), wg, errCh)
+	}
 	for _, app := range s.apps {
 		setupService(app.(serviceSetup), wg, errCh)
 	}
