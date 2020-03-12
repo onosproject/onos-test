@@ -1,7 +1,6 @@
 package v2alpha1
 
 import (
-	clustercorev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 	batchv2alpha1 "k8s.io/api/batch/v2alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,12 +25,12 @@ var CronJobResource = clustermetav1.Resource{
 
 func newCronJob(object *clustermetav1.Object) *CronJob {
 	return &CronJob{
-		PodSet: clustercorev1.NewPodSet(object),
-		Spec:   object.Object.(*batchv2alpha1.CronJob).Spec,
+		Object: object,
+		CronJob: object.Object.(*batchv2alpha1.CronJob),
 	}
 }
 
 type CronJob struct {
-	*clustercorev1.PodSet
-	Spec batchv2alpha1.CronJobSpec
+	*clustermetav1.Object
+	CronJob *batchv2alpha1.CronJob
 }

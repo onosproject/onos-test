@@ -1,7 +1,6 @@
 package v1
 
 import (
-	clustercorev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,12 +25,12 @@ var ReplicaSetResource = clustermetav1.Resource{
 
 func newReplicaSet(object *clustermetav1.Object) *ReplicaSet {
 	return &ReplicaSet{
-		PodSet: clustercorev1.NewPodSet(object),
-		Spec:   object.Object.(*appsv1.ReplicaSet).Spec,
+		Object: object,
+		ReplicaSet: object.Object.(*appsv1.ReplicaSet),
 	}
 }
 
 type ReplicaSet struct {
-	*clustercorev1.PodSet
-	Spec appsv1.ReplicaSetSpec
+	*clustermetav1.Object
+	ReplicaSet *appsv1.ReplicaSet
 }

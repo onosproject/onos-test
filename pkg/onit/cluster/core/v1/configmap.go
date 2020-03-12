@@ -1,7 +1,6 @@
 package v1
 
 import (
-	clustercorev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,12 +25,12 @@ var ConfigMapResource = clustermetav1.Resource{
 
 func newConfigMap(object *clustermetav1.Object) *ConfigMap {
 	return &ConfigMap{
-		PodSet: clustercorev1.NewPodSet(object),
-		Spec:   object.Object.(*corev1.ConfigMap).Spec,
+		Object: object,
+		ConfigMap: object.Object.(*corev1.ConfigMap),
 	}
 }
 
 type ConfigMap struct {
-	*clustercorev1.PodSet
-	Spec corev1.ConfigMapSpec
+	*clustermetav1.Object
+	ConfigMap *corev1.ConfigMap
 }

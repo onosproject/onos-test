@@ -1,7 +1,6 @@
 package v1
 
 import (
-	clustercorev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,12 +25,12 @@ var JobResource = clustermetav1.Resource{
 
 func newJob(object *clustermetav1.Object) *Job {
 	return &Job{
-		PodSet: clustercorev1.NewPodSet(object),
-		Spec:   object.Object.(*batchv1.Job).Spec,
+		Object: object,
+		Job: object.Object.(*batchv1.Job),
 	}
 }
 
 type Job struct {
-	*clustercorev1.PodSet
-	Spec batchv1.JobSpec
+	*clustermetav1.Object
+	Job *batchv1.Job
 }

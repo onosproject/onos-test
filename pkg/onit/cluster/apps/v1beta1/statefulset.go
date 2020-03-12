@@ -1,7 +1,6 @@
 package v1beta1
 
 import (
-	clustercorev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,12 +25,12 @@ var StatefulSetResource = clustermetav1.Resource{
 
 func newStatefulSet(object *clustermetav1.Object) *StatefulSet {
 	return &StatefulSet{
-		PodSet: clustercorev1.NewPodSet(object),
-		Spec:   object.Object.(*appsv1beta1.StatefulSet).Spec,
+		Object: object,
+		StatefulSet: object.Object.(*appsv1beta1.StatefulSet),
 	}
 }
 
 type StatefulSet struct {
-	*clustercorev1.PodSet
-	Spec appsv1beta1.StatefulSetSpec
+	*clustermetav1.Object
+	StatefulSet *appsv1beta1.StatefulSet
 }

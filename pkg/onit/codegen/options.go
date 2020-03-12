@@ -92,6 +92,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 			if pkg == "" {
 				pkg = fmt.Sprintf("k8s.io/api/%s/%s", resource.Group, resource.Version)
 			}
+
 			resourceClientOpts = ResourceClientOptions{
 				Location: Location{
 					Path: fmt.Sprintf("%s/%s/%s", config.Path, resource.Group, resource.Version),

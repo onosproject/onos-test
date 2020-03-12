@@ -19,12 +19,12 @@ type Config struct {
 
 // Resource is a code generator resource
 type Resource struct {
-	Package    string `yaml:"package,omitempty"`
-	Group      string `yaml:"group,omitempty"`
-	Version    string `yaml:"version,omitempty"`
-	Kind       string `yaml:"kind,omitempty"`
-	ListKind   string `yaml:"listKind,omitempty"`
-	PluralKind string `yaml:"pluralKind,omitempty"`
+	Package    string  `yaml:"package,omitempty"`
+	Group      string  `yaml:"group,omitempty"`
+	Version    string  `yaml:"version,omitempty"`
+	Kind       string  `yaml:"kind,omitempty"`
+	ListKind   string  `yaml:"listKind,omitempty"`
+	PluralKind string  `yaml:"pluralKind,omitempty"`
 }
 
 func Generate(config Config) error {
@@ -58,9 +58,9 @@ func getTemplate(name string) *template.Template {
 	funcs := template.FuncMap{
 		"toCamel":      toCamelCase,
 		"toLowerCamel": toLowerCamelCase,
-		"lower":          toLowerCase,
-		"upper":          toUpperCase,
-		"quote":          quote,
+		"lower":        toLowerCase,
+		"upper":        toUpperCase,
+		"quote":        quote,
 	}
 	return template.Must(template.New(name).Funcs(funcs).ParseFiles(file))
 }

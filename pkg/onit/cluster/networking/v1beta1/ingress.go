@@ -1,7 +1,6 @@
 package v1beta1
 
 import (
-	clustercorev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,12 +25,12 @@ var IngressResource = clustermetav1.Resource{
 
 func newIngress(object *clustermetav1.Object) *Ingress {
 	return &Ingress{
-		PodSet: clustercorev1.NewPodSet(object),
-		Spec:   object.Object.(*networkingv1beta1.Ingress).Spec,
+		Object: object,
+		Ingress: object.Object.(*networkingv1beta1.Ingress),
 	}
 }
 
 type Ingress struct {
-	*clustercorev1.PodSet
-	Spec networkingv1beta1.IngressSpec
+	*clustermetav1.Object
+	Ingress *networkingv1beta1.Ingress
 }

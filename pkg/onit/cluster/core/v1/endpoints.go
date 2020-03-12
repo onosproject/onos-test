@@ -1,7 +1,6 @@
 package v1
 
 import (
-	clustercorev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,12 +25,12 @@ var EndpointsResource = clustermetav1.Resource{
 
 func newEndpoints(object *clustermetav1.Object) *Endpoints {
 	return &Endpoints{
-		PodSet: clustercorev1.NewPodSet(object),
-		Spec:   object.Object.(*corev1.Endpoints).Spec,
+		Object: object,
+		Endpoints: object.Object.(*corev1.Endpoints),
 	}
 }
 
 type Endpoints struct {
-	*clustercorev1.PodSet
-	Spec corev1.EndpointsSpec
+	*clustermetav1.Object
+	Endpoints *corev1.Endpoints
 }
