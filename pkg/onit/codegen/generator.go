@@ -1,3 +1,17 @@
+// Copyright 2020-present Open Networking Foundation.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package codegen
 
 import (
@@ -19,12 +33,13 @@ type Config struct {
 
 // Resource is a code generator resource
 type Resource struct {
-	Package    string  `yaml:"package,omitempty"`
-	Group      string  `yaml:"group,omitempty"`
-	Version    string  `yaml:"version,omitempty"`
-	Kind       string  `yaml:"kind,omitempty"`
-	ListKind   string  `yaml:"listKind,omitempty"`
-	PluralKind string  `yaml:"pluralKind,omitempty"`
+	Package      string     `yaml:"package,omitempty"`
+	Group        string     `yaml:"group,omitempty"`
+	Version      string     `yaml:"version,omitempty"`
+	Kind         string     `yaml:"kind,omitempty"`
+	ListKind     string     `yaml:"listKind,omitempty"`
+	PluralKind   string     `yaml:"pluralKind,omitempty"`
+	SubResources []Resource `yaml:"subResources"`
 }
 
 func Generate(config Config) error {
@@ -77,7 +92,7 @@ func generateTemplate(t *template.Template, outputFile string, options interface
 
 func openFile(filename string) (*os.File, error) {
 	if !dirExists(path.Dir(filename)) {
-		if err := os.MkdirAll(path.Dir(filename), os.ModeDir); err != nil {
+		if err := os.MkdirAll(path.Dir(filename), 0777); err != nil {
 			return nil, err
 		}
 	}
@@ -94,7 +109,7 @@ func dirExists(dirname string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
-	return info.IsDir()
+	return info != nil && info.IsDir()
 }
 
 func fileExists(filename string) bool {
@@ -102,5 +117,5 @@ func fileExists(filename string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
-	return !info.IsDir()
+	return info != nil && !info.IsDir()
 }

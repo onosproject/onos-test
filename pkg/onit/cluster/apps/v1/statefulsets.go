@@ -1,40 +1,54 @@
+// Copyright 2020-present Open Networking Foundation.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package v1
 
 import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type StatefulSetsClient interface {
+type StatefulSets interface {
 	Get(name string) (*StatefulSet, error)
 	List() ([]*StatefulSet, error)
 }
 
-func newStatefulSetsClient(objects clustermetav1.ObjectsClient) StatefulSetsClient {
-	return &statefulSetsClient{
+func NewStatefulSets(objects clustermetav1.ObjectsClient) StatefulSets {
+	return &statefulSets{
 		ObjectsClient: objects,
 	}
 }
 
-type statefulSetsClient struct {
+type statefulSets struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *statefulSetsClient) Get(name string) (*StatefulSet, error) {
+func (c *statefulSets) Get(name string) (*StatefulSet, error) {
 	object, err := c.ObjectsClient.Get(name, StatefulSetResource)
 	if err != nil {
 		return nil, err
 	}
-	return newStatefulSet(object), nil
+	return NewStatefulSet(object), nil
 }
 
-func (c *statefulSetsClient) List() ([]*StatefulSet, error) {
+func (c *statefulSets) List() ([]*StatefulSet, error) {
 	objects, err := c.ObjectsClient.List(StatefulSetResource)
 	if err != nil {
 		return nil, err
 	}
 	statefulSets := make([]*StatefulSet, len(objects))
 	for i, object := range objects {
-		statefulSets[i] = newStatefulSet(object)
+		statefulSets[i] = NewStatefulSet(object)
 	}
 	return statefulSets, nil
 }

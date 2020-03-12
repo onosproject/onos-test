@@ -1,40 +1,54 @@
+// Copyright 2020-present Open Networking Foundation.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package v1
 
 import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type SecretsClient interface {
+type Secrets interface {
 	Get(name string) (*Secret, error)
 	List() ([]*Secret, error)
 }
 
-func newSecretsClient(objects clustermetav1.ObjectsClient) SecretsClient {
-	return &secretsClient{
+func NewSecrets(objects clustermetav1.ObjectsClient) Secrets {
+	return &secrets{
 		ObjectsClient: objects,
 	}
 }
 
-type secretsClient struct {
+type secrets struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *secretsClient) Get(name string) (*Secret, error) {
+func (c *secrets) Get(name string) (*Secret, error) {
 	object, err := c.ObjectsClient.Get(name, SecretResource)
 	if err != nil {
 		return nil, err
 	}
-	return newSecret(object), nil
+	return NewSecret(object), nil
 }
 
-func (c *secretsClient) List() ([]*Secret, error) {
+func (c *secrets) List() ([]*Secret, error) {
 	objects, err := c.ObjectsClient.List(SecretResource)
 	if err != nil {
 		return nil, err
 	}
 	secrets := make([]*Secret, len(objects))
 	for i, object := range objects {
-		secrets[i] = newSecret(object)
+		secrets[i] = NewSecret(object)
 	}
 	return secrets, nil
 }
