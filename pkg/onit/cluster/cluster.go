@@ -17,6 +17,7 @@ package cluster
 import (
 	"github.com/onosproject/onos-test/pkg/kube"
 	metav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
+	"helm.sh/helm/v3/pkg/cli"
 )
 
 // New returns a new onit Env
@@ -24,8 +25,9 @@ func New(api kube.API) *Cluster {
 	objectsClient := metav1.NewObjectsClient(api, func(meta metav1.Object) (bool, error) {
 		return true, nil
 	})
+	client := newClient(objectsClient)
 	cluster := &Cluster{
-		Client: newClient(objectsClient),
+		Client: client,
 		API:    api,
 		charts: make(map[string]*Chart),
 	}
@@ -41,6 +43,15 @@ type Cluster struct {
 	charts map[string]*Chart
 }
 
+// Charts returns a list of charts in the cluster
+func (c *Cluster) Charts() []*Chart {
+	charts := make([]*Chart, 0, len(c.charts))
+	for _, chart := range c.charts {
+		charts = append(charts, chart)
+	}
+	return charts
+}
+
 // Chart returns a chart
 func (c *Cluster) Chart(name string) *Chart {
 	chart, ok := c.charts[name]
@@ -49,4 +60,27 @@ func (c *Cluster) Chart(name string) *Chart {
 		c.charts[name] = chart
 	}
 	return chart
+}
+
+// Releases returns a list of releases
+func (c *Cluster) Releases() []*Release {
+	releases := make([]*Release, 0)
+	for _, chart := range c.charts {
+		for _, release := range chart.Releases() {
+			releases = append(releases, release)
+		}
+	}
+	return releases
+}
+
+// Release returns the release with the given name
+func (c *Cluster) Release(name string) *Release {
+	for _, chart := range c.charts {
+		for _, release := range chart.Releases() {
+			if release.Name() == name {
+				return release
+			}
+		}
+	}
+	return nil
 }
