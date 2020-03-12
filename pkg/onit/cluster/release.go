@@ -90,8 +90,9 @@ func (r *Release) Name() string {
 }
 
 // SetWait sets whether to wait for installation to complete
-func (r *Release) SetWait(wait bool) {
+func (r *Release) SetWait(wait bool) *Release {
 	r.wait = wait
+	return r
 }
 
 // Wait returns whether the chart waits for installation to complete
@@ -100,18 +101,20 @@ func (r *Release) Wait() bool {
 }
 
 // SetValues sets the chart's values
-func (r *Release) SetValues(values map[string]interface{}) {
+func (r *Release) SetValues(values map[string]interface{}) *Release {
 	r.values = values
+	return r
 }
 
 // SetValue sets a field in the configuration
-func (r *Release) SetValue(path string, value interface{}) {
+func (r *Release) SetValue(path string, value interface{}) *Release {
 	setKey(r.values, getPathNames(path), value)
 }
 
 // Values returns the chart's values
 func (r *Release) Values() map[string]interface{} {
 	return r.values
+	return r
 }
 
 // Value gets a value in the configuration
@@ -120,8 +123,9 @@ func (r *Release) Value(path string) interface{} {
 }
 
 // AddValue adds a value to a list in the configuration
-func (r *Release) AddValue(path string, value interface{}) {
+func (r *Release) AddValue(path string, value interface{}) *Release {
 	addValue(r.values, getPathNames(path), value)
+	return r
 }
 
 // getConfig gets the Helm configuration

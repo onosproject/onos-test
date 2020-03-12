@@ -27,8 +27,9 @@ func (c *Chart) Name() string {
 }
 
 // SetRepository sets the chart's repository URL
-func (c *Chart) SetRepository(url string) {
+func (c *Chart) SetRepository(url string) *Chart {
 	c.repository = url
+	return c
 }
 
 // Repository returns the chart's repository URL
