@@ -5,10 +5,10 @@ import (
 )
 
 type Client interface {
-	DaemonSets() DaemonSetsClient
-	ReplicaSets() ReplicaSetsClient
-	Deployments() DeploymentsClient
-	StatefulSets() StatefulSetsClient
+    DaemonSets() DaemonSetsClient
+    Deployments() DeploymentsClient
+    ReplicaSets() ReplicaSetsClient
+    StatefulSets() StatefulSetsClient
 }
 
 func NewClient(objects metav1.ObjectsClient) Client {
@@ -21,18 +21,20 @@ type client struct {
 	metav1.ObjectsClient
 }
 
+
 func (c *client) DaemonSets() DaemonSetsClient {
 	return newDaemonSetsClient(c.ObjectsClient)
-}
-
-func (c *client) ReplicaSets() ReplicaSetsClient {
-	return newReplicaSetsClient(c.ObjectsClient)
 }
 
 func (c *client) Deployments() DeploymentsClient {
 	return newDeploymentsClient(c.ObjectsClient)
 }
 
+func (c *client) ReplicaSets() ReplicaSetsClient {
+	return newReplicaSetsClient(c.ObjectsClient)
+}
+
 func (c *client) StatefulSets() StatefulSetsClient {
 	return newStatefulSetsClient(c.ObjectsClient)
 }
+

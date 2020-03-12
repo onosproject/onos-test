@@ -5,7 +5,13 @@ import "path"
 type ClientOptions struct {
 	Location Location
 	Package  Package
+	Types    ClientTypes
 	Groups   map[string]GroupOptions
+}
+
+type ClientTypes struct {
+	Interface string
+	Struct    string
 }
 
 func generateClient(options ClientOptions) error {

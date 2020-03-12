@@ -27,6 +27,10 @@ func getOptionsFromConfig(config Config) ClientOptions {
 			Path:  config.Package,
 			Alias: path.Base(config.Package),
 		},
+		Types: ClientTypes{
+			Interface: "Client",
+			Struct:    "client",
+		},
 		Groups: make(map[string]GroupOptions),
 	}
 
@@ -43,7 +47,14 @@ func getOptionsFromConfig(config Config) ClientOptions {
 					Path:  fmt.Sprintf("%s/%s", config.Package, resource.Group),
 					Alias: resource.Group,
 				},
-				Group:    resource.Group,
+				Group: resource.Group,
+				Types: GroupTypes{
+					Interface: "Client",
+					Struct:    "client",
+				},
+				Names: GroupNames{
+					Proper: toCamelCase(resource.Group),
+				},
 				Versions: make(map[string]VersionOptions),
 			}
 			options.Groups[resource.Group] = groupOpts
@@ -61,8 +72,15 @@ func getOptionsFromConfig(config Config) ClientOptions {
 					Path:  fmt.Sprintf("%s/%s/%s", config.Package, resource.Group, resource.Version),
 					Alias: fmt.Sprintf("%s%s", resource.Group, resource.Version),
 				},
-				Group:     resource.Group,
-				Version:   resource.Version,
+				Group:   resource.Group,
+				Version: resource.Version,
+				Types: VersionTypes{
+					Interface: "Client",
+					Struct:    "client",
+				},
+				Names: VersionNames{
+					Proper: toCamelCase(resource.Version),
+				},
 				Resources: make(map[string]ResourceClientOptions),
 			}
 			groupOpts.Versions[resource.Version] = versionOpts
@@ -88,6 +106,10 @@ func getOptionsFromConfig(config Config) ClientOptions {
 					Interface: fmt.Sprintf("%sClient", resource.PluralKind),
 					Struct:    toLowerCamelCase(fmt.Sprintf("%sClient", resource.PluralKind)),
 				},
+				Names: ResourceClientNames{
+					Singular: resource.Kind,
+					Plural:   resource.PluralKind,
+				},
 				Resource: ResourceOptions{
 					Location: Location{
 						Path: fmt.Sprintf("%s/%s/%s", config.Path, resource.Group, resource.Version),
@@ -112,7 +134,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 					Types: ResourceTypes{
 						Kind:     fmt.Sprintf("%sKind", resource.Kind),
 						Resource: fmt.Sprintf("%sResource", resource.Kind),
-						Struct:   toLowerCamelCase(resource.Kind),
+						Struct:   resource.Kind,
 					},
 					Names: ResourceNames{
 						Singular: resource.Kind,

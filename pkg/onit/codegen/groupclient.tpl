@@ -8,8 +8,9 @@ import (
 )
 
 type {{ .Types.Interface }} interface {
+    {{- $group := . }}
     {{- range $name, $version := .Versions }}
-    {{ .Names.Proper }}{{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }}
+    {{ $group.Names.Proper }}{{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }}
     {{- end }}
 }
 
@@ -23,8 +24,9 @@ type {{ .Types.Struct }} struct {
 	metav1.ObjectsClient
 }
 
+{{ $group := . }}
 {{- range $name, $version := .Versions }}
-func (c *{{ .Types.Struct }}) {{ .Names.Proper }}{{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }} {
+func (c *{{ $group.Types.Struct }}) {{ $group.Names.Proper }}{{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }} {
 	return {{ $version.Package.Alias }}.New{{ $version.Types.Interface }}(c.ObjectsClient)
 }
-{{- end }}
+{{ end }}

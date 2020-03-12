@@ -24,44 +24,6 @@ var StatefulSetResource = clustermetav1.Resource{
 	},
 }
 
-type StatefulSetsClient interface {
-	Get(name string) (*StatefulSet, error)
-	List() ([]*StatefulSet, error)
-}
-
-// newStatefulSetsClient creates a new StatefulSetsClient
-func newStatefulSetsClient(objects clustermetav1.ObjectsClient) StatefulSetsClient {
-	return &statefulSetsClient{
-		ObjectsClient: objects,
-	}
-}
-
-// statefulSetsClient implements the StatefulSetsClient interface
-type statefulSetsClient struct {
-	clustermetav1.ObjectsClient
-}
-
-func (c *statefulSetsClient) Get(name string) (*StatefulSet, error) {
-	object, err := c.ObjectsClient.Get(name, StatefulSetResource)
-	if err != nil {
-		return nil, err
-	}
-	return newStatefulSet(object), nil
-}
-
-func (c *statefulSetsClient) List() ([]*StatefulSet, error) {
-	objects, err := c.ObjectsClient.List(StatefulSetResource)
-	if err != nil {
-		return nil, err
-	}
-	statefulSets := make([]*StatefulSet, len(objects))
-	for i, object := range objects {
-		statefulSets[i] = newStatefulSet(object)
-	}
-	return statefulSets, nil
-}
-
-// newStatefulSet creates a new StatefulSet resource
 func newStatefulSet(object *clustermetav1.Object) *StatefulSet {
 	return &StatefulSet{
 		PodSet: clustercorev1.NewPodSet(object),
@@ -69,7 +31,6 @@ func newStatefulSet(object *clustermetav1.Object) *StatefulSet {
 	}
 }
 
-// StatefulSet provides functions for querying a stateful set
 type StatefulSet struct {
 	*clustercorev1.PodSet
 	Spec appsv1.StatefulSetSpec

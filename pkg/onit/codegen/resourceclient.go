@@ -6,12 +6,18 @@ type ResourceClientOptions struct {
 	Location Location
 	Package  Package
 	Types    ResourceClientTypes
+	Names    ResourceClientNames
 	Resource ResourceOptions
 }
 
 type ResourceClientTypes struct {
 	Interface string
 	Struct    string
+}
+
+type ResourceClientNames struct {
+	Singular string
+	Plural   string
 }
 
 func generateResourceClient(options ResourceClientOptions) error {

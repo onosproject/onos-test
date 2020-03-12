@@ -24,44 +24,6 @@ var JobResource = clustermetav1.Resource{
 	},
 }
 
-type JobsClient interface {
-	Get(name string) (*Job, error)
-	List() ([]*Job, error)
-}
-
-// newJobsClient creates a new JobsClient
-func newJobsClient(objects clustermetav1.ObjectsClient) JobsClient {
-	return &jobsClient{
-		ObjectsClient: objects,
-	}
-}
-
-// jobsClient implements the JobsClient interface
-type jobsClient struct {
-	clustermetav1.ObjectsClient
-}
-
-func (c *jobsClient) Get(name string) (*Job, error) {
-	object, err := c.ObjectsClient.Get(name, JobResource)
-	if err != nil {
-		return nil, err
-	}
-	return newJob(object), nil
-}
-
-func (c *jobsClient) List() ([]*Job, error) {
-	objects, err := c.ObjectsClient.List(JobResource)
-	if err != nil {
-		return nil, err
-	}
-	jobs := make([]*Job, len(objects))
-	for i, object := range objects {
-		jobs[i] = newJob(object)
-	}
-	return jobs, nil
-}
-
-// newJob creates a new Job resource
 func newJob(object *clustermetav1.Object) *Job {
 	return &Job{
 		PodSet: clustercorev1.NewPodSet(object),
@@ -69,7 +31,6 @@ func newJob(object *clustermetav1.Object) *Job {
 	}
 }
 
-// Job provides functions for querying a job
 type Job struct {
 	*clustercorev1.PodSet
 	Spec batchv1.JobSpec

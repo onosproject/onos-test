@@ -6,7 +6,7 @@ import (
 
 type {{ .Types.Interface }} interface {
     {{- range $name, $resource := .Resources }}
-    {{ $resource.PluralKind }}() {{ $resource.PluralKind }}Client
+    {{ $resource.Names.Plural }}() {{ $resource.Types.Interface }}
     {{- end }}
 }
 
@@ -20,8 +20,9 @@ type {{ .Types.Struct }} struct {
 	metav1.ObjectsClient
 }
 
+{{ $version := . }}
 {{- range $name, $resource := .Resources }}
-func (c *{{ .Types.Struct }}) {{ $resource.Names.Plural }}() {{ $resource.Types.Interface }} {
+func (c *{{ $version.Types.Struct }}) {{ $resource.Names.Plural }}() {{ $resource.Types.Interface }} {
 	return new{{ $resource.Types.Interface }}(c.ObjectsClient)
 }
-{{- end }}
+{{ end }}

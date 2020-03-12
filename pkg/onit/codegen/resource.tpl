@@ -8,14 +8,14 @@ import (
 )
 
 var {{ .Types.Kind }} = clustermetav1.Kind{
-	Group:   "{{ .Group }}",
-	Version: "{{ .Version }}",
-	Kind:    "{{ .Kind }}",
+	Group:   {{ .Kind.Group | quote }},
+	Version: {{ .Kind.Version | quote }},
+	Kind:    {{ .Kind.Kind | quote }},
 }
 
 var {{ .Types.Resource }} = clustermetav1.Resource{
 	Kind: {{ .Types.Kind }},
-	Name: "{{ .Kind.Kind }}",
+	Name: {{ .Kind.Kind | quote }},
 	ObjectFactory: func() runtime.Object {
 		return &{{ .Kind.Package.Alias }}.{{ .Kind.Kind }}{}
 	},

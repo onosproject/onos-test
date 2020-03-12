@@ -5,12 +5,12 @@ import (
 )
 
 type Client interface {
-	ConfigMaps() ConfigMapsClient
-	Endpoints() EndpointsClient
-	Nodes() NodesClient
-	Pods() PodsClient
-	Secrets() SecretsClient
-	Services() ServicesClient
+    ConfigMaps() ConfigMapsClient
+    Endpoints() EndpointsClient
+    Nodes() NodesClient
+    Pods() PodsClient
+    Secrets() SecretsClient
+    Services() ServicesClient
 }
 
 func NewClient(objects metav1.ObjectsClient) Client {
@@ -22,6 +22,7 @@ func NewClient(objects metav1.ObjectsClient) Client {
 type client struct {
 	metav1.ObjectsClient
 }
+
 
 func (c *client) ConfigMaps() ConfigMapsClient {
 	return newConfigMapsClient(c.ObjectsClient)
@@ -46,3 +47,4 @@ func (c *client) Secrets() SecretsClient {
 func (c *client) Services() ServicesClient {
 	return newServicesClient(c.ObjectsClient)
 }
+

@@ -6,11 +6,11 @@ import (
 
 type {{ .Types.Interface }} interface {
 	Get(name string) (*{{ .Resource.Types.Struct }}, error)
-	List() ([]*{{ .{{ .Resource.Types.Struct }} }}, error)
+	List() ([]*{{ .Resource.Types.Struct }}, error)
 }
 
 func new{{ .Types.Interface }}(objects clustermetav1.ObjectsClient) {{ .Types.Interface }} {
-	return &{{ .Types.Client }}{
+	return &{{ .Types.Struct }}{
 		ObjectsClient: objects,
 	}
 }
@@ -19,7 +19,7 @@ type {{ .Types.Struct }} struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *{{ .Types.Struct }}) Get(name string) (*{{ .Types.Struct }}, error) {
+func (c *{{ .Types.Struct }}) Get(name string) (*{{ .Resource.Types.Struct }}, error) {
 	object, err := c.ObjectsClient.Get(name, {{ .Resource.Types.Resource }})
 	if err != nil {
 		return nil, err

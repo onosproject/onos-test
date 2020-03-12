@@ -5,7 +5,7 @@ import (
 )
 
 type Client interface {
-	Ingresses() IngressesClient
+    Ingresses() IngressesClient
 }
 
 func NewClient(objects metav1.ObjectsClient) Client {
@@ -18,6 +18,8 @@ type client struct {
 	metav1.ObjectsClient
 }
 
+
 func (c *client) Ingresses() IngressesClient {
 	return newIngressesClient(c.ObjectsClient)
 }
+
