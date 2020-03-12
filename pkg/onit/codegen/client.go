@@ -1,23 +1,22 @@
 package codegen
 
+import "path"
+
 type ClientOptions struct {
-	Package    string
-	ImportPath string
-	FilePath   string
-	Groups     map[string]GroupOptions
+	Location Location
+	Package  Package
+	Groups   map[string]GroupOptions
 }
 
 func generateClient(options ClientOptions) error {
+	if err := generateTemplate(getTemplate("client.tpl"), path.Join(options.Location.Path, options.Location.File), options); err != nil {
+		return err
+	}
+
 	for _, group := range options.Groups {
-		if err := generateGroup(group); err != nil {
+		if err := generateGroupClient(group); err != nil {
 			return err
 		}
 	}
-
-	file, err := openFile(options.FilePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	return getTemplate("client", "client.tpl").Execute(file, options)
+	return nil
 }

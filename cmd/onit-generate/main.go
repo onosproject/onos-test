@@ -29,8 +29,7 @@ func main() {
 			if err := yaml.Unmarshal(bytes, &config); err != nil {
 				return err
 			}
-			codegen.Generate(config)
-			return nil
+			return codegen.Generate(config)
 		},
 	}
 	if err := cmd.Execute(); err != nil {

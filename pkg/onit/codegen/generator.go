@@ -2,8 +2,11 @@ package codegen
 
 import (
 	"fmt"
+	"github.com/iancoleman/strcase"
 	"os"
 	"path"
+	"runtime"
+	"strings"
 	"text/template"
 )
 
@@ -16,13 +19,12 @@ type Config struct {
 
 // Resource is a code generator resource
 type Resource struct {
+	Package    string `yaml:"package,omitempty"`
 	Group      string `yaml:"group,omitempty"`
 	Version    string `yaml:"version,omitempty"`
 	Kind       string `yaml:"kind,omitempty"`
-	PluralKind string `yaml:"pluralKind,omitempty"`
 	ListKind   string `yaml:"listKind,omitempty"`
-	Singular   string `yaml:"singular,omitempty"`
-	Plural     string `yaml:"plural,omitempty"`
+	PluralKind string `yaml:"pluralKind,omitempty"`
 }
 
 func Generate(config Config) error {
@@ -30,61 +32,47 @@ func Generate(config Config) error {
 	return generateClient(options)
 }
 
-func getTemplate(name, file string) *template.Template {
-	return template.Must(template.New(name).ParseFiles(file))
+var toCamelCase = func(value string) string {
+	return strcase.ToCamel(value)
 }
 
-func getOptionsFromConfig(config Config) ClientOptions {
-	options := ClientOptions{
-		Package:    path.Base(config.Package),
-		ImportPath: config.Package,
-		FilePath:   fmt.Sprintf("%s/client.go", config.Path),
-		Groups:     make(map[string]GroupOptions),
-	}
-	for _, resource := range config.Resources {
-		groupOpts, ok := options.Groups[resource.Group]
-		if !ok {
-			groupOpts = GroupOptions{
-				Package:    resource.Group,
-				ImportPath: fmt.Sprintf("%s/%s", options.ImportPath, resource.Group),
-				FilePath:   fmt.Sprintf("%s/%s/client.go", config.Path, resource.Group),
-				Group:      resource.Group,
-				Versions:   make(map[string]VersionOptions),
-			}
-			options.Groups[resource.Group] = groupOpts
-		}
+var toLowerCamelCase = func(value string) string {
+	return strcase.ToLowerCamel(value)
+}
 
-		versionOpts, ok := groupOpts.Versions[resource.Version]
-		if !ok {
-			versionOpts = VersionOptions{
-				Package:    resource.Version,
-				ImportPath: fmt.Sprintf("%s/%s/%s", options.ImportPath, resource.Group, resource.Version),
-				FilePath:   fmt.Sprintf("%s/%s/%s/client.go", config.Path, resource.Group, resource.Version),
-				Group:      resource.Group,
-				Version:    resource.Version,
-				Resources:  make(map[string]ResourceOptions),
-			}
-			groupOpts.Versions[resource.Version] = versionOpts
-		}
+var toLowerCase = func(value string) string {
+	return strings.ToLower(value)
+}
 
-		resourceOpts, ok := versionOpts.Resources[resource.Singular]
-		if !ok {
-			resourceOpts = ResourceOptions{
-				Package:    resource.Version,
-				ImportPath: fmt.Sprintf("%s/%s/%s", options.ImportPath, resource.Group, resource.Version),
-				FilePath:   fmt.Sprintf("%s/%s/%s/%s.go", config.Path, resource.Group, resource.Version, resource.Singular),
-				Group:      resource.Group,
-				Version:    resource.Version,
-				Kind:       resource.Kind,
-				PluralKind: resource.PluralKind,
-				ListKind:   resource.ListKind,
-				Singular:   resource.Singular,
-				Plural:     resource.Plural,
-			}
-			versionOpts.Resources[resource.Singular] = resourceOpts
-		}
+var toUpperCase = func(value string) string {
+	return strings.ToUpper(value)
+}
+
+var quote = func(value string) string {
+	return "\"" + value + "\""
+}
+
+func getTemplate(name string) *template.Template {
+	_, filepath, _, _ := runtime.Caller(0)
+	file := path.Join(path.Dir(filepath), name)
+	funcs := template.FuncMap{
+		"toCamel":      toCamelCase,
+		"toLowerCamel": toLowerCamelCase,
+		"lower":          toLowerCase,
+		"upper":          toUpperCase,
+		"quote":          quote,
 	}
-	return options
+	return template.Must(template.New(name).Funcs(funcs).ParseFiles(file))
+}
+
+func generateTemplate(t *template.Template, outputFile string, options interface{}) error {
+	fmt.Println(fmt.Sprintf("Generating file %s from template %s", outputFile, t.Name()))
+	file, err := openFile(outputFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return t.Execute(file, options)
 }
 
 func openFile(filename string) (*os.File, error) {
