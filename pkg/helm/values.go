@@ -23,10 +23,10 @@ var args = make(map[string]string)
 // Values is a list of values
 type Values []string
 
-func (v Values) Marshal() ([]byte, error) {
+func (v *Values) Marshal() ([]byte, error) {
 	return json.Marshal(v)
 }
 
-func (v Values) Unmarshal(value []byte) error {
+func (v *Values) Unmarshal(value []byte) error {
 	return json.Unmarshal(value, v)
 }

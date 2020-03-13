@@ -32,7 +32,7 @@ func Namespace(namespace ...string) Client {
 	client, ok := clients[ns]
 	if !ok {
 		client = &helmClient{
-			Client: kubernetes.Namespace(namespace...),
+			Client: kubernetes.Namespace(ns),
 			charts: make(map[string]*Chart),
 		}
 		clients[ns] = client

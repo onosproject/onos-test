@@ -40,7 +40,7 @@ func GetNamespaceFromEnv() string {
 func Namespace(namespace ...string) Client {
 	config := GetRestConfigOrDie()
 	ns := GetNamespaceFromEnv()
-	if len(namespace) == 0 {
+	if len(namespace) > 0 {
 		ns = namespace[0]
 	}
 	return &kubernetesClient{

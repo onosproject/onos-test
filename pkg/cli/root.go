@@ -16,15 +16,18 @@ package cli
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/onosproject/onos-test/pkg/util/logging"
-	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 )
 
-const defaultCluster = "onos"
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
 
 // GetRootCommand returns the root onit command
 func GetRootCommand() *cobra.Command {
@@ -55,24 +58,6 @@ func GenerateCliDocs() {
 		os.Exit(1)
 	}
 
-}
-
-// getCluster returns the cluster from the given command flags
-func getCluster(cmd *cobra.Command) string {
-	cluster, _ := cmd.Flags().GetString("cluster")
-	if cluster == "" {
-		cluster = defaultCluster
-	}
-	return cluster
-}
-
-// getName returns the name of a resource from the given command flags
-func getName(cmd *cobra.Command) string {
-	name, _ := cmd.Flags().GetString("name")
-	if name == "" {
-		name = random.NewPetName(2)
-	}
-	return name
 }
 
 func setupCommand(cmd *cobra.Command) {
