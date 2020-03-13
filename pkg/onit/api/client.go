@@ -23,37 +23,41 @@ import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
-type appsClient apps.Client
-type batchClient batch.Client
-type coreClient core.Client
-type extensionsClient extensions.Client
-type networkingClient networking.Client
-
 type Client interface {
 	resource.Client
-	appsClient
-	batchClient
-	coreClient
-	extensionsClient
-	networkingClient
+	Apps() apps.Client
+	Batch() batch.Client
+	Core() core.Client
+	Extensions() extensions.Client
+	Networking() networking.Client
 }
 
 func NewClient(resources resource.Client) Client {
 	return &client{
-		Client:           resources,
-		appsClient:       apps.NewClient(resources),
-		batchClient:      batch.NewClient(resources),
-		coreClient:       core.NewClient(resources),
-		extensionsClient: extensions.NewClient(resources),
-		networkingClient: networking.NewClient(resources),
+		Client: resources,
 	}
 }
 
 type client struct {
 	resource.Client
-	appsClient
-	batchClient
-	coreClient
-	extensionsClient
-	networkingClient
+}
+
+func (c *client) Apps() apps.Client {
+	return apps.NewClient(c.Client)
+}
+
+func (c *client) Batch() batch.Client {
+	return batch.NewClient(c.Client)
+}
+
+func (c *client) Core() core.Client {
+	return core.NewClient(c.Client)
+}
+
+func (c *client) Extensions() extensions.Client {
+	return extensions.NewClient(c.Client)
+}
+
+func (c *client) Networking() networking.Client {
+	return networking.NewClient(c.Client)
 }

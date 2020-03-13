@@ -21,8 +21,8 @@ import (
 )
 
 type Client interface {
-	AppsV1() appsv1.Client
-	AppsV1beta1() appsv1beta1.Client
+	V1() appsv1.Client
+	V1beta1() appsv1beta1.Client
 }
 
 func NewClient(resources resource.Client) Client {
@@ -35,10 +35,10 @@ type client struct {
 	resource.Client
 }
 
-func (c *client) AppsV1() appsv1.Client {
+func (c *client) V1() appsv1.Client {
 	return appsv1.NewClient(c.Client)
 }
 
-func (c *client) AppsV1beta1() appsv1beta1.Client {
+func (c *client) V1beta1() appsv1beta1.Client {
 	return appsv1beta1.NewClient(c.Client)
 }

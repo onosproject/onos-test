@@ -22,9 +22,8 @@ import (
 )
 
 type {{ .Types.Interface }} interface {
-    {{- $group := . }}
     {{- range $name, $version := .Versions }}
-    {{ $group.Names.Proper }}{{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }}
+    {{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }}
     {{- end }}
 }
 
@@ -40,7 +39,7 @@ type {{ .Types.Struct }} struct {
 
 {{ $group := . }}
 {{- range $name, $version := .Versions }}
-func (c *{{ $group.Types.Struct }}) {{ $group.Names.Proper }}{{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }} {
+func (c *{{ $group.Types.Struct }}) {{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }} {
 	return {{ $version.Package.Alias }}.New{{ $version.Types.Interface }}(c.Client)
 }
 {{ end }}

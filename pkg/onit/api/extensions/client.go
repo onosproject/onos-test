@@ -20,7 +20,7 @@ import (
 )
 
 type Client interface {
-	ExtensionsV1beta1() extensionsv1beta1.Client
+	V1beta1() extensionsv1beta1.Client
 }
 
 func NewClient(resources resource.Client) Client {
@@ -33,6 +33,6 @@ type client struct {
 	resource.Client
 }
 
-func (c *client) ExtensionsV1beta1() extensionsv1beta1.Client {
+func (c *client) V1beta1() extensionsv1beta1.Client {
 	return extensionsv1beta1.NewClient(c.Client)
 }

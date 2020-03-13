@@ -20,7 +20,7 @@ import (
 )
 
 type Client interface {
-	NetworkingV1beta1() networkingv1beta1.Client
+	V1beta1() networkingv1beta1.Client
 }
 
 func NewClient(resources resource.Client) Client {
@@ -33,6 +33,6 @@ type client struct {
 	resource.Client
 }
 
-func (c *client) NetworkingV1beta1() networkingv1beta1.Client {
+func (c *client) V1beta1() networkingv1beta1.Client {
 	return networkingv1beta1.NewClient(c.Client)
 }

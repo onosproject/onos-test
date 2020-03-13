@@ -22,9 +22,9 @@ import (
 )
 
 type Client interface {
-	BatchV1() batchv1.Client
-	BatchV1beta1() batchv1beta1.Client
-	BatchV2alpha1() batchv2alpha1.Client
+	V1() batchv1.Client
+	V1beta1() batchv1beta1.Client
+	V2alpha1() batchv2alpha1.Client
 }
 
 func NewClient(resources resource.Client) Client {
@@ -37,14 +37,14 @@ type client struct {
 	resource.Client
 }
 
-func (c *client) BatchV1() batchv1.Client {
+func (c *client) V1() batchv1.Client {
 	return batchv1.NewClient(c.Client)
 }
 
-func (c *client) BatchV1beta1() batchv1beta1.Client {
+func (c *client) V1beta1() batchv1beta1.Client {
 	return batchv1beta1.NewClient(c.Client)
 }
 
-func (c *client) BatchV2alpha1() batchv2alpha1.Client {
+func (c *client) V2alpha1() batchv2alpha1.Client {
 	return batchv2alpha1.NewClient(c.Client)
 }
