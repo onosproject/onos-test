@@ -19,38 +19,37 @@ import (
 )
 
 type Client interface {
-    ConfigMapsClient
-    EndpointsClient
-    NodesClient
-    PodsClient
-    SecretsClient
-    ServicesClient
+	ConfigMapsClient
+	EndpointsClient
+	NodesClient
+	PodsClient
+	SecretsClient
+	ServicesClient
 }
 
 func NewClient(objects metav1.ObjectsClient) Client {
 	return &client{
-		ObjectsClient: objects,
-        ConfigMapsClient: NewConfigMapsClient(objects),
-        
-        EndpointsClient: NewEndpointsClient(objects),
-        
-        NodesClient: NewNodesClient(objects),
-        
-        PodsClient: NewPodsClient(objects),
-        
-        SecretsClient: NewSecretsClient(objects),
-        
-        ServicesClient: NewServicesClient(objects),
-        
+		ObjectsClient:    objects,
+		ConfigMapsClient: NewConfigMapsClient(objects),
+
+		EndpointsClient: NewEndpointsClient(objects),
+
+		NodesClient: NewNodesClient(objects),
+
+		PodsClient: NewPodsClient(objects),
+
+		SecretsClient: NewSecretsClient(objects),
+
+		ServicesClient: NewServicesClient(objects),
 	}
 }
 
 type client struct {
 	metav1.ObjectsClient
-    ConfigMapsClient
-    EndpointsClient
-    NodesClient
-    PodsClient
-    SecretsClient
-    ServicesClient
+	ConfigMapsClient
+	EndpointsClient
+	NodesClient
+	PodsClient
+	SecretsClient
+	ServicesClient
 }

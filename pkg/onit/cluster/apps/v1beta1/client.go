@@ -19,22 +19,21 @@ import (
 )
 
 type Client interface {
-    DeploymentsClient
-    StatefulSetsClient
+	DeploymentsClient
+	StatefulSetsClient
 }
 
 func NewClient(objects metav1.ObjectsClient) Client {
 	return &client{
-		ObjectsClient: objects,
-        DeploymentsClient: NewDeploymentsClient(objects),
-        
-        StatefulSetsClient: NewStatefulSetsClient(objects),
-        
+		ObjectsClient:     objects,
+		DeploymentsClient: NewDeploymentsClient(objects),
+
+		StatefulSetsClient: NewStatefulSetsClient(objects),
 	}
 }
 
 type client struct {
 	metav1.ObjectsClient
-    DeploymentsClient
-    StatefulSetsClient
+	DeploymentsClient
+	StatefulSetsClient
 }

@@ -19,18 +19,17 @@ import (
 )
 
 type Client interface {
-    CronJobsClient
+	CronJobsClient
 }
 
 func NewClient(objects metav1.ObjectsClient) Client {
 	return &client{
-		ObjectsClient: objects,
-        CronJobsClient: NewCronJobsClient(objects),
-        
+		ObjectsClient:  objects,
+		CronJobsClient: NewCronJobsClient(objects),
 	}
 }
 
 type client struct {
 	metav1.ObjectsClient
-    CronJobsClient
+	CronJobsClient
 }

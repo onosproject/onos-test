@@ -19,7 +19,7 @@ import (
 )
 
 type CronJobsClient interface {
-    CronJobs() CronJobs
+	CronJobs() CronJobs
 }
 
 func NewCronJobsClient(objects clustermetav1.ObjectsClient) CronJobsClient {
@@ -33,5 +33,5 @@ type cronJobsClient struct {
 }
 
 func (c *cronJobsClient) CronJobs() CronJobs {
-    return NewCronJobs(c.ObjectsClient)
+	return NewCronJobs(c.ObjectsClient)
 }

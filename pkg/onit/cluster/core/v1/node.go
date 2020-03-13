@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package v1
 
 import (
@@ -39,7 +40,7 @@ var NodeResource = clustermetav1.Resource{
 func NewNode(object *clustermetav1.Object) *Node {
 	return &Node{
 		Object: object,
-		Node: object.Object.(*corev1.Node),
+		Node:   object.Object.(*corev1.Node),
 	}
 }
 

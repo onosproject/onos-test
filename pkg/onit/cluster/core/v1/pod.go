@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package v1
 
 import (
@@ -39,7 +40,7 @@ var PodResource = clustermetav1.Resource{
 func NewPod(object *clustermetav1.Object) *Pod {
 	return &Pod{
 		Object: object,
-		Pod: object.Object.(*corev1.Pod),
+		Pod:    object.Object.(*corev1.Pod),
 	}
 }
 

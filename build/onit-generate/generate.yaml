@@ -16,6 +16,9 @@ resources:
     pluralKind: "Deployments"
     listKind: "DeploymentList"
     subResources:
+      - group: "apps"
+        version: "v1"
+        kind: "ReplicaSet"
       - group: "core"
         version: "v1"
         kind: "Pod"
@@ -34,6 +37,9 @@ resources:
     pluralKind: "StatefulSets"
     listKind: "StatefulSetList"
     subResources:
+      - group: "apps"
+        version: "v1"
+        kind: "ReplicaSet"
       - group: "core"
         version: "v1"
         kind: "Pod"
@@ -43,6 +49,9 @@ resources:
     pluralKind: "Deployments"
     listKind: "DeploymentList"
     subResources:
+      - group: "apps"
+        version: "v1"
+        kind: "ReplicaSet"
       - group: "core"
         version: "v1"
         kind: "Pod"
@@ -52,6 +61,9 @@ resources:
     pluralKind: "StatefulSets"
     listKind: "StatefulSetList"
     subResources:
+      - group: "apps"
+        version: "v1"
+        kind: "ReplicaSet"
       - group: "core"
         version: "v1"
         kind: "Pod"

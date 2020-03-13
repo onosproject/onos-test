@@ -17,7 +17,10 @@ package codegen
 import (
 	"fmt"
 	"github.com/iancoleman/strcase"
+	"github.com/joncalhoun/pipe"
+	"io"
 	"os"
+	"os/exec"
 	"path"
 	"runtime"
 	"strings"
@@ -82,12 +85,20 @@ func getTemplate(name string) *template.Template {
 
 func generateTemplate(t *template.Template, outputFile string, options interface{}) error {
 	fmt.Println(fmt.Sprintf("Generating file %s from template %s", outputFile, t.Name()))
+	rc, wc, _ := pipe.Commands(
+		exec.Command("gofmt"),
+	)
+	if err := t.Execute(wc, options); err != nil {
+		return err
+	}
+	wc.Close()
 	file, err := openFile(outputFile)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	return t.Execute(file, options)
+	_, err = io.Copy(file, rc)
+	return err
 }
 
 func openFile(filename string) (*os.File, error) {

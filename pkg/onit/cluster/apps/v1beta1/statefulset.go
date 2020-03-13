@@ -11,12 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package v1beta1
 
 import (
+	appsv1 "github.com/onosproject/onos-test/pkg/onit/cluster/apps/v1"
+	corev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
-    corev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -39,14 +41,16 @@ var StatefulSetResource = clustermetav1.Resource{
 
 func NewStatefulSet(object *clustermetav1.Object) *StatefulSet {
 	return &StatefulSet{
-		Object: object,
-		StatefulSet: object.Object.(*appsv1beta1.StatefulSet),
-        PodsClient: corev1.NewPodsClient(object),
+		Object:            object,
+		StatefulSet:       object.Object.(*appsv1beta1.StatefulSet),
+		ReplicaSetsClient: appsv1.NewReplicaSetsClient(object),
+		PodsClient:        corev1.NewPodsClient(object),
 	}
 }
 
 type StatefulSet struct {
 	*clustermetav1.Object
 	StatefulSet *appsv1beta1.StatefulSet
-    corev1.PodsClient
+	appsv1.ReplicaSetsClient
+	corev1.PodsClient
 }

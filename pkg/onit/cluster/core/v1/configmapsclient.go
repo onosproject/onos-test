@@ -19,7 +19,7 @@ import (
 )
 
 type ConfigMapsClient interface {
-    ConfigMaps() ConfigMaps
+	ConfigMaps() ConfigMaps
 }
 
 func NewConfigMapsClient(objects clustermetav1.ObjectsClient) ConfigMapsClient {
@@ -33,5 +33,5 @@ type configMapsClient struct {
 }
 
 func (c *configMapsClient) ConfigMaps() ConfigMaps {
-    return NewConfigMaps(c.ObjectsClient)
+	return NewConfigMaps(c.ObjectsClient)
 }

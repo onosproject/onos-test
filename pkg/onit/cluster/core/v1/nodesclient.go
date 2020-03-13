@@ -19,7 +19,7 @@ import (
 )
 
 type NodesClient interface {
-    Nodes() Nodes
+	Nodes() Nodes
 }
 
 func NewNodesClient(objects clustermetav1.ObjectsClient) NodesClient {
@@ -33,5 +33,5 @@ type nodesClient struct {
 }
 
 func (c *nodesClient) Nodes() Nodes {
-    return NewNodes(c.ObjectsClient)
+	return NewNodes(c.ObjectsClient)
 }

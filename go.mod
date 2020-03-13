@@ -9,6 +9,7 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
+	github.com/joncalhoun/pipe v0.0.0-20170510025636-72505674a733
 	github.com/onosproject/onos-config v0.0.0-20200204191831-5c2803ee469d
 	github.com/onosproject/onos-ric v0.0.0-20200225182040-dcf370614b8e
 	github.com/onosproject/onos-topo v0.0.0-20200218171206-55029b503689

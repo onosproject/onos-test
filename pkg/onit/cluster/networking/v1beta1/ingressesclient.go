@@ -19,7 +19,7 @@ import (
 )
 
 type IngressesClient interface {
-    Ingresses() Ingresses
+	Ingresses() Ingresses
 }
 
 func NewIngressesClient(objects clustermetav1.ObjectsClient) IngressesClient {
@@ -33,5 +33,5 @@ type ingressesClient struct {
 }
 
 func (c *ingressesClient) Ingresses() Ingresses {
-    return NewIngresses(c.ObjectsClient)
+	return NewIngresses(c.ObjectsClient)
 }

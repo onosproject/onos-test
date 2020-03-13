@@ -11,12 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package v1
 
 import (
+	corev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 	appsv1 "k8s.io/api/apps/v1"
-    corev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -39,14 +40,14 @@ var ReplicaSetResource = clustermetav1.Resource{
 
 func NewReplicaSet(object *clustermetav1.Object) *ReplicaSet {
 	return &ReplicaSet{
-		Object: object,
+		Object:     object,
 		ReplicaSet: object.Object.(*appsv1.ReplicaSet),
-        PodsClient: corev1.NewPodsClient(object),
+		PodsClient: corev1.NewPodsClient(object),
 	}
 }
 
 type ReplicaSet struct {
 	*clustermetav1.Object
 	ReplicaSet *appsv1.ReplicaSet
-    corev1.PodsClient
+	corev1.PodsClient
 }

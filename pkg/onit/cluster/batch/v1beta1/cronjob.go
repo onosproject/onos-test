@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package v1beta1
 
 import (
@@ -38,7 +39,7 @@ var CronJobResource = clustermetav1.Resource{
 
 func NewCronJob(object *clustermetav1.Object) *CronJob {
 	return &CronJob{
-		Object: object,
+		Object:  object,
 		CronJob: object.Object.(*batchv1beta1.CronJob),
 	}
 }

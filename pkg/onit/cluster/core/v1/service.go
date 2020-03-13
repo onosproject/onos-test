@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package v1
 
 import (
@@ -38,14 +39,14 @@ var ServiceResource = clustermetav1.Resource{
 
 func NewService(object *clustermetav1.Object) *Service {
 	return &Service{
-		Object: object,
-		Service: object.Object.(*corev1.Service),
-        EndpointsClient: NewEndpointsClient(object),
+		Object:          object,
+		Service:         object.Object.(*corev1.Service),
+		EndpointsClient: NewEndpointsClient(object),
 	}
 }
 
 type Service struct {
 	*clustermetav1.Object
 	Service *corev1.Service
-    EndpointsClient
+	EndpointsClient
 }

@@ -11,12 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package v1
 
 import (
+	corev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 	appsv1 "k8s.io/api/apps/v1"
-    corev1 "github.com/onosproject/onos-test/pkg/onit/cluster/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -39,14 +40,16 @@ var DeploymentResource = clustermetav1.Resource{
 
 func NewDeployment(object *clustermetav1.Object) *Deployment {
 	return &Deployment{
-		Object: object,
-		Deployment: object.Object.(*appsv1.Deployment),
-        PodsClient: corev1.NewPodsClient(object),
+		Object:            object,
+		Deployment:        object.Object.(*appsv1.Deployment),
+		ReplicaSetsClient: NewReplicaSetsClient(object),
+		PodsClient:        corev1.NewPodsClient(object),
 	}
 }
 
 type Deployment struct {
 	*clustermetav1.Object
 	Deployment *appsv1.Deployment
-    corev1.PodsClient
+	ReplicaSetsClient
+	corev1.PodsClient
 }

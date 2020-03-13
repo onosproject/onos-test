@@ -19,7 +19,7 @@ import (
 )
 
 type PodsClient interface {
-    Pods() Pods
+	Pods() Pods
 }
 
 func NewPodsClient(objects clustermetav1.ObjectsClient) PodsClient {
@@ -33,5 +33,5 @@ type podsClient struct {
 }
 
 func (c *podsClient) Pods() Pods {
-    return NewPods(c.ObjectsClient)
+	return NewPods(c.ObjectsClient)
 }

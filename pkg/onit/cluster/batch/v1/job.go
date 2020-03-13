@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package v1
 
 import (
@@ -39,7 +40,7 @@ var JobResource = clustermetav1.Resource{
 func NewJob(object *clustermetav1.Object) *Job {
 	return &Job{
 		Object: object,
-		Job: object.Object.(*batchv1.Job),
+		Job:    object.Object.(*batchv1.Job),
 	}
 }
 

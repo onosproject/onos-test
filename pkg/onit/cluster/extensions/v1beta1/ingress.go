@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package v1beta1
 
 import (
@@ -38,7 +39,7 @@ var IngressResource = clustermetav1.Resource{
 
 func NewIngress(object *clustermetav1.Object) *Ingress {
 	return &Ingress{
-		Object: object,
+		Object:  object,
 		Ingress: object.Object.(*extensionsv1beta1.Ingress),
 	}
 }

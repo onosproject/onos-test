@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 package v1
 
 import (
@@ -38,7 +39,7 @@ var EndpointsResource = clustermetav1.Resource{
 
 func NewEndpoints(object *clustermetav1.Object) *Endpoints {
 	return &Endpoints{
-		Object: object,
+		Object:    object,
 		Endpoints: object.Object.(*corev1.Endpoints),
 	}
 }
