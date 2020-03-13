@@ -15,8 +15,6 @@
 package cli
 
 import (
-	"bytes"
-	"fmt"
 	"github.com/onosproject/onos-test/pkg/helm"
 	"github.com/onosproject/onos-test/pkg/simulation"
 	"io/ioutil"
@@ -65,17 +63,6 @@ func getSimulateCommand() *cobra.Command {
 	cmd.Flags().DurationP("duration", "d", 10*time.Minute, "the duration for which to run the simulation")
 	cmd.Flags().StringToStringP("args", "a", map[string]string{}, "a mapping of named simulation arguments")
 	cmd.Flags().StringToStringP("schedule", "r", map[string]string{}, "a mapping of operations to schedule")
-	cmd.Flags().Bool("verify", false, "whether to verify the simulation against a formal model")
-	cmd.Flags().StringP("model", "m", "", "a model with which to verify the simulation")
-	cmd.Flags().StringArray("module", []string{}, "modules to add to the model")
-	cmd.Flags().String("config", "", "the model configuration")
-	cmd.Flags().String("spec", "", "the model specification")
-	cmd.Flags().String("init", "", "an init predicate")
-	cmd.Flags().String("next", "", "a next state predicate")
-	cmd.Flags().StringArray("invariant", []string{}, "model invariant")
-	cmd.Flags().StringArray("constant", []string{}, "model constants")
-	cmd.Flags().StringArray("constraint", []string{}, "model constraints")
-	cmd.Flags().StringArray("property", []string{}, "model properties")
 
 	_ = cmd.MarkFlagRequired("image")
 	return cmd
@@ -149,84 +136,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 	operations, _ := cmd.Flags().GetStringToString("schedule")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
 	imagePullPolicy, _ := cmd.Flags().GetString("image-pull-policy")
-	verify, _ := cmd.Flags().GetBool("verify")
 	pullPolicy := corev1.PullPolicy(imagePullPolicy)
-
-	var modelName string
-	var modelData map[string]string
-	if verify {
-		modelPath, _ := cmd.Flags().GetString("model")
-		modulePaths, _ := cmd.Flags().GetStringArray("module")
-		configPath, _ := cmd.Flags().GetString("config")
-
-		modelData = make(map[string]string)
-		if modelPath != "" {
-			name, data, err := getData(modelPath)
-			if err != nil {
-				return err
-			}
-			modelName = name
-			modelData[fmt.Sprintf("%s.tla", name)] = string(data)
-
-			var configBytes []byte
-			if configPath != "" {
-				_, data, err := getData(configPath)
-				if err != nil {
-					return err
-				}
-				configBytes = data
-			} else {
-				spec, _ := cmd.Flags().GetString("spec")
-				init, _ := cmd.Flags().GetString("init")
-				next, _ := cmd.Flags().GetString("next")
-				invariants, _ := cmd.Flags().GetStringArray("invariant")
-				constants, _ := cmd.Flags().GetStringArray("constant")
-				constraints, _ := cmd.Flags().GetStringArray("constraint")
-				properties, _ := cmd.Flags().GetStringArray("property")
-
-				buf := &bytes.Buffer{}
-				if spec != "" {
-					fmt.Fprintln(buf, "SPECIFICATION", spec)
-				}
-				if init != "" {
-					fmt.Fprintln(buf, "INIT", init)
-				}
-				if next != "" {
-					fmt.Fprintln(buf, "NEXT", next)
-				}
-				if len(invariants) > 0 {
-					for _, invariant := range invariants {
-						fmt.Fprintln(buf, "INVARIANT", invariant)
-					}
-				}
-				if len(constants) > 0 {
-					for _, constant := range constants {
-						fmt.Fprintln(buf, "CONSTANT", constant)
-					}
-				}
-				if len(constraints) > 0 {
-					for _, constraint := range constraints {
-						fmt.Fprintln(buf, "CONSTRAINT", constraint)
-					}
-				}
-				if len(properties) > 0 {
-					for _, property := range properties {
-						fmt.Fprintln(buf, "PROPERTY", property)
-					}
-				}
-				configBytes = buf.Bytes()
-			}
-			modelData[fmt.Sprintf("%s.cfg", modelName)] = string(configBytes)
-
-			for _, modulePath := range modulePaths {
-				name, data, err := getData(modulePath)
-				if err != nil {
-					return err
-				}
-				modelData[fmt.Sprintf("%s.tla", name)] = string(data)
-			}
-		}
-	}
 
 	rates := make(map[string]time.Duration)
 	jitters := make(map[string]float64)
@@ -262,7 +172,6 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		Image:           image,
 		ImagePullPolicy: pullPolicy,
 		Simulation:      sim,
-		Model:           modelName,
 		Simulators:      workers,
 		Duration:        duration,
 		Rates:           rates,
@@ -280,8 +189,6 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		Env:             config.ToEnv(),
 		Timeout:         timeout,
 		Type:            "simulation",
-		ModelChecker:    verify,
-		ModelData:       modelData,
 	}
 
 	// Create a job runner and run the benchmark job

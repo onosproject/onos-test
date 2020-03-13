@@ -17,7 +17,6 @@ package cluster
 import (
 	"bufio"
 	"errors"
-	"github.com/onosproject/onos-test/pkg/model"
 	"os"
 	"time"
 
@@ -379,105 +378,6 @@ func (r *Runner) createJob(job *Job) error {
 		return err
 	}
 
-	var volumes []corev1.Volume
-	var containers []corev1.Container
-	if job.ModelChecker {
-		cm := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      job.ID,
-				Namespace: namespace,
-				Annotations: map[string]string{
-					"job":  job.ID,
-					"type": job.Type,
-				},
-			},
-			Data: job.ModelData,
-		}
-		_, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm)
-		if err != nil {
-			step.Fail(err)
-			return err
-		}
-
-		volumes = []corev1.Volume{
-			{
-				Name: "models",
-				VolumeSource: corev1.VolumeSource{
-					ConfigMap: &corev1.ConfigMapVolumeSource{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: job.ID,
-						},
-					},
-				},
-			},
-			{
-				Name: "data",
-				VolumeSource: corev1.VolumeSource{
-					EmptyDir: &corev1.EmptyDirVolumeSource{},
-				},
-			},
-		}
-		containers = []corev1.Container{
-			{
-				Name:            "job",
-				Image:           job.Image,
-				ImagePullPolicy: job.ImagePullPolicy,
-				Args:            job.Args,
-				Env:             env,
-				Ports: []corev1.ContainerPort{
-					{
-						Name:          "management",
-						ContainerPort: 5000,
-					},
-				},
-				VolumeMounts: []corev1.VolumeMount{
-					{
-						Name:      "data",
-						MountPath: model.DataPath,
-					},
-				},
-			},
-			{
-				Name:            "model-checker",
-				Image:           "onosproject/model-checker:latest",
-				ImagePullPolicy: job.ImagePullPolicy,
-				Ports: []corev1.ContainerPort{
-					{
-						Name:          "model-checker",
-						ContainerPort: model.CheckerPort,
-					},
-				},
-				VolumeMounts: []corev1.VolumeMount{
-					{
-						Name:      "data",
-						MountPath: model.DataPath,
-					},
-					{
-						Name:      "models",
-						MountPath: model.ModelsPath,
-						ReadOnly:  true,
-					},
-				},
-			},
-		}
-	} else {
-		containers = []corev1.Container{
-			{
-				Name:            "job",
-				Image:           job.Image,
-				ImagePullPolicy: job.ImagePullPolicy,
-				Args:            job.Args,
-				Env:             env,
-				Ports: []corev1.ContainerPort{
-					{
-						Name:          "management",
-						ContainerPort: 5000,
-					},
-				},
-			},
-		}
-	}
-
 	zero := int32(0)
 	one := int32(1)
 	batchJob := &batchv1.Job{
@@ -503,8 +403,21 @@ func (r *Runner) createJob(job *Job) error {
 				Spec: corev1.PodSpec{
 					ServiceAccountName: namespace,
 					RestartPolicy:      corev1.RestartPolicyNever,
-					Containers:         containers,
-					Volumes:            volumes,
+					Containers: []corev1.Container{
+						{
+							Name:            "job",
+							Image:           job.Image,
+							ImagePullPolicy: job.ImagePullPolicy,
+							Args:            job.Args,
+							Env:             env,
+							Ports: []corev1.ContainerPort{
+								{
+									Name:          "management",
+									ContainerPort: 5000,
+								},
+							},
+						},
+					},
 				},
 			},
 		},

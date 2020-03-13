@@ -100,13 +100,12 @@ type Simulator struct {
 	// Name is the name of the simulation
 	Name string
 	// Process is the unique identifier of the simulator process
-	Process  int
-	config   *Config
-	suite    SimulatingSuite
-	args     map[string]string
-	ops      map[string]*operation
-	mu       sync.Mutex
-	register Register
+	Process int
+	config  *Config
+	suite   SimulatingSuite
+	args    map[string]string
+	ops     map[string]*operation
+	mu      sync.Mutex
 }
 
 // Arg gets a simulator argument
@@ -117,21 +116,6 @@ func (s *Simulator) Arg(name string) *Arg {
 		}
 	}
 	return &Arg{}
-}
-
-// Trace records the given object as a trace
-func (s *Simulator) Trace(value struct{}) error {
-	return s.register.Trace(value)
-}
-
-// TraceFields records a trace of fields and values to the register
-func (s *Simulator) TraceFields(fieldsAndValues ...interface{}) error {
-	return s.register.TraceFields(fieldsAndValues...)
-}
-
-// TraceValues records an trace in the register
-func (s *Simulator) TraceValues(values ...interface{}) error {
-	return s.register.TraceValues(values...)
 }
 
 // Schedule schedules an operation
@@ -200,8 +184,7 @@ func (s *Simulator) teardownSimulator() error {
 }
 
 // start starts the simulator
-func (s *Simulator) start(register Register) {
-	s.register = register
+func (s *Simulator) start() {
 	for _, op := range s.ops {
 		go op.start()
 	}
@@ -212,7 +195,6 @@ func (s *Simulator) stop() {
 	for _, op := range s.ops {
 		op.stop()
 	}
-	s.register.close()
 }
 
 // waitJitter returns a channel that closes after time.Duration between duration and duration + maxFactor *
@@ -384,12 +366,7 @@ func (s *simulatorServer) StartSimulator(ctx context.Context, request *Simulator
 		return nil, err
 	}
 
-	register, err := newBlockingRegister(request.Simulation, request.Register)
-	if err != nil {
-		return nil, err
-	}
-
-	go simulation.start(register)
+	go simulation.start()
 	step.Complete()
 	return &SimulatorResponse{}, nil
 }

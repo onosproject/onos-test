@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/cluster"
 	kube "github.com/onosproject/onos-test/pkg/kubernetes"
-	"github.com/onosproject/onos-test/pkg/model"
 	"github.com/onosproject/onos-test/pkg/registry"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	"google.golang.org/grpc"
@@ -50,11 +49,6 @@ type Coordinator struct {
 
 // Run runs the simulations
 func (c *Coordinator) Run() error {
-	server := newRegisterServer(":5000")
-	go func() {
-		_ = server.serve()
-	}()
-
 	var suites []string
 	if c.config.Simulation == "" {
 		suites = registry.GetSimulationSuites()
@@ -70,7 +64,6 @@ func (c *Coordinator) Run() error {
 			Image:           c.config.Image,
 			ImagePullPolicy: c.config.ImagePullPolicy,
 			Simulation:      suite,
-			Model:           c.config.Model,
 			Simulators:      c.config.Simulators,
 			Duration:        c.config.Duration,
 			Rates:           c.config.Rates,
@@ -84,10 +77,9 @@ func (c *Coordinator) Run() error {
 		}
 
 		worker := &WorkerTask{
-			client:    c.client,
-			registers: server,
-			cluster:   benchCluster,
-			config:    config,
+			client:  c.client,
+			cluster: benchCluster,
+			config:  config,
 		}
 		workers[i] = worker
 	}
@@ -141,11 +133,10 @@ func newJobID(testID, suite string) string {
 
 // WorkerTask manages a single test job for a test worker
 type WorkerTask struct {
-	client    *kubernetes.Clientset
-	registers *registerServer
-	cluster   *cluster.Cluster
-	config    *Config
-	workers   []SimulatorServiceClient
+	client  *kubernetes.Clientset
+	cluster *cluster.Cluster
+	config  *Config
+	workers []SimulatorServiceClient
 }
 
 // Run runs the worker job
@@ -176,11 +167,7 @@ func (t *WorkerTask) run() error {
 	if err := t.setupSimulators(); err != nil {
 		return err
 	}
-	traces, err := t.runSimulation()
-	if err != nil {
-		return err
-	}
-	if err := t.checkModel(traces); err != nil {
+	if err := t.runSimulation(); err != nil {
 		return err
 	}
 	return nil
@@ -430,18 +417,16 @@ func (t *WorkerTask) setupSimulator(simulator int, client SimulatorServiceClient
 }
 
 // runSimulation runs the given simulations
-func (t *WorkerTask) runSimulation() ([]*model.Trace, error) {
+func (t *WorkerTask) runSimulation() error {
 	// Run the simulation for the configured duration
 	step := logging.NewStep(t.config.ID, "Run simulation %s", t.config.Simulation)
 	step.Start()
 
-	tracesCh := make(chan *model.Trace)
 	errCh := make(chan error)
-
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		if err := t.runSimulators(tracesCh); err != nil {
+		if err := t.runSimulators(); err != nil {
 			errCh <- err
 		}
 		wg.Done()
@@ -449,28 +434,19 @@ func (t *WorkerTask) runSimulation() ([]*model.Trace, error) {
 
 	go func() {
 		wg.Wait()
-		close(tracesCh)
 		close(errCh)
 	}()
 
-	traces := make([]*model.Trace, 0)
-	for trace := range tracesCh {
-		fmt.Println(string(trace.Bytes))
-		traces = append(traces, trace)
-	}
-
 	for err := range errCh {
 		step.Fail(err)
-		return nil, err
+		return err
 	}
 	step.Complete()
-	return traces, nil
+	return nil
 }
 
 // runSimulators runs the simulation for a goroutine
-func (t *WorkerTask) runSimulators(ch chan<- *model.Trace) error {
-	t.registers.addRegister(t.config.Simulation, ch)
-
+func (t *WorkerTask) runSimulators() error {
 	simulators, err := t.getSimulators()
 	if err != nil {
 		return err
@@ -528,29 +504,6 @@ func (t *WorkerTask) stopSimulator(simulator int, client SimulatorServiceClient)
 	}
 	_, err := client.StopSimulator(context.Background(), request)
 	return err
-}
-
-// checkModel checks the given traces against the model
-func (t *WorkerTask) checkModel(traces []*model.Trace) error {
-	if t.config.Model == "" {
-		return nil
-	}
-
-	step := logging.NewStep(t.config.ID, "Check model %s", t.config.Model)
-	step.Start()
-
-	checker, err := model.NewChecker()
-	if err != nil {
-		step.Fail(err)
-		return err
-	}
-
-	model := model.NewModel(t.config.Model)
-	if err := checker.CheckModel(model, traces); err != nil {
-		step.Fail(err)
-		return err
-	}
-	return nil
 }
 
 // tearDown tears down the job

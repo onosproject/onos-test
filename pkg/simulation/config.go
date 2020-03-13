@@ -33,7 +33,6 @@ const (
 	simulationImageEnv           = "SIMULATION_IMAGE"
 	simulationImagePullPolicyEnv = "SIMULATION_IMAGE_PULL_POLICY"
 	simulationNameEnv            = "SIMULATION_NAME"
-	simulationModelEnv           = "SIMULATION_MODEL"
 	simulationSimulatorsEnv      = "SIMULATION_SIMULATORS"
 	simulationDurationEnv        = "SIMULATION_DURATION"
 	simulationRatesEnv           = "SIMULATION_RATES"
@@ -98,7 +97,6 @@ func GetConfigFromEnv() *Config {
 		Image:           os.Getenv(simulationImageEnv),
 		ImagePullPolicy: corev1.PullPolicy(os.Getenv(simulationImagePullPolicyEnv)),
 		Simulation:      os.Getenv(simulationNameEnv),
-		Model:           os.Getenv(simulationModelEnv),
 		Simulators:      workers,
 		Duration:        duration,
 		Rates:           rates,
@@ -114,7 +112,6 @@ type Config struct {
 	Image           string
 	ImagePullPolicy corev1.PullPolicy
 	Simulation      string
-	Model           string
 	Simulators      int
 	Rates           map[string]time.Duration
 	Jitter          map[string]float64
@@ -130,7 +127,6 @@ func (c *Config) ToEnv() map[string]string {
 	env[simulationImageEnv] = c.Image
 	env[simulationImagePullPolicyEnv] = string(c.ImagePullPolicy)
 	env[simulationNameEnv] = c.Simulation
-	env[simulationModelEnv] = c.Model
 	env[simulationSimulatorsEnv] = fmt.Sprintf("%d", c.Simulators)
 	env[simulationDurationEnv] = fmt.Sprintf("%d", c.Duration)
 	rates := make(map[string]string)
