@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"github.com/onosproject/onos-test/pkg/onit/cluster"
 	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -12,12 +13,19 @@ type ChartTestSuite struct {
 }
 
 func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
-	chart := cluster.Chart("/etc/charts/onos-topo")
-	release := chart.Release("onos-topo")
-	err := release.Install(true)
+	atomix := cluster.Chart("/etc/charts/atomix").
+		Release("atomix-controller")
+	atomix.Values().Set("namespace", cluster.Namespace())
+	err := atomix.Install(true)
 	assert.NoError(t, err)
 
-	deployment, err := release.AppsV1().Deployments().Get("onos-topo")
+	topo := cluster.Chart("/etc/charts/onos-topo").
+		Release("onos-topo")
+	topo.Values().Set("store.controller", fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", cluster.Namespace()))
+	err = topo.Install(true)
+	assert.NoError(t, err)
+
+	deployment, err := topo.AppsV1().Deployments().Get("onos-topo")
 	assert.NoError(t, err)
 
 	pods, err := deployment.Pods().List()
@@ -26,11 +34,11 @@ func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
 }
 
 func (s *ChartTestSuite) TestRemoteInstall(t *testing.T) {
-	chart := cluster.Chart("kafka").
-		SetRepository("http://storage.googleapis.com/kubernetes-charts-incubator")
-	release := chart.Release("device-simulator-test")
-	release.Values().Set("replicas", 1)
-	release.Values().Set("zookeeper.replicaCount", 1)
-	err := release.Install(true)
+	kafka := cluster.Chart("kafka").
+		SetRepository("http://storage.googleapis.com/kubernetes-charts-incubator").
+		Release("device-simulator-test")
+	kafka.Values().Set("replicas", 1)
+	kafka.Values().Set("zookeeper.replicaCount", 1)
+	err := kafka.Install(true)
 	assert.NoError(t, err)
 }

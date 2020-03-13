@@ -210,6 +210,7 @@ func (r *Release) Install(wait bool) error {
 		}
 	}
 
+	println(fmt.Sprintf("%v", normalize(r.values.values)))
 	_, err = install.Run(chart, normalize(r.values.values).(map[string]interface{}))
 	if err != nil {
 		return err

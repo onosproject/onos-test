@@ -11,6 +11,11 @@ func getAPI() *api.API {
 	return instance
 }
 
+// Namespace returns the cluster namespace
+func Namespace() string {
+	return getAPI().Namespace()
+}
+
 // Charts returns a list of charts in the cluster
 func Charts() []*api.Chart {
 	return getAPI().Charts()
