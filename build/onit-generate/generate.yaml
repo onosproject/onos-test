@@ -1,5 +1,4 @@
-path: "pkg/onit/api"
-package: "github.com/onosproject/onos-test/pkg/onit/api"
+package: "github.com/onosproject/onos-test/pkg/onit/helm/api"
 resources:
   - group: "apps"
     version: "v1"

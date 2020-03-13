@@ -53,13 +53,21 @@ func GetAPIOrDie(namespace string) API {
 	}
 }
 
-// GetAPIFromEnv returns the Kubernetes API for the current environment
-func GetAPIFromEnv() (API, error) {
+// GetNamespaceFromEnv gets the Kubernetes namespace from the environment
+func GetNamespaceFromEnv() string {
 	namespace := os.Getenv(NamespaceEnv)
+	if namespace == "" {
+		namespace = os.Getenv("POD_NAMESPACE")
+	}
 	if namespace == "" {
 		namespace = random.NewPetName(2)
 	}
-	return GetAPI(namespace)
+	return namespace
+}
+
+// GetAPIFromEnv returns the Kubernetes API for the current environment
+func GetAPIFromEnv() (API, error) {
+	return GetAPI(GetNamespaceFromEnv())
 }
 
 // GetAPIFromEnvOrDie returns the Kubernetes API for the current environment and panics if no API could be found

@@ -2,7 +2,7 @@ package test
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/onit/cluster"
+	"github.com/onosproject/onos-test/pkg/onit/helm"
 	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -13,15 +13,17 @@ type ChartTestSuite struct {
 }
 
 func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
-	atomix := cluster.Chart("/etc/charts/atomix").
+	namespace := helm.Namespace()
+	atomix := namespace.Chart("/etc/charts/atomix").
 		Release("atomix-controller").
-		Set("namespace", cluster.Namespace())
+		Set("namespace", namespace.Namespace())
 	err := atomix.Install(true)
 	assert.NoError(t, err)
 
-	topo := cluster.Chart("/etc/charts/onos-topo").
+	topo := helm.Namespace().
+		Chart("/etc/charts/onos-topo").
 		Release("onos-topo").
-		Set("store.controller", fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", cluster.Namespace()))
+		Set("store.controller", fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", namespace.Namespace()))
 	err = topo.Install(true)
 	assert.NoError(t, err)
 
@@ -34,7 +36,8 @@ func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
 }
 
 func (s *ChartTestSuite) TestRemoteInstall(t *testing.T) {
-	kafka := cluster.Chart("kafka").
+	kafka := helm.Namespace().
+		Chart("kafka").
 		SetRepository("http://storage.googleapis.com/kubernetes-charts-incubator").
 		Release("device-simulator-test").
 		Set("replicas", 1).

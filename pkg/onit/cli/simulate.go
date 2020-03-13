@@ -28,7 +28,6 @@ import (
 	"time"
 
 	"github.com/onosproject/onos-test/pkg/cluster"
-	onitcluster "github.com/onosproject/onos-test/pkg/onit/api"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
@@ -262,7 +261,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		Rates:           rates,
 		Jitter:          jitters,
 		Args:            args,
-		Env:             onitcluster.GetArgsAsEnv(sets),
+		Env:             cluster.GetArgsAsEnv(sets),
 	}
 
 	job := &cluster.Job{

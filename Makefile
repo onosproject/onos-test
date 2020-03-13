@@ -27,7 +27,7 @@ build-onit-doc-generator:
 
 generate: # @HELP generate k8s client interfaces and implementations
 generate:
-	go run github.com/onosproject/onos-test/cmd/onit-generate ./build/onit-generate/generate.yaml
+	go run github.com/onosproject/onos-test/cmd/onit-generate ./build/onit-generate/generate.yaml ./pkg/onit/helm/api
 
 test: # @HELP run the unit tests and source code validation
 test: license_check build deps linters
