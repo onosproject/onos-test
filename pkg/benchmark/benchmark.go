@@ -35,32 +35,32 @@ type Suite struct{}
 
 // SetupSuite is an interface for setting up a suite of benchmarks
 type SetupSuite interface {
-	SetupSuite(c *Context)
+	SetupSuite(c *Context) error
 }
 
 // TearDownSuite is an interface for tearing down a suite of benchmarks
 type TearDownSuite interface {
-	TearDownSuite(c *Context)
+	TearDownSuite(c *Context) error
 }
 
 // SetupWorker is an interface for setting up individual benchmarks
 type SetupWorker interface {
-	SetupWorker(c *Context)
+	SetupWorker(c *Context) error
 }
 
 // TearDownWorker is an interface for tearing down individual benchmarks
 type TearDownWorker interface {
-	TearDownWorker(c *Context)
+	TearDownWorker(c *Context) error
 }
 
 // SetupBenchmark is an interface for executing code before every benchmark
 type SetupBenchmark interface {
-	SetupBenchmark(c *Context)
+	SetupBenchmark(c *Context) error
 }
 
 // TearDownBenchmark is an interface for executing code after every benchmark
 type TearDownBenchmark interface {
-	TearDownBenchmark(c *Context)
+	TearDownBenchmark(c *Context) error
 }
 
 // newContext returns a new benchmark context

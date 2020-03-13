@@ -11,8 +11,9 @@ type ChartBenchmarkSuite struct {
 	value input.Source
 }
 
-func (s *ChartBenchmarkSuite) SetupWorker(b *benchmark.Context) {
+func (s *ChartBenchmarkSuite) SetupWorker(b *benchmark.Context) error {
 	s.value = input.RandomString(8)
+	return nil
 }
 
 func (s *ChartBenchmarkSuite) BenchmarkTest(b *benchmark.Benchmark) error {

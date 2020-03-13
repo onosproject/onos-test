@@ -71,7 +71,10 @@ func (w *Worker) SetupSuite(ctx context.Context, request *SuiteRequest) (*SuiteR
 	}
 
 	if setupSuite, ok := suite.(SetupSuite); ok {
-		setupSuite.SetupSuite(newContext(request.Suite, request.Args))
+		if err := setupSuite.SetupSuite(newContext(request.Suite, request.Args)); err != nil {
+			step.Fail(err)
+			return nil, err
+		}
 	}
 
 	step.Complete()
@@ -90,7 +93,10 @@ func (w *Worker) TearDownSuite(ctx context.Context, request *SuiteRequest) (*Sui
 	}
 
 	if tearDownSuite, ok := suite.(TearDownSuite); ok {
-		tearDownSuite.TearDownSuite(newContext(request.Suite, request.Args))
+		if err := tearDownSuite.TearDownSuite(newContext(request.Suite, request.Args)); err != nil {
+			step.Fail(err)
+			return nil, err
+		}
 	}
 
 	step.Complete()
@@ -109,7 +115,10 @@ func (w *Worker) SetupWorker(ctx context.Context, request *SuiteRequest) (*Suite
 	}
 
 	if setupWorker, ok := suite.(SetupWorker); ok {
-		setupWorker.SetupWorker(newContext(request.Suite, request.Args))
+		if err := setupWorker.SetupWorker(newContext(request.Suite, request.Args)); err != nil {
+			step.Fail(err)
+			return nil, err
+		}
 	}
 
 	step.Complete()
@@ -128,7 +137,10 @@ func (w *Worker) TearDownWorker(ctx context.Context, request *SuiteRequest) (*Su
 	}
 
 	if tearDownWorker, ok := suite.(TearDownWorker); ok {
-		tearDownWorker.TearDownWorker(newContext(request.Suite, request.Args))
+		if err := tearDownWorker.TearDownWorker(newContext(request.Suite, request.Args)); err != nil {
+			step.Fail(err)
+			return nil, err
+		}
 	}
 
 	step.Complete()
@@ -148,7 +160,10 @@ func (w *Worker) SetupBenchmark(ctx context.Context, request *BenchmarkRequest) 
 
 	context := newContext(request.Benchmark, request.Args)
 	if setupBenchmark, ok := suite.(SetupBenchmark); ok {
-		setupBenchmark.SetupBenchmark(context)
+		if err := setupBenchmark.SetupBenchmark(context); err != nil {
+			step.Fail(err)
+			return nil, err
+		}
 	}
 
 	methods := reflect.TypeOf(suite)
@@ -173,7 +188,10 @@ func (w *Worker) TearDownBenchmark(ctx context.Context, request *BenchmarkReques
 
 	context := newContext(request.Benchmark, request.Args)
 	if tearDownBenchmark, ok := suite.(TearDownBenchmark); ok {
-		tearDownBenchmark.TearDownBenchmark(context)
+		if err := tearDownBenchmark.TearDownBenchmark(context); err != nil {
+			step.Fail(err)
+			return nil, err
+		}
 	}
 
 	methods := reflect.TypeOf(suite)
