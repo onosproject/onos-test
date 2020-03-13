@@ -15,7 +15,10 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	batchv1 "k8s.io/api/batch/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type JobsReader interface {
@@ -23,32 +26,54 @@ type JobsReader interface {
 	List() ([]*Job, error)
 }
 
-func NewJobsReader(objects clustermetav1.ObjectsClient) JobsReader {
+func NewJobsReader(client resource.Client) JobsReader {
 	return &jobsReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type jobsReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *jobsReader) Get(name string) (*Job, error) {
-	object, err := c.ObjectsClient.Get(name, JobResource)
+	job := &batchv1.Job{}
+	err := c.Clientset().
+		BatchV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(JobResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(job)
 	if err != nil {
 		return nil, err
 	}
-	return NewJob(object), nil
+	return NewJob(job, c.Client), nil
 }
 
 func (c *jobsReader) List() ([]*Job, error) {
-	objects, err := c.ObjectsClient.List(JobResource)
+	list := &batchv1.JobList{}
+	err := c.Clientset().
+		BatchV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(JobResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	jobs := make([]*Job, len(objects))
-	for i, object := range objects {
-		jobs[i] = NewJob(object)
+
+	results := make([]*Job, len(list.Items))
+	for i, job := range list.Items {
+		results[i] = NewJob(&job, c.Client)
 	}
-	return jobs, nil
+	return results, nil
 }

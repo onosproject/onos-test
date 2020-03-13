@@ -15,7 +15,10 @@
 package v1beta1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	batchv1beta1 "k8s.io/api/batch/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type CronJobsReader interface {
@@ -23,32 +26,54 @@ type CronJobsReader interface {
 	List() ([]*CronJob, error)
 }
 
-func NewCronJobsReader(objects clustermetav1.ObjectsClient) CronJobsReader {
+func NewCronJobsReader(client resource.Client) CronJobsReader {
 	return &cronJobsReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type cronJobsReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *cronJobsReader) Get(name string) (*CronJob, error) {
-	object, err := c.ObjectsClient.Get(name, CronJobResource)
+	cronJob := &batchv1beta1.CronJob{}
+	err := c.Clientset().
+		BatchV1beta1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(CronJobResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(cronJob)
 	if err != nil {
 		return nil, err
 	}
-	return NewCronJob(object), nil
+	return NewCronJob(cronJob, c.Client), nil
 }
 
 func (c *cronJobsReader) List() ([]*CronJob, error) {
-	objects, err := c.ObjectsClient.List(CronJobResource)
+	list := &batchv1beta1.CronJobList{}
+	err := c.Clientset().
+		BatchV1beta1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(CronJobResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	cronJobs := make([]*CronJob, len(objects))
-	for i, object := range objects {
-		cronJobs[i] = NewCronJob(object)
+
+	results := make([]*CronJob, len(list.Items))
+	for i, cronJob := range list.Items {
+		results[i] = NewCronJob(&cronJob, c.Client)
 	}
-	return cronJobs, nil
+	return results, nil
 }

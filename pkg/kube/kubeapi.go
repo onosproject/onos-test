@@ -85,8 +85,8 @@ type API interface {
 	// Config returns the Kubernetes REST configuration
 	Config() *rest.Config
 
-	// Client returns the Kubernetes Go client
-	Client() *kubernetes.Clientset
+	// Clientset returns the Kubernetes Go clientset
+	Clientset() *kubernetes.Clientset
 }
 
 // kubeAPI provides the Kubernetes API
@@ -104,7 +104,7 @@ func (k *kubeAPI) Config() *rest.Config {
 	return k.config
 }
 
-func (k *kubeAPI) Client() *kubernetes.Clientset {
+func (k *kubeAPI) Clientset() *kubernetes.Clientset {
 	return k.client
 }
 

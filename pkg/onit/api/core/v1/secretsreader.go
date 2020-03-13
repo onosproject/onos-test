@@ -15,7 +15,10 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type SecretsReader interface {
@@ -23,32 +26,54 @@ type SecretsReader interface {
 	List() ([]*Secret, error)
 }
 
-func NewSecretsReader(objects clustermetav1.ObjectsClient) SecretsReader {
+func NewSecretsReader(client resource.Client) SecretsReader {
 	return &secretsReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type secretsReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *secretsReader) Get(name string) (*Secret, error) {
-	object, err := c.ObjectsClient.Get(name, SecretResource)
+	secret := &corev1.Secret{}
+	err := c.Clientset().
+		CoreV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(SecretResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(secret)
 	if err != nil {
 		return nil, err
 	}
-	return NewSecret(object), nil
+	return NewSecret(secret, c.Client), nil
 }
 
 func (c *secretsReader) List() ([]*Secret, error) {
-	objects, err := c.ObjectsClient.List(SecretResource)
+	list := &corev1.SecretList{}
+	err := c.Clientset().
+		CoreV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(SecretResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	secrets := make([]*Secret, len(objects))
-	for i, object := range objects {
-		secrets[i] = NewSecret(object)
+
+	results := make([]*Secret, len(list.Items))
+	for i, secret := range list.Items {
+		results[i] = NewSecret(&secret, c.Client)
 	}
-	return secrets, nil
+	return results, nil
 }

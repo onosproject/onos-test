@@ -18,33 +18,33 @@ import (
 	batchv1 "github.com/onosproject/onos-test/pkg/onit/api/batch/v1"
 	batchv1beta1 "github.com/onosproject/onos-test/pkg/onit/api/batch/v1beta1"
 	batchv2alpha1 "github.com/onosproject/onos-test/pkg/onit/api/batch/v2alpha1"
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type Client interface {
 	BatchV1() batchv1.Client
-	BatchV1Beta1() batchv1beta1.Client
-	BatchV2Alpha1() batchv2alpha1.Client
+	BatchV1beta1() batchv1beta1.Client
+	BatchV2alpha1() batchv2alpha1.Client
 }
 
-func NewClient(objects metav1.ObjectsClient) Client {
+func NewClient(resources resource.Client) Client {
 	return &client{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type client struct {
-	metav1.ObjectsClient
+	resource.Client
 }
 
 func (c *client) BatchV1() batchv1.Client {
-	return batchv1.NewClient(c.ObjectsClient)
+	return batchv1.NewClient(c.Client)
 }
 
-func (c *client) BatchV1Beta1() batchv1beta1.Client {
-	return batchv1beta1.NewClient(c.ObjectsClient)
+func (c *client) BatchV1beta1() batchv1beta1.Client {
+	return batchv1beta1.NewClient(c.Client)
 }
 
-func (c *client) BatchV2Alpha1() batchv2alpha1.Client {
-	return batchv2alpha1.NewClient(c.ObjectsClient)
+func (c *client) BatchV2alpha1() batchv2alpha1.Client {
+	return batchv2alpha1.NewClient(c.Client)
 }

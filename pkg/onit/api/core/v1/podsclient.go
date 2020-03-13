@@ -15,23 +15,23 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type PodsClient interface {
 	Pods() PodsReader
 }
 
-func NewPodsClient(objects clustermetav1.ObjectsClient) PodsClient {
+func NewPodsClient(resources resource.Client) PodsClient {
 	return &podsClient{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type podsClient struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *podsClient) Pods() PodsReader {
-	return NewPodsReader(c.ObjectsClient)
+	return NewPodsReader(c.Client)
 }

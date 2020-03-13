@@ -15,36 +15,29 @@
 package v1beta1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var CronJobKind = clustermetav1.Kind{
+var CronJobKind = resource.Kind{
 	Group:   "batch",
 	Version: "v1beta1",
 	Kind:    "CronJob",
 }
 
-var CronJobResource = clustermetav1.Resource{
+var CronJobResource = resource.Type{
 	Kind: CronJobKind,
-	Name: "CronJob",
-	ObjectFactory: func() runtime.Object {
-		return &batchv1beta1.CronJob{}
-	},
-	ObjectsFactory: func() runtime.Object {
-		return &batchv1beta1.CronJobList{}
-	},
+	Name: "cronjobs",
 }
 
-func NewCronJob(object *clustermetav1.Object) *CronJob {
+func NewCronJob(cronJob *batchv1beta1.CronJob, client resource.Client) *CronJob {
 	return &CronJob{
-		Object:  object,
-		CronJob: object.Object.(*batchv1beta1.CronJob),
+		Resource: resource.NewResource(cronJob.ObjectMeta, CronJobKind, client),
+		CronJob:  cronJob,
 	}
 }
 
 type CronJob struct {
-	*clustermetav1.Object
+	*resource.Resource
 	CronJob *batchv1beta1.CronJob
 }

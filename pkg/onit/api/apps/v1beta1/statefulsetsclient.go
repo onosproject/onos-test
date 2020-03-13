@@ -15,23 +15,23 @@
 package v1beta1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type StatefulSetsClient interface {
 	StatefulSets() StatefulSetsReader
 }
 
-func NewStatefulSetsClient(objects clustermetav1.ObjectsClient) StatefulSetsClient {
+func NewStatefulSetsClient(resources resource.Client) StatefulSetsClient {
 	return &statefulSetsClient{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type statefulSetsClient struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *statefulSetsClient) StatefulSets() StatefulSetsReader {
-	return NewStatefulSetsReader(c.ObjectsClient)
+	return NewStatefulSetsReader(c.Client)
 }

@@ -16,39 +16,32 @@ package v1
 
 import (
 	corev1 "github.com/onosproject/onos-test/pkg/onit/api/core/v1"
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var StatefulSetKind = clustermetav1.Kind{
+var StatefulSetKind = resource.Kind{
 	Group:   "apps",
 	Version: "v1",
 	Kind:    "StatefulSet",
 }
 
-var StatefulSetResource = clustermetav1.Resource{
+var StatefulSetResource = resource.Type{
 	Kind: StatefulSetKind,
-	Name: "StatefulSet",
-	ObjectFactory: func() runtime.Object {
-		return &appsv1.StatefulSet{}
-	},
-	ObjectsFactory: func() runtime.Object {
-		return &appsv1.StatefulSetList{}
-	},
+	Name: "statefulsets",
 }
 
-func NewStatefulSet(object *clustermetav1.Object) *StatefulSet {
+func NewStatefulSet(statefulSet *appsv1.StatefulSet, client resource.Client) *StatefulSet {
 	return &StatefulSet{
-		Object:            object,
-		StatefulSet:       object.Object.(*appsv1.StatefulSet),
-		ReplicaSetsClient: NewReplicaSetsClient(object.ObjectsClient),
-		PodsClient:        corev1.NewPodsClient(object.ObjectsClient),
+		Resource:          resource.NewResource(statefulSet.ObjectMeta, StatefulSetKind, client),
+		StatefulSet:       statefulSet,
+		ReplicaSetsClient: NewReplicaSetsClient(client),
+		PodsClient:        corev1.NewPodsClient(client),
 	}
 }
 
 type StatefulSet struct {
-	*clustermetav1.Object
+	*resource.Resource
 	StatefulSet *appsv1.StatefulSet
 	ReplicaSetsClient
 	corev1.PodsClient

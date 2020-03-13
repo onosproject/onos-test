@@ -16,38 +16,31 @@ package v1
 
 import (
 	corev1 "github.com/onosproject/onos-test/pkg/onit/api/core/v1"
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var DaemonSetKind = clustermetav1.Kind{
+var DaemonSetKind = resource.Kind{
 	Group:   "apps",
 	Version: "v1",
 	Kind:    "DaemonSet",
 }
 
-var DaemonSetResource = clustermetav1.Resource{
+var DaemonSetResource = resource.Type{
 	Kind: DaemonSetKind,
-	Name: "DaemonSet",
-	ObjectFactory: func() runtime.Object {
-		return &appsv1.DaemonSet{}
-	},
-	ObjectsFactory: func() runtime.Object {
-		return &appsv1.DaemonSetList{}
-	},
+	Name: "daemonsets",
 }
 
-func NewDaemonSet(object *clustermetav1.Object) *DaemonSet {
+func NewDaemonSet(daemonSet *appsv1.DaemonSet, client resource.Client) *DaemonSet {
 	return &DaemonSet{
-		Object:     object,
-		DaemonSet:  object.Object.(*appsv1.DaemonSet),
-		PodsClient: corev1.NewPodsClient(object.ObjectsClient),
+		Resource:   resource.NewResource(daemonSet.ObjectMeta, DaemonSetKind, client),
+		DaemonSet:  daemonSet,
+		PodsClient: corev1.NewPodsClient(client),
 	}
 }
 
 type DaemonSet struct {
-	*clustermetav1.Object
+	*resource.Resource
 	DaemonSet *appsv1.DaemonSet
 	corev1.PodsClient
 }

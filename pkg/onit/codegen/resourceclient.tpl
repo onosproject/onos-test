@@ -15,23 +15,23 @@
 package {{ .Client.Package.Name }}
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
+    "github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type {{ .Client.Types.Interface }} interface {
     {{ .Resource.Names.Plural }}() {{ .Reader.Types.Interface }}
 }
 
-func New{{ .Client.Types.Interface }}(objects clustermetav1.ObjectsClient) {{ .Client.Types.Interface }} {
+func New{{ .Client.Types.Interface }}(resources resource.Client) {{ .Client.Types.Interface }} {
 	return &{{ .Client.Types.Struct }}{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type {{ .Client.Types.Struct }} struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *{{ .Client.Types.Struct }}) {{ .Resource.Names.Plural }}() {{ .Reader.Types.Interface }} {
-    return New{{ .Reader.Types.Interface }}(c.ObjectsClient)
+    return New{{ .Reader.Types.Interface }}(c.Client)
 }

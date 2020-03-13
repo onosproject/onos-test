@@ -15,7 +15,10 @@
 package v1beta1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type IngressesReader interface {
@@ -23,32 +26,54 @@ type IngressesReader interface {
 	List() ([]*Ingress, error)
 }
 
-func NewIngressesReader(objects clustermetav1.ObjectsClient) IngressesReader {
+func NewIngressesReader(client resource.Client) IngressesReader {
 	return &ingressesReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type ingressesReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *ingressesReader) Get(name string) (*Ingress, error) {
-	object, err := c.ObjectsClient.Get(name, IngressResource)
+	ingress := &networkingv1beta1.Ingress{}
+	err := c.Clientset().
+		NetworkingV1beta1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(IngressResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(ingress)
 	if err != nil {
 		return nil, err
 	}
-	return NewIngress(object), nil
+	return NewIngress(ingress, c.Client), nil
 }
 
 func (c *ingressesReader) List() ([]*Ingress, error) {
-	objects, err := c.ObjectsClient.List(IngressResource)
+	list := &networkingv1beta1.IngressList{}
+	err := c.Clientset().
+		NetworkingV1beta1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(IngressResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	ingresses := make([]*Ingress, len(objects))
-	for i, object := range objects {
-		ingresses[i] = NewIngress(object)
+
+	results := make([]*Ingress, len(list.Items))
+	for i, ingress := range list.Items {
+		results[i] = NewIngress(&ingress, c.Client)
 	}
-	return ingresses, nil
+	return results, nil
 }

@@ -15,23 +15,23 @@
 package v1beta1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type IngressesClient interface {
 	Ingresses() IngressesReader
 }
 
-func NewIngressesClient(objects clustermetav1.ObjectsClient) IngressesClient {
+func NewIngressesClient(resources resource.Client) IngressesClient {
 	return &ingressesClient{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type ingressesClient struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *ingressesClient) Ingresses() IngressesReader {
-	return NewIngressesReader(c.ObjectsClient)
+	return NewIngressesReader(c.Client)
 }

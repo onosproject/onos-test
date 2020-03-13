@@ -15,23 +15,23 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type DaemonSetsClient interface {
 	DaemonSets() DaemonSetsReader
 }
 
-func NewDaemonSetsClient(objects clustermetav1.ObjectsClient) DaemonSetsClient {
+func NewDaemonSetsClient(resources resource.Client) DaemonSetsClient {
 	return &daemonSetsClient{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type daemonSetsClient struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *daemonSetsClient) DaemonSets() DaemonSetsReader {
-	return NewDaemonSetsReader(c.ObjectsClient)
+	return NewDaemonSetsReader(c.Client)
 }

@@ -19,8 +19,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/iancoleman/strcase"
-	"github.com/onosproject/onos-test/pkg/kube"
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -38,27 +36,8 @@ import (
 var settings = cli.New()
 
 func newRelease(name string, chart *Chart) *Release {
-	var release *Release
-	filter := func(object metav1.Object) (bool, error) {
-		resources, err := release.getResources()
-		if err != nil {
-			return false, err
-		}
-		for _, resource := range resources {
-			kind := resource.Object.GetObjectKind().GroupVersionKind()
-			if kind.Group == object.Kind.Group &&
-				kind.Version == object.Kind.Version &&
-				kind.Kind == object.Kind.Kind &&
-				resource.Namespace == object.Namespace &&
-				resource.Name == object.Name {
-				return true, nil
-			}
-		}
-		return false, nil
-	}
-	release = &Release{
-		Client: NewClient(metav1.NewObjectsClient(chart.API, filter)),
-		API:    chart.API,
+	release := &Release{
+		Client: NewClient(chart.Client),
 		chart:  chart,
 		name:   name,
 		values: &Values{
@@ -94,10 +73,9 @@ func (v *Values) Get(path string) interface{} {
 // Release is a Helm chart release
 type Release struct {
 	Client
-	kube.API
-	chart       *Chart
-	name        string
-	values      *Values
+	chart    *Chart
+	name     string
+	values   *Values
 	skipCRDs bool
 }
 
@@ -125,7 +103,7 @@ func (r *Release) SkipCRDs() bool {
 // getConfig gets the Helm configuration
 func (r *Release) getConfig() (*action.Configuration, error) {
 	config := &action.Configuration{}
-	if err := config.Init(settings.RESTClientGetter(), r.API.Namespace(), "memory", log.Printf); err != nil {
+	if err := config.Init(settings.RESTClientGetter(), r.Namespace(), "memory", log.Printf); err != nil {
 		return nil, err
 	}
 	return config, nil
@@ -163,7 +141,7 @@ func (r *Release) Install(wait bool) error {
 	}
 
 	install := action.NewInstall(config)
-	install.Namespace = r.API.Namespace()
+	install.Namespace = r.Namespace()
 	install.SkipCRDs = r.SkipCRDs()
 	install.RepoURL = r.chart.Repository()
 	install.ReleaseName = r.Name()

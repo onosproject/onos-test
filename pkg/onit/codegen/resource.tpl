@@ -12,54 +12,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-{{ $resource := .Resource }}
+{{- $resource := .Resource }}
+{{- $field := .Resource.Names.Singular }}
+{{- $name := (.Resource.Names.Singular | toLowerCamel) }}
+{{- $kind := (printf "%s.%s" .Resource.Kind.Package.Alias .Resource.Kind.Kind) }}
+
 package {{ $resource.Package.Name }}
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
-	{{ $resource.Kind.Package.Alias }} {{ $resource.Kind.Package.Path | quote }}
+    "github.com/onosproject/onos-test/pkg/onit/api/resource"
+	{{ .Resource.Kind.Package.Alias }} {{ .Resource.Kind.Package.Path | quote }}
     {{- range $sub := $resource.SubResources }}
     {{- if not (eq $sub.Client.Package.Path $resource.Package.Path) }}
     {{ $sub.Client.Package.Alias }} {{ $sub.Client.Package.Path | quote }}
     {{- end }}
     {{- end }}
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var {{ $resource.Types.Kind }} = clustermetav1.Kind{
+var {{ $resource.Types.Kind }} = resource.Kind{
 	Group:   {{ $resource.Kind.Group | quote }},
 	Version: {{ $resource.Kind.Version | quote }},
 	Kind:    {{ $resource.Kind.Kind | quote }},
 }
 
-var {{ $resource.Types.Resource }} = clustermetav1.Resource{
+var {{ $resource.Types.Resource }} = resource.Type{
 	Kind: {{ $resource.Types.Kind }},
-	Name: {{ $resource.Kind.Kind | quote }},
-	ObjectFactory: func() runtime.Object {
-		return &{{ $resource.Kind.Package.Alias }}.{{ $resource.Kind.Kind }}{}
-	},
-	ObjectsFactory: func() runtime.Object {
-		return &{{ $resource.Kind.Package.Alias }}.{{ $resource.Kind.ListKind }}{}
-	},
+	Name: {{ $resource.Names.Plural | lower | quote }},
 }
 
-func New{{ $resource.Types.Struct }}(object *clustermetav1.Object) *{{ $resource.Types.Struct }} {
+func New{{ $resource.Types.Struct }}({{ $name }} *{{ $kind }}, client resource.Client) *{{ $resource.Types.Struct }} {
 	return &{{ $resource.Types.Struct }}{
-		Object: object,
-		{{ $resource.Names.Singular }}: object.Object.(*{{ $resource.Kind.Package.Alias }}.{{ $resource.Kind.Kind }}),
+		Resource: resource.NewResource({{ $name }}.ObjectMeta, {{ .Resource.Types.Kind }}, client),
+		{{ $field }}: {{ $name }},
         {{- range $sub := $resource.SubResources }}
         {{- if eq $sub.Resource.Package.Path $resource.Package.Path }}
-        {{ $sub.Client.Types.Interface }}: New{{ $sub.Client.Types.Interface }}(object.ObjectsClient),
+        {{ $sub.Client.Types.Interface }}: New{{ $sub.Client.Types.Interface }}(client),
         {{- else }}
-        {{ $sub.Client.Types.Interface }}: {{ $sub.Client.Package.Alias }}.New{{ $sub.Client.Types.Interface }}(object.ObjectsClient),
+        {{ $sub.Client.Types.Interface }}: {{ $sub.Client.Package.Alias }}.New{{ $sub.Client.Types.Interface }}(client),
         {{- end }}
         {{- end }}
 	}
 }
 
 type {{ $resource.Types.Struct }} struct {
-	*clustermetav1.Object
-	{{ $resource.Names.Singular }} *{{ $resource.Kind.Package.Alias }}.{{ $resource.Kind.Kind }}
+	*resource.Resource
+	{{ $field }} *{{ $kind }}
     {{- range $sub := .Resource.SubResources }}
     {{- if eq $sub.Resource.Package.Path $resource.Package.Path }}
     {{ $sub.Client.Types.Interface }}

@@ -15,23 +15,23 @@
 package v2alpha1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type CronJobsClient interface {
 	CronJobs() CronJobsReader
 }
 
-func NewCronJobsClient(objects clustermetav1.ObjectsClient) CronJobsClient {
+func NewCronJobsClient(resources resource.Client) CronJobsClient {
 	return &cronJobsClient{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type cronJobsClient struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *cronJobsClient) CronJobs() CronJobsReader {
-	return NewCronJobsReader(c.ObjectsClient)
+	return NewCronJobsReader(c.Client)
 }

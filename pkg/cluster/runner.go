@@ -53,7 +53,7 @@ func NewRunner() (*Runner, error) {
 		return nil, err
 	}
 	return &Runner{
-		client: kubeAPI.Client(),
+		client: kubeAPI.Clientset(),
 	}, nil
 }
 

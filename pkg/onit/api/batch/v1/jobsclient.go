@@ -15,23 +15,23 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type JobsClient interface {
 	Jobs() JobsReader
 }
 
-func NewJobsClient(objects clustermetav1.ObjectsClient) JobsClient {
+func NewJobsClient(resources resource.Client) JobsClient {
 	return &jobsClient{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type jobsClient struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *jobsClient) Jobs() JobsReader {
-	return NewJobsReader(c.ObjectsClient)
+	return NewJobsReader(c.Client)
 }

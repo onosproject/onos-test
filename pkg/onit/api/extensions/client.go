@@ -16,23 +16,23 @@ package extensions
 
 import (
 	extensionsv1beta1 "github.com/onosproject/onos-test/pkg/onit/api/extensions/v1beta1"
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type Client interface {
-	ExtensionsV1Beta1() extensionsv1beta1.Client
+	ExtensionsV1beta1() extensionsv1beta1.Client
 }
 
-func NewClient(objects metav1.ObjectsClient) Client {
+func NewClient(resources resource.Client) Client {
 	return &client{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type client struct {
-	metav1.ObjectsClient
+	resource.Client
 }
 
-func (c *client) ExtensionsV1Beta1() extensionsv1beta1.Client {
-	return extensionsv1beta1.NewClient(c.ObjectsClient)
+func (c *client) ExtensionsV1beta1() extensionsv1beta1.Client {
+	return extensionsv1beta1.NewClient(c.Client)
 }

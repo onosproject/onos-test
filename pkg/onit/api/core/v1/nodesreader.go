@@ -15,7 +15,10 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type NodesReader interface {
@@ -23,32 +26,54 @@ type NodesReader interface {
 	List() ([]*Node, error)
 }
 
-func NewNodesReader(objects clustermetav1.ObjectsClient) NodesReader {
+func NewNodesReader(client resource.Client) NodesReader {
 	return &nodesReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type nodesReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *nodesReader) Get(name string) (*Node, error) {
-	object, err := c.ObjectsClient.Get(name, NodeResource)
+	node := &corev1.Node{}
+	err := c.Clientset().
+		CoreV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(NodeResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(node)
 	if err != nil {
 		return nil, err
 	}
-	return NewNode(object), nil
+	return NewNode(node, c.Client), nil
 }
 
 func (c *nodesReader) List() ([]*Node, error) {
-	objects, err := c.ObjectsClient.List(NodeResource)
+	list := &corev1.NodeList{}
+	err := c.Clientset().
+		CoreV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(NodeResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	nodes := make([]*Node, len(objects))
-	for i, object := range objects {
-		nodes[i] = NewNode(object)
+
+	results := make([]*Node, len(list.Items))
+	for i, node := range list.Items {
+		results[i] = NewNode(&node, c.Client)
 	}
-	return nodes, nil
+	return results, nil
 }

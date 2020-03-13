@@ -16,38 +16,31 @@ package v1
 
 import (
 	corev1 "github.com/onosproject/onos-test/pkg/onit/api/core/v1"
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var ReplicaSetKind = clustermetav1.Kind{
+var ReplicaSetKind = resource.Kind{
 	Group:   "apps",
 	Version: "v1",
 	Kind:    "ReplicaSet",
 }
 
-var ReplicaSetResource = clustermetav1.Resource{
+var ReplicaSetResource = resource.Type{
 	Kind: ReplicaSetKind,
-	Name: "ReplicaSet",
-	ObjectFactory: func() runtime.Object {
-		return &appsv1.ReplicaSet{}
-	},
-	ObjectsFactory: func() runtime.Object {
-		return &appsv1.ReplicaSetList{}
-	},
+	Name: "replicasets",
 }
 
-func NewReplicaSet(object *clustermetav1.Object) *ReplicaSet {
+func NewReplicaSet(replicaSet *appsv1.ReplicaSet, client resource.Client) *ReplicaSet {
 	return &ReplicaSet{
-		Object:     object,
-		ReplicaSet: object.Object.(*appsv1.ReplicaSet),
-		PodsClient: corev1.NewPodsClient(object.ObjectsClient),
+		Resource:   resource.NewResource(replicaSet.ObjectMeta, ReplicaSetKind, client),
+		ReplicaSet: replicaSet,
+		PodsClient: corev1.NewPodsClient(client),
 	}
 }
 
 type ReplicaSet struct {
-	*clustermetav1.Object
+	*resource.Resource
 	ReplicaSet *appsv1.ReplicaSet
 	corev1.PodsClient
 }

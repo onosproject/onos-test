@@ -67,7 +67,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 					Struct:    "client",
 				},
 				Names: GroupNames{
-					Proper: toCamelCase(resource.Group),
+					Proper: upperFirst(resource.Group),
 				},
 				Versions: make(map[string]*VersionOptions),
 			}
@@ -93,7 +93,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 					Struct:    "client",
 				},
 				Names: VersionNames{
-					Proper: toCamelCase(resource.Version),
+					Proper: upperFirst(resource.Version),
 				},
 				Resources: make(map[string]*ResourceOptions),
 			}
@@ -168,6 +168,8 @@ func getOptionsFromConfig(config Config) ClientOptions {
 						Plural:   resource.PluralKind,
 					},
 				},
+				Group:   groupOpts,
+				Version: versionOpts,
 			}
 			versionOpts.Resources[resource.Kind] = resourceOptions
 		}

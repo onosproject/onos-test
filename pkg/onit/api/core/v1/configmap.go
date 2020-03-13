@@ -15,36 +15,29 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var ConfigMapKind = clustermetav1.Kind{
+var ConfigMapKind = resource.Kind{
 	Group:   "core",
 	Version: "v1",
 	Kind:    "ConfigMap",
 }
 
-var ConfigMapResource = clustermetav1.Resource{
+var ConfigMapResource = resource.Type{
 	Kind: ConfigMapKind,
-	Name: "ConfigMap",
-	ObjectFactory: func() runtime.Object {
-		return &corev1.ConfigMap{}
-	},
-	ObjectsFactory: func() runtime.Object {
-		return &corev1.ConfigMapList{}
-	},
+	Name: "configmaps",
 }
 
-func NewConfigMap(object *clustermetav1.Object) *ConfigMap {
+func NewConfigMap(configMap *corev1.ConfigMap, client resource.Client) *ConfigMap {
 	return &ConfigMap{
-		Object:    object,
-		ConfigMap: object.Object.(*corev1.ConfigMap),
+		Resource:  resource.NewResource(configMap.ObjectMeta, ConfigMapKind, client),
+		ConfigMap: configMap,
 	}
 }
 
 type ConfigMap struct {
-	*clustermetav1.Object
+	*resource.Resource
 	ConfigMap *corev1.ConfigMap
 }

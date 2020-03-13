@@ -15,24 +15,24 @@
 package networking
 
 import (
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
 	networkingv1beta1 "github.com/onosproject/onos-test/pkg/onit/api/networking/v1beta1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type Client interface {
-	NetworkingV1Beta1() networkingv1beta1.Client
+	NetworkingV1beta1() networkingv1beta1.Client
 }
 
-func NewClient(objects metav1.ObjectsClient) Client {
+func NewClient(resources resource.Client) Client {
 	return &client{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type client struct {
-	metav1.ObjectsClient
+	resource.Client
 }
 
-func (c *client) NetworkingV1Beta1() networkingv1beta1.Client {
-	return networkingv1beta1.NewClient(c.ObjectsClient)
+func (c *client) NetworkingV1beta1() networkingv1beta1.Client {
+	return networkingv1beta1.NewClient(c.Client)
 }

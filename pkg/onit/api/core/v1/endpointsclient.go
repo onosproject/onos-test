@@ -15,23 +15,23 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type EndpointsClient interface {
 	Endpoints() EndpointsReader
 }
 
-func NewEndpointsClient(objects clustermetav1.ObjectsClient) EndpointsClient {
+func NewEndpointsClient(resources resource.Client) EndpointsClient {
 	return &endpointsClient{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type endpointsClient struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *endpointsClient) Endpoints() EndpointsReader {
-	return NewEndpointsReader(c.ObjectsClient)
+	return NewEndpointsReader(c.Client)
 }

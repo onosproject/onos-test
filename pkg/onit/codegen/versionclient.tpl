@@ -15,7 +15,7 @@
 package {{ .Package.Name }}
 
 import (
-	metav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
+    "github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type {{ .Types.Interface }} interface {
@@ -24,17 +24,17 @@ type {{ .Types.Interface }} interface {
     {{- end }}
 }
 
-func New{{ .Types.Interface }}(objects metav1.ObjectsClient) {{ .Types.Interface }} {
+func New{{ .Types.Interface }}(resources resource.Client) {{ .Types.Interface }} {
 	return &{{ .Types.Struct }}{
-		ObjectsClient: objects,
+		Client: resources,
 		{{- range $name, $resource := .Resources }}
-        {{ $resource.Client.Types.Interface }}: New{{ $resource.Client.Types.Interface }}(objects),
-        {{ end }}
+        {{ $resource.Client.Types.Interface }}: New{{ $resource.Client.Types.Interface }}(resources),
+        {{- end }}
 	}
 }
 
 type {{ .Types.Struct }} struct {
-	metav1.ObjectsClient
+	resource.Client
     {{- range $name, $resource := .Resources }}
     {{ $resource.Client.Types.Interface }}
     {{- end }}

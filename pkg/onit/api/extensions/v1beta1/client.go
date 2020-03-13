@@ -15,21 +15,21 @@
 package v1beta1
 
 import (
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type Client interface {
 	IngressesClient
 }
 
-func NewClient(objects metav1.ObjectsClient) Client {
+func NewClient(resources resource.Client) Client {
 	return &client{
-		ObjectsClient:   objects,
-		IngressesClient: NewIngressesClient(objects),
+		Client:          resources,
+		IngressesClient: NewIngressesClient(resources),
 	}
 }
 
 type client struct {
-	metav1.ObjectsClient
+	resource.Client
 	IngressesClient
 }

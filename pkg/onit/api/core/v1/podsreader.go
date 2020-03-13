@@ -15,7 +15,10 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type PodsReader interface {
@@ -23,32 +26,54 @@ type PodsReader interface {
 	List() ([]*Pod, error)
 }
 
-func NewPodsReader(objects clustermetav1.ObjectsClient) PodsReader {
+func NewPodsReader(client resource.Client) PodsReader {
 	return &podsReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type podsReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *podsReader) Get(name string) (*Pod, error) {
-	object, err := c.ObjectsClient.Get(name, PodResource)
+	pod := &corev1.Pod{}
+	err := c.Clientset().
+		CoreV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(PodResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(pod)
 	if err != nil {
 		return nil, err
 	}
-	return NewPod(object), nil
+	return NewPod(pod, c.Client), nil
 }
 
 func (c *podsReader) List() ([]*Pod, error) {
-	objects, err := c.ObjectsClient.List(PodResource)
+	list := &corev1.PodList{}
+	err := c.Clientset().
+		CoreV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(PodResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	pods := make([]*Pod, len(objects))
-	for i, object := range objects {
-		pods[i] = NewPod(object)
+
+	results := make([]*Pod, len(list.Items))
+	for i, pod := range list.Items {
+		results[i] = NewPod(&pod, c.Client)
 	}
-	return pods, nil
+	return results, nil
 }

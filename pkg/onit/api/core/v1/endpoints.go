@@ -15,36 +15,29 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var EndpointsKind = clustermetav1.Kind{
+var EndpointsKind = resource.Kind{
 	Group:   "core",
 	Version: "v1",
 	Kind:    "Endpoints",
 }
 
-var EndpointsResource = clustermetav1.Resource{
+var EndpointsResource = resource.Type{
 	Kind: EndpointsKind,
-	Name: "Endpoints",
-	ObjectFactory: func() runtime.Object {
-		return &corev1.Endpoints{}
-	},
-	ObjectsFactory: func() runtime.Object {
-		return &corev1.EndpointsList{}
-	},
+	Name: "endpoints",
 }
 
-func NewEndpoints(object *clustermetav1.Object) *Endpoints {
+func NewEndpoints(endpoints *corev1.Endpoints, client resource.Client) *Endpoints {
 	return &Endpoints{
-		Object:    object,
-		Endpoints: object.Object.(*corev1.Endpoints),
+		Resource:  resource.NewResource(endpoints.ObjectMeta, EndpointsKind, client),
+		Endpoints: endpoints,
 	}
 }
 
 type Endpoints struct {
-	*clustermetav1.Object
+	*resource.Resource
 	Endpoints *corev1.Endpoints
 }

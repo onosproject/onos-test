@@ -20,6 +20,8 @@ type ResourceOptions struct {
 	Client   *ResourceClientOptions
 	Reader   *ResourceReaderOptions
 	Resource *ResourceObjectOptions
+	Group    *GroupOptions
+	Version  *VersionOptions
 }
 
 type ResourceObjectOptions struct {

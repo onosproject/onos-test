@@ -42,7 +42,7 @@ func newCoordinator(config *Config) (*Coordinator, error) {
 		return nil, err
 	}
 	return &Coordinator{
-		client: kubeAPI.Client(),
+		client: kubeAPI.Clientset(),
 		config: config,
 	}, nil
 }

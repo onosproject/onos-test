@@ -15,7 +15,10 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type ServicesReader interface {
@@ -23,32 +26,54 @@ type ServicesReader interface {
 	List() ([]*Service, error)
 }
 
-func NewServicesReader(objects clustermetav1.ObjectsClient) ServicesReader {
+func NewServicesReader(client resource.Client) ServicesReader {
 	return &servicesReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type servicesReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *servicesReader) Get(name string) (*Service, error) {
-	object, err := c.ObjectsClient.Get(name, ServiceResource)
+	service := &corev1.Service{}
+	err := c.Clientset().
+		CoreV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(ServiceResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(service)
 	if err != nil {
 		return nil, err
 	}
-	return NewService(object), nil
+	return NewService(service, c.Client), nil
 }
 
 func (c *servicesReader) List() ([]*Service, error) {
-	objects, err := c.ObjectsClient.List(ServiceResource)
+	list := &corev1.ServiceList{}
+	err := c.Clientset().
+		CoreV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(ServiceResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	services := make([]*Service, len(objects))
-	for i, object := range objects {
-		services[i] = NewService(object)
+
+	results := make([]*Service, len(list.Items))
+	for i, service := range list.Items {
+		results[i] = NewService(&service, c.Client)
 	}
-	return services, nil
+	return results, nil
 }

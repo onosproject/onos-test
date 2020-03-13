@@ -66,6 +66,12 @@ var toUpperCase = func(value string) string {
 	return strings.ToUpper(value)
 }
 
+var upperFirst = func(value string) string {
+	bytes := []byte(value)
+	first := strings.ToUpper(string([]byte{bytes[0]}))
+	return string(append([]byte(first), bytes[1:]...))
+}
+
 var quote = func(value string) string {
 	return "\"" + value + "\""
 }
@@ -78,6 +84,7 @@ func getTemplate(name string) *template.Template {
 		"toLowerCamel": toLowerCamelCase,
 		"lower":        toLowerCase,
 		"upper":        toUpperCase,
+		"upperFirst":   upperFirst,
 		"quote":        quote,
 	}
 	return template.Must(template.New(name).Funcs(funcs).ParseFiles(file))

@@ -15,7 +15,10 @@
 package {{ .Reader.Package.Name }}
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
+    "github.com/onosproject/onos-test/pkg/onit/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	{{ .Resource.Kind.Package.Alias }} {{ .Resource.Kind.Package.Path | quote }}
+	"time"
 )
 
 type {{ .Reader.Types.Interface }} interface {
@@ -23,32 +26,58 @@ type {{ .Reader.Types.Interface }} interface {
 	List() ([]*{{ .Resource.Types.Struct }}, error)
 }
 
-func New{{ .Reader.Types.Interface }}(objects clustermetav1.ObjectsClient) {{ .Reader.Types.Interface }} {
+func New{{ .Reader.Types.Interface }}(client resource.Client) {{ .Reader.Types.Interface }} {
 	return &{{ .Reader.Types.Struct }}{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type {{ .Reader.Types.Struct }} struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
+{{- $singular := (.Resource.Names.Singular | toLowerCamel) }}
+{{- $kind := (printf "%s.%s" .Resource.Kind.Package.Alias .Resource.Kind.Kind) }}
+{{- $listKind := (printf "%s.%s" .Resource.Kind.Package.Alias .Resource.Kind.ListKind) }}
+
 func (c *{{ .Reader.Types.Struct }}) Get(name string) (*{{ .Resource.Types.Struct }}, error) {
-	object, err := c.ObjectsClient.Get(name, {{ .Resource.Types.Resource }})
+    {{ $singular }} := &{{ $kind }}{}
+	err := c.Clientset().
+        {{ .Group.Names.Proper }}{{ .Version.Names.Proper }}().
+        RESTClient().
+	    Get().
+		Namespace(c.Namespace()).
+		Resource({{ .Resource.Types.Resource }}.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into({{ $singular }})
 	if err != nil {
 		return nil, err
 	}
-	return New{{ .Resource.Types.Struct }}(object), nil
+	return New{{ .Resource.Types.Struct }}({{ $singular }}, c.Client), nil
 }
 
 func (c *{{ .Reader.Types.Struct }}) List() ([]*{{ .Resource.Types.Struct }}, error) {
-	objects, err := c.ObjectsClient.List({{ .Resource.Types.Resource }})
+    list := &{{ $listKind }}{}
+	err := c.Clientset().
+        {{ .Group.Names.Proper }}{{ .Version.Names.Proper }}().
+        RESTClient().
+	    Get().
+		Namespace(c.Namespace()).
+		Resource({{ .Resource.Types.Resource }}.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	{{ .Resource.Names.Plural | toLowerCamel }} := make([]*{{ .Resource.Types.Struct }}, len(objects))
-	for i, object := range objects {
-		{{ .Resource.Names.Plural | toLowerCamel }}[i] = New{{ .Resource.Types.Struct }}(object)
+
+	results := make([]*{{ .Resource.Types.Struct }}, len(list.Items))
+	for i, {{ $singular }} := range list.Items {
+	    results[i] = New{{ .Resource.Types.Struct }}(&{{ $singular }}, c.Client)
 	}
-	return {{ .Resource.Names.Plural | toLowerCamel }}, nil
+	return results, nil
 }

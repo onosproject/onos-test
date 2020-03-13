@@ -1,13 +1,12 @@
 package api
 
 import (
-	"github.com/onosproject/onos-test/pkg/kube"
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
-func newChart(name string, parent metav1.ObjectsClient) *Chart {
+func newChart(name string, client resource.Client) *Chart {
 	return &Chart{
-		API:      parent,
+		Client:   client,
 		name:     name,
 		releases: make(map[string]*Release),
 	}
@@ -15,7 +14,7 @@ func newChart(name string, parent metav1.ObjectsClient) *Chart {
 
 // Chart is a Helm chart
 type Chart struct {
-	kube.API
+	resource.Client
 	name       string
 	repository string
 	releases   map[string]*Release

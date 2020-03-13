@@ -15,23 +15,23 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type ConfigMapsClient interface {
 	ConfigMaps() ConfigMapsReader
 }
 
-func NewConfigMapsClient(objects clustermetav1.ObjectsClient) ConfigMapsClient {
+func NewConfigMapsClient(resources resource.Client) ConfigMapsClient {
 	return &configMapsClient{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type configMapsClient struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *configMapsClient) ConfigMaps() ConfigMapsReader {
-	return NewConfigMapsReader(c.ObjectsClient)
+	return NewConfigMapsReader(c.Client)
 }

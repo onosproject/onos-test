@@ -15,7 +15,10 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type StatefulSetsReader interface {
@@ -23,32 +26,54 @@ type StatefulSetsReader interface {
 	List() ([]*StatefulSet, error)
 }
 
-func NewStatefulSetsReader(objects clustermetav1.ObjectsClient) StatefulSetsReader {
+func NewStatefulSetsReader(client resource.Client) StatefulSetsReader {
 	return &statefulSetsReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type statefulSetsReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *statefulSetsReader) Get(name string) (*StatefulSet, error) {
-	object, err := c.ObjectsClient.Get(name, StatefulSetResource)
+	statefulSet := &appsv1.StatefulSet{}
+	err := c.Clientset().
+		AppsV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(StatefulSetResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(statefulSet)
 	if err != nil {
 		return nil, err
 	}
-	return NewStatefulSet(object), nil
+	return NewStatefulSet(statefulSet, c.Client), nil
 }
 
 func (c *statefulSetsReader) List() ([]*StatefulSet, error) {
-	objects, err := c.ObjectsClient.List(StatefulSetResource)
+	list := &appsv1.StatefulSetList{}
+	err := c.Clientset().
+		AppsV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(StatefulSetResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	statefulSets := make([]*StatefulSet, len(objects))
-	for i, object := range objects {
-		statefulSets[i] = NewStatefulSet(object)
+
+	results := make([]*StatefulSet, len(list.Items))
+	for i, statefulSet := range list.Items {
+		results[i] = NewStatefulSet(&statefulSet, c.Client)
 	}
-	return statefulSets, nil
+	return results, nil
 }

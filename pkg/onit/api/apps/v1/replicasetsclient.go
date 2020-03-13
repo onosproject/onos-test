@@ -15,23 +15,23 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type ReplicaSetsClient interface {
 	ReplicaSets() ReplicaSetsReader
 }
 
-func NewReplicaSetsClient(objects clustermetav1.ObjectsClient) ReplicaSetsClient {
+func NewReplicaSetsClient(resources resource.Client) ReplicaSetsClient {
 	return &replicaSetsClient{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type replicaSetsClient struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *replicaSetsClient) ReplicaSets() ReplicaSetsReader {
-	return NewReplicaSetsReader(c.ObjectsClient)
+	return NewReplicaSetsReader(c.Client)
 }

@@ -15,21 +15,21 @@
 package v2alpha1
 
 import (
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type Client interface {
 	CronJobsClient
 }
 
-func NewClient(objects metav1.ObjectsClient) Client {
+func NewClient(resources resource.Client) Client {
 	return &client{
-		ObjectsClient:  objects,
-		CronJobsClient: NewCronJobsClient(objects),
+		Client:         resources,
+		CronJobsClient: NewCronJobsClient(resources),
 	}
 }
 
 type client struct {
-	metav1.ObjectsClient
+	resource.Client
 	CronJobsClient
 }

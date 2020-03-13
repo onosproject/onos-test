@@ -15,7 +15,10 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type ConfigMapsReader interface {
@@ -23,32 +26,54 @@ type ConfigMapsReader interface {
 	List() ([]*ConfigMap, error)
 }
 
-func NewConfigMapsReader(objects clustermetav1.ObjectsClient) ConfigMapsReader {
+func NewConfigMapsReader(client resource.Client) ConfigMapsReader {
 	return &configMapsReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type configMapsReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *configMapsReader) Get(name string) (*ConfigMap, error) {
-	object, err := c.ObjectsClient.Get(name, ConfigMapResource)
+	configMap := &corev1.ConfigMap{}
+	err := c.Clientset().
+		CoreV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(ConfigMapResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(configMap)
 	if err != nil {
 		return nil, err
 	}
-	return NewConfigMap(object), nil
+	return NewConfigMap(configMap, c.Client), nil
 }
 
 func (c *configMapsReader) List() ([]*ConfigMap, error) {
-	objects, err := c.ObjectsClient.List(ConfigMapResource)
+	list := &corev1.ConfigMapList{}
+	err := c.Clientset().
+		CoreV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(ConfigMapResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	configMaps := make([]*ConfigMap, len(objects))
-	for i, object := range objects {
-		configMaps[i] = NewConfigMap(object)
+
+	results := make([]*ConfigMap, len(list.Items))
+	for i, configMap := range list.Items {
+		results[i] = NewConfigMap(&configMap, c.Client)
 	}
-	return configMaps, nil
+	return results, nil
 }

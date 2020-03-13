@@ -15,23 +15,23 @@
 package v1beta1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type DeploymentsClient interface {
 	Deployments() DeploymentsReader
 }
 
-func NewDeploymentsClient(objects clustermetav1.ObjectsClient) DeploymentsClient {
+func NewDeploymentsClient(resources resource.Client) DeploymentsClient {
 	return &deploymentsClient{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type deploymentsClient struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *deploymentsClient) Deployments() DeploymentsReader {
-	return NewDeploymentsReader(c.ObjectsClient)
+	return NewDeploymentsReader(c.Client)
 }

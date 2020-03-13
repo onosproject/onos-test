@@ -16,7 +16,6 @@ package api
 
 import (
 	"github.com/onosproject/onos-test/pkg/kube"
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
 )
 
 // NewFromEnv gets the cluster from the environment
@@ -26,16 +25,10 @@ func NewFromEnv() *API {
 
 // New returns a new onit Env
 func New(api kube.API) *API {
-	objectsClient := metav1.NewObjectsClient(api, func(meta metav1.Object) (bool, error) {
-		return true, nil
-	})
-	client := NewClient(objectsClient)
-	cluster := &API{
-		Client: client,
-		API:    api,
+	return &API{
+		Client: NewClient(api),
 		charts: make(map[string]*Chart),
 	}
-	return cluster
 }
 
 var _ Client = &API{}
@@ -43,7 +36,6 @@ var _ Client = &API{}
 // API facilitates modifying subsystems in Kubernetes
 type API struct {
 	Client
-	kube.API
 	charts map[string]*Chart
 }
 
@@ -60,7 +52,7 @@ func (c *API) Charts() []*Chart {
 func (c *API) Chart(name string) *Chart {
 	chart, ok := c.charts[name]
 	if !ok {
-		chart = newChart(name, c.Client.(*client).ObjectsClient)
+		chart = newChart(name, c.Client)
 		c.charts[name] = chart
 	}
 	return chart

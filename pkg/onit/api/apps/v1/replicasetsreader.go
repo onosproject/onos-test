@@ -15,7 +15,10 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type ReplicaSetsReader interface {
@@ -23,32 +26,54 @@ type ReplicaSetsReader interface {
 	List() ([]*ReplicaSet, error)
 }
 
-func NewReplicaSetsReader(objects clustermetav1.ObjectsClient) ReplicaSetsReader {
+func NewReplicaSetsReader(client resource.Client) ReplicaSetsReader {
 	return &replicaSetsReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type replicaSetsReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *replicaSetsReader) Get(name string) (*ReplicaSet, error) {
-	object, err := c.ObjectsClient.Get(name, ReplicaSetResource)
+	replicaSet := &appsv1.ReplicaSet{}
+	err := c.Clientset().
+		AppsV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(ReplicaSetResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(replicaSet)
 	if err != nil {
 		return nil, err
 	}
-	return NewReplicaSet(object), nil
+	return NewReplicaSet(replicaSet, c.Client), nil
 }
 
 func (c *replicaSetsReader) List() ([]*ReplicaSet, error) {
-	objects, err := c.ObjectsClient.List(ReplicaSetResource)
+	list := &appsv1.ReplicaSetList{}
+	err := c.Clientset().
+		AppsV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(ReplicaSetResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	replicaSets := make([]*ReplicaSet, len(objects))
-	for i, object := range objects {
-		replicaSets[i] = NewReplicaSet(object)
+
+	results := make([]*ReplicaSet, len(list.Items))
+	for i, replicaSet := range list.Items {
+		results[i] = NewReplicaSet(&replicaSet, c.Client)
 	}
-	return replicaSets, nil
+	return results, nil
 }

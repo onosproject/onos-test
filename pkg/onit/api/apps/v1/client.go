@@ -15,7 +15,7 @@
 package v1
 
 import (
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type Client interface {
@@ -25,21 +25,18 @@ type Client interface {
 	StatefulSetsClient
 }
 
-func NewClient(objects metav1.ObjectsClient) Client {
+func NewClient(resources resource.Client) Client {
 	return &client{
-		ObjectsClient:    objects,
-		DaemonSetsClient: NewDaemonSetsClient(objects),
-
-		DeploymentsClient: NewDeploymentsClient(objects),
-
-		ReplicaSetsClient: NewReplicaSetsClient(objects),
-
-		StatefulSetsClient: NewStatefulSetsClient(objects),
+		Client:             resources,
+		DaemonSetsClient:   NewDaemonSetsClient(resources),
+		DeploymentsClient:  NewDeploymentsClient(resources),
+		ReplicaSetsClient:  NewReplicaSetsClient(resources),
+		StatefulSetsClient: NewStatefulSetsClient(resources),
 	}
 }
 
 type client struct {
-	metav1.ObjectsClient
+	resource.Client
 	DaemonSetsClient
 	DeploymentsClient
 	ReplicaSetsClient

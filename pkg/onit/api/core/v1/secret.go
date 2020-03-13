@@ -15,36 +15,29 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var SecretKind = clustermetav1.Kind{
+var SecretKind = resource.Kind{
 	Group:   "core",
 	Version: "v1",
 	Kind:    "Secret",
 }
 
-var SecretResource = clustermetav1.Resource{
+var SecretResource = resource.Type{
 	Kind: SecretKind,
-	Name: "Secret",
-	ObjectFactory: func() runtime.Object {
-		return &corev1.Secret{}
-	},
-	ObjectsFactory: func() runtime.Object {
-		return &corev1.SecretList{}
-	},
+	Name: "secrets",
 }
 
-func NewSecret(object *clustermetav1.Object) *Secret {
+func NewSecret(secret *corev1.Secret, client resource.Client) *Secret {
 	return &Secret{
-		Object: object,
-		Secret: object.Object.(*corev1.Secret),
+		Resource: resource.NewResource(secret.ObjectMeta, SecretKind, client),
+		Secret:   secret,
 	}
 }
 
 type Secret struct {
-	*clustermetav1.Object
+	*resource.Resource
 	Secret *corev1.Secret
 }

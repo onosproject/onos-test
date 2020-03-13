@@ -19,8 +19,8 @@ import (
 	batch "github.com/onosproject/onos-test/pkg/onit/api/batch"
 	core "github.com/onosproject/onos-test/pkg/onit/api/core"
 	extensions "github.com/onosproject/onos-test/pkg/onit/api/extensions"
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
 	networking "github.com/onosproject/onos-test/pkg/onit/api/networking"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type appsClient apps.Client
@@ -30,6 +30,7 @@ type extensionsClient extensions.Client
 type networkingClient networking.Client
 
 type Client interface {
+	resource.Client
 	appsClient
 	batchClient
 	coreClient
@@ -37,19 +38,19 @@ type Client interface {
 	networkingClient
 }
 
-func NewClient(objects metav1.ObjectsClient) Client {
+func NewClient(resources resource.Client) Client {
 	return &client{
-		ObjectsClient:    objects,
-		appsClient:       apps.NewClient(objects),
-		batchClient:      batch.NewClient(objects),
-		coreClient:       core.NewClient(objects),
-		extensionsClient: extensions.NewClient(objects),
-		networkingClient: networking.NewClient(objects),
+		Client:           resources,
+		appsClient:       apps.NewClient(resources),
+		batchClient:      batch.NewClient(resources),
+		coreClient:       core.NewClient(resources),
+		extensionsClient: extensions.NewClient(resources),
+		networkingClient: networking.NewClient(resources),
 	}
 }
 
 type client struct {
-	metav1.ObjectsClient
+	resource.Client
 	appsClient
 	batchClient
 	coreClient

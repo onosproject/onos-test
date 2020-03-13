@@ -16,23 +16,23 @@ package core
 
 import (
 	corev1 "github.com/onosproject/onos-test/pkg/onit/api/core/v1"
-	metav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 type Client interface {
 	CoreV1() corev1.Client
 }
 
-func NewClient(objects metav1.ObjectsClient) Client {
+func NewClient(resources resource.Client) Client {
 	return &client{
-		ObjectsClient: objects,
+		Client: resources,
 	}
 }
 
 type client struct {
-	metav1.ObjectsClient
+	resource.Client
 }
 
 func (c *client) CoreV1() corev1.Client {
-	return corev1.NewClient(c.ObjectsClient)
+	return corev1.NewClient(c.Client)
 }

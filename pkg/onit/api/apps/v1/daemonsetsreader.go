@@ -15,7 +15,10 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
+	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 type DaemonSetsReader interface {
@@ -23,32 +26,54 @@ type DaemonSetsReader interface {
 	List() ([]*DaemonSet, error)
 }
 
-func NewDaemonSetsReader(objects clustermetav1.ObjectsClient) DaemonSetsReader {
+func NewDaemonSetsReader(client resource.Client) DaemonSetsReader {
 	return &daemonSetsReader{
-		ObjectsClient: objects,
+		Client: client,
 	}
 }
 
 type daemonSetsReader struct {
-	clustermetav1.ObjectsClient
+	resource.Client
 }
 
 func (c *daemonSetsReader) Get(name string) (*DaemonSet, error) {
-	object, err := c.ObjectsClient.Get(name, DaemonSetResource)
+	daemonSet := &appsv1.DaemonSet{}
+	err := c.Clientset().
+		AppsV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(DaemonSetResource.Name).
+		Name(name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(daemonSet)
 	if err != nil {
 		return nil, err
 	}
-	return NewDaemonSet(object), nil
+	return NewDaemonSet(daemonSet, c.Client), nil
 }
 
 func (c *daemonSetsReader) List() ([]*DaemonSet, error) {
-	objects, err := c.ObjectsClient.List(DaemonSetResource)
+	list := &appsv1.DaemonSetList{}
+	err := c.Clientset().
+		AppsV1().
+		RESTClient().
+		Get().
+		Namespace(c.Namespace()).
+		Resource(DaemonSetResource.Name).
+		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Into(list)
 	if err != nil {
 		return nil, err
 	}
-	daemonSets := make([]*DaemonSet, len(objects))
-	for i, object := range objects {
-		daemonSets[i] = NewDaemonSet(object)
+
+	results := make([]*DaemonSet, len(list.Items))
+	for i, daemonSet := range list.Items {
+		results[i] = NewDaemonSet(&daemonSet, c.Client)
 	}
-	return daemonSets, nil
+	return results, nil
 }

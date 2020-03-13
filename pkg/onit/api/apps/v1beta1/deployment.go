@@ -17,39 +17,32 @@ package v1beta1
 import (
 	appsv1 "github.com/onosproject/onos-test/pkg/onit/api/apps/v1"
 	corev1 "github.com/onosproject/onos-test/pkg/onit/api/core/v1"
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var DeploymentKind = clustermetav1.Kind{
+var DeploymentKind = resource.Kind{
 	Group:   "apps",
 	Version: "v1beta1",
 	Kind:    "Deployment",
 }
 
-var DeploymentResource = clustermetav1.Resource{
+var DeploymentResource = resource.Type{
 	Kind: DeploymentKind,
-	Name: "Deployment",
-	ObjectFactory: func() runtime.Object {
-		return &appsv1beta1.Deployment{}
-	},
-	ObjectsFactory: func() runtime.Object {
-		return &appsv1beta1.DeploymentList{}
-	},
+	Name: "deployments",
 }
 
-func NewDeployment(object *clustermetav1.Object) *Deployment {
+func NewDeployment(deployment *appsv1beta1.Deployment, client resource.Client) *Deployment {
 	return &Deployment{
-		Object:            object,
-		Deployment:        object.Object.(*appsv1beta1.Deployment),
-		ReplicaSetsClient: appsv1.NewReplicaSetsClient(object.ObjectsClient),
-		PodsClient:        corev1.NewPodsClient(object.ObjectsClient),
+		Resource:          resource.NewResource(deployment.ObjectMeta, DeploymentKind, client),
+		Deployment:        deployment,
+		ReplicaSetsClient: appsv1.NewReplicaSetsClient(client),
+		PodsClient:        corev1.NewPodsClient(client),
 	}
 }
 
 type Deployment struct {
-	*clustermetav1.Object
+	*resource.Resource
 	Deployment *appsv1beta1.Deployment
 	appsv1.ReplicaSetsClient
 	corev1.PodsClient

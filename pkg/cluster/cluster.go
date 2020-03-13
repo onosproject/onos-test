@@ -34,7 +34,7 @@ func GetClusters() ([]string, error) {
 		return nil, err
 	}
 
-	namespaces, err := kubeAPI.Client().CoreV1().Namespaces().List(metav1.ListOptions{})
+	namespaces, err := kubeAPI.Clientset().CoreV1().Namespaces().List(metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func NewCluster(namespace string) (*Cluster, error) {
 		return nil, err
 	}
 	return &Cluster{
-		client:    kubeAPI.Client(),
+		client:    kubeAPI.Clientset(),
 		namespace: namespace,
 	}, nil
 }

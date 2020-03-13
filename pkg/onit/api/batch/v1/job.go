@@ -15,36 +15,29 @@
 package v1
 
 import (
-	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/api/meta/v1"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	batchv1 "k8s.io/api/batch/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-var JobKind = clustermetav1.Kind{
+var JobKind = resource.Kind{
 	Group:   "batch",
 	Version: "v1",
 	Kind:    "Job",
 }
 
-var JobResource = clustermetav1.Resource{
+var JobResource = resource.Type{
 	Kind: JobKind,
-	Name: "Job",
-	ObjectFactory: func() runtime.Object {
-		return &batchv1.Job{}
-	},
-	ObjectsFactory: func() runtime.Object {
-		return &batchv1.JobList{}
-	},
+	Name: "jobs",
 }
 
-func NewJob(object *clustermetav1.Object) *Job {
+func NewJob(job *batchv1.Job, client resource.Client) *Job {
 	return &Job{
-		Object: object,
-		Job:    object.Object.(*batchv1.Job),
+		Resource: resource.NewResource(job.ObjectMeta, JobKind, client),
+		Job:      job,
 	}
 }
 
 type Job struct {
-	*clustermetav1.Object
+	*resource.Resource
 	Job *batchv1.Job
 }
