@@ -63,9 +63,7 @@ onit-docker:
 
 onit-tests-docker: # @HELP build onit tests Docker image
 onit-tests-docker:
-	@rm -r build/onit-tests/_output
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/onit-tests/_output/bin/onit-tests ./cmd/onit-tests
-	@cp -r test/charts build/onit-tests/_output/charts
 	docker build build/onit-tests -f build/onit-tests/Dockerfile \
 		-t onosproject/onit-tests:${ONOS_TEST_VERSION}
 

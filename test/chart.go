@@ -14,7 +14,7 @@ type ChartTestSuite struct {
 
 func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
 	namespace := helm.Namespace()
-	atomix := namespace.Chart("/etc/charts/atomix").
+	atomix := namespace.Chart("/etc/charts/atomix-controller").
 		Release("atomix-controller").
 		Set("namespace", namespace.Namespace())
 	err := atomix.Install(true)
