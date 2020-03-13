@@ -20,22 +20,25 @@ import (
 
 var clients = make(map[string]Client)
 
-// Namespace returns a client for the given namespace
-func Namespace(namespace ...string) Client {
-	var ns string
-	if len(namespace) == 0 {
-		ns = kubernetes.GetNamespaceFromEnv()
-	} else {
-		ns = namespace[0]
-	}
+// Namespace returns the Helm namespace
+func Namespace() string {
+	return kubernetes.GetNamespaceFromEnv()
+}
 
-	client, ok := clients[ns]
+// Helm returns the Helm client
+func Helm() Client {
+	return getClient(kubernetes.GetNamespaceFromEnv())
+}
+
+// getClient returns the client for the given namespace
+func getClient(namespace string) Client {
+	client, ok := clients[namespace]
 	if !ok {
 		client = &helmClient{
-			Client: kubernetes.Namespace(ns),
+			Client: kubernetes.NewClient(namespace),
 			charts: make(map[string]*Chart),
 		}
-		clients[ns] = client
+		clients[namespace] = client
 	}
 	return client
 }
@@ -44,7 +47,9 @@ func Namespace(namespace ...string) Client {
 type Client interface {
 	ChartClient
 	ReleaseClient
-	kubernetes.Client
+
+	// Namespace returns the client for the given namespace
+	Namespace(namespace string) Client
 }
 
 // ChartClient is a Helm chart client
@@ -69,6 +74,10 @@ type ReleaseClient interface {
 type helmClient struct {
 	kubernetes.Client
 	charts map[string]*Chart
+}
+
+func (c *helmClient) Namespace(namespace string) Client {
+	return getClient(namespace)
 }
 
 // Charts returns a list of charts in the cluster

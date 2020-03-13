@@ -29,7 +29,7 @@ const clusterRole = "kube-test-cluster"
 
 // GetClusters returns a list of test clusters
 func GetClusters() ([]string, error) {
-	namespaces, err := kube.Namespace().
+	namespaces, err := kube.NewClient().
 		Clientset().
 		CoreV1().
 		Namespaces().
@@ -50,7 +50,7 @@ func GetClusters() ([]string, error) {
 // NewCluster returns a new test cluster for the given Kubernetes API
 func NewCluster(namespace string) (*Cluster, error) {
 	return &Cluster{
-		client:    kube.Namespace(namespace).Clientset(),
+		client:    kube.NewClient(namespace).Clientset(),
 		namespace: namespace,
 	}, nil
 }

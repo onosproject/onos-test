@@ -38,7 +38,7 @@ import (
 // newCoordinator returns a new benchmark coordinator
 func newCoordinator(config *Config) (*Coordinator, error) {
 	return &Coordinator{
-		client: kube.Namespace(config.ID).Clientset(),
+		client: kube.NewClient(config.ID).Clientset(),
 		config: config,
 	}, nil
 }

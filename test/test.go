@@ -13,17 +13,17 @@ type ChartTestSuite struct {
 }
 
 func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
-	namespace := helm.Namespace()
-	atomix := namespace.Chart("/etc/charts/atomix-controller").
+	atomix := helm.Helm().
+		Chart("/etc/charts/atomix-controller").
 		Release("atomix-controller").
-		Set("namespace", namespace.Namespace())
+		Set("namespace", helm.Namespace())
 	err := atomix.Install(true)
 	assert.NoError(t, err)
 
-	topo := helm.Namespace().
+	topo := helm.Helm().
 		Chart("/etc/charts/onos-topo").
 		Release("onos-topo").
-		Set("store.controller", fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", namespace.Namespace()))
+		Set("store.controller", fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", helm.Namespace()))
 	err = topo.Install(true)
 	assert.NoError(t, err)
 
@@ -36,7 +36,7 @@ func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
 }
 
 func (s *ChartTestSuite) TestRemoteInstall(t *testing.T) {
-	kafka := helm.Namespace().
+	kafka := helm.Helm().
 		Chart("kafka").
 		SetRepository("http://storage.googleapis.com/kubernetes-charts-incubator").
 		Release("device-simulator-test").

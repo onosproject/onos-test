@@ -12,9 +12,10 @@ type ChartSimulationSuite struct {
 
 // SetupSimulation :: simulation
 func (s *ChartSimulationSuite) SetupSimulation(sim *simulation.Simulator) error {
-	return helm.Namespace().Chart("/etc/charts/atomix-controller").
+	return helm.Helm().
+		Chart("/etc/charts/atomix-controller").
 		Release("atomix-controller").
-		Set("namespace", helm.Namespace().Namespace()).
+		Set("namespace", helm.Namespace()).
 		Install(true)
 }
 

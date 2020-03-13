@@ -48,7 +48,7 @@ type Job struct {
 // NewRunner returns a new test job runner
 func NewRunner() (*Runner, error) {
 	return &Runner{
-		client: kube.Namespace(namespace).Clientset(),
+		client: kube.NewClient(namespace).Clientset(),
 	}, nil
 }
 

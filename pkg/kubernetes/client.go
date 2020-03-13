@@ -36,8 +36,8 @@ func GetNamespaceFromEnv() string {
 	return namespace
 }
 
-// Namespace returns the Helm namespace
-func Namespace(namespace ...string) Client {
+// NewClient returns the Kubernetes client for the given namespace, if specified
+func NewClient(namespace ...string) Client {
 	config := GetRestConfigOrDie()
 	ns := GetNamespaceFromEnv()
 	if len(namespace) > 0 {
