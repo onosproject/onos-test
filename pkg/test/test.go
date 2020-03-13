@@ -31,32 +31,32 @@ type Suite struct{}
 
 // SetupTestSuite is an interface for setting up a suite of tests
 type SetupTestSuite interface {
-	SetupTestSuite()
+	SetupTestSuite() error
 }
 
 // SetupTest is an interface for setting up individual tests
 type SetupTest interface {
-	SetupTest()
+	SetupTest() error
 }
 
 // TearDownTestSuite is an interface for tearing down a suite of tests
 type TearDownTestSuite interface {
-	TearDownTestSuite()
+	TearDownTestSuite() error
 }
 
 // TearDownTest is an interface for tearing down individual tests
 type TearDownTest interface {
-	TearDownTest()
+	TearDownTest() error
 }
 
 // BeforeTest is an interface for executing code before every test
 type BeforeTest interface {
-	BeforeTest(testName string)
+	BeforeTest(testName string) error
 }
 
 // AfterTest is an interface for executing code after every test
 type AfterTest interface {
-	AfterTest(testName string)
+	AfterTest(testName string) error
 }
 
 func failTestOnPanic(t *testing.T) {
@@ -87,11 +87,15 @@ func RunTests(t *testing.T, suite TestingSuite, config *Config) {
 		}
 		if !suiteSetupDone {
 			if setupTestSuite, ok := suite.(SetupTestSuite); ok {
-				setupTestSuite.SetupTestSuite()
+				if err := setupTestSuite.SetupTestSuite(); err != nil {
+					panic(err)
+				}
 			}
 			defer func() {
 				if tearDownTestSuite, ok := suite.(TearDownTestSuite); ok {
-					tearDownTestSuite.TearDownTestSuite()
+					if err := tearDownTestSuite.TearDownTestSuite(); err != nil {
+						panic(err)
+					}
 				}
 			}()
 			suiteSetupDone = true
@@ -102,17 +106,25 @@ func RunTests(t *testing.T, suite TestingSuite, config *Config) {
 				defer failTestOnPanic(t)
 
 				if setupTestSuite, ok := suite.(SetupTest); ok {
-					setupTestSuite.SetupTest()
+					if err := setupTestSuite.SetupTest(); err != nil {
+						panic(err)
+					}
 				}
 				if beforeTestSuite, ok := suite.(BeforeTest); ok {
-					beforeTestSuite.BeforeTest(method.Name)
+					if err := beforeTestSuite.BeforeTest(method.Name); err != nil {
+						panic(err)
+					}
 				}
 				defer func() {
 					if afterTestSuite, ok := suite.(AfterTest); ok {
-						afterTestSuite.AfterTest(method.Name)
+						if err := afterTestSuite.AfterTest(method.Name); err != nil {
+							panic(err)
+						}
 					}
 					if tearDownTestSuite, ok := suite.(TearDownTest); ok {
-						tearDownTestSuite.TearDownTest()
+						if err := tearDownTestSuite.TearDownTest(); err != nil {
+							panic(err)
+						}
 					}
 				}()
 				method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(t)})
