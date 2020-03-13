@@ -60,42 +60,24 @@ func newRelease(name string, chart *Chart) *Release {
 		Client: NewClient(chart.Client, filter),
 		chart:  chart,
 		name:   name,
-		values: &Values{
-			values: make(map[string]interface{}),
-		},
+		values: make(map[string]interface{}),
 	}
 
 	args := GetArgs(name)
 	for key, value := range args {
-		release.Values().Set(key, value)
+		release.Set(key, value)
 	}
 	return release
 }
 
 var _ Client = &Release{}
 
-// Values is a set of Helm chart values
-type Values struct {
-	values map[string]interface{}
-}
-
-// Set sets a field in the configuration
-func (v *Values) Set(path string, value interface{}) *Values {
-	setKey(v.values, getPathNames(path), value)
-	return v
-}
-
-// Get gets a field in the configuration
-func (v *Values) Get(path string) interface{} {
-	return getValue(v.values, getPathNames(path))
-}
-
 // Release is a Helm chart release
 type Release struct {
 	Client
 	chart    *Chart
 	name     string
-	values   *Values
+	values   map[string]interface{}
 	skipCRDs bool
 	release  *release.Release
 }
@@ -105,8 +87,19 @@ func (r *Release) Name() string {
 	return r.name
 }
 
+// Set sets a value
+func (r *Release) Set(path string, value interface{}) *Release {
+	setKey(r.values, getPathNames(path), value)
+	return r
+}
+
+// Get gets a value
+func (r *Release) Get(path string) interface{} {
+	return getValue(r.values, getPathNames(path))
+}
+
 // Values is the release's values
-func (r *Release) Values() *Values {
+func (r *Release) Values() map[string]interface{} {
 	return r.values
 }
 
@@ -198,7 +191,7 @@ func (r *Release) Install(wait bool) error {
 		}
 	}
 
-	release, err := install.Run(chart, normalize(r.values.values).(map[string]interface{}))
+	release, err := install.Run(chart, normalize(r.values).(map[string]interface{}))
 	if err != nil {
 		return err
 	}

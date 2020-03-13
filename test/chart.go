@@ -14,14 +14,14 @@ type ChartTestSuite struct {
 
 func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
 	atomix := cluster.Chart("/etc/charts/atomix").
-		Release("atomix-controller")
-	atomix.Values().Set("namespace", cluster.Namespace())
+		Release("atomix-controller").
+		Set("namespace", cluster.Namespace())
 	err := atomix.Install(true)
 	assert.NoError(t, err)
 
 	topo := cluster.Chart("/etc/charts/onos-topo").
-		Release("onos-topo")
-	topo.Values().Set("store.controller", fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", cluster.Namespace()))
+		Release("onos-topo").
+		Set("store.controller", fmt.Sprintf("atomix-controller.%s.svc.cluster.local:5679", cluster.Namespace()))
 	err = topo.Install(true)
 	assert.NoError(t, err)
 
@@ -36,9 +36,9 @@ func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
 func (s *ChartTestSuite) TestRemoteInstall(t *testing.T) {
 	kafka := cluster.Chart("kafka").
 		SetRepository("http://storage.googleapis.com/kubernetes-charts-incubator").
-		Release("device-simulator-test")
-	kafka.Values().Set("replicas", 1)
-	kafka.Values().Set("zookeeper.replicaCount", 1)
+		Release("device-simulator-test").
+		Set("replicas", 1).
+		Set("zookeeper.replicaCount", 1)
 	err := kafka.Install(true)
 	assert.NoError(t, err)
 }
