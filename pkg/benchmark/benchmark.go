@@ -15,7 +15,7 @@
 package benchmark
 
 import (
-	"github.com/onosproject/onos-test/pkg/input"
+	"fmt"
 	"math"
 	"reflect"
 	"sort"
@@ -112,14 +112,14 @@ func (a *Arg) String(def string) string {
 	return a.value
 }
 
-func newBenchmark(name string, requests int, duration *time.Duration, parallelism int, maxLatency *time.Duration, context *Context) *Benchmark {
+// newBenchmark creates a new benchmark
+func newBenchmark(requests int, duration *time.Duration, parallelism int, maxLatency *time.Duration, context *Context) *Benchmark {
 	return &Benchmark{
 		Context:     context,
 		requests:    requests,
 		duration:    duration,
 		maxLatency:  maxLatency,
 		parallelism: parallelism,
-		Name:        name,
 	}
 }
 
@@ -127,8 +127,6 @@ func newBenchmark(name string, requests int, duration *time.Duration, parallelis
 type Benchmark struct {
 	*Context
 
-	// Name is the name of the benchmark
-	Name        string
 	requests    int
 	duration    *time.Duration
 	parallelism int
@@ -136,21 +134,29 @@ type Benchmark struct {
 	maxLatency  *time.Duration
 }
 
-// getResult returns the benchmark result
-func (b *Benchmark) getResult() *RunResponse {
-	return b.result
-}
-
 // Run runs the benchmark with the given parameters
-func (b *Benchmark) Run(f interface{}, params ...input.Source) {
-	// Prepare the benchmark arguments
-	handler := b.prepare(f, params)
+func (b *Benchmark) run(suite BenchmarkingSuite) (*RunResponse, error) {
+	var f func() error
+	methods := reflect.TypeOf(suite)
+	if method, ok := methods.MethodByName(b.Name); ok {
+		f = func() error {
+			values := method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(b)})
+			if len(values) == 0 {
+				return nil
+			} else if values[0].Interface() == nil {
+				return nil
+			}
+			return values[0].Interface().(error)
+		}
+	} else {
+		return nil, fmt.Errorf("unknown benchmark method %s", b.Name)
+	}
 
 	// Warm the benchmark
-	b.warm(handler, params)
+	b.warmRequests(f)
 
 	// Run the benchmark
-	requests, runTime, results := b.run(handler, params)
+	requests, runTime, results := b.runRequests(f)
 
 	// Calculate the total latency from latency results
 	var totalLatency time.Duration
@@ -165,7 +171,7 @@ func (b *Benchmark) Run(f interface{}, params ...input.Source) {
 	latency95 := results[int(math.Max(float64(len(results)-(len(results)/20)-1), 0))]
 	latency99 := results[int(math.Max(float64(len(results)-(len(results)/100)-1), 0))]
 
-	b.result = &RunResponse{
+	return &RunResponse{
 		Requests:  uint32(requests),
 		Duration:  runTime,
 		Latency:   meanLatency,
@@ -173,42 +179,19 @@ func (b *Benchmark) Run(f interface{}, params ...input.Source) {
 		Latency75: latency75,
 		Latency95: latency95,
 		Latency99: latency99,
-	}
-}
-
-// prepare prepares the benchmark
-func (b *Benchmark) prepare(next interface{}, params []input.Source) func(...interface{}) {
-	v := reflect.ValueOf(next)
-	f := func(args ...interface{}) {
-		vargs := make([]reflect.Value, len(args))
-		ft := v.Type()
-		for i := 0; i < len(args); i++ {
-			if args[i] != nil {
-				vargs[i] = reflect.ValueOf(args[i])
-			} else {
-				vargs[i] = reflect.Zero(ft.In(i))
-			}
-		}
-		_ = v.Call(vargs)
-	}
-
-	// Prepare the benchmark parameters
-	for _, param := range params {
-		param.Reset()
-	}
-	return f
+	}, nil
 }
 
 // warm warms up the benchmark
-func (b *Benchmark) warm(f func(...interface{}), params []input.Source) {
+func (b *Benchmark) warmRequests(f func() error) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
-	requestCh := make(chan []interface{}, b.parallelism)
+	requestCh := make(chan struct{}, b.parallelism)
 	for i := 0; i < b.parallelism; i++ {
 		wg.Add(1)
 		go func() {
-			for args := range requestCh {
-				f(args...)
+			for range requestCh {
+				f()
 			}
 			wg.Done()
 		}()
@@ -217,11 +200,7 @@ func (b *Benchmark) warm(f func(...interface{}), params []input.Source) {
 	// Run for the warm up duration to prepare the benchmark
 	start := time.Now()
 	for time.Since(start) < warmUpDuration {
-		args := make([]interface{}, len(params))
-		for j, arg := range params {
-			args[j] = arg.Next().Interface()
-		}
-		requestCh <- args
+		requestCh <- struct{}{}
 	}
 	close(requestCh)
 
@@ -230,17 +209,17 @@ func (b *Benchmark) warm(f func(...interface{}), params []input.Source) {
 }
 
 // run runs the benchmark
-func (b *Benchmark) run(f func(...interface{}), params []input.Source) (int, time.Duration, []time.Duration) {
+func (b *Benchmark) runRequests(f func() error) (int, time.Duration, []time.Duration) {
 	// Create an iteration channel and wait group and create a goroutine for each client
 	wg := &sync.WaitGroup{}
-	requestCh := make(chan []interface{}, b.parallelism)
+	requestCh := make(chan struct{}, b.parallelism)
 	resultCh := make(chan time.Duration, aggBatchSize)
 	for i := 0; i < b.parallelism; i++ {
 		wg.Add(1)
 		go func() {
-			for args := range requestCh {
+			for range requestCh {
 				start := time.Now()
-				f(args...)
+				f()
 				end := time.Now()
 				resultCh <- end.Sub(start)
 			}
@@ -293,11 +272,7 @@ func (b *Benchmark) run(f func(...interface{}), params []input.Source) (int, tim
 	// Iterate through the request count or until the time duration has been met
 	requests := 0
 	for (b.requests == 0 || requests < b.requests) && (b.duration == nil || time.Since(start) < *b.duration) {
-		args := make([]interface{}, len(params))
-		for j, arg := range params {
-			args[j] = arg.Next().Interface()
-		}
-		requestCh <- args
+		requestCh <- struct{}{}
 		requests++
 	}
 	close(requestCh)

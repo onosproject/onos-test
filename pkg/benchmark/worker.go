@@ -196,20 +196,14 @@ func (w *Worker) RunBenchmark(ctx context.Context, request *RunRequest) (*RunRes
 		return nil, err
 	}
 
-	methods := reflect.TypeOf(suite)
-	method, ok := methods.MethodByName(request.Benchmark)
-	if !ok {
-		err = fmt.Errorf("unknown benchmark method %s", request.Benchmark)
-		step.Fail(err)
+	context := newContext(request.Benchmark, request.Args)
+	benchmark := newBenchmark(int(request.Requests), request.Duration, int(request.Parallelism), request.MaxLatency, context)
+	result, err := benchmark.run(suite)
+	if err != nil {
 		return nil, err
 	}
-
-	context := newContext(request.Benchmark, request.Args)
-	b := newBenchmark(request.Benchmark, int(request.Requests), request.Duration, int(request.Parallelism), request.MaxLatency, context)
-	method.Func.Call([]reflect.Value{reflect.ValueOf(suite), reflect.ValueOf(b)})
-
 	step.Complete()
-	return b.getResult(), nil
+	return result, nil
 }
 
 // benchmarkFilter filters benchmark method names

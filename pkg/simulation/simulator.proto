@@ -18,8 +18,6 @@ syntax = "proto3";
 
 package onos.test.simulation;
 
-import "gogoproto/gogo.proto";
-
 // SimulationLifecycleRequest is a simulation request
 message SimulationLifecycleRequest {
     // simulation is the simulation name
