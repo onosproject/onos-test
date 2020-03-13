@@ -31,9 +31,11 @@ func NewReplicaSetsReference(resources resource.Client, filter resource.Filter) 
 		if err != nil {
 			return false, err
 		}
-		for _, replicaSets := range list {
-			if replicaSets.ReplicaSet.ObjectMeta.UID == meta.UID {
-				return true, nil
+		for _, owner := range meta.OwnerReferences {
+			for _, replicaSets := range list {
+				if replicaSets.ReplicaSet.ObjectMeta.UID == owner.UID {
+					return true, nil
+				}
 			}
 		}
 		return false, nil

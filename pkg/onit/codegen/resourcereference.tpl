@@ -46,9 +46,11 @@ func New{{ .Reference.Types.Interface }}(resources resource.Client, filter resou
         if err != nil {
             return false, err
         }
-        for _, {{ $name }} := range list {
-            if {{ $name }}.{{ .Resource.Names.Singular }}.ObjectMeta.UID == meta.UID {
-                return true, nil
+		for _, owner := range meta.OwnerReferences {
+            for _, {{ $name }} := range list {
+                if {{ $name }}.{{ .Resource.Names.Singular }}.ObjectMeta.UID == owner.UID {
+                    return true, nil
+                }
             }
         }
         return false, nil
