@@ -26,7 +26,7 @@ import (
 	"helm.sh/helm/v3/pkg/downloader"
 	"helm.sh/helm/v3/pkg/getter"
 	helm "helm.sh/helm/v3/pkg/kube"
-	"helm.sh/helm/v3/pkg/releaseutil"
+	"helm.sh/helm/v3/pkg/release"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"os"
@@ -44,10 +44,10 @@ func newRelease(name string, chart *Chart) *Release {
 			return false, err
 		}
 		for _, resource := range resources {
-			kind := resource.Object.GetObjectKind().GroupVersionKind()
-			if kind.Group == kind.Group &&
-				kind.Version == kind.Version &&
-				kind.Kind == kind.Kind &&
+			resourceKind := resource.Object.GetObjectKind().GroupVersionKind()
+			if resourceKind.Group == kind.Group &&
+				resourceKind.Version == kind.Version &&
+				resourceKind.Kind == kind.Kind &&
 				resource.Namespace == meta.Namespace &&
 				resource.Name == meta.Name {
 				return true, nil
@@ -96,6 +96,7 @@ type Release struct {
 	name     string
 	values   *Values
 	skipCRDs bool
+	release  *release.Release
 }
 
 // Name returns the release name
@@ -134,18 +135,7 @@ func (r *Release) getResources() (helm.ResourceList, error) {
 	if err != nil {
 		return nil, err
 	}
-	releases, err := config.Releases.History(r.Name())
-	if err != nil {
-		return nil, err
-	}
-	if len(releases) < 1 {
-		return nil, nil
-	}
-
-	releaseutil.SortByRevision(releases)
-	release := releases[0]
-
-	resources, err := config.KubeClient.Build(bytes.NewBufferString(release.Manifest), true)
+	resources, err := config.KubeClient.Build(bytes.NewBufferString(r.release.Manifest), true)
 	if err != nil {
 		return nil, err
 	}
@@ -207,11 +197,11 @@ func (r *Release) Install(wait bool) error {
 		}
 	}
 
-	println(fmt.Sprintf("%v", normalize(r.values.values)))
-	_, err = install.Run(chart, normalize(r.values.values).(map[string]interface{}))
+	release, err := install.Run(chart, normalize(r.values.values).(map[string]interface{}))
 	if err != nil {
 		return err
 	}
+	r.release = release
 	return nil
 }
 
