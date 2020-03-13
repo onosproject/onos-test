@@ -24,11 +24,11 @@ type {{ .Types.Interface }} interface {
     {{- end }}
 }
 
-func New{{ .Types.Interface }}(resources resource.Client) {{ .Types.Interface }} {
+func New{{ .Types.Interface }}(resources resource.Client, filter resource.Filter) {{ .Types.Interface }} {
 	return &{{ .Types.Struct }}{
 		Client: resources,
 		{{- range $name, $resource := .Resources }}
-        {{ $resource.Client.Types.Interface }}: New{{ $resource.Client.Types.Interface }}(resources),
+        {{ $resource.Client.Types.Interface }}: New{{ $resource.Client.Types.Interface }}(resources, filter),
         {{- end }}
 	}
 }

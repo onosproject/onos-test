@@ -35,7 +35,7 @@ func NewDaemonSet(daemonSet *appsv1.DaemonSet, client resource.Client) *DaemonSe
 	return &DaemonSet{
 		Resource:   resource.NewResource(daemonSet.ObjectMeta, DaemonSetKind, client),
 		DaemonSet:  daemonSet,
-		PodsClient: corev1.NewPodsClient(client),
+		PodsClient: corev1.NewPodsClient(client, resource.NewUIDFilter(daemonSet.UID)),
 	}
 }
 

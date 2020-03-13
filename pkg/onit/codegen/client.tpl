@@ -28,18 +28,20 @@ type {{ .Types.Interface }} interface {
     {{- end }}
 }
 
-func New{{ .Types.Interface }}(resources resource.Client) {{ .Types.Interface }} {
+func New{{ .Types.Interface }}(resources resource.Client, filter resource.Filter) {{ .Types.Interface }} {
 	return &{{ .Types.Struct }}{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type {{ .Types.Struct }} struct {
 	resource.Client
+	filter resource.Filter
 }
 
 {{- range $name, $group := .Groups }}
 func (c *{{ .Types.Struct }}) {{ $group.Names.Proper }}() {{ $group.Package.Alias }}.{{ $group.Types.Interface }} {
-    return {{ $group.Package.Alias }}.New{{ $group.Types.Interface }}(c.Client)
+    return {{ $group.Package.Alias }}.New{{ $group.Types.Interface }}(c.Client, c.filter)
 }
 {{ end }}

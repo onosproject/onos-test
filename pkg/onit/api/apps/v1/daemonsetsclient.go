@@ -22,16 +22,18 @@ type DaemonSetsClient interface {
 	DaemonSets() DaemonSetsReader
 }
 
-func NewDaemonSetsClient(resources resource.Client) DaemonSetsClient {
+func NewDaemonSetsClient(resources resource.Client, filter resource.Filter) DaemonSetsClient {
 	return &daemonSetsClient{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type daemonSetsClient struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *daemonSetsClient) DaemonSets() DaemonSetsReader {
-	return NewDaemonSetsReader(c.Client)
+	return NewDaemonSetsReader(c.Client, c.filter)
 }

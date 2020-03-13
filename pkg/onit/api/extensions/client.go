@@ -23,16 +23,18 @@ type Client interface {
 	V1beta1() extensionsv1beta1.Client
 }
 
-func NewClient(resources resource.Client) Client {
+func NewClient(resources resource.Client, filter resource.Filter) Client {
 	return &client{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type client struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *client) V1beta1() extensionsv1beta1.Client {
-	return extensionsv1beta1.NewClient(c.Client)
+	return extensionsv1beta1.NewClient(c.Client, c.filter)
 }

@@ -17,7 +17,9 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type DaemonSetsReader interface {
 	List() ([]*DaemonSet, error)
 }
 
-func NewDaemonSetsReader(client resource.Client) DaemonSetsReader {
+func NewDaemonSetsReader(client resource.Client, filter resource.Filter) DaemonSetsReader {
 	return &daemonSetsReader{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type daemonSetsReader struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *daemonSetsReader) Get(name string) (*DaemonSet, error) {
@@ -51,6 +55,20 @@ func (c *daemonSetsReader) Get(name string) (*DaemonSet, error) {
 		Into(daemonSet)
 	if err != nil {
 		return nil, err
+	} else {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   DaemonSetKind.Group,
+			Version: DaemonSetKind.Version,
+			Kind:    DaemonSetKind.Kind,
+		}, daemonSet.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errors.NewNotFound(schema.GroupResource{
+				Group:    DaemonSetKind.Group,
+				Resource: DaemonSetResource.Name,
+			}, name)
+		}
 	}
 	return NewDaemonSet(daemonSet, c.Client), nil
 }
@@ -71,9 +89,18 @@ func (c *daemonSetsReader) List() ([]*DaemonSet, error) {
 		return nil, err
 	}
 
-	results := make([]*DaemonSet, len(list.Items))
-	for i, daemonSet := range list.Items {
-		results[i] = NewDaemonSet(&daemonSet, c.Client)
+	results := make([]*DaemonSet, 0, len(list.Items))
+	for _, daemonSet := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   DaemonSetKind.Group,
+			Version: DaemonSetKind.Version,
+			Kind:    DaemonSetKind.Kind,
+		}, daemonSet.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			results = append(results, NewDaemonSet(&daemonSet, c.Client))
+		}
 	}
 	return results, nil
 }

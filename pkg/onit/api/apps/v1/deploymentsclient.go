@@ -22,16 +22,18 @@ type DeploymentsClient interface {
 	Deployments() DeploymentsReader
 }
 
-func NewDeploymentsClient(resources resource.Client) DeploymentsClient {
+func NewDeploymentsClient(resources resource.Client, filter resource.Filter) DeploymentsClient {
 	return &deploymentsClient{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type deploymentsClient struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *deploymentsClient) Deployments() DeploymentsReader {
-	return NewDeploymentsReader(c.Client)
+	return NewDeploymentsReader(c.Client, c.filter)
 }

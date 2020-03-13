@@ -17,7 +17,9 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type ConfigMapsReader interface {
 	List() ([]*ConfigMap, error)
 }
 
-func NewConfigMapsReader(client resource.Client) ConfigMapsReader {
+func NewConfigMapsReader(client resource.Client, filter resource.Filter) ConfigMapsReader {
 	return &configMapsReader{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type configMapsReader struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *configMapsReader) Get(name string) (*ConfigMap, error) {
@@ -51,6 +55,20 @@ func (c *configMapsReader) Get(name string) (*ConfigMap, error) {
 		Into(configMap)
 	if err != nil {
 		return nil, err
+	} else {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   ConfigMapKind.Group,
+			Version: ConfigMapKind.Version,
+			Kind:    ConfigMapKind.Kind,
+		}, configMap.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errors.NewNotFound(schema.GroupResource{
+				Group:    ConfigMapKind.Group,
+				Resource: ConfigMapResource.Name,
+			}, name)
+		}
 	}
 	return NewConfigMap(configMap, c.Client), nil
 }
@@ -71,9 +89,18 @@ func (c *configMapsReader) List() ([]*ConfigMap, error) {
 		return nil, err
 	}
 
-	results := make([]*ConfigMap, len(list.Items))
-	for i, configMap := range list.Items {
-		results[i] = NewConfigMap(&configMap, c.Client)
+	results := make([]*ConfigMap, 0, len(list.Items))
+	for _, configMap := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   ConfigMapKind.Group,
+			Version: ConfigMapKind.Version,
+			Kind:    ConfigMapKind.Kind,
+		}, configMap.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			results = append(results, NewConfigMap(&configMap, c.Client))
+		}
 	}
 	return results, nil
 }

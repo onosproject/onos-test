@@ -17,7 +17,9 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type SecretsReader interface {
 	List() ([]*Secret, error)
 }
 
-func NewSecretsReader(client resource.Client) SecretsReader {
+func NewSecretsReader(client resource.Client, filter resource.Filter) SecretsReader {
 	return &secretsReader{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type secretsReader struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *secretsReader) Get(name string) (*Secret, error) {
@@ -51,6 +55,20 @@ func (c *secretsReader) Get(name string) (*Secret, error) {
 		Into(secret)
 	if err != nil {
 		return nil, err
+	} else {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   SecretKind.Group,
+			Version: SecretKind.Version,
+			Kind:    SecretKind.Kind,
+		}, secret.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errors.NewNotFound(schema.GroupResource{
+				Group:    SecretKind.Group,
+				Resource: SecretResource.Name,
+			}, name)
+		}
 	}
 	return NewSecret(secret, c.Client), nil
 }
@@ -71,9 +89,18 @@ func (c *secretsReader) List() ([]*Secret, error) {
 		return nil, err
 	}
 
-	results := make([]*Secret, len(list.Items))
-	for i, secret := range list.Items {
-		results[i] = NewSecret(&secret, c.Client)
+	results := make([]*Secret, 0, len(list.Items))
+	for _, secret := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   SecretKind.Group,
+			Version: SecretKind.Version,
+			Kind:    SecretKind.Kind,
+		}, secret.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			results = append(results, NewSecret(&secret, c.Client))
+		}
 	}
 	return results, nil
 }

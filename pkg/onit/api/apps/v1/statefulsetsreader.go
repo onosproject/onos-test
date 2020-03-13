@@ -17,7 +17,9 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type StatefulSetsReader interface {
 	List() ([]*StatefulSet, error)
 }
 
-func NewStatefulSetsReader(client resource.Client) StatefulSetsReader {
+func NewStatefulSetsReader(client resource.Client, filter resource.Filter) StatefulSetsReader {
 	return &statefulSetsReader{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type statefulSetsReader struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *statefulSetsReader) Get(name string) (*StatefulSet, error) {
@@ -51,6 +55,20 @@ func (c *statefulSetsReader) Get(name string) (*StatefulSet, error) {
 		Into(statefulSet)
 	if err != nil {
 		return nil, err
+	} else {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   StatefulSetKind.Group,
+			Version: StatefulSetKind.Version,
+			Kind:    StatefulSetKind.Kind,
+		}, statefulSet.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errors.NewNotFound(schema.GroupResource{
+				Group:    StatefulSetKind.Group,
+				Resource: StatefulSetResource.Name,
+			}, name)
+		}
 	}
 	return NewStatefulSet(statefulSet, c.Client), nil
 }
@@ -71,9 +89,18 @@ func (c *statefulSetsReader) List() ([]*StatefulSet, error) {
 		return nil, err
 	}
 
-	results := make([]*StatefulSet, len(list.Items))
-	for i, statefulSet := range list.Items {
-		results[i] = NewStatefulSet(&statefulSet, c.Client)
+	results := make([]*StatefulSet, 0, len(list.Items))
+	for _, statefulSet := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   StatefulSetKind.Group,
+			Version: StatefulSetKind.Version,
+			Kind:    StatefulSetKind.Kind,
+		}, statefulSet.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			results = append(results, NewStatefulSet(&statefulSet, c.Client))
+		}
 	}
 	return results, nil
 }

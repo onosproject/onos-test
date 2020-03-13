@@ -36,6 +36,28 @@ type Kind struct {
 // Client is a resource client
 type Client kube.API
 
+// Filter is a resource filter
+type Filter func(kind metav1.GroupVersionKind, meta metav1.ObjectMeta) (bool, error)
+
+// NoFilter is a filter that accepts all resources
+var NoFilter Filter = func(kind metav1.GroupVersionKind, meta metav1.ObjectMeta) (bool, error) {
+	return true, nil
+}
+
+// NewUIDFilter returns a new filter for the given owner UIDs
+func NewUIDFilter(uids ...types.UID) Filter {
+	return func(kind metav1.GroupVersionKind, meta metav1.ObjectMeta) (bool, error) {
+		for _, owner := range meta.OwnerReferences {
+			for _, uid := range uids {
+				if owner.UID == uid {
+					return true, nil
+				}
+			}
+		}
+		return false, nil
+	}
+}
+
 // NewResource creates a new resource
 func NewResource(meta metav1.ObjectMeta, kind Kind, client Client) *Resource {
 	return &Resource{

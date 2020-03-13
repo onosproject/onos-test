@@ -22,16 +22,18 @@ type PodsClient interface {
 	Pods() PodsReader
 }
 
-func NewPodsClient(resources resource.Client) PodsClient {
+func NewPodsClient(resources resource.Client, filter resource.Filter) PodsClient {
 	return &podsClient{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type podsClient struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *podsClient) Pods() PodsReader {
-	return NewPodsReader(c.Client)
+	return NewPodsReader(c.Client, c.filter)
 }

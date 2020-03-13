@@ -35,7 +35,7 @@ func NewReplicaSet(replicaSet *appsv1.ReplicaSet, client resource.Client) *Repli
 	return &ReplicaSet{
 		Resource:   resource.NewResource(replicaSet.ObjectMeta, ReplicaSetKind, client),
 		ReplicaSet: replicaSet,
-		PodsClient: corev1.NewPodsClient(client),
+		PodsClient: corev1.NewPodsClient(client, resource.NewUIDFilter(replicaSet.UID)),
 	}
 }
 

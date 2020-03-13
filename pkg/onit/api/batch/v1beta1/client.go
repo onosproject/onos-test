@@ -22,10 +22,10 @@ type Client interface {
 	CronJobsClient
 }
 
-func NewClient(resources resource.Client) Client {
+func NewClient(resources resource.Client, filter resource.Filter) Client {
 	return &client{
 		Client:         resources,
-		CronJobsClient: NewCronJobsClient(resources),
+		CronJobsClient: NewCronJobsClient(resources, filter),
 	}
 }
 

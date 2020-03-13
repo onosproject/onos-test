@@ -22,10 +22,10 @@ type Client interface {
 	IngressesClient
 }
 
-func NewClient(resources resource.Client) Client {
+func NewClient(resources resource.Client, filter resource.Filter) Client {
 	return &client{
 		Client:          resources,
-		IngressesClient: NewIngressesClient(resources),
+		IngressesClient: NewIngressesClient(resources, filter),
 	}
 }
 

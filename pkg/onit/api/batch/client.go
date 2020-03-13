@@ -27,24 +27,26 @@ type Client interface {
 	V2alpha1() batchv2alpha1.Client
 }
 
-func NewClient(resources resource.Client) Client {
+func NewClient(resources resource.Client, filter resource.Filter) Client {
 	return &client{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type client struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *client) V1() batchv1.Client {
-	return batchv1.NewClient(c.Client)
+	return batchv1.NewClient(c.Client, c.filter)
 }
 
 func (c *client) V1beta1() batchv1beta1.Client {
-	return batchv1beta1.NewClient(c.Client)
+	return batchv1beta1.NewClient(c.Client, c.filter)
 }
 
 func (c *client) V2alpha1() batchv2alpha1.Client {
-	return batchv2alpha1.NewClient(c.Client)
+	return batchv2alpha1.NewClient(c.Client, c.filter)
 }

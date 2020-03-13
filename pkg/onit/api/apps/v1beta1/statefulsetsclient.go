@@ -22,16 +22,18 @@ type StatefulSetsClient interface {
 	StatefulSets() StatefulSetsReader
 }
 
-func NewStatefulSetsClient(resources resource.Client) StatefulSetsClient {
+func NewStatefulSetsClient(resources resource.Client, filter resource.Filter) StatefulSetsClient {
 	return &statefulSetsClient{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type statefulSetsClient struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *statefulSetsClient) StatefulSets() StatefulSetsReader {
-	return NewStatefulSetsReader(c.Client)
+	return NewStatefulSetsReader(c.Client, c.filter)
 }

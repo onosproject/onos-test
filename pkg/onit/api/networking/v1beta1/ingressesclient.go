@@ -22,16 +22,18 @@ type IngressesClient interface {
 	Ingresses() IngressesReader
 }
 
-func NewIngressesClient(resources resource.Client) IngressesClient {
+func NewIngressesClient(resources resource.Client, filter resource.Filter) IngressesClient {
 	return &ingressesClient{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type ingressesClient struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *ingressesClient) Ingresses() IngressesReader {
-	return NewIngressesReader(c.Client)
+	return NewIngressesReader(c.Client, c.filter)
 }

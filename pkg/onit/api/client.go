@@ -32,32 +32,34 @@ type Client interface {
 	Networking() networking.Client
 }
 
-func NewClient(resources resource.Client) Client {
+func NewClient(resources resource.Client, filter resource.Filter) Client {
 	return &client{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type client struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *client) Apps() apps.Client {
-	return apps.NewClient(c.Client)
+	return apps.NewClient(c.Client, c.filter)
 }
 
 func (c *client) Batch() batch.Client {
-	return batch.NewClient(c.Client)
+	return batch.NewClient(c.Client, c.filter)
 }
 
 func (c *client) Core() core.Client {
-	return core.NewClient(c.Client)
+	return core.NewClient(c.Client, c.filter)
 }
 
 func (c *client) Extensions() extensions.Client {
-	return extensions.NewClient(c.Client)
+	return extensions.NewClient(c.Client, c.filter)
 }
 
 func (c *client) Networking() networking.Client {
-	return networking.NewClient(c.Client)
+	return networking.NewClient(c.Client, c.filter)
 }

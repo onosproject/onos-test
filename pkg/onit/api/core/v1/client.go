@@ -27,15 +27,15 @@ type Client interface {
 	ServicesClient
 }
 
-func NewClient(resources resource.Client) Client {
+func NewClient(resources resource.Client, filter resource.Filter) Client {
 	return &client{
 		Client:           resources,
-		ConfigMapsClient: NewConfigMapsClient(resources),
-		EndpointsClient:  NewEndpointsClient(resources),
-		NodesClient:      NewNodesClient(resources),
-		PodsClient:       NewPodsClient(resources),
-		SecretsClient:    NewSecretsClient(resources),
-		ServicesClient:   NewServicesClient(resources),
+		ConfigMapsClient: NewConfigMapsClient(resources, filter),
+		EndpointsClient:  NewEndpointsClient(resources, filter),
+		NodesClient:      NewNodesClient(resources, filter),
+		PodsClient:       NewPodsClient(resources, filter),
+		SecretsClient:    NewSecretsClient(resources, filter),
+		ServicesClient:   NewServicesClient(resources, filter),
 	}
 }
 

@@ -34,7 +34,7 @@ func NewService(service *corev1.Service, client resource.Client) *Service {
 	return &Service{
 		Resource:        resource.NewResource(service.ObjectMeta, ServiceKind, client),
 		Service:         service,
-		EndpointsClient: NewEndpointsClient(client),
+		EndpointsClient: NewEndpointsClient(client, resource.NewUIDFilter(service.UID)),
 	}
 }
 

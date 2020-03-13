@@ -18,6 +18,8 @@ import (
     "github.com/onosproject/onos-test/pkg/onit/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	{{ .Resource.Kind.Package.Alias }} {{ .Resource.Kind.Package.Path | quote }}
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type {{ .Reader.Types.Interface }} interface {
 	List() ([]*{{ .Resource.Types.Struct }}, error)
 }
 
-func New{{ .Reader.Types.Interface }}(client resource.Client) {{ .Reader.Types.Interface }} {
+func New{{ .Reader.Types.Interface }}(client resource.Client, filter resource.Filter) {{ .Reader.Types.Interface }} {
 	return &{{ .Reader.Types.Struct }}{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type {{ .Reader.Types.Struct }} struct {
 	resource.Client
+	filter resource.Filter
 }
 
 {{- $singular := (.Resource.Names.Singular | toLowerCamel) }}
@@ -55,7 +59,21 @@ func (c *{{ .Reader.Types.Struct }}) Get(name string) (*{{ .Resource.Types.Struc
 		Into({{ $singular }})
 	if err != nil {
 		return nil, err
-	}
+	} else {
+        ok, err := c.filter(metav1.GroupVersionKind{
+            Group:   {{ .Resource.Types.Kind }}.Group,
+            Version: {{ .Resource.Types.Kind }}.Version,
+            Kind:    {{ .Resource.Types.Kind }}.Kind,
+        }, {{ $singular }}.ObjectMeta)
+        if err != nil {
+            return nil, err
+        } else if !ok {
+            return nil, errors.NewNotFound(schema.GroupResource{
+                Group:    {{ .Resource.Types.Kind }}.Group,
+                Resource: {{ .Resource.Types.Resource }}.Name,
+            }, name)
+        }
+    }
 	return New{{ .Resource.Types.Struct }}({{ $singular }}, c.Client), nil
 }
 
@@ -75,9 +93,18 @@ func (c *{{ .Reader.Types.Struct }}) List() ([]*{{ .Resource.Types.Struct }}, er
 		return nil, err
 	}
 
-	results := make([]*{{ .Resource.Types.Struct }}, len(list.Items))
-	for i, {{ $singular }} := range list.Items {
-	    results[i] = New{{ .Resource.Types.Struct }}(&{{ $singular }}, c.Client)
+	results := make([]*{{ .Resource.Types.Struct }}, 0, len(list.Items))
+	for _, {{ $singular }} := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   {{ .Resource.Types.Kind }}.Group,
+			Version: {{ .Resource.Types.Kind }}.Version,
+			Kind:    {{ .Resource.Types.Kind }}.Kind,
+		}, {{ $singular }}.ObjectMeta)
+        if err != nil {
+            return nil, err
+        } else if ok {
+    	    results = append(results, New{{ .Resource.Types.Struct }}(&{{ $singular }}, c.Client))
+        }
 	}
 	return results, nil
 }

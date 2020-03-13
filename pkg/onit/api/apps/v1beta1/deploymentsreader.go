@@ -17,7 +17,9 @@ package v1beta1
 import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type DeploymentsReader interface {
 	List() ([]*Deployment, error)
 }
 
-func NewDeploymentsReader(client resource.Client) DeploymentsReader {
+func NewDeploymentsReader(client resource.Client, filter resource.Filter) DeploymentsReader {
 	return &deploymentsReader{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type deploymentsReader struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *deploymentsReader) Get(name string) (*Deployment, error) {
@@ -51,6 +55,20 @@ func (c *deploymentsReader) Get(name string) (*Deployment, error) {
 		Into(deployment)
 	if err != nil {
 		return nil, err
+	} else {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   DeploymentKind.Group,
+			Version: DeploymentKind.Version,
+			Kind:    DeploymentKind.Kind,
+		}, deployment.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errors.NewNotFound(schema.GroupResource{
+				Group:    DeploymentKind.Group,
+				Resource: DeploymentResource.Name,
+			}, name)
+		}
 	}
 	return NewDeployment(deployment, c.Client), nil
 }
@@ -71,9 +89,18 @@ func (c *deploymentsReader) List() ([]*Deployment, error) {
 		return nil, err
 	}
 
-	results := make([]*Deployment, len(list.Items))
-	for i, deployment := range list.Items {
-		results[i] = NewDeployment(&deployment, c.Client)
+	results := make([]*Deployment, 0, len(list.Items))
+	for _, deployment := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   DeploymentKind.Group,
+			Version: DeploymentKind.Version,
+			Kind:    DeploymentKind.Kind,
+		}, deployment.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			results = append(results, NewDeployment(&deployment, c.Client))
+		}
 	}
 	return results, nil
 }

@@ -22,16 +22,18 @@ type EndpointsClient interface {
 	Endpoints() EndpointsReader
 }
 
-func NewEndpointsClient(resources resource.Client) EndpointsClient {
+func NewEndpointsClient(resources resource.Client, filter resource.Filter) EndpointsClient {
 	return &endpointsClient{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type endpointsClient struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *endpointsClient) Endpoints() EndpointsReader {
-	return NewEndpointsReader(c.Client)
+	return NewEndpointsReader(c.Client, c.filter)
 }

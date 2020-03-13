@@ -36,8 +36,8 @@ func NewDeployment(deployment *appsv1beta1.Deployment, client resource.Client) *
 	return &Deployment{
 		Resource:          resource.NewResource(deployment.ObjectMeta, DeploymentKind, client),
 		Deployment:        deployment,
-		ReplicaSetsClient: appsv1.NewReplicaSetsClient(client),
-		PodsClient:        corev1.NewPodsClient(client),
+		ReplicaSetsClient: appsv1.NewReplicaSetsClient(client, resource.NewUIDFilter(deployment.UID)),
+		PodsClient:        corev1.NewPodsClient(client, resource.NewUIDFilter(deployment.UID)),
 	}
 }
 

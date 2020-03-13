@@ -27,6 +27,7 @@ import (
 	"helm.sh/helm/v3/pkg/getter"
 	helm "helm.sh/helm/v3/pkg/kube"
 	"helm.sh/helm/v3/pkg/releaseutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"os"
 	"reflect"
@@ -36,8 +37,26 @@ import (
 var settings = cli.New()
 
 func newRelease(name string, chart *Chart) *Release {
-	release := &Release{
-		Client: NewClient(chart.Client),
+	var release *Release
+	filter := func(kind metav1.GroupVersionKind, meta metav1.ObjectMeta) (bool, error) {
+		resources, err := release.getResources()
+		if err != nil {
+			return false, err
+		}
+		for _, resource := range resources {
+			kind := resource.Object.GetObjectKind().GroupVersionKind()
+			if kind.Group == kind.Group &&
+				kind.Version == kind.Version &&
+				kind.Kind == kind.Kind &&
+				resource.Namespace == meta.Namespace &&
+				resource.Name == meta.Name {
+				return true, nil
+			}
+		}
+		return false, nil
+	}
+	release = &Release{
+		Client: NewClient(chart.Client, filter),
 		chart:  chart,
 		name:   name,
 		values: &Values{

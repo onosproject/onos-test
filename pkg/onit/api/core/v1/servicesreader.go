@@ -17,7 +17,9 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type ServicesReader interface {
 	List() ([]*Service, error)
 }
 
-func NewServicesReader(client resource.Client) ServicesReader {
+func NewServicesReader(client resource.Client, filter resource.Filter) ServicesReader {
 	return &servicesReader{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type servicesReader struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *servicesReader) Get(name string) (*Service, error) {
@@ -51,6 +55,20 @@ func (c *servicesReader) Get(name string) (*Service, error) {
 		Into(service)
 	if err != nil {
 		return nil, err
+	} else {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   ServiceKind.Group,
+			Version: ServiceKind.Version,
+			Kind:    ServiceKind.Kind,
+		}, service.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errors.NewNotFound(schema.GroupResource{
+				Group:    ServiceKind.Group,
+				Resource: ServiceResource.Name,
+			}, name)
+		}
 	}
 	return NewService(service, c.Client), nil
 }
@@ -71,9 +89,18 @@ func (c *servicesReader) List() ([]*Service, error) {
 		return nil, err
 	}
 
-	results := make([]*Service, len(list.Items))
-	for i, service := range list.Items {
-		results[i] = NewService(&service, c.Client)
+	results := make([]*Service, 0, len(list.Items))
+	for _, service := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   ServiceKind.Group,
+			Version: ServiceKind.Version,
+			Kind:    ServiceKind.Kind,
+		}, service.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			results = append(results, NewService(&service, c.Client))
+		}
 	}
 	return results, nil
 }

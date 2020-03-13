@@ -22,16 +22,18 @@ type ReplicaSetsClient interface {
 	ReplicaSets() ReplicaSetsReader
 }
 
-func NewReplicaSetsClient(resources resource.Client) ReplicaSetsClient {
+func NewReplicaSetsClient(resources resource.Client, filter resource.Filter) ReplicaSetsClient {
 	return &replicaSetsClient{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type replicaSetsClient struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *replicaSetsClient) ReplicaSets() ReplicaSetsReader {
-	return NewReplicaSetsReader(c.Client)
+	return NewReplicaSetsReader(c.Client, c.filter)
 }

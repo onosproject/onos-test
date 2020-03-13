@@ -17,7 +17,9 @@ package v1beta1
 import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type CronJobsReader interface {
 	List() ([]*CronJob, error)
 }
 
-func NewCronJobsReader(client resource.Client) CronJobsReader {
+func NewCronJobsReader(client resource.Client, filter resource.Filter) CronJobsReader {
 	return &cronJobsReader{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type cronJobsReader struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *cronJobsReader) Get(name string) (*CronJob, error) {
@@ -51,6 +55,20 @@ func (c *cronJobsReader) Get(name string) (*CronJob, error) {
 		Into(cronJob)
 	if err != nil {
 		return nil, err
+	} else {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   CronJobKind.Group,
+			Version: CronJobKind.Version,
+			Kind:    CronJobKind.Kind,
+		}, cronJob.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errors.NewNotFound(schema.GroupResource{
+				Group:    CronJobKind.Group,
+				Resource: CronJobResource.Name,
+			}, name)
+		}
 	}
 	return NewCronJob(cronJob, c.Client), nil
 }
@@ -71,9 +89,18 @@ func (c *cronJobsReader) List() ([]*CronJob, error) {
 		return nil, err
 	}
 
-	results := make([]*CronJob, len(list.Items))
-	for i, cronJob := range list.Items {
-		results[i] = NewCronJob(&cronJob, c.Client)
+	results := make([]*CronJob, 0, len(list.Items))
+	for _, cronJob := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   CronJobKind.Group,
+			Version: CronJobKind.Version,
+			Kind:    CronJobKind.Kind,
+		}, cronJob.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			results = append(results, NewCronJob(&cronJob, c.Client))
+		}
 	}
 	return results, nil
 }

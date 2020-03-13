@@ -22,16 +22,18 @@ type CronJobsClient interface {
 	CronJobs() CronJobsReader
 }
 
-func NewCronJobsClient(resources resource.Client) CronJobsClient {
+func NewCronJobsClient(resources resource.Client, filter resource.Filter) CronJobsClient {
 	return &cronJobsClient{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type cronJobsClient struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *cronJobsClient) CronJobs() CronJobsReader {
-	return NewCronJobsReader(c.Client)
+	return NewCronJobsReader(c.Client, c.filter)
 }

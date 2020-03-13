@@ -35,8 +35,8 @@ func NewStatefulSet(statefulSet *appsv1.StatefulSet, client resource.Client) *St
 	return &StatefulSet{
 		Resource:          resource.NewResource(statefulSet.ObjectMeta, StatefulSetKind, client),
 		StatefulSet:       statefulSet,
-		ReplicaSetsClient: NewReplicaSetsClient(client),
-		PodsClient:        corev1.NewPodsClient(client),
+		ReplicaSetsClient: NewReplicaSetsClient(client, resource.NewUIDFilter(statefulSet.UID)),
+		PodsClient:        corev1.NewPodsClient(client, resource.NewUIDFilter(statefulSet.UID)),
 	}
 }
 

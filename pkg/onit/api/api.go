@@ -16,6 +16,7 @@ package api
 
 import (
 	"github.com/onosproject/onos-test/pkg/kube"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 )
 
 // NewFromEnv gets the cluster from the environment
@@ -26,7 +27,7 @@ func NewFromEnv() *API {
 // New returns a new onit Env
 func New(api kube.API) *API {
 	return &API{
-		Client: NewClient(api),
+		Client: NewClient(api, resource.NoFilter),
 		charts: make(map[string]*Chart),
 	}
 }

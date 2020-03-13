@@ -22,16 +22,18 @@ type SecretsClient interface {
 	Secrets() SecretsReader
 }
 
-func NewSecretsClient(resources resource.Client) SecretsClient {
+func NewSecretsClient(resources resource.Client, filter resource.Filter) SecretsClient {
 	return &secretsClient{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type secretsClient struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *secretsClient) Secrets() SecretsReader {
-	return NewSecretsReader(c.Client)
+	return NewSecretsReader(c.Client, c.filter)
 }

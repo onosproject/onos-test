@@ -17,7 +17,9 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type JobsReader interface {
 	List() ([]*Job, error)
 }
 
-func NewJobsReader(client resource.Client) JobsReader {
+func NewJobsReader(client resource.Client, filter resource.Filter) JobsReader {
 	return &jobsReader{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type jobsReader struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *jobsReader) Get(name string) (*Job, error) {
@@ -51,6 +55,20 @@ func (c *jobsReader) Get(name string) (*Job, error) {
 		Into(job)
 	if err != nil {
 		return nil, err
+	} else {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   JobKind.Group,
+			Version: JobKind.Version,
+			Kind:    JobKind.Kind,
+		}, job.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errors.NewNotFound(schema.GroupResource{
+				Group:    JobKind.Group,
+				Resource: JobResource.Name,
+			}, name)
+		}
 	}
 	return NewJob(job, c.Client), nil
 }
@@ -71,9 +89,18 @@ func (c *jobsReader) List() ([]*Job, error) {
 		return nil, err
 	}
 
-	results := make([]*Job, len(list.Items))
-	for i, job := range list.Items {
-		results[i] = NewJob(&job, c.Client)
+	results := make([]*Job, 0, len(list.Items))
+	for _, job := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   JobKind.Group,
+			Version: JobKind.Version,
+			Kind:    JobKind.Kind,
+		}, job.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			results = append(results, NewJob(&job, c.Client))
+		}
 	}
 	return results, nil
 }

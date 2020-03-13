@@ -17,7 +17,9 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type ReplicaSetsReader interface {
 	List() ([]*ReplicaSet, error)
 }
 
-func NewReplicaSetsReader(client resource.Client) ReplicaSetsReader {
+func NewReplicaSetsReader(client resource.Client, filter resource.Filter) ReplicaSetsReader {
 	return &replicaSetsReader{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type replicaSetsReader struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *replicaSetsReader) Get(name string) (*ReplicaSet, error) {
@@ -51,6 +55,20 @@ func (c *replicaSetsReader) Get(name string) (*ReplicaSet, error) {
 		Into(replicaSet)
 	if err != nil {
 		return nil, err
+	} else {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   ReplicaSetKind.Group,
+			Version: ReplicaSetKind.Version,
+			Kind:    ReplicaSetKind.Kind,
+		}, replicaSet.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errors.NewNotFound(schema.GroupResource{
+				Group:    ReplicaSetKind.Group,
+				Resource: ReplicaSetResource.Name,
+			}, name)
+		}
 	}
 	return NewReplicaSet(replicaSet, c.Client), nil
 }
@@ -71,9 +89,18 @@ func (c *replicaSetsReader) List() ([]*ReplicaSet, error) {
 		return nil, err
 	}
 
-	results := make([]*ReplicaSet, len(list.Items))
-	for i, replicaSet := range list.Items {
-		results[i] = NewReplicaSet(&replicaSet, c.Client)
+	results := make([]*ReplicaSet, 0, len(list.Items))
+	for _, replicaSet := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   ReplicaSetKind.Group,
+			Version: ReplicaSetKind.Version,
+			Kind:    ReplicaSetKind.Kind,
+		}, replicaSet.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			results = append(results, NewReplicaSet(&replicaSet, c.Client))
+		}
 	}
 	return results, nil
 }

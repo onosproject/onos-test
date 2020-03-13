@@ -17,7 +17,9 @@ package v1beta1
 import (
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 )
 
@@ -26,14 +28,16 @@ type IngressesReader interface {
 	List() ([]*Ingress, error)
 }
 
-func NewIngressesReader(client resource.Client) IngressesReader {
+func NewIngressesReader(client resource.Client, filter resource.Filter) IngressesReader {
 	return &ingressesReader{
 		Client: client,
+		filter: filter,
 	}
 }
 
 type ingressesReader struct {
 	resource.Client
+	filter resource.Filter
 }
 
 func (c *ingressesReader) Get(name string) (*Ingress, error) {
@@ -51,6 +55,20 @@ func (c *ingressesReader) Get(name string) (*Ingress, error) {
 		Into(ingress)
 	if err != nil {
 		return nil, err
+	} else {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   IngressKind.Group,
+			Version: IngressKind.Version,
+			Kind:    IngressKind.Kind,
+		}, ingress.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, errors.NewNotFound(schema.GroupResource{
+				Group:    IngressKind.Group,
+				Resource: IngressResource.Name,
+			}, name)
+		}
 	}
 	return NewIngress(ingress, c.Client), nil
 }
@@ -71,9 +89,18 @@ func (c *ingressesReader) List() ([]*Ingress, error) {
 		return nil, err
 	}
 
-	results := make([]*Ingress, len(list.Items))
-	for i, ingress := range list.Items {
-		results[i] = NewIngress(&ingress, c.Client)
+	results := make([]*Ingress, 0, len(list.Items))
+	for _, ingress := range list.Items {
+		ok, err := c.filter(metav1.GroupVersionKind{
+			Group:   IngressKind.Group,
+			Version: IngressKind.Version,
+			Kind:    IngressKind.Kind,
+		}, ingress.ObjectMeta)
+		if err != nil {
+			return nil, err
+		} else if ok {
+			results = append(results, NewIngress(&ingress, c.Client))
+		}
 	}
 	return results, nil
 }

@@ -46,9 +46,9 @@ func New{{ $resource.Types.Struct }}({{ $name }} *{{ $kind }}, client resource.C
 		{{ $field }}: {{ $name }},
         {{- range $sub := $resource.SubResources }}
         {{- if eq $sub.Resource.Package.Path $resource.Package.Path }}
-        {{ $sub.Client.Types.Interface }}: New{{ $sub.Client.Types.Interface }}(client),
+        {{ $sub.Client.Types.Interface }}: New{{ $sub.Client.Types.Interface }}(client, resource.NewUIDFilter({{ $name }}.UID)),
         {{- else }}
-        {{ $sub.Client.Types.Interface }}: {{ $sub.Client.Package.Alias }}.New{{ $sub.Client.Types.Interface }}(client),
+        {{ $sub.Client.Types.Interface }}: {{ $sub.Client.Package.Alias }}.New{{ $sub.Client.Types.Interface }}(client, resource.NewUIDFilter({{ $name }}.UID)),
         {{- end }}
         {{- end }}
 	}

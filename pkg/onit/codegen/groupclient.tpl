@@ -27,19 +27,21 @@ type {{ .Types.Interface }} interface {
     {{- end }}
 }
 
-func New{{ .Types.Interface }}(resources resource.Client) {{ .Types.Interface }} {
+func New{{ .Types.Interface }}(resources resource.Client, filter resource.Filter) {{ .Types.Interface }} {
 	return &{{ .Types.Struct }}{
 		Client: resources,
+		filter: filter,
 	}
 }
 
 type {{ .Types.Struct }} struct {
 	resource.Client
+	filter resource.Filter
 }
 
 {{ $group := . }}
 {{- range $name, $version := .Versions }}
 func (c *{{ $group.Types.Struct }}) {{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }} {
-	return {{ $version.Package.Alias }}.New{{ $version.Types.Interface }}(c.Client)
+	return {{ $version.Package.Alias }}.New{{ $version.Types.Interface }}(c.Client, c.filter)
 }
 {{ end }}

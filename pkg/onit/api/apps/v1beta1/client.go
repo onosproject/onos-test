@@ -23,11 +23,11 @@ type Client interface {
 	StatefulSetsClient
 }
 
-func NewClient(resources resource.Client) Client {
+func NewClient(resources resource.Client, filter resource.Filter) Client {
 	return &client{
 		Client:             resources,
-		DeploymentsClient:  NewDeploymentsClient(resources),
-		StatefulSetsClient: NewStatefulSetsClient(resources),
+		DeploymentsClient:  NewDeploymentsClient(resources, filter),
+		StatefulSetsClient: NewStatefulSetsClient(resources, filter),
 	}
 }
 
