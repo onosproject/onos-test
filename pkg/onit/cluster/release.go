@@ -59,20 +59,38 @@ func newRelease(name string, chart *Chart) *Release {
 		return false, nil
 	}
 	release = &Release{
-		Client: newClient(metav1.NewObjectsClient(chart.API, filter)),
+		Client: NewClient(metav1.NewObjectsClient(chart.API, filter)),
 		API:    chart.API,
 		name:   name,
-		values: make(map[string]interface{}),
+		values: &Values{
+			values: make(map[string]interface{}),
+		},
 	}
 
 	args := GetArgs(name)
 	for key, value := range args {
-		release.SetValue(key, value)
+		release.Values().Set(key, value)
 	}
 	return release
 }
 
 var _ Client = &Release{}
+
+// Values is a set of Helm chart values
+type Values struct {
+	values map[string]interface{}
+}
+
+// Set sets a field in the configuration
+func (v *Values) Set(path string, value interface{}) *Values {
+	setKey(v.values, getPathNames(path), value)
+	return v
+}
+
+// Get gets a field in the configuration
+func (v *Values) Get(path string) interface{} {
+	return getValue(v.values, getPathNames(path))
+}
 
 // Release is a Helm chart release
 type Release struct {
@@ -80,8 +98,7 @@ type Release struct {
 	kube.API
 	chart  *Chart
 	name   string
-	wait   bool
-	values map[string]interface{}
+	values *Values
 }
 
 // Name returns the release name
@@ -89,43 +106,9 @@ func (r *Release) Name() string {
 	return r.name
 }
 
-// SetWait sets whether to wait for installation to complete
-func (r *Release) SetWait(wait bool) *Release {
-	r.wait = wait
-	return r
-}
-
-// Wait returns whether the chart waits for installation to complete
-func (r *Release) Wait() bool {
-	return r.wait
-}
-
-// SetValues sets the chart's values
-func (r *Release) SetValues(values map[string]interface{}) *Release {
-	r.values = values
-	return r
-}
-
-// SetValue sets a field in the configuration
-func (r *Release) SetValue(path string, value interface{}) *Release {
-	setKey(r.values, getPathNames(path), value)
-}
-
-// Values returns the chart's values
-func (r *Release) Values() map[string]interface{} {
+// Values is the release's values
+func (r *Release) Values() *Values {
 	return r.values
-	return r
-}
-
-// Value gets a value in the configuration
-func (r *Release) Value(path string) interface{} {
-	return getValue(r.values, getPathNames(path))
-}
-
-// AddValue adds a value to a list in the configuration
-func (r *Release) AddValue(path string, value interface{}) *Release {
-	addValue(r.values, getPathNames(path), value)
-	return r
 }
 
 // getConfig gets the Helm configuration
@@ -162,7 +145,7 @@ func (r *Release) getResources() (helm.ResourceList, error) {
 }
 
 // Install installs the Helm chart
-func (r *Release) Install() error {
+func (r *Release) Install(wait bool) error {
 	config, err := r.getConfig()
 	if err != nil {
 		return err
@@ -173,7 +156,7 @@ func (r *Release) Install() error {
 	install.IncludeCRDs = true
 	install.RepoURL = r.chart.Repository()
 	install.ReleaseName = r.Name()
-	install.Wait = r.wait
+	install.Wait = wait
 
 	// Locate the chart path
 	path, err := install.ChartPathOptions.LocateChart(r.chart.Name(), settings)
@@ -216,7 +199,7 @@ func (r *Release) Install() error {
 		}
 	}
 
-	_, err = install.Run(chart, normalize(r.values).(map[string]interface{}))
+	_, err = install.Run(chart, normalize(r.values.values).(map[string]interface{}))
 	if err != nil {
 		return err
 	}

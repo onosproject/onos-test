@@ -34,15 +34,9 @@ func GetRootCommand() *cobra.Command {
 		BashCompletionFunction: bashCompletion,
 		SilenceUsage:           true,
 	}
-	cmd.AddCommand(getGetCommand())
-	cmd.AddCommand(getCreateCommand())
-	cmd.AddCommand(getDeleteCommand())
-	cmd.AddCommand(getAddCommand())
-	cmd.AddCommand(getRemoveCommand())
 	cmd.AddCommand(getTestCommand())
 	cmd.AddCommand(getBenchCommand())
 	cmd.AddCommand(getSimulateCommand())
-	cmd.AddCommand(getExecCommand())
 	cmd.AddCommand(getCompletionCommand())
 	cmd.PersistentFlags().BoolP("verbose", "v", false, "Enable verbose output")
 	cmd.PersistentFlags().StringP("cluster", "c", "", "the cluster on which to execute the command")
