@@ -19,7 +19,6 @@ import (
     {{ $group.Package.Alias }} {{ $group.Package.Path | quote }}
     {{- end }}
 	metav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
-	"github.com/onosproject/onos-test/pkg/onit/cluster/networking"
 )
 
 {{- range $name, $group := .Groups }}

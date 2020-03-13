@@ -20,7 +20,6 @@ import (
 	core "github.com/onosproject/onos-test/pkg/onit/cluster/core"
 	extensions "github.com/onosproject/onos-test/pkg/onit/cluster/extensions"
 	metav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
-	"github.com/onosproject/onos-test/pkg/onit/cluster/networking"
 	networking "github.com/onosproject/onos-test/pkg/onit/cluster/networking"
 )
 

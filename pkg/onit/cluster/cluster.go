@@ -17,7 +17,6 @@ package cluster
 import (
 	"github.com/onosproject/onos-test/pkg/kube"
 	metav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
-	"helm.sh/helm/v3/pkg/cli"
 )
 
 // New returns a new onit Env
@@ -25,7 +24,7 @@ func New(api kube.API) *Cluster {
 	objectsClient := metav1.NewObjectsClient(api, func(meta metav1.Object) (bool, error) {
 		return true, nil
 	})
-	client := newClient(objectsClient)
+	client := NewClient(objectsClient)
 	cluster := &Cluster{
 		Client: client,
 		API:    api,
