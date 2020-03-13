@@ -33,14 +33,14 @@ var ReplicaSetResource = resource.Type{
 
 func NewReplicaSet(replicaSet *appsv1.ReplicaSet, client resource.Client) *ReplicaSet {
 	return &ReplicaSet{
-		Resource:   resource.NewResource(replicaSet.ObjectMeta, ReplicaSetKind, client),
-		ReplicaSet: replicaSet,
-		PodsClient: corev1.NewPodsClient(client, resource.NewUIDFilter(replicaSet.UID)),
+		Resource:      resource.NewResource(replicaSet.ObjectMeta, ReplicaSetKind, client),
+		ReplicaSet:    replicaSet,
+		PodsReference: corev1.NewPodsReference(client, resource.NewUIDFilter(replicaSet.UID)),
 	}
 }
 
 type ReplicaSet struct {
 	*resource.Resource
 	ReplicaSet *appsv1.ReplicaSet
-	corev1.PodsClient
+	corev1.PodsReference
 }

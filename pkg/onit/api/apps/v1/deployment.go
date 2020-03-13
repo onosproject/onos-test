@@ -15,7 +15,6 @@
 package v1
 
 import (
-	corev1 "github.com/onosproject/onos-test/pkg/onit/api/core/v1"
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	appsv1 "k8s.io/api/apps/v1"
 )
@@ -33,16 +32,14 @@ var DeploymentResource = resource.Type{
 
 func NewDeployment(deployment *appsv1.Deployment, client resource.Client) *Deployment {
 	return &Deployment{
-		Resource:          resource.NewResource(deployment.ObjectMeta, DeploymentKind, client),
-		Deployment:        deployment,
-		ReplicaSetsClient: NewReplicaSetsClient(client, resource.NewUIDFilter(deployment.UID)),
-		PodsClient:        corev1.NewPodsClient(client, resource.NewUIDFilter(deployment.UID)),
+		Resource:             resource.NewResource(deployment.ObjectMeta, DeploymentKind, client),
+		Deployment:           deployment,
+		ReplicaSetsReference: NewReplicaSetsReference(client, resource.NewUIDFilter(deployment.UID)),
 	}
 }
 
 type Deployment struct {
 	*resource.Resource
 	Deployment *appsv1.Deployment
-	ReplicaSetsClient
-	corev1.PodsClient
+	ReplicaSetsReference
 }

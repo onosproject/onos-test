@@ -19,6 +19,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/iancoleman/strcase"
+	"github.com/onosproject/onos-test/pkg/onit/api/resource"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -38,7 +39,7 @@ var settings = cli.New()
 
 func newRelease(name string, chart *Chart) *Release {
 	var release *Release
-	filter := func(kind metav1.GroupVersionKind, meta metav1.ObjectMeta) (bool, error) {
+	var filter resource.Filter = func(kind metav1.GroupVersionKind, meta metav1.ObjectMeta) (bool, error) {
 		resources, err := release.getResources()
 		if err != nil {
 			return false, err

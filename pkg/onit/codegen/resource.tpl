@@ -22,9 +22,9 @@ package {{ $resource.Package.Name }}
 import (
     "github.com/onosproject/onos-test/pkg/onit/api/resource"
 	{{ .Resource.Kind.Package.Alias }} {{ .Resource.Kind.Package.Path | quote }}
-    {{- range $sub := $resource.SubResources }}
-    {{- if not (eq $sub.Client.Package.Path $resource.Package.Path) }}
-    {{ $sub.Client.Package.Alias }} {{ $sub.Client.Package.Path | quote }}
+    {{- range $ref := $resource.References }}
+    {{- if not (eq $ref.Reference.Package.Path $resource.Package.Path) }}
+    {{ $ref.Reference.Package.Alias }} {{ $ref.Reference.Package.Path | quote }}
     {{- end }}
     {{- end }}
 )
@@ -44,11 +44,11 @@ func New{{ $resource.Types.Struct }}({{ $name }} *{{ $kind }}, client resource.C
 	return &{{ $resource.Types.Struct }}{
 		Resource: resource.NewResource({{ $name }}.ObjectMeta, {{ .Resource.Types.Kind }}, client),
 		{{ $field }}: {{ $name }},
-        {{- range $sub := $resource.SubResources }}
-        {{- if eq $sub.Resource.Package.Path $resource.Package.Path }}
-        {{ $sub.Client.Types.Interface }}: New{{ $sub.Client.Types.Interface }}(client, resource.NewUIDFilter({{ $name }}.UID)),
+        {{- range $ref := $resource.References }}
+        {{- if eq $ref.Resource.Package.Path $resource.Package.Path }}
+        {{ $ref.Reference.Types.Interface }}: New{{ $ref.Reference.Types.Interface }}(client, resource.NewUIDFilter({{ $name }}.UID)),
         {{- else }}
-        {{ $sub.Client.Types.Interface }}: {{ $sub.Client.Package.Alias }}.New{{ $sub.Client.Types.Interface }}(client, resource.NewUIDFilter({{ $name }}.UID)),
+        {{ $ref.Reference.Types.Interface }}: {{ $ref.Reference.Package.Alias }}.New{{ $ref.Reference.Types.Interface }}(client, resource.NewUIDFilter({{ $name }}.UID)),
         {{- end }}
         {{- end }}
 	}
@@ -57,11 +57,11 @@ func New{{ $resource.Types.Struct }}({{ $name }} *{{ $kind }}, client resource.C
 type {{ $resource.Types.Struct }} struct {
 	*resource.Resource
 	{{ $field }} *{{ $kind }}
-    {{- range $sub := .Resource.SubResources }}
-    {{- if eq $sub.Resource.Package.Path $resource.Package.Path }}
-    {{ $sub.Client.Types.Interface }}
+    {{- range $ref := .Resource.References }}
+    {{- if eq $ref.Resource.Package.Path $resource.Package.Path }}
+    {{ $ref.Reference.Types.Interface }}
     {{- else }}
-    {{ $sub.Client.Package.Alias }}.{{ $sub.Client.Types.Interface }}
+    {{ $ref.Reference.Package.Alias }}.{{ $ref.Reference.Types.Interface }}
     {{- end }}
     {{- end }}
 }

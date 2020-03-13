@@ -17,20 +17,21 @@ package codegen
 import "path"
 
 type ResourceOptions struct {
-	Client   *ResourceClientOptions
-	Reader   *ResourceReaderOptions
-	Resource *ResourceObjectOptions
-	Group    *GroupOptions
-	Version  *VersionOptions
+	Client    *ResourceClientOptions
+	Reader    *ResourceReaderOptions
+	Reference *ResourceReferenceOptions
+	Resource  *ResourceObjectOptions
+	Group     *GroupOptions
+	Version   *VersionOptions
 }
 
 type ResourceObjectOptions struct {
-	Location     Location
-	Package      Package
-	Kind         ResourceObjectKind
-	Types        ResourceObjectTypes
-	Names        ResourceObjectNames
-	SubResources []*ResourceOptions
+	Location   Location
+	Package    Package
+	Kind       ResourceObjectKind
+	Types      ResourceObjectTypes
+	Names      ResourceObjectNames
+	References []*ResourceOptions
 }
 
 type ResourceObjectKind struct {

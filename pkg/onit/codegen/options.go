@@ -179,7 +179,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 		if resource.SubResources == nil {
 			continue
 		}
-		subResources := make([]*ResourceOptions, 0, len(resource.SubResources))
+		references := make([]*ResourceOptions, 0, len(resource.SubResources))
 		for _, ref := range resource.SubResources {
 			group, ok := options.Groups[ref.Group]
 			if !ok {
@@ -189,16 +189,33 @@ func getOptionsFromConfig(config Config) ClientOptions {
 			if !ok {
 				continue
 			}
-			subResource, ok := version.Resources[ref.Kind]
+			resource, ok := version.Resources[ref.Kind]
 			if !ok {
 				continue
 			}
-			subResources = append(subResources, subResource)
+			if resource.Reference == nil {
+				resource.Reference = &ResourceReferenceOptions{
+					Location: Location{
+						Path: resource.Resource.Location.Path,
+						File: fmt.Sprintf("%sreference.go", toLowerCase(resource.Resource.Names.Plural)),
+					},
+					Package: Package{
+						Name:  resource.Resource.Kind.Version,
+						Path:  fmt.Sprintf("%s/%s/%s", config.Package, resource.Resource.Kind.Group, resource.Resource.Kind.Version),
+						Alias: fmt.Sprintf("%s%s", resource.Resource.Kind.Group, resource.Resource.Kind.Version),
+					},
+					Types: ResourceReaderTypes{
+						Interface: fmt.Sprintf("%sReference", resource.Resource.Names.Plural),
+						Struct:    toLowerCamelCase(fmt.Sprintf("%sReference", resource.Resource.Names.Plural)),
+					},
+				}
+			}
+			references = append(references, resource)
 		}
 		resourceOpts := options.Groups[resource.Group].
 			Versions[resource.Version].
 			Resources[resource.Kind]
-		resourceOpts.Resource.SubResources = subResources
+		resourceOpts.Resource.References = references
 	}
 
 	println(fmt.Sprintf("%v", options))

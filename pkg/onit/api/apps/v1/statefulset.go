@@ -33,16 +33,14 @@ var StatefulSetResource = resource.Type{
 
 func NewStatefulSet(statefulSet *appsv1.StatefulSet, client resource.Client) *StatefulSet {
 	return &StatefulSet{
-		Resource:          resource.NewResource(statefulSet.ObjectMeta, StatefulSetKind, client),
-		StatefulSet:       statefulSet,
-		ReplicaSetsClient: NewReplicaSetsClient(client, resource.NewUIDFilter(statefulSet.UID)),
-		PodsClient:        corev1.NewPodsClient(client, resource.NewUIDFilter(statefulSet.UID)),
+		Resource:      resource.NewResource(statefulSet.ObjectMeta, StatefulSetKind, client),
+		StatefulSet:   statefulSet,
+		PodsReference: corev1.NewPodsReference(client, resource.NewUIDFilter(statefulSet.UID)),
 	}
 }
 
 type StatefulSet struct {
 	*resource.Resource
 	StatefulSet *appsv1.StatefulSet
-	ReplicaSetsClient
-	corev1.PodsClient
+	corev1.PodsReference
 }

@@ -32,14 +32,14 @@ var ServiceResource = resource.Type{
 
 func NewService(service *corev1.Service, client resource.Client) *Service {
 	return &Service{
-		Resource:        resource.NewResource(service.ObjectMeta, ServiceKind, client),
-		Service:         service,
-		EndpointsClient: NewEndpointsClient(client, resource.NewUIDFilter(service.UID)),
+		Resource:           resource.NewResource(service.ObjectMeta, ServiceKind, client),
+		Service:            service,
+		EndpointsReference: NewEndpointsReference(client, resource.NewUIDFilter(service.UID)),
 	}
 }
 
 type Service struct {
 	*resource.Resource
 	Service *corev1.Service
-	EndpointsClient
+	EndpointsReference
 }

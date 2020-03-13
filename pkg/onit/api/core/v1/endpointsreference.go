@@ -15,32 +15,25 @@
 package v1
 
 import (
-	corev1 "github.com/onosproject/onos-test/pkg/onit/api/core/v1"
 	"github.com/onosproject/onos-test/pkg/onit/api/resource"
-	appsv1 "k8s.io/api/apps/v1"
 )
 
-var DaemonSetKind = resource.Kind{
-	Group:   "apps",
-	Version: "v1",
-	Kind:    "DaemonSet",
+type EndpointsReference interface {
+	Endpoints() EndpointsReader
 }
 
-var DaemonSetResource = resource.Type{
-	Kind: DaemonSetKind,
-	Name: "daemonsets",
-}
-
-func NewDaemonSet(daemonSet *appsv1.DaemonSet, client resource.Client) *DaemonSet {
-	return &DaemonSet{
-		Resource:      resource.NewResource(daemonSet.ObjectMeta, DaemonSetKind, client),
-		DaemonSet:     daemonSet,
-		PodsReference: corev1.NewPodsReference(client, resource.NewUIDFilter(daemonSet.UID)),
+func NewEndpointsReference(resources resource.Client, filter resource.Filter) EndpointsReference {
+	return &endpointsReference{
+		Client: resources,
+		filter: filter,
 	}
 }
 
-type DaemonSet struct {
-	*resource.Resource
-	DaemonSet *appsv1.DaemonSet
-	corev1.PodsReference
+type endpointsReference struct {
+	resource.Client
+	filter resource.Filter
+}
+
+func (c *endpointsReference) Endpoints() EndpointsReader {
+	return NewEndpointsReader(c.Client, c.filter)
 }

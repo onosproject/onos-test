@@ -48,6 +48,9 @@ func generateVersionClient(options VersionOptions) error {
 		if err := generateResourceClient(*resource); err != nil {
 			return err
 		}
+		if err := generateResourceReference(*resource); err != nil {
+			return err
+		}
 		if err := generateResource(*resource); err != nil {
 			return err
 		}
