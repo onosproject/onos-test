@@ -19,7 +19,7 @@ import (
 )
 
 type DaemonSetsClient interface {
-	DaemonSets() DaemonSets
+	DaemonSets() DaemonSetsReader
 }
 
 func NewDaemonSetsClient(objects clustermetav1.ObjectsClient) DaemonSetsClient {
@@ -32,6 +32,6 @@ type daemonSetsClient struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *daemonSetsClient) DaemonSets() DaemonSets {
-	return NewDaemonSets(c.ObjectsClient)
+func (c *daemonSetsClient) DaemonSets() DaemonSetsReader {
+	return NewDaemonSetsReader(c.ObjectsClient)
 }

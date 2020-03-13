@@ -18,37 +18,37 @@ import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type Services interface {
-	Get(name string) (*Service, error)
-	List() ([]*Service, error)
+type EndpointsReader interface {
+	Get(name string) (*Endpoints, error)
+	List() ([]*Endpoints, error)
 }
 
-func NewServices(objects clustermetav1.ObjectsClient) Services {
-	return &services{
+func NewEndpointsReader(objects clustermetav1.ObjectsClient) EndpointsReader {
+	return &endpointsReader{
 		ObjectsClient: objects,
 	}
 }
 
-type services struct {
+type endpointsReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *services) Get(name string) (*Service, error) {
-	object, err := c.ObjectsClient.Get(name, ServiceResource)
+func (c *endpointsReader) Get(name string) (*Endpoints, error) {
+	object, err := c.ObjectsClient.Get(name, EndpointsResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewService(object), nil
+	return NewEndpoints(object), nil
 }
 
-func (c *services) List() ([]*Service, error) {
-	objects, err := c.ObjectsClient.List(ServiceResource)
+func (c *endpointsReader) List() ([]*Endpoints, error) {
+	objects, err := c.ObjectsClient.List(EndpointsResource)
 	if err != nil {
 		return nil, err
 	}
-	services := make([]*Service, len(objects))
+	endpoints := make([]*Endpoints, len(objects))
 	for i, object := range objects {
-		services[i] = NewService(object)
+		endpoints[i] = NewEndpoints(object)
 	}
-	return services, nil
+	return endpoints, nil
 }

@@ -18,37 +18,37 @@ import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type Nodes interface {
-	Get(name string) (*Node, error)
-	List() ([]*Node, error)
+type PodsReader interface {
+	Get(name string) (*Pod, error)
+	List() ([]*Pod, error)
 }
 
-func NewNodes(objects clustermetav1.ObjectsClient) Nodes {
-	return &nodes{
+func NewPodsReader(objects clustermetav1.ObjectsClient) PodsReader {
+	return &podsReader{
 		ObjectsClient: objects,
 	}
 }
 
-type nodes struct {
+type podsReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *nodes) Get(name string) (*Node, error) {
-	object, err := c.ObjectsClient.Get(name, NodeResource)
+func (c *podsReader) Get(name string) (*Pod, error) {
+	object, err := c.ObjectsClient.Get(name, PodResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewNode(object), nil
+	return NewPod(object), nil
 }
 
-func (c *nodes) List() ([]*Node, error) {
-	objects, err := c.ObjectsClient.List(NodeResource)
+func (c *podsReader) List() ([]*Pod, error) {
+	objects, err := c.ObjectsClient.List(PodResource)
 	if err != nil {
 		return nil, err
 	}
-	nodes := make([]*Node, len(objects))
+	pods := make([]*Pod, len(objects))
 	for i, object := range objects {
-		nodes[i] = NewNode(object)
+		pods[i] = NewPod(object)
 	}
-	return nodes, nil
+	return pods, nil
 }

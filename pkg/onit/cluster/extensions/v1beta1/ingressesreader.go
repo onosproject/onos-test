@@ -18,37 +18,37 @@ import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type StatefulSets interface {
-	Get(name string) (*StatefulSet, error)
-	List() ([]*StatefulSet, error)
+type IngressesReader interface {
+	Get(name string) (*Ingress, error)
+	List() ([]*Ingress, error)
 }
 
-func NewStatefulSets(objects clustermetav1.ObjectsClient) StatefulSets {
-	return &statefulSets{
+func NewIngressesReader(objects clustermetav1.ObjectsClient) IngressesReader {
+	return &ingressesReader{
 		ObjectsClient: objects,
 	}
 }
 
-type statefulSets struct {
+type ingressesReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *statefulSets) Get(name string) (*StatefulSet, error) {
-	object, err := c.ObjectsClient.Get(name, StatefulSetResource)
+func (c *ingressesReader) Get(name string) (*Ingress, error) {
+	object, err := c.ObjectsClient.Get(name, IngressResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewStatefulSet(object), nil
+	return NewIngress(object), nil
 }
 
-func (c *statefulSets) List() ([]*StatefulSet, error) {
-	objects, err := c.ObjectsClient.List(StatefulSetResource)
+func (c *ingressesReader) List() ([]*Ingress, error) {
+	objects, err := c.ObjectsClient.List(IngressResource)
 	if err != nil {
 		return nil, err
 	}
-	statefulSets := make([]*StatefulSet, len(objects))
+	ingresses := make([]*Ingress, len(objects))
 	for i, object := range objects {
-		statefulSets[i] = NewStatefulSet(object)
+		ingresses[i] = NewIngress(object)
 	}
-	return statefulSets, nil
+	return ingresses, nil
 }

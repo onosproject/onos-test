@@ -18,37 +18,37 @@ import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type CronJobs interface {
-	Get(name string) (*CronJob, error)
-	List() ([]*CronJob, error)
+type IngressesReader interface {
+	Get(name string) (*Ingress, error)
+	List() ([]*Ingress, error)
 }
 
-func NewCronJobs(objects clustermetav1.ObjectsClient) CronJobs {
-	return &cronJobs{
+func NewIngressesReader(objects clustermetav1.ObjectsClient) IngressesReader {
+	return &ingressesReader{
 		ObjectsClient: objects,
 	}
 }
 
-type cronJobs struct {
+type ingressesReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *cronJobs) Get(name string) (*CronJob, error) {
-	object, err := c.ObjectsClient.Get(name, CronJobResource)
+func (c *ingressesReader) Get(name string) (*Ingress, error) {
+	object, err := c.ObjectsClient.Get(name, IngressResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewCronJob(object), nil
+	return NewIngress(object), nil
 }
 
-func (c *cronJobs) List() ([]*CronJob, error) {
-	objects, err := c.ObjectsClient.List(CronJobResource)
+func (c *ingressesReader) List() ([]*Ingress, error) {
+	objects, err := c.ObjectsClient.List(IngressResource)
 	if err != nil {
 		return nil, err
 	}
-	cronJobs := make([]*CronJob, len(objects))
+	ingresses := make([]*Ingress, len(objects))
 	for i, object := range objects {
-		cronJobs[i] = NewCronJob(object)
+		ingresses[i] = NewIngress(object)
 	}
-	return cronJobs, nil
+	return ingresses, nil
 }

@@ -42,7 +42,7 @@ func NewReplicaSet(object *clustermetav1.Object) *ReplicaSet {
 	return &ReplicaSet{
 		Object:     object,
 		ReplicaSet: object.Object.(*appsv1.ReplicaSet),
-		PodsClient: corev1.NewPodsClient(object),
+		PodsClient: corev1.NewPodsClient(object.ObjectsClient),
 	}
 }
 

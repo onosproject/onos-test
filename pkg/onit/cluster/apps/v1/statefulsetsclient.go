@@ -19,7 +19,7 @@ import (
 )
 
 type StatefulSetsClient interface {
-	StatefulSets() StatefulSets
+	StatefulSets() StatefulSetsReader
 }
 
 func NewStatefulSetsClient(objects clustermetav1.ObjectsClient) StatefulSetsClient {
@@ -32,6 +32,6 @@ type statefulSetsClient struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *statefulSetsClient) StatefulSets() StatefulSets {
-	return NewStatefulSets(c.ObjectsClient)
+func (c *statefulSetsClient) StatefulSets() StatefulSetsReader {
+	return NewStatefulSetsReader(c.ObjectsClient)
 }

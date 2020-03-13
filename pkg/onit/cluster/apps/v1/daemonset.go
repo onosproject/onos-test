@@ -42,7 +42,7 @@ func NewDaemonSet(object *clustermetav1.Object) *DaemonSet {
 	return &DaemonSet{
 		Object:     object,
 		DaemonSet:  object.Object.(*appsv1.DaemonSet),
-		PodsClient: corev1.NewPodsClient(object),
+		PodsClient: corev1.NewPodsClient(object.ObjectsClient),
 	}
 }
 

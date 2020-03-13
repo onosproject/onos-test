@@ -19,7 +19,7 @@ import (
 )
 
 type EndpointsClient interface {
-	Endpoints() Endpoints
+	Endpoints() EndpointsReader
 }
 
 func NewEndpointsClient(objects clustermetav1.ObjectsClient) EndpointsClient {
@@ -32,6 +32,6 @@ type endpointsClient struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *endpointsClient) Endpoints() Endpoints {
-	return NewEndpoints(c.ObjectsClient)
+func (c *endpointsClient) Endpoints() EndpointsReader {
+	return NewEndpointsReader(c.ObjectsClient)
 }

@@ -42,8 +42,8 @@ func NewDeployment(object *clustermetav1.Object) *Deployment {
 	return &Deployment{
 		Object:            object,
 		Deployment:        object.Object.(*appsv1.Deployment),
-		ReplicaSetsClient: NewReplicaSetsClient(object),
-		PodsClient:        corev1.NewPodsClient(object),
+		ReplicaSetsClient: NewReplicaSetsClient(object.ObjectsClient),
+		PodsClient:        corev1.NewPodsClient(object.ObjectsClient),
 	}
 }
 

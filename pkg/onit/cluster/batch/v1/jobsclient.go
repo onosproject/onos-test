@@ -19,7 +19,7 @@ import (
 )
 
 type JobsClient interface {
-	Jobs() Jobs
+	Jobs() JobsReader
 }
 
 func NewJobsClient(objects clustermetav1.ObjectsClient) JobsClient {
@@ -32,6 +32,6 @@ type jobsClient struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *jobsClient) Jobs() Jobs {
-	return NewJobs(c.ObjectsClient)
+func (c *jobsClient) Jobs() JobsReader {
+	return NewJobsReader(c.ObjectsClient)
 }

@@ -43,8 +43,8 @@ func NewStatefulSet(object *clustermetav1.Object) *StatefulSet {
 	return &StatefulSet{
 		Object:            object,
 		StatefulSet:       object.Object.(*appsv1beta1.StatefulSet),
-		ReplicaSetsClient: appsv1.NewReplicaSetsClient(object),
-		PodsClient:        corev1.NewPodsClient(object),
+		ReplicaSetsClient: appsv1.NewReplicaSetsClient(object.ObjectsClient),
+		PodsClient:        corev1.NewPodsClient(object.ObjectsClient),
 	}
 }
 

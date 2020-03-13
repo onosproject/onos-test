@@ -12,43 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v2alpha1
+package v1
 
 import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type CronJobs interface {
-	Get(name string) (*CronJob, error)
-	List() ([]*CronJob, error)
+type NodesReader interface {
+	Get(name string) (*Node, error)
+	List() ([]*Node, error)
 }
 
-func NewCronJobs(objects clustermetav1.ObjectsClient) CronJobs {
-	return &cronJobs{
+func NewNodesReader(objects clustermetav1.ObjectsClient) NodesReader {
+	return &nodesReader{
 		ObjectsClient: objects,
 	}
 }
 
-type cronJobs struct {
+type nodesReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *cronJobs) Get(name string) (*CronJob, error) {
-	object, err := c.ObjectsClient.Get(name, CronJobResource)
+func (c *nodesReader) Get(name string) (*Node, error) {
+	object, err := c.ObjectsClient.Get(name, NodeResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewCronJob(object), nil
+	return NewNode(object), nil
 }
 
-func (c *cronJobs) List() ([]*CronJob, error) {
-	objects, err := c.ObjectsClient.List(CronJobResource)
+func (c *nodesReader) List() ([]*Node, error) {
+	objects, err := c.ObjectsClient.List(NodeResource)
 	if err != nil {
 		return nil, err
 	}
-	cronJobs := make([]*CronJob, len(objects))
+	nodes := make([]*Node, len(objects))
 	for i, object := range objects {
-		cronJobs[i] = NewCronJob(object)
+		nodes[i] = NewNode(object)
 	}
-	return cronJobs, nil
+	return nodes, nil
 }

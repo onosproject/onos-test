@@ -18,37 +18,37 @@ import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type ReplicaSets interface {
-	Get(name string) (*ReplicaSet, error)
-	List() ([]*ReplicaSet, error)
+type JobsReader interface {
+	Get(name string) (*Job, error)
+	List() ([]*Job, error)
 }
 
-func NewReplicaSets(objects clustermetav1.ObjectsClient) ReplicaSets {
-	return &replicaSets{
+func NewJobsReader(objects clustermetav1.ObjectsClient) JobsReader {
+	return &jobsReader{
 		ObjectsClient: objects,
 	}
 }
 
-type replicaSets struct {
+type jobsReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *replicaSets) Get(name string) (*ReplicaSet, error) {
-	object, err := c.ObjectsClient.Get(name, ReplicaSetResource)
+func (c *jobsReader) Get(name string) (*Job, error) {
+	object, err := c.ObjectsClient.Get(name, JobResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewReplicaSet(object), nil
+	return NewJob(object), nil
 }
 
-func (c *replicaSets) List() ([]*ReplicaSet, error) {
-	objects, err := c.ObjectsClient.List(ReplicaSetResource)
+func (c *jobsReader) List() ([]*Job, error) {
+	objects, err := c.ObjectsClient.List(JobResource)
 	if err != nil {
 		return nil, err
 	}
-	replicaSets := make([]*ReplicaSet, len(objects))
+	jobs := make([]*Job, len(objects))
 	for i, object := range objects {
-		replicaSets[i] = NewReplicaSet(object)
+		jobs[i] = NewJob(object)
 	}
-	return replicaSets, nil
+	return jobs, nil
 }

@@ -19,7 +19,7 @@ import (
 )
 
 type SecretsClient interface {
-	Secrets() Secrets
+	Secrets() SecretsReader
 }
 
 func NewSecretsClient(objects clustermetav1.ObjectsClient) SecretsClient {
@@ -32,6 +32,6 @@ type secretsClient struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *secretsClient) Secrets() Secrets {
-	return NewSecrets(c.ObjectsClient)
+func (c *secretsClient) Secrets() SecretsReader {
+	return NewSecretsReader(c.ObjectsClient)
 }

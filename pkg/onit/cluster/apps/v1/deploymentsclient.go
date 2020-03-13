@@ -19,7 +19,7 @@ import (
 )
 
 type DeploymentsClient interface {
-	Deployments() Deployments
+	Deployments() DeploymentsReader
 }
 
 func NewDeploymentsClient(objects clustermetav1.ObjectsClient) DeploymentsClient {
@@ -32,6 +32,6 @@ type deploymentsClient struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *deploymentsClient) Deployments() Deployments {
-	return NewDeployments(c.ObjectsClient)
+func (c *deploymentsClient) Deployments() DeploymentsReader {
+	return NewDeploymentsReader(c.ObjectsClient)
 }

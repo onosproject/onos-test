@@ -18,37 +18,37 @@ import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type Deployments interface {
-	Get(name string) (*Deployment, error)
-	List() ([]*Deployment, error)
+type DaemonSetsReader interface {
+	Get(name string) (*DaemonSet, error)
+	List() ([]*DaemonSet, error)
 }
 
-func NewDeployments(objects clustermetav1.ObjectsClient) Deployments {
-	return &deployments{
+func NewDaemonSetsReader(objects clustermetav1.ObjectsClient) DaemonSetsReader {
+	return &daemonSetsReader{
 		ObjectsClient: objects,
 	}
 }
 
-type deployments struct {
+type daemonSetsReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *deployments) Get(name string) (*Deployment, error) {
-	object, err := c.ObjectsClient.Get(name, DeploymentResource)
+func (c *daemonSetsReader) Get(name string) (*DaemonSet, error) {
+	object, err := c.ObjectsClient.Get(name, DaemonSetResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewDeployment(object), nil
+	return NewDaemonSet(object), nil
 }
 
-func (c *deployments) List() ([]*Deployment, error) {
-	objects, err := c.ObjectsClient.List(DeploymentResource)
+func (c *daemonSetsReader) List() ([]*DaemonSet, error) {
+	objects, err := c.ObjectsClient.List(DaemonSetResource)
 	if err != nil {
 		return nil, err
 	}
-	deployments := make([]*Deployment, len(objects))
+	daemonSets := make([]*DaemonSet, len(objects))
 	for i, object := range objects {
-		deployments[i] = NewDeployment(object)
+		daemonSets[i] = NewDaemonSet(object)
 	}
-	return deployments, nil
+	return daemonSets, nil
 }

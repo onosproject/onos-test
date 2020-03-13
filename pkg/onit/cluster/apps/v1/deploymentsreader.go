@@ -12,43 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v1
 
 import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type Ingresses interface {
-	Get(name string) (*Ingress, error)
-	List() ([]*Ingress, error)
+type DeploymentsReader interface {
+	Get(name string) (*Deployment, error)
+	List() ([]*Deployment, error)
 }
 
-func NewIngresses(objects clustermetav1.ObjectsClient) Ingresses {
-	return &ingresses{
+func NewDeploymentsReader(objects clustermetav1.ObjectsClient) DeploymentsReader {
+	return &deploymentsReader{
 		ObjectsClient: objects,
 	}
 }
 
-type ingresses struct {
+type deploymentsReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *ingresses) Get(name string) (*Ingress, error) {
-	object, err := c.ObjectsClient.Get(name, IngressResource)
+func (c *deploymentsReader) Get(name string) (*Deployment, error) {
+	object, err := c.ObjectsClient.Get(name, DeploymentResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewIngress(object), nil
+	return NewDeployment(object), nil
 }
 
-func (c *ingresses) List() ([]*Ingress, error) {
-	objects, err := c.ObjectsClient.List(IngressResource)
+func (c *deploymentsReader) List() ([]*Deployment, error) {
+	objects, err := c.ObjectsClient.List(DeploymentResource)
 	if err != nil {
 		return nil, err
 	}
-	ingresses := make([]*Ingress, len(objects))
+	deployments := make([]*Deployment, len(objects))
 	for i, object := range objects {
-		ingresses[i] = NewIngress(object)
+		deployments[i] = NewDeployment(object)
 	}
-	return ingresses, nil
+	return deployments, nil
 }

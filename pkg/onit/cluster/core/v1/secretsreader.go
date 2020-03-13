@@ -18,37 +18,37 @@ import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type Pods interface {
-	Get(name string) (*Pod, error)
-	List() ([]*Pod, error)
+type SecretsReader interface {
+	Get(name string) (*Secret, error)
+	List() ([]*Secret, error)
 }
 
-func NewPods(objects clustermetav1.ObjectsClient) Pods {
-	return &pods{
+func NewSecretsReader(objects clustermetav1.ObjectsClient) SecretsReader {
+	return &secretsReader{
 		ObjectsClient: objects,
 	}
 }
 
-type pods struct {
+type secretsReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *pods) Get(name string) (*Pod, error) {
-	object, err := c.ObjectsClient.Get(name, PodResource)
+func (c *secretsReader) Get(name string) (*Secret, error) {
+	object, err := c.ObjectsClient.Get(name, SecretResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewPod(object), nil
+	return NewSecret(object), nil
 }
 
-func (c *pods) List() ([]*Pod, error) {
-	objects, err := c.ObjectsClient.List(PodResource)
+func (c *secretsReader) List() ([]*Secret, error) {
+	objects, err := c.ObjectsClient.List(SecretResource)
 	if err != nil {
 		return nil, err
 	}
-	pods := make([]*Pod, len(objects))
+	secrets := make([]*Secret, len(objects))
 	for i, object := range objects {
-		pods[i] = NewPod(object)
+		secrets[i] = NewSecret(object)
 	}
-	return pods, nil
+	return secrets, nil
 }

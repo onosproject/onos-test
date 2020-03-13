@@ -18,37 +18,37 @@ import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type Secrets interface {
-	Get(name string) (*Secret, error)
-	List() ([]*Secret, error)
+type ServicesReader interface {
+	Get(name string) (*Service, error)
+	List() ([]*Service, error)
 }
 
-func NewSecrets(objects clustermetav1.ObjectsClient) Secrets {
-	return &secrets{
+func NewServicesReader(objects clustermetav1.ObjectsClient) ServicesReader {
+	return &servicesReader{
 		ObjectsClient: objects,
 	}
 }
 
-type secrets struct {
+type servicesReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *secrets) Get(name string) (*Secret, error) {
-	object, err := c.ObjectsClient.Get(name, SecretResource)
+func (c *servicesReader) Get(name string) (*Service, error) {
+	object, err := c.ObjectsClient.Get(name, ServiceResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewSecret(object), nil
+	return NewService(object), nil
 }
 
-func (c *secrets) List() ([]*Secret, error) {
-	objects, err := c.ObjectsClient.List(SecretResource)
+func (c *servicesReader) List() ([]*Service, error) {
+	objects, err := c.ObjectsClient.List(ServiceResource)
 	if err != nil {
 		return nil, err
 	}
-	secrets := make([]*Secret, len(objects))
+	services := make([]*Service, len(objects))
 	for i, object := range objects {
-		secrets[i] = NewSecret(object)
+		services[i] = NewService(object)
 	}
-	return secrets, nil
+	return services, nil
 }

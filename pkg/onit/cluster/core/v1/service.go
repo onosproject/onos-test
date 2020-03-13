@@ -41,7 +41,7 @@ func NewService(object *clustermetav1.Object) *Service {
 	return &Service{
 		Object:          object,
 		Service:         object.Object.(*corev1.Service),
-		EndpointsClient: NewEndpointsClient(object),
+		EndpointsClient: NewEndpointsClient(object.ObjectsClient),
 	}
 }
 

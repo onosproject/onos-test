@@ -12,43 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1
+package v1beta1
 
 import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type DaemonSets interface {
-	Get(name string) (*DaemonSet, error)
-	List() ([]*DaemonSet, error)
+type DeploymentsReader interface {
+	Get(name string) (*Deployment, error)
+	List() ([]*Deployment, error)
 }
 
-func NewDaemonSets(objects clustermetav1.ObjectsClient) DaemonSets {
-	return &daemonSets{
+func NewDeploymentsReader(objects clustermetav1.ObjectsClient) DeploymentsReader {
+	return &deploymentsReader{
 		ObjectsClient: objects,
 	}
 }
 
-type daemonSets struct {
+type deploymentsReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *daemonSets) Get(name string) (*DaemonSet, error) {
-	object, err := c.ObjectsClient.Get(name, DaemonSetResource)
+func (c *deploymentsReader) Get(name string) (*Deployment, error) {
+	object, err := c.ObjectsClient.Get(name, DeploymentResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewDaemonSet(object), nil
+	return NewDeployment(object), nil
 }
 
-func (c *daemonSets) List() ([]*DaemonSet, error) {
-	objects, err := c.ObjectsClient.List(DaemonSetResource)
+func (c *deploymentsReader) List() ([]*Deployment, error) {
+	objects, err := c.ObjectsClient.List(DeploymentResource)
 	if err != nil {
 		return nil, err
 	}
-	daemonSets := make([]*DaemonSet, len(objects))
+	deployments := make([]*Deployment, len(objects))
 	for i, object := range objects {
-		daemonSets[i] = NewDaemonSet(object)
+		deployments[i] = NewDeployment(object)
 	}
-	return daemonSets, nil
+	return deployments, nil
 }

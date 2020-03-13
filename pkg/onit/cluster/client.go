@@ -37,7 +37,7 @@ type Client interface {
 	networkingClient
 }
 
-func NewClient(objects metav1.ObjectsClient) *client {
+func NewClient(objects metav1.ObjectsClient) Client {
 	return &client{
 		ObjectsClient:    objects,
 		appsClient:       apps.NewClient(objects),

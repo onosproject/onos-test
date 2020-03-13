@@ -19,7 +19,7 @@ import (
 )
 
 type ReplicaSetsClient interface {
-	ReplicaSets() ReplicaSets
+	ReplicaSets() ReplicaSetsReader
 }
 
 func NewReplicaSetsClient(objects clustermetav1.ObjectsClient) ReplicaSetsClient {
@@ -32,6 +32,6 @@ type replicaSetsClient struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *replicaSetsClient) ReplicaSets() ReplicaSets {
-	return NewReplicaSets(c.ObjectsClient)
+func (c *replicaSetsClient) ReplicaSets() ReplicaSetsReader {
+	return NewReplicaSetsReader(c.ObjectsClient)
 }

@@ -12,43 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1
+package v1beta1
 
 import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type ConfigMaps interface {
-	Get(name string) (*ConfigMap, error)
-	List() ([]*ConfigMap, error)
+type CronJobsReader interface {
+	Get(name string) (*CronJob, error)
+	List() ([]*CronJob, error)
 }
 
-func NewConfigMaps(objects clustermetav1.ObjectsClient) ConfigMaps {
-	return &configMaps{
+func NewCronJobsReader(objects clustermetav1.ObjectsClient) CronJobsReader {
+	return &cronJobsReader{
 		ObjectsClient: objects,
 	}
 }
 
-type configMaps struct {
+type cronJobsReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *configMaps) Get(name string) (*ConfigMap, error) {
-	object, err := c.ObjectsClient.Get(name, ConfigMapResource)
+func (c *cronJobsReader) Get(name string) (*CronJob, error) {
+	object, err := c.ObjectsClient.Get(name, CronJobResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewConfigMap(object), nil
+	return NewCronJob(object), nil
 }
 
-func (c *configMaps) List() ([]*ConfigMap, error) {
-	objects, err := c.ObjectsClient.List(ConfigMapResource)
+func (c *cronJobsReader) List() ([]*CronJob, error) {
+	objects, err := c.ObjectsClient.List(CronJobResource)
 	if err != nil {
 		return nil, err
 	}
-	configMaps := make([]*ConfigMap, len(objects))
+	cronJobs := make([]*CronJob, len(objects))
 	for i, object := range objects {
-		configMaps[i] = NewConfigMap(object)
+		cronJobs[i] = NewCronJob(object)
 	}
-	return configMaps, nil
+	return cronJobs, nil
 }

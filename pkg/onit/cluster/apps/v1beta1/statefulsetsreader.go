@@ -12,43 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1
+package v1beta1
 
 import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type Jobs interface {
-	Get(name string) (*Job, error)
-	List() ([]*Job, error)
+type StatefulSetsReader interface {
+	Get(name string) (*StatefulSet, error)
+	List() ([]*StatefulSet, error)
 }
 
-func NewJobs(objects clustermetav1.ObjectsClient) Jobs {
-	return &jobs{
+func NewStatefulSetsReader(objects clustermetav1.ObjectsClient) StatefulSetsReader {
+	return &statefulSetsReader{
 		ObjectsClient: objects,
 	}
 }
 
-type jobs struct {
+type statefulSetsReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *jobs) Get(name string) (*Job, error) {
-	object, err := c.ObjectsClient.Get(name, JobResource)
+func (c *statefulSetsReader) Get(name string) (*StatefulSet, error) {
+	object, err := c.ObjectsClient.Get(name, StatefulSetResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewJob(object), nil
+	return NewStatefulSet(object), nil
 }
 
-func (c *jobs) List() ([]*Job, error) {
-	objects, err := c.ObjectsClient.List(JobResource)
+func (c *statefulSetsReader) List() ([]*StatefulSet, error) {
+	objects, err := c.ObjectsClient.List(StatefulSetResource)
 	if err != nil {
 		return nil, err
 	}
-	jobs := make([]*Job, len(objects))
+	statefulSets := make([]*StatefulSet, len(objects))
 	for i, object := range objects {
-		jobs[i] = NewJob(object)
+		statefulSets[i] = NewStatefulSet(object)
 	}
-	return jobs, nil
+	return statefulSets, nil
 }

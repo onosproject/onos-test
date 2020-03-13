@@ -31,7 +31,7 @@ type {{ .Types.Interface }} interface {
     {{- end }}
 }
 
-func New{{ .Types.Interface }}(objects metav1.ObjectsClient) *{{ .Types.Struct }} {
+func New{{ .Types.Interface }}(objects metav1.ObjectsClient) {{ .Types.Interface }} {
 	return &{{ .Types.Struct }}{
 		ObjectsClient:    objects,
         {{- range $name, $group := .Groups }}

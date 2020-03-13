@@ -125,7 +125,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 				Reader: &ResourceReaderOptions{
 					Location: Location{
 						Path: fmt.Sprintf("%s/%s/%s", config.Path, resource.Group, resource.Version),
-						File: fmt.Sprintf("%s.go", toLowerCase(resource.PluralKind)),
+						File: fmt.Sprintf("%sreader.go", toLowerCase(resource.PluralKind)),
 					},
 					Package: Package{
 						Name:  resource.Version,
@@ -133,8 +133,8 @@ func getOptionsFromConfig(config Config) ClientOptions {
 						Alias: fmt.Sprintf("%s%s", resource.Group, resource.Version),
 					},
 					Types: ResourceReaderTypes{
-						Interface: resource.PluralKind,
-						Struct:    toLowerCamelCase(resource.PluralKind),
+						Interface: fmt.Sprintf("%sReader", resource.PluralKind),
+						Struct:    toLowerCamelCase(fmt.Sprintf("%sReader", resource.PluralKind)),
 					},
 				},
 				Resource: &ResourceObjectOptions{

@@ -55,7 +55,7 @@ func (c *Cluster) Charts() []*Chart {
 func (c *Cluster) Chart(name string) *Chart {
 	chart, ok := c.charts[name]
 	if !ok {
-		chart = newChart(name, c)
+		chart = newChart(name, c.Client.(*client).ObjectsClient)
 		c.charts[name] = chart
 	}
 	return chart

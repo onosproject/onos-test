@@ -49,9 +49,9 @@ func New{{ $resource.Types.Struct }}(object *clustermetav1.Object) *{{ $resource
 		{{ $resource.Names.Singular }}: object.Object.(*{{ $resource.Kind.Package.Alias }}.{{ $resource.Kind.Kind }}),
         {{- range $sub := $resource.SubResources }}
         {{- if eq $sub.Resource.Package.Path $resource.Package.Path }}
-        {{ $sub.Client.Types.Interface }}: New{{ $sub.Client.Types.Interface }}(object),
+        {{ $sub.Client.Types.Interface }}: New{{ $sub.Client.Types.Interface }}(object.ObjectsClient),
         {{- else }}
-        {{ $sub.Client.Types.Interface }}: {{ $sub.Client.Package.Alias }}.New{{ $sub.Client.Types.Interface }}(object),
+        {{ $sub.Client.Types.Interface }}: {{ $sub.Client.Package.Alias }}.New{{ $sub.Client.Types.Interface }}(object.ObjectsClient),
         {{- end }}
         {{- end }}
 	}

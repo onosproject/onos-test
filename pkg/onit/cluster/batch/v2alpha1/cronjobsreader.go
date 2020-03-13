@@ -12,43 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1beta1
+package v2alpha1
 
 import (
 	clustermetav1 "github.com/onosproject/onos-test/pkg/onit/cluster/meta/v1"
 )
 
-type Ingresses interface {
-	Get(name string) (*Ingress, error)
-	List() ([]*Ingress, error)
+type CronJobsReader interface {
+	Get(name string) (*CronJob, error)
+	List() ([]*CronJob, error)
 }
 
-func NewIngresses(objects clustermetav1.ObjectsClient) Ingresses {
-	return &ingresses{
+func NewCronJobsReader(objects clustermetav1.ObjectsClient) CronJobsReader {
+	return &cronJobsReader{
 		ObjectsClient: objects,
 	}
 }
 
-type ingresses struct {
+type cronJobsReader struct {
 	clustermetav1.ObjectsClient
 }
 
-func (c *ingresses) Get(name string) (*Ingress, error) {
-	object, err := c.ObjectsClient.Get(name, IngressResource)
+func (c *cronJobsReader) Get(name string) (*CronJob, error) {
+	object, err := c.ObjectsClient.Get(name, CronJobResource)
 	if err != nil {
 		return nil, err
 	}
-	return NewIngress(object), nil
+	return NewCronJob(object), nil
 }
 
-func (c *ingresses) List() ([]*Ingress, error) {
-	objects, err := c.ObjectsClient.List(IngressResource)
+func (c *cronJobsReader) List() ([]*CronJob, error) {
+	objects, err := c.ObjectsClient.List(CronJobResource)
 	if err != nil {
 		return nil, err
 	}
-	ingresses := make([]*Ingress, len(objects))
+	cronJobs := make([]*CronJob, len(objects))
 	for i, object := range objects {
-		ingresses[i] = NewIngress(object)
+		cronJobs[i] = NewCronJob(object)
 	}
-	return ingresses, nil
+	return cronJobs, nil
 }
