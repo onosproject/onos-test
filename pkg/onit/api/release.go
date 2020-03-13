@@ -35,8 +35,6 @@ import (
 	"strings"
 )
 
-const helmDriverEnv = "HELM_DRIVER"
-
 var settings = cli.New()
 
 func newRelease(name string, chart *Chart) *Release {
@@ -127,7 +125,7 @@ func (r *Release) SkipCRDs() bool {
 // getConfig gets the Helm configuration
 func (r *Release) getConfig() (*action.Configuration, error) {
 	config := &action.Configuration{}
-	if err := config.Init(settings.RESTClientGetter(), r.API.Namespace(), os.Getenv(helmDriverEnv), log.Printf); err != nil {
+	if err := config.Init(settings.RESTClientGetter(), r.API.Namespace(), "memory", log.Printf); err != nil {
 		return nil, err
 	}
 	return config, nil
