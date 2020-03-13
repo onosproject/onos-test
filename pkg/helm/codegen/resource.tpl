@@ -21,12 +21,14 @@ package {{ $resource.Package.Name }}
 
 import (
     "github.com/onosproject/onos-test/pkg/helm/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	{{ .Resource.Kind.Package.Alias }} {{ .Resource.Kind.Package.Path | quote }}
     {{- range $ref := $resource.References }}
     {{- if not (eq $ref.Reference.Package.Path $resource.Package.Path) }}
     {{ $ref.Reference.Package.Alias }} {{ $ref.Reference.Package.Path | quote }}
     {{- end }}
     {{- end }}
+    "time"
 )
 
 var {{ $resource.Types.Kind }} = resource.Kind{
@@ -64,4 +66,18 @@ type {{ $resource.Types.Struct }} struct {
     {{ $ref.Reference.Package.Alias }}.{{ $ref.Reference.Types.Interface }}
     {{- end }}
     {{- end }}
+}
+
+func (r *{{ $resource.Types.Struct }}) Delete() error {
+	return r.Clientset().
+        {{ .Group.Names.Proper }}{{ .Version.Names.Proper }}().
+        RESTClient().
+	    Delete().
+		Namespace(r.Namespace).
+		Resource({{ .Resource.Types.Resource }}.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }

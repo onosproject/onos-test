@@ -18,6 +18,8 @@ import (
 	corev1 "github.com/onosproject/onos-test/pkg/helm/api/core/v1"
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var DaemonSetKind = resource.Kind{
@@ -43,4 +45,18 @@ type DaemonSet struct {
 	*resource.Resource
 	DaemonSet *appsv1.DaemonSet
 	corev1.PodsReference
+}
+
+func (r *DaemonSet) Delete() error {
+	return r.Clientset().
+		AppsV1().
+		RESTClient().
+		Delete().
+		Namespace(r.Namespace).
+		Resource(DaemonSetResource.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }

@@ -77,7 +77,7 @@ func (p *Pod) Containers() []*Container {
 	containers := make([]*Container, len(p.Pod.Spec.Containers))
 	for i, container := range p.Pod.Spec.Containers {
 		containers[i] = &Container{
-			Client:    p.Resource,
+			Client:    p.Resource.Client,
 			pod:       p.Pod,
 			Container: &container,
 		}
@@ -90,7 +90,7 @@ func (p *Pod) Container(name string) *Container {
 	for _, container := range p.Pod.Spec.Containers {
 		if container.Name == name {
 			return &Container{
-				Client:    p.Resource,
+				Client:    p.Resource.Client,
 				pod:       p.Pod,
 				Container: &container,
 			}

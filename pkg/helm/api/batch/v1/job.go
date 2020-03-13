@@ -17,6 +17,8 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	batchv1 "k8s.io/api/batch/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var JobKind = resource.Kind{
@@ -40,4 +42,18 @@ func NewJob(job *batchv1.Job, client resource.Client) *Job {
 type Job struct {
 	*resource.Resource
 	Job *batchv1.Job
+}
+
+func (r *Job) Delete() error {
+	return r.Clientset().
+		BatchV1().
+		RESTClient().
+		Delete().
+		Namespace(r.Namespace).
+		Resource(JobResource.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }

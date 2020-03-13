@@ -17,6 +17,8 @@ package v1beta1
 import (
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	networkingv1beta1 "k8s.io/api/networking/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var IngressKind = resource.Kind{
@@ -40,4 +42,18 @@ func NewIngress(ingress *networkingv1beta1.Ingress, client resource.Client) *Ing
 type Ingress struct {
 	*resource.Resource
 	Ingress *networkingv1beta1.Ingress
+}
+
+func (r *Ingress) Delete() error {
+	return r.Clientset().
+		NetworkingV1beta1().
+		RESTClient().
+		Delete().
+		Namespace(r.Namespace).
+		Resource(IngressResource.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }

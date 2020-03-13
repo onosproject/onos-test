@@ -17,6 +17,8 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var EndpointsKind = resource.Kind{
@@ -40,4 +42,18 @@ func NewEndpoints(endpoints *corev1.Endpoints, client resource.Client) *Endpoint
 type Endpoints struct {
 	*resource.Resource
 	Endpoints *corev1.Endpoints
+}
+
+func (r *Endpoints) Delete() error {
+	return r.Clientset().
+		CoreV1().
+		RESTClient().
+		Delete().
+		Namespace(r.Namespace).
+		Resource(EndpointsResource.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }

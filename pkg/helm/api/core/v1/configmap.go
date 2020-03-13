@@ -17,6 +17,8 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var ConfigMapKind = resource.Kind{
@@ -40,4 +42,18 @@ func NewConfigMap(configMap *corev1.ConfigMap, client resource.Client) *ConfigMa
 type ConfigMap struct {
 	*resource.Resource
 	ConfigMap *corev1.ConfigMap
+}
+
+func (r *ConfigMap) Delete() error {
+	return r.Clientset().
+		CoreV1().
+		RESTClient().
+		Delete().
+		Namespace(r.Namespace).
+		Resource(ConfigMapResource.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }

@@ -17,6 +17,8 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var DeploymentKind = resource.Kind{
@@ -42,4 +44,18 @@ type Deployment struct {
 	*resource.Resource
 	Deployment *appsv1.Deployment
 	ReplicaSetsReference
+}
+
+func (r *Deployment) Delete() error {
+	return r.Clientset().
+		AppsV1().
+		RESTClient().
+		Delete().
+		Namespace(r.Namespace).
+		Resource(DeploymentResource.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }

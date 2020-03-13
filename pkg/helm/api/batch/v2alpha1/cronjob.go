@@ -17,6 +17,8 @@ package v2alpha1
 import (
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	batchv2alpha1 "k8s.io/api/batch/v2alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var CronJobKind = resource.Kind{
@@ -40,4 +42,18 @@ func NewCronJob(cronJob *batchv2alpha1.CronJob, client resource.Client) *CronJob
 type CronJob struct {
 	*resource.Resource
 	CronJob *batchv2alpha1.CronJob
+}
+
+func (r *CronJob) Delete() error {
+	return r.Clientset().
+		BatchV2alpha1().
+		RESTClient().
+		Delete().
+		Namespace(r.Namespace).
+		Resource(CronJobResource.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }

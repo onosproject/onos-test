@@ -17,6 +17,8 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var PodKind = resource.Kind{
@@ -40,4 +42,18 @@ func NewPod(pod *corev1.Pod, client resource.Client) *Pod {
 type Pod struct {
 	*resource.Resource
 	Pod *corev1.Pod
+}
+
+func (r *Pod) Delete() error {
+	return r.Clientset().
+		CoreV1().
+		RESTClient().
+		Delete().
+		Namespace(r.Namespace).
+		Resource(PodResource.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }

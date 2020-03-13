@@ -17,6 +17,8 @@ package v1
 import (
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var SecretKind = resource.Kind{
@@ -40,4 +42,18 @@ func NewSecret(secret *corev1.Secret, client resource.Client) *Secret {
 type Secret struct {
 	*resource.Resource
 	Secret *corev1.Secret
+}
+
+func (r *Secret) Delete() error {
+	return r.Clientset().
+		CoreV1().
+		RESTClient().
+		Delete().
+		Namespace(r.Namespace).
+		Resource(SecretResource.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }

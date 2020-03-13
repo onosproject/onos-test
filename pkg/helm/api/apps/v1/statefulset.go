@@ -18,6 +18,8 @@ import (
 	corev1 "github.com/onosproject/onos-test/pkg/helm/api/core/v1"
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"time"
 )
 
 var StatefulSetKind = resource.Kind{
@@ -43,4 +45,18 @@ type StatefulSet struct {
 	*resource.Resource
 	StatefulSet *appsv1.StatefulSet
 	corev1.PodsReference
+}
+
+func (r *StatefulSet) Delete() error {
+	return r.Clientset().
+		AppsV1().
+		RESTClient().
+		Delete().
+		Namespace(r.Namespace).
+		Resource(StatefulSetResource.Name).
+		Name(r.Name).
+		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
+		Timeout(time.Minute).
+		Do().
+		Error()
 }
