@@ -39,7 +39,7 @@ func (s *ChartTestSuite) TestRemoteInstall(t *testing.T) {
 	kafka := helm.Helm().
 		Chart("kafka").
 		SetRepository("http://storage.googleapis.com/kubernetes-charts-incubator").
-		Release("device-simulator-test").
+		Release("kafka").
 		Set("replicas", 1).
 		Set("zookeeper.replicaCount", 1)
 	err := kafka.Install(true)
