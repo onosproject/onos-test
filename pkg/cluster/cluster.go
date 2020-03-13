@@ -15,7 +15,7 @@
 package cluster
 
 import (
-	"github.com/onosproject/onos-test/pkg/kube"
+	kube "github.com/onosproject/onos-test/pkg/kubernetes"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -29,12 +29,11 @@ const clusterRole = "kube-test-cluster"
 
 // GetClusters returns a list of test clusters
 func GetClusters() ([]string, error) {
-	kubeAPI, err := kube.GetAPIFromEnv()
-	if err != nil {
-		return nil, err
-	}
-
-	namespaces, err := kubeAPI.Clientset().CoreV1().Namespaces().List(metav1.ListOptions{})
+	namespaces, err := kube.Namespace().
+		Clientset().
+		CoreV1().
+		Namespaces().
+		List(metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -50,12 +49,8 @@ func GetClusters() ([]string, error) {
 
 // NewCluster returns a new test cluster for the given Kubernetes API
 func NewCluster(namespace string) (*Cluster, error) {
-	kubeAPI, err := kube.GetAPI(namespace)
-	if err != nil {
-		return nil, err
-	}
 	return &Cluster{
-		client:    kubeAPI.Clientset(),
+		client:    kube.Namespace(namespace).Clientset(),
 		namespace: namespace,
 	}, nil
 }

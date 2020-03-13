@@ -2,7 +2,7 @@ package test
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/onit/helm"
+	"github.com/onosproject/onos-test/pkg/helm"
 	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"testing"

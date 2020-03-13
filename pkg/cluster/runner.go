@@ -21,7 +21,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/onosproject/onos-test/pkg/kube"
+	kube "github.com/onosproject/onos-test/pkg/kubernetes"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -48,12 +48,8 @@ type Job struct {
 
 // NewRunner returns a new test job runner
 func NewRunner() (*Runner, error) {
-	kubeAPI, err := kube.GetAPI(namespace)
-	if err != nil {
-		return nil, err
-	}
 	return &Runner{
-		client: kubeAPI.Clientset(),
+		client: kube.Namespace(namespace).Clientset(),
 	}, nil
 }
 

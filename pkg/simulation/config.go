@@ -16,7 +16,6 @@ package simulation
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/cluster"
 	"github.com/onosproject/onos-test/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	"os"
@@ -62,9 +61,6 @@ func GetConfigFromEnv() *Config {
 		env[key] = value
 	}
 	args := make(map[string]string)
-	for key, value := range cluster.GetArgs() {
-		args[key] = value
-	}
 	for key, value := range util.SplitMap(os.Getenv(simulationArgsEnv)) {
 		args[key] = value
 	}

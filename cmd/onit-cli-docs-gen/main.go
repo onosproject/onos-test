@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/onosproject/onos-test/pkg/onit/cli"
+	"github.com/onosproject/onos-test/pkg/cli"
 )
 
 func main() {

@@ -19,7 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/cluster"
-	"github.com/onosproject/onos-test/pkg/kube"
+	kube "github.com/onosproject/onos-test/pkg/kubernetes"
 	"github.com/onosproject/onos-test/pkg/registry"
 	"github.com/onosproject/onos-test/pkg/util/logging"
 	batchv1 "k8s.io/api/batch/v1"
@@ -34,12 +34,8 @@ import (
 
 // newCoordinator returns a new test coordinator
 func newCoordinator(config *Config) (*Coordinator, error) {
-	kubeAPI, err := kube.GetAPI(config.ID)
-	if err != nil {
-		return nil, err
-	}
 	return &Coordinator{
-		client: kubeAPI.Clientset(),
+		client: kube.Namespace(config.ID).Clientset(),
 		config: config,
 	}, nil
 }

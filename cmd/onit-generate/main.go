@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/onit/helm/codegen"
+	"github.com/onosproject/onos-test/pkg/helm/codegen"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"

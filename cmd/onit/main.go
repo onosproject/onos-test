@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/onosproject/onos-test/pkg/onit/cli"
+	"github.com/onosproject/onos-test/pkg/cli"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 

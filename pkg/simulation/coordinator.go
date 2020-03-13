@@ -19,7 +19,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/cluster"
-	"github.com/onosproject/onos-test/pkg/kube"
+	kube "github.com/onosproject/onos-test/pkg/kubernetes"
 	"github.com/onosproject/onos-test/pkg/model"
 	"github.com/onosproject/onos-test/pkg/registry"
 	"github.com/onosproject/onos-test/pkg/util/logging"
@@ -36,12 +36,8 @@ import (
 
 // newCoordinator returns a new simulation coordinator
 func newCoordinator(config *Config) (*Coordinator, error) {
-	kubeAPI, err := kube.GetAPI(config.ID)
-	if err != nil {
-		return nil, err
-	}
 	return &Coordinator{
-		client: kubeAPI.Clientset(),
+		client: kube.Namespace(config.ID).Clientset(),
 		config: config,
 	}, nil
 }

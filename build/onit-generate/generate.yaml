@@ -1,4 +1,4 @@
-package: "github.com/onosproject/onos-test/pkg/onit/helm/api"
+package: "github.com/onosproject/onos-test/pkg/helm/api"
 resources:
   - group: "apps"
     version: "v1"
