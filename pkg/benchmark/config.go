@@ -16,7 +16,7 @@ package benchmark
 
 import (
 	"fmt"
-	"github.com/onosproject/onos-test/pkg/onit/cluster"
+	"github.com/onosproject/onos-test/pkg/onit/api"
 	"github.com/onosproject/onos-test/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	"os"
@@ -58,7 +58,7 @@ func GetConfigFromEnv() *Config {
 		env[key] = value
 	}
 	args := make(map[string]string)
-	for key, value := range cluster.GetArgs() {
+	for key, value := range api.GetArgs() {
 		args[key] = value
 	}
 	for key, value := range util.SplitMap(os.Getenv(benchmarkArgsEnv)) {

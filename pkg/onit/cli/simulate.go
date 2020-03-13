@@ -28,7 +28,7 @@ import (
 	"time"
 
 	"github.com/onosproject/onos-test/pkg/cluster"
-	onitcluster "github.com/onosproject/onos-test/pkg/onit/cluster"
+	onitcluster "github.com/onosproject/onos-test/pkg/onit/api"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"

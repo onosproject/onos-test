@@ -15,6 +15,7 @@ require (
 	github.com/onosproject/onos-topo v0.0.0-20200218171206-55029b503689
 	github.com/openconfig/gnmi v0.0.0-20190823184014-89b2bf29312c
 	github.com/spf13/cobra v0.0.6
+	github.com/stretchr/testify v1.5.1
 	google.golang.org/grpc v1.27.1
 	gopkg.in/yaml.v2 v2.2.8
 	helm.sh/helm/v3 v3.1.1

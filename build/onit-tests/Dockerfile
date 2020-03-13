@@ -4,6 +4,7 @@ RUN apk upgrade --update --no-cache && apk add libc6-compat
 
 USER nobody
 
-ADD _output/bin/onit-tests /usr/local/bin/onit-tests
+ADD test/chart/ /etc/charts/onos-topo/
+ADD build/onit-tests/_output/bin/onit-tests /usr/local/bin/onit-tests
 
 ENTRYPOINT ["onit-tests"]

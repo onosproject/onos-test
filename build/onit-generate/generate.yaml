@@ -1,5 +1,5 @@
-path: "pkg/onit/cluster"
-package: "github.com/onosproject/onos-test/pkg/onit/cluster"
+path: "pkg/onit/api"
+package: "github.com/onosproject/onos-test/pkg/onit/api"
 resources:
   - group: "apps"
     version: "v1"

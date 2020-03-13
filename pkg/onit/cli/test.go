@@ -20,7 +20,7 @@ import (
 	"github.com/onosproject/onos-test/pkg/util/logging"
 
 	"github.com/onosproject/onos-test/pkg/cluster"
-	onitcluster "github.com/onosproject/onos-test/pkg/onit/cluster"
+	onitcluster "github.com/onosproject/onos-test/pkg/onit/api"
 	"github.com/onosproject/onos-test/pkg/test"
 	"github.com/onosproject/onos-test/pkg/util/random"
 	"github.com/spf13/cobra"
