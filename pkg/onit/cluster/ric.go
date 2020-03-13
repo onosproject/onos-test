@@ -21,25 +21,24 @@ const (
 	ricPort    = 5150
 )
 
-var ranSecrets = map[string]string{
+var ricSecrets = map[string]string{
 	"/certs/onf.cacrt":    caCert,
-	"/certs/onos-ric.crt": ranCert,
-	"/certs/onos-ric.key": ranKey,
+	"/certs/onos-ric.crt": ricCert,
+	"/certs/onos-ric.key": ricKey,
 }
 
-var ranArgs = []string{
+var ricArgs = []string{
 	"-caPath=/certs/onf.cacrt",
 	"-keyPath=/certs/onos-ric.key",
 	"-certPath=/certs/onos-ric.crt",
-	"-simulator=ran-simulator:5150",
 }
 
-// Enabled indicates whether the Ran is enabled
+// Enabled indicates whether the Ric is enabled
 func (c *RIC) Enabled() bool {
 	return GetArg(c.name, "enabled").Bool(c.enabled)
 }
 
-// SetEnabled sets whether the Ran is enabled
+// SetEnabled sets whether the Ric is enabled
 func (c *RIC) SetEnabled(enabled bool) {
 	c.enabled = enabled
 }
@@ -47,8 +46,8 @@ func (c *RIC) SetEnabled(enabled bool) {
 func newRIC(cluster *Cluster) *RIC {
 	service := newService(cluster)
 	ports := []Port{{Name: "grpc", Port: ricPort}}
-	service.SetArgs(ranArgs...)
-	service.SetSecrets(ranSecrets)
+	service.SetArgs(ricArgs...)
+	service.SetSecrets(ricSecrets)
 	service.SetPorts(ports)
 	service.SetLabels(getLabels(ricType))
 	service.SetImage(ricImage)
