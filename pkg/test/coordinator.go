@@ -232,6 +232,24 @@ func (t *WorkerTask) createTestJob() error {
 			Value: value,
 		})
 	}
+	delete(env, "POD_NAMESPACE")
+	envVars = append(envVars, corev1.EnvVar{
+		Name: "POD_NAMESPACE",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.namespace",
+			},
+		},
+	})
+	delete(env, "POD_NAME")
+	envVars = append(envVars, corev1.EnvVar{
+		Name: "POD_NAME",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.name",
+			},
+		},
+	})
 
 	batchJob := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{

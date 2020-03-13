@@ -342,6 +342,22 @@ func (r *Runner) createJob(job *Job) error {
 		Name:  "SERVICE_NAME",
 		Value: job.ID,
 	})
+	env = append(env, corev1.EnvVar{
+		Name: "POD_NAMESPACE",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.namespace",
+			},
+		},
+	})
+	env = append(env, corev1.EnvVar{
+		Name: "POD_NAME",
+		ValueFrom: &corev1.EnvVarSource{
+			FieldRef: &corev1.ObjectFieldSelector{
+				FieldPath: "metadata.name",
+			},
+		},
+	})
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{

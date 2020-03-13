@@ -9,7 +9,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/scheme"
 	"reflect"
 	"time"
 )
@@ -153,7 +152,7 @@ func (c *objectsClient) Get(name string, resource Resource) (*Object, error) {
 		Get().
 		Namespace(c.Namespace()).
 		Name(name).
-		VersionedParams(opts, scheme.ParameterCodec).
+		VersionedParams(opts, metav1.ParameterCodec).
 		Timeout(apiTimeout).
 		Do().
 		Into(runtimeObject)
@@ -187,7 +186,7 @@ func (c *objectsClient) List(resource Resource) ([]*Object, error) {
 		RESTClient().
 		Get().
 		Namespace(c.Namespace()).
-		VersionedParams(opts, scheme.ParameterCodec).
+		VersionedParams(opts, metav1.ParameterCodec).
 		Timeout(apiTimeout).
 		Do().
 		Into(runtimeObjects)
