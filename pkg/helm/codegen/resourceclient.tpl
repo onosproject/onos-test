@@ -15,7 +15,7 @@
 package {{ .Client.Package.Name }}
 
 import (
-    "github.com/onosproject/onos-test/pkg/onit/helm/api/resource"
+    "github.com/onosproject/onos-test/pkg/helm/api/resource"
 )
 
 type {{ .Client.Types.Interface }} interface {
