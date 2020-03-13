@@ -338,6 +338,10 @@ func (r *Runner) createJob(job *Job) error {
 		Value: job.ID,
 	})
 	env = append(env, corev1.EnvVar{
+		Name:  "JOB_TYPE",
+		Value: job.Type,
+	})
+	env = append(env, corev1.EnvVar{
 		Name: "POD_NAMESPACE",
 		ValueFrom: &corev1.EnvVarSource{
 			FieldRef: &corev1.ObjectFieldSelector{

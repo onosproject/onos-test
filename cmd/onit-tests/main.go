@@ -15,12 +15,25 @@
 package main
 
 import (
+	"github.com/onosproject/onos-test/pkg/benchmark"
 	"github.com/onosproject/onos-test/pkg/registry"
+	"github.com/onosproject/onos-test/pkg/simulation"
 	"github.com/onosproject/onos-test/pkg/test"
 	tests "github.com/onosproject/onos-test/test"
+	"os"
 )
 
 func main() {
-	registry.RegisterTestSuite("chart", &tests.ChartTestSuite{})
-	test.Main()
+	jobType := os.Getenv("JOB_TYPE")
+	switch jobType {
+	case "test":
+		registry.RegisterTestSuite("chart", &tests.ChartTestSuite{})
+		test.Main()
+	case "benchmark":
+		registry.RegisterBenchmarkSuite("chart", &tests.ChartBenchmarkSuite{})
+		benchmark.Main()
+	case "simulation":
+		registry.RegisterSimulationSuite("chart", &tests.ChartSimulationSuite{})
+		simulation.Main()
+	}
 }
