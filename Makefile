@@ -8,7 +8,7 @@ ONOS_TEST_DEBUG_VERSION := debug
 ONOS_BUILD_VERSION := stable
 
 build: # @HELP build the Go binaries and run all validations (default)
-build: build-onit build-onit-tests build-onit-doc-generator
+build: build-onit build-onit-doc-generator
 
 build-onit:
 	go build -o build/_output/onit ./cmd/onit
