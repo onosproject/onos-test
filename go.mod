@@ -30,4 +30,3 @@ require (
 )
 
 replace github.com/docker/docker => github.com/docker/engine v1.4.2-0.20200229013735-71373c6105e3
-replace golang.org/x/tools => github.com/golangci/tools v0.0.0-20190915081525-6aa350649b1c
