@@ -32,6 +32,19 @@ func (p *ServicePort) Address(qualified bool) string {
 	return fmt.Sprintf("%s:%d", p.service.Hostname(qualified), p.Port)
 }
 
+// Ports returns a list of service ports
+func (s *Service) Ports() []*ServicePort {
+	ports := make([]*ServicePort, len(s.Object.Spec.Ports))
+	for i, port := range s.Object.Spec.Ports {
+		ports[i] = &ServicePort{
+			Client:      s.Resource.Client,
+			ServicePort: port,
+			service:     s,
+		}
+	}
+	return ports
+}
+
 // Port returns a service port by name
 func (s *Service) Port(name string) *ServicePort {
 	for _, port := range s.Object.Spec.Ports {
