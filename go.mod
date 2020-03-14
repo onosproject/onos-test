@@ -16,6 +16,8 @@ require (
 	github.com/openconfig/gnmi v0.0.0-20190823184014-89b2bf29312c
 	github.com/spf13/cobra v0.0.6
 	github.com/stretchr/testify v1.5.1
+	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
+	golang.org/x/tools v0.0.0-20200313205530-4303120df7d8 // indirect
 	google.golang.org/grpc v1.27.1
 	gopkg.in/yaml.v2 v2.2.8
 	helm.sh/helm/v3 v3.1.1
