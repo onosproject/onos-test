@@ -18,6 +18,7 @@ import (
 	"github.com/onosproject/onos-test/pkg/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"time"
 )
 
 // Type is a resource type
@@ -31,6 +32,11 @@ type Kind struct {
 	Group   string
 	Version string
 	Kind    string
+}
+
+// Waiter is an interface for resources that support waiting for readiness
+type Waiter interface {
+	Wait(time.Duration) error
 }
 
 // Client is a resource client
