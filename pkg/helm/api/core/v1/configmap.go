@@ -34,14 +34,14 @@ var ConfigMapResource = resource.Type{
 
 func NewConfigMap(configMap *corev1.ConfigMap, client resource.Client) *ConfigMap {
 	return &ConfigMap{
-		Resource:  resource.NewResource(configMap.ObjectMeta, ConfigMapKind, client),
-		ConfigMap: configMap,
+		Resource: resource.NewResource(configMap.ObjectMeta, ConfigMapKind, client),
+		Object:   configMap,
 	}
 }
 
 type ConfigMap struct {
 	*resource.Resource
-	ConfigMap *corev1.ConfigMap
+	Object *corev1.ConfigMap
 }
 
 func (r *ConfigMap) Delete() error {

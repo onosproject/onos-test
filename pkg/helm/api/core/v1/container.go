@@ -27,8 +27,8 @@ import (
 
 type Container struct {
 	resource.Client
-	pod       *corev1.Pod
-	Container *corev1.Container
+	corev1.Container
+	pod *corev1.Pod
 }
 
 func (c *Container) Execute(command ...string) (output []string, code int, err error) {
@@ -38,9 +38,9 @@ func (c *Container) Execute(command ...string) (output []string, code int, err e
 		Name(c.pod.Name).
 		Namespace(c.pod.Namespace).
 		SubResource("exec").
-		Param("container", c.Container.Name)
+		Param("container", c.Name)
 	req.VersionedParams(&corev1.PodExecOptions{
-		Container: c.Container.Name,
+		Container: c.Name,
 		Command:   fullCommand,
 		Stdout:    true,
 		Stderr:    true,
@@ -74,12 +74,12 @@ func (c *Container) Execute(command ...string) (output []string, code int, err e
 
 // Containers returns a list of containers in the pod
 func (p *Pod) Containers() []*Container {
-	containers := make([]*Container, len(p.Pod.Spec.Containers))
-	for i, container := range p.Pod.Spec.Containers {
+	containers := make([]*Container, len(p.Object.Spec.Containers))
+	for i, container := range p.Object.Spec.Containers {
 		containers[i] = &Container{
 			Client:    p.Resource.Client,
-			pod:       p.Pod,
-			Container: &container,
+			pod:       p.Object,
+			Container: container,
 		}
 	}
 	return containers
@@ -87,12 +87,12 @@ func (p *Pod) Containers() []*Container {
 
 // Container returns a container by name
 func (p *Pod) Container(name string) *Container {
-	for _, container := range p.Pod.Spec.Containers {
+	for _, container := range p.Object.Spec.Containers {
 		if container.Name == name {
 			return &Container{
 				Client:    p.Resource.Client,
-				pod:       p.Pod,
-				Container: &container,
+				pod:       p.Object,
+				Container: container,
 			}
 		}
 	}

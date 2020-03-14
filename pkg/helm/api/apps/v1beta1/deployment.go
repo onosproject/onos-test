@@ -37,7 +37,7 @@ var DeploymentResource = resource.Type{
 func NewDeployment(deployment *appsv1beta1.Deployment, client resource.Client) *Deployment {
 	return &Deployment{
 		Resource:             resource.NewResource(deployment.ObjectMeta, DeploymentKind, client),
-		Deployment:           deployment,
+		Object:               deployment,
 		ReplicaSetsReference: appsv1.NewReplicaSetsReference(client, resource.NewUIDFilter(deployment.UID)),
 		PodsReference:        corev1.NewPodsReference(client, resource.NewUIDFilter(deployment.UID)),
 	}
@@ -45,7 +45,7 @@ func NewDeployment(deployment *appsv1beta1.Deployment, client resource.Client) *
 
 type Deployment struct {
 	*resource.Resource
-	Deployment *appsv1beta1.Deployment
+	Object *appsv1beta1.Deployment
 	appsv1.ReplicaSetsReference
 	corev1.PodsReference
 }

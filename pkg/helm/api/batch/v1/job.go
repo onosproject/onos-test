@@ -35,13 +35,13 @@ var JobResource = resource.Type{
 func NewJob(job *batchv1.Job, client resource.Client) *Job {
 	return &Job{
 		Resource: resource.NewResource(job.ObjectMeta, JobKind, client),
-		Job:      job,
+		Object:   job,
 	}
 }
 
 type Job struct {
 	*resource.Resource
-	Job *batchv1.Job
+	Object *batchv1.Job
 }
 
 func (r *Job) Delete() error {

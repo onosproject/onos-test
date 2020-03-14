@@ -35,13 +35,13 @@ var SecretResource = resource.Type{
 func NewSecret(secret *corev1.Secret, client resource.Client) *Secret {
 	return &Secret{
 		Resource: resource.NewResource(secret.ObjectMeta, SecretKind, client),
-		Secret:   secret,
+		Object:   secret,
 	}
 }
 
 type Secret struct {
 	*resource.Resource
-	Secret *corev1.Secret
+	Object *corev1.Secret
 }
 
 func (r *Secret) Delete() error {

@@ -35,14 +35,14 @@ var DeploymentResource = resource.Type{
 func NewDeployment(deployment *appsv1.Deployment, client resource.Client) *Deployment {
 	return &Deployment{
 		Resource:             resource.NewResource(deployment.ObjectMeta, DeploymentKind, client),
-		Deployment:           deployment,
+		Object:               deployment,
 		ReplicaSetsReference: NewReplicaSetsReference(client, resource.NewUIDFilter(deployment.UID)),
 	}
 }
 
 type Deployment struct {
 	*resource.Resource
-	Deployment *appsv1.Deployment
+	Object *appsv1.Deployment
 	ReplicaSetsReference
 }
 

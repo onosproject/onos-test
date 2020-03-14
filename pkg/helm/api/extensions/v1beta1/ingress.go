@@ -35,13 +35,13 @@ var IngressResource = resource.Type{
 func NewIngress(ingress *extensionsv1beta1.Ingress, client resource.Client) *Ingress {
 	return &Ingress{
 		Resource: resource.NewResource(ingress.ObjectMeta, IngressKind, client),
-		Ingress:  ingress,
+		Object:   ingress,
 	}
 }
 
 type Ingress struct {
 	*resource.Resource
-	Ingress *extensionsv1beta1.Ingress
+	Object *extensionsv1beta1.Ingress
 }
 
 func (r *Ingress) Delete() error {

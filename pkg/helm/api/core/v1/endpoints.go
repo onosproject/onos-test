@@ -34,14 +34,14 @@ var EndpointsResource = resource.Type{
 
 func NewEndpoints(endpoints *corev1.Endpoints, client resource.Client) *Endpoints {
 	return &Endpoints{
-		Resource:  resource.NewResource(endpoints.ObjectMeta, EndpointsKind, client),
-		Endpoints: endpoints,
+		Resource: resource.NewResource(endpoints.ObjectMeta, EndpointsKind, client),
+		Object:   endpoints,
 	}
 }
 
 type Endpoints struct {
 	*resource.Resource
-	Endpoints *corev1.Endpoints
+	Object *corev1.Endpoints
 }
 
 func (r *Endpoints) Delete() error {

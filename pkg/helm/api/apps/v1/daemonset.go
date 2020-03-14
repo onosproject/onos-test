@@ -36,14 +36,14 @@ var DaemonSetResource = resource.Type{
 func NewDaemonSet(daemonSet *appsv1.DaemonSet, client resource.Client) *DaemonSet {
 	return &DaemonSet{
 		Resource:      resource.NewResource(daemonSet.ObjectMeta, DaemonSetKind, client),
-		DaemonSet:     daemonSet,
+		Object:        daemonSet,
 		PodsReference: corev1.NewPodsReference(client, resource.NewUIDFilter(daemonSet.UID)),
 	}
 }
 
 type DaemonSet struct {
 	*resource.Resource
-	DaemonSet *appsv1.DaemonSet
+	Object *appsv1.DaemonSet
 	corev1.PodsReference
 }
 

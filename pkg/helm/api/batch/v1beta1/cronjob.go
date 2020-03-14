@@ -35,13 +35,13 @@ var CronJobResource = resource.Type{
 func NewCronJob(cronJob *batchv1beta1.CronJob, client resource.Client) *CronJob {
 	return &CronJob{
 		Resource: resource.NewResource(cronJob.ObjectMeta, CronJobKind, client),
-		CronJob:  cronJob,
+		Object:   cronJob,
 	}
 }
 
 type CronJob struct {
 	*resource.Resource
-	CronJob *batchv1beta1.CronJob
+	Object *batchv1beta1.CronJob
 }
 
 func (r *CronJob) Delete() error {

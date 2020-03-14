@@ -13,7 +13,6 @@
 // limitations under the License.
 
 {{- $resource := .Resource }}
-{{- $field := .Resource.Names.Singular }}
 {{- $name := (.Resource.Names.Singular | toLowerCamel) }}
 {{- $kind := (printf "%s.%s" .Resource.Kind.Package.Alias .Resource.Kind.Kind) }}
 
@@ -45,7 +44,7 @@ var {{ $resource.Types.Resource }} = resource.Type{
 func New{{ $resource.Types.Struct }}({{ $name }} *{{ $kind }}, client resource.Client) *{{ $resource.Types.Struct }} {
 	return &{{ $resource.Types.Struct }}{
 		Resource: resource.NewResource({{ $name }}.ObjectMeta, {{ .Resource.Types.Kind }}, client),
-		{{ $field }}: {{ $name }},
+		Object: {{ $name }},
         {{- range $ref := $resource.References }}
         {{- if eq $ref.Resource.Package.Path $resource.Package.Path }}
         {{ $ref.Reference.Types.Interface }}: New{{ $ref.Reference.Types.Interface }}(client, resource.NewUIDFilter({{ $name }}.UID)),
@@ -58,7 +57,7 @@ func New{{ $resource.Types.Struct }}({{ $name }} *{{ $kind }}, client resource.C
 
 type {{ $resource.Types.Struct }} struct {
 	*resource.Resource
-	{{ $field }} *{{ $kind }}
+	Object *{{ $kind }}
     {{- range $ref := .Resource.References }}
     {{- if eq $ref.Resource.Package.Path $resource.Package.Path }}
     {{ $ref.Reference.Types.Interface }}

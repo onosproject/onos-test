@@ -35,13 +35,13 @@ var PodResource = resource.Type{
 func NewPod(pod *corev1.Pod, client resource.Client) *Pod {
 	return &Pod{
 		Resource: resource.NewResource(pod.ObjectMeta, PodKind, client),
-		Pod:      pod,
+		Object:   pod,
 	}
 }
 
 type Pod struct {
 	*resource.Resource
-	Pod *corev1.Pod
+	Object *corev1.Pod
 }
 
 func (r *Pod) Delete() error {

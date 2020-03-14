@@ -15,45 +15,33 @@
 package v1
 
 import (
+	"fmt"
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
-var NodeKind = resource.Kind{
-	Group:   "core",
-	Version: "v1",
-	Kind:    "Node",
+// ServicePort is a service port
+type ServicePort struct {
+	resource.Client
+	corev1.ServicePort
+	service *Service
 }
 
-var NodeResource = resource.Type{
-	Kind: NodeKind,
-	Name: "nodes",
+// Address returns the address of the port
+func (p *ServicePort) Address(qualified bool) string {
+	return fmt.Sprintf("%s:%d", p.service.Hostname(qualified), p.Port)
 }
 
-func NewNode(node *corev1.Node, client resource.Client) *Node {
-	return &Node{
-		Resource: resource.NewResource(node.ObjectMeta, NodeKind, client),
-		Object:   node,
+// Port returns a service port by name
+func (s *Service) Port(name string) *ServicePort {
+	for _, port := range s.Object.Spec.Ports {
+		if port.Name == name {
+			return &ServicePort{
+				Client:      s.Resource.Client,
+				ServicePort: port,
+				service:     s,
+			}
+		}
 	}
-}
-
-type Node struct {
-	*resource.Resource
-	Object *corev1.Node
-}
-
-func (r *Node) Delete() error {
-	return r.Clientset().
-		CoreV1().
-		RESTClient().
-		Delete().
-		Namespace(r.Namespace).
-		Resource(NodeResource.Name).
-		Name(r.Name).
-		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).
-		Timeout(time.Minute).
-		Do().
-		Error()
+	return nil
 }
