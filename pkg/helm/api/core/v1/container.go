@@ -31,7 +31,7 @@ type Container struct {
 	pod *corev1.Pod
 }
 
-func (c *Container) Execute(command ...string) (output []string, code int, err error) {
+func (c *Container) Exec(command ...string) (output []string, code int, err error) {
 	fullCommand := append([]string{"/bin/bash", "-c"}, command...)
 	req := c.Clientset().CoreV1().RESTClient().Post().
 		Resource("pods").
