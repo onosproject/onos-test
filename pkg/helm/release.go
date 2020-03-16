@@ -61,6 +61,7 @@ func newRelease(name string, chart *Chart) *Release {
 
 	values := Values{}
 	valuesEnv := os.Getenv("HELM_VALUES")
+	println(valuesEnv)
 	if err := values.Unmarshal([]byte(valuesEnv)); err != nil {
 		panic(err)
 	}
@@ -69,7 +70,7 @@ func newRelease(name string, chart *Chart) *Release {
 	prefix := fmt.Sprintf("%s.", name)
 	for _, value := range values {
 		if strings.HasPrefix(value, prefix) {
-			if err := strvals.ParseInto(value, parsed); err != nil {
+			if err := strvals.ParseInto(value[len(prefix):], parsed); err != nil {
 				panic(err)
 			}
 		}

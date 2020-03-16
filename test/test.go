@@ -43,16 +43,12 @@ func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
 	err = topo.Install(true)
 	assert.NoError(t, err)
 
-	pods, err := topo.CoreV1().Pods().List()
-	assert.NoError(t, err)
-	assert.Len(t, pods, 1)
-
 	deployment, err := topo.AppsV1().
 		Deployments().
 		Get("onos-topo")
 	assert.NoError(t, err)
 
-	pods, err = deployment.Pods().List()
+	pods, err := deployment.Pods().List()
 	assert.NoError(t, err)
 	assert.Len(t, pods, 1)
 }
