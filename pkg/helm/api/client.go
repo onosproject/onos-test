@@ -3,21 +3,27 @@
 package api
 
 import (
-	apps "github.com/onosproject/onos-test/pkg/helm/api/apps"
-	batch "github.com/onosproject/onos-test/pkg/helm/api/batch"
-	core "github.com/onosproject/onos-test/pkg/helm/api/core"
-	extensions "github.com/onosproject/onos-test/pkg/helm/api/extensions"
-	networking "github.com/onosproject/onos-test/pkg/helm/api/networking"
+	appsv1 "github.com/onosproject/onos-test/pkg/helm/api/apps/v1"
+	appsv1beta1 "github.com/onosproject/onos-test/pkg/helm/api/apps/v1beta1"
+	batchv1 "github.com/onosproject/onos-test/pkg/helm/api/batch/v1"
+	batchv1beta1 "github.com/onosproject/onos-test/pkg/helm/api/batch/v1beta1"
+	batchv2alpha1 "github.com/onosproject/onos-test/pkg/helm/api/batch/v2alpha1"
+	corev1 "github.com/onosproject/onos-test/pkg/helm/api/core/v1"
+	extensionsv1beta1 "github.com/onosproject/onos-test/pkg/helm/api/extensions/v1beta1"
+	networkingv1beta1 "github.com/onosproject/onos-test/pkg/helm/api/networking/v1beta1"
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 )
 
 type Client interface {
 	resource.Client
-	Apps() apps.Client
-	Batch() batch.Client
-	Core() core.Client
-	Extensions() extensions.Client
-	Networking() networking.Client
+	AppsV1() appsv1.Client
+	AppsV1beta1() appsv1beta1.Client
+	BatchV1() batchv1.Client
+	BatchV1beta1() batchv1beta1.Client
+	BatchV2alpha1() batchv2alpha1.Client
+	CoreV1() corev1.Client
+	ExtensionsV1beta1() extensionsv1beta1.Client
+	NetworkingV1beta1() networkingv1beta1.Client
 }
 
 func NewClient(resources resource.Client, filter resource.Filter) Client {
@@ -32,22 +38,34 @@ type client struct {
 	filter resource.Filter
 }
 
-func (c *client) Apps() apps.Client {
-	return apps.NewClient(c.Client, c.filter)
+func (c *client) AppsV1() appsv1.Client {
+	return appsv1.NewClient(c.Client, c.filter)
 }
 
-func (c *client) Batch() batch.Client {
-	return batch.NewClient(c.Client, c.filter)
+func (c *client) AppsV1beta1() appsv1beta1.Client {
+	return appsv1beta1.NewClient(c.Client, c.filter)
 }
 
-func (c *client) Core() core.Client {
-	return core.NewClient(c.Client, c.filter)
+func (c *client) BatchV1() batchv1.Client {
+	return batchv1.NewClient(c.Client, c.filter)
 }
 
-func (c *client) Extensions() extensions.Client {
-	return extensions.NewClient(c.Client, c.filter)
+func (c *client) BatchV1beta1() batchv1beta1.Client {
+	return batchv1beta1.NewClient(c.Client, c.filter)
 }
 
-func (c *client) Networking() networking.Client {
-	return networking.NewClient(c.Client, c.filter)
+func (c *client) BatchV2alpha1() batchv2alpha1.Client {
+	return batchv2alpha1.NewClient(c.Client, c.filter)
+}
+
+func (c *client) CoreV1() corev1.Client {
+	return corev1.NewClient(c.Client, c.filter)
+}
+
+func (c *client) ExtensionsV1beta1() extensionsv1beta1.Client {
+	return extensionsv1beta1.NewClient(c.Client, c.filter)
+}
+
+func (c *client) NetworkingV1beta1() networkingv1beta1.Client {
+	return networkingv1beta1.NewClient(c.Client, c.filter)
 }

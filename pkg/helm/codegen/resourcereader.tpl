@@ -35,7 +35,7 @@ type {{ .Reader.Types.Struct }} struct {
 func (c *{{ .Reader.Types.Struct }}) Get(name string) (*{{ .Resource.Types.Struct }}, error) {
     {{ $singular }} := &{{ $kind }}{}
 	err := c.Clientset().
-        {{ .Group.Names.Proper }}{{ .Version.Names.Proper }}().
+        {{ .Group.Names.Proper }}().
         RESTClient().
 	    Get().
 		Namespace(c.Namespace()).
@@ -68,7 +68,7 @@ func (c *{{ .Reader.Types.Struct }}) Get(name string) (*{{ .Resource.Types.Struc
 func (c *{{ .Reader.Types.Struct }}) List() ([]*{{ .Resource.Types.Struct }}, error) {
     list := &{{ $listKind }}{}
 	err := c.Clientset().
-        {{ .Group.Names.Proper }}{{ .Version.Names.Proper }}().
+        {{ .Group.Names.Proper }}().
         RESTClient().
 	    Get().
 		Namespace(c.Namespace()).

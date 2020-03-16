@@ -51,34 +51,9 @@ func getOptionsFromConfig(config Config) ClientOptions {
 	}
 
 	for _, resource := range config.Resources {
-		groupOpts, ok := options.Groups[resource.Group]
+		versionOpts, ok := options.Groups[fmt.Sprintf("%s%s", resource.Group, resource.Version)]
 		if !ok {
-			groupOpts = &GroupOptions{
-				Location: Location{
-					Path: fmt.Sprintf("%s/%s", config.Path, resource.Group),
-					File: "client.go",
-				},
-				Package: Package{
-					Name:  resource.Group,
-					Path:  fmt.Sprintf("%s/%s", config.Package, resource.Group),
-					Alias: resource.Group,
-				},
-				Group: resource.Group,
-				Types: GroupTypes{
-					Interface: "Client",
-					Struct:    "client",
-				},
-				Names: GroupNames{
-					Proper: upperFirst(resource.Group),
-				},
-				Versions: make(map[string]*VersionOptions),
-			}
-			options.Groups[resource.Group] = groupOpts
-		}
-
-		versionOpts, ok := groupOpts.Versions[resource.Version]
-		if !ok {
-			versionOpts = &VersionOptions{
+			versionOpts = &GroupOptions{
 				Location: Location{
 					Path: fmt.Sprintf("%s/%s/%s", config.Path, resource.Group, resource.Version),
 					File: "client.go",
@@ -90,16 +65,16 @@ func getOptionsFromConfig(config Config) ClientOptions {
 				},
 				Group:   resource.Group,
 				Version: resource.Version,
-				Types: VersionTypes{
+				Types: GroupTypes{
 					Interface: "Client",
 					Struct:    "client",
 				},
-				Names: VersionNames{
-					Proper: upperFirst(resource.Version),
+				Names: GroupNames{
+					Proper: fmt.Sprintf("%s%s", upperFirst(resource.Group), upperFirst(resource.Version)),
 				},
 				Resources: make(map[string]*ResourceOptions),
 			}
-			groupOpts.Versions[resource.Version] = versionOpts
+			options.Groups[fmt.Sprintf("%s%s", resource.Group, resource.Version)] = versionOpts
 		}
 
 		_, ok = versionOpts.Resources[resource.Kind]
@@ -170,8 +145,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 						Plural:   resource.PluralKind,
 					},
 				},
-				Group:   groupOpts,
-				Version: versionOpts,
+				Group: versionOpts,
 			}
 			versionOpts.Resources[resource.Kind] = resourceOpts
 		}
@@ -183,15 +157,11 @@ func getOptionsFromConfig(config Config) ClientOptions {
 		}
 		references := make([]*ResourceOptions, 0, len(resource.SubResources))
 		for _, ref := range resource.SubResources {
-			group, ok := options.Groups[ref.Group]
+			group, ok := options.Groups[fmt.Sprintf("%s%s", ref.Group, ref.Version)]
 			if !ok {
 				continue
 			}
-			version, ok := group.Versions[ref.Version]
-			if !ok {
-				continue
-			}
-			resource, ok := version.Resources[ref.Kind]
+			resource, ok := group.Resources[ref.Kind]
 			if !ok {
 				continue
 			}
@@ -214,9 +184,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 			}
 			references = append(references, resource)
 		}
-		resourceOpts := options.Groups[resource.Group].
-			Versions[resource.Version].
-			Resources[resource.Kind]
+		resourceOpts := options.Groups[fmt.Sprintf("%s%s", resource.Group, resource.Version)].Resources[resource.Kind]
 		resourceOpts.Resource.References = references
 	}
 

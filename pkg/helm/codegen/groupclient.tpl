@@ -3,33 +3,27 @@
 package {{ .Package.Name }}
 
 import (
-    {{- range $name, $version := .Versions }}
-    {{ $version.Package.Alias }} {{ $version.Package.Path | quote }}
-    {{- end }}
     "github.com/onosproject/onos-test/pkg/helm/api/resource"
 )
 
 type {{ .Types.Interface }} interface {
-    {{- range $name, $version := .Versions }}
-    {{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }}
+    {{- range $name, $resource := .Resources }}
+    {{ $resource.Client.Types.Interface }}
     {{- end }}
 }
 
 func New{{ .Types.Interface }}(resources resource.Client, filter resource.Filter) {{ .Types.Interface }} {
 	return &{{ .Types.Struct }}{
 		Client: resources,
-		filter: filter,
+		{{- range $name, $resource := .Resources }}
+        {{ $resource.Client.Types.Interface }}: New{{ $resource.Client.Types.Interface }}(resources, filter),
+        {{- end }}
 	}
 }
 
 type {{ .Types.Struct }} struct {
 	resource.Client
-	filter resource.Filter
+    {{- range $name, $resource := .Resources }}
+    {{ $resource.Client.Types.Interface }}
+    {{- end }}
 }
-
-{{ $group := . }}
-{{- range $name, $version := .Versions }}
-func (c *{{ $group.Types.Struct }}) {{ $version.Names.Proper }}() {{ $version.Package.Alias }}.{{ $version.Types.Interface }} {
-	return {{ $version.Package.Alias }}.New{{ $version.Types.Interface }}(c.Client, c.filter)
-}
-{{ end }}

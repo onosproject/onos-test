@@ -36,7 +36,7 @@ func generateClient(options ClientOptions) error {
 	}
 
 	for _, group := range options.Groups {
-		if err := generateGroupClient(*group); err != nil {
+		if err := generateVersionClient(*group); err != nil {
 			return err
 		}
 	}

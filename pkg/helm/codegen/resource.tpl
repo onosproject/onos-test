@@ -57,7 +57,7 @@ type {{ $resource.Types.Struct }} struct {
 
 func (r *{{ $resource.Types.Struct }}) Delete() error {
 	return r.Clientset().
-        {{ .Group.Names.Proper }}{{ .Version.Names.Proper }}().
+        {{ .Group.Names.Proper }}().
         RESTClient().
 	    Delete().
 		Namespace(r.Namespace).

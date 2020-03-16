@@ -23,7 +23,6 @@ type ResourceOptions struct {
 	Reference *ResourceReferenceOptions
 	Resource  *ResourceObjectOptions
 	Group     *GroupOptions
-	Version   *VersionOptions
 }
 
 // ResourceObjectOptions contains options for generating a resource object
