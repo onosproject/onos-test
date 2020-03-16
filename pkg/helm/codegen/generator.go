@@ -45,6 +45,7 @@ type Resource struct {
 	SubResources []Resource `yaml:"subResources"`
 }
 
+// Generate generates a Helm API for the given configuration
 func Generate(config Config) error {
 	options := getOptionsFromConfig(config)
 	return generateClient(options)
@@ -77,7 +78,10 @@ var quote = func(value string) string {
 }
 
 func getTemplate(name string) *template.Template {
-	_, filepath, _, _ := runtime.Caller(0)
+	_, filepath, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("Could not get template path")
+	}
 	file := path.Join(path.Dir(filepath), name)
 	funcs := template.FuncMap{
 		"toCamel":      toCamelCase,

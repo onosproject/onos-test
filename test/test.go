@@ -22,10 +22,12 @@ import (
 	"testing"
 )
 
+// ChartTestSuite is a test for chart deployment
 type ChartTestSuite struct {
 	test.Suite
 }
 
+// TestLocalInstall tests a local chart installation
 func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
 	atomix := helm.Helm().
 		Chart("/etc/charts/atomix-controller").
@@ -56,6 +58,7 @@ func (s *ChartTestSuite) TestLocalInstall(t *testing.T) {
 	assert.Len(t, pods, 1)
 }
 
+// TestRemoteInstall tests a remote chart installation
 func (s *ChartTestSuite) TestRemoteInstall(t *testing.T) {
 	kafka := helm.Helm().
 		Chart("kafka").

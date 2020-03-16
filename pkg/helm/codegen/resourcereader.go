@@ -16,12 +16,14 @@ package codegen
 
 import "path"
 
+// ResourceReaderOptions contains options for generating a resource reader
 type ResourceReaderOptions struct {
 	Location Location
 	Package  Package
 	Types    ResourceReaderTypes
 }
 
+// ResourceReaderTypes contains types for generating a resource reader
 type ResourceReaderTypes struct {
 	Interface string
 	Struct    string

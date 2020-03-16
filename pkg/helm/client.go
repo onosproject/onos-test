@@ -103,9 +103,7 @@ func (c *helmClient) Chart(name string) *Chart {
 func (c *helmClient) Releases() []*Release {
 	releases := make([]*Release, 0)
 	for _, chart := range c.charts {
-		for _, release := range chart.Releases() {
-			releases = append(releases, release)
-		}
+		releases = append(releases, chart.Releases()...)
 	}
 	return releases
 }

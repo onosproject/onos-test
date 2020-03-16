@@ -20,16 +20,19 @@ import (
 	"time"
 )
 
+// ChartBenchmarkSuite benchmarks a Helm chart
 type ChartBenchmarkSuite struct {
 	benchmark.Suite
 	value input.Source
 }
 
+// SetupWorker :: benchmark
 func (s *ChartBenchmarkSuite) SetupWorker(b *benchmark.Context) error {
 	s.value = input.RandomString(8)
 	return nil
 }
 
+// BenchmarkTest :: benchmark
 func (s *ChartBenchmarkSuite) BenchmarkTest(b *benchmark.Benchmark) error {
 	println(s.value.Next().String())
 	time.Sleep(time.Second)

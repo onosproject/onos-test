@@ -19,11 +19,13 @@ import (
 	"path"
 )
 
+// Location is the location of a code file
 type Location struct {
 	Path string
 	File string
 }
 
+// Package is the package for a code file
 type Package struct {
 	Name  string
 	Path  string
@@ -100,13 +102,13 @@ func getOptionsFromConfig(config Config) ClientOptions {
 			groupOpts.Versions[resource.Version] = versionOpts
 		}
 
-		resourceOptions, ok := versionOpts.Resources[resource.Kind]
+		_, ok = versionOpts.Resources[resource.Kind]
 		if !ok {
 			pkg := resource.Package
 			if pkg == "" {
 				pkg = fmt.Sprintf("k8s.io/api/%s/%s", resource.Group, resource.Version)
 			}
-			resourceOptions = &ResourceOptions{
+			resourceOpts := &ResourceOptions{
 				Client: &ResourceClientOptions{
 					Location: Location{
 						Path: fmt.Sprintf("%s/%s/%s", config.Path, resource.Group, resource.Version),
@@ -171,7 +173,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 				Group:   groupOpts,
 				Version: versionOpts,
 			}
-			versionOpts.Resources[resource.Kind] = resourceOptions
+			versionOpts.Resources[resource.Kind] = resourceOpts
 		}
 	}
 

@@ -16,12 +16,14 @@ package codegen
 
 import "path"
 
+// ResourceReferenceOptions contains options for generating a resource reference
 type ResourceReferenceOptions struct {
 	Location Location
 	Package  Package
 	Types    ResourceReaderTypes
 }
 
+// ResourceReferenceTypes contains types for generating a resource reference
 type ResourceReferenceTypes struct {
 	Interface string
 	Struct    string

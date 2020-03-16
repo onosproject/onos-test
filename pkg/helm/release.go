@@ -241,34 +241,11 @@ func getMap(parent map[string]interface{}, path []string) map[string]interface{}
 	return getMap(child.(map[string]interface{}), path[1:])
 }
 
-// getSlice gets the slice at the given path
-func getSlice(config map[string]interface{}, path []string) []interface{} {
-	names, key := getPathAndKey(path)
-	parent := getMap(config, names)
-	child, ok := parent[key]
-	if !ok {
-		return make([]interface{}, 0)
-	}
-	return child.([]interface{})
-}
-
 // setKey sets a key in a map
 func setKey(config map[string]interface{}, path []string, value interface{}) {
 	names, key := getPathAndKey(path)
 	parent := getMapRef(config, names)
 	parent[key] = value
-}
-
-// addValue adds a value to a slice
-func addValue(config map[string]interface{}, path []string, value interface{}) {
-	names, key := getPathAndKey(path)
-	parent := getMapRef(config, names)
-	values, ok := parent[key]
-	if !ok {
-		values = make([]interface{}, 0)
-		parent[key] = value
-	}
-	parent[key] = append(values.([]interface{}), value)
 }
 
 // getMapRef gets the given map reference

@@ -21,6 +21,7 @@ import (
 	"time"
 )
 
+// Wait waits for the Deployment to be ready
 func (d *Deployment) Wait(timeout time.Duration) error {
 	return wait.Poll(time.Second, timeout, func() (bool, error) {
 		deployment, err := d.Clientset().AppsV1().Deployments(d.Namespace).Get(d.Name, metav1.GetOptions{})
@@ -37,6 +38,7 @@ func (d *Deployment) Wait(timeout time.Duration) error {
 	})
 }
 
+// Wait waits for the StatefulSet to be ready
 func (s *StatefulSet) Wait(timeout time.Duration) error {
 	return wait.Poll(time.Second, timeout, func() (bool, error) {
 		set, err := s.Clientset().AppsV1().StatefulSets(s.Namespace).Get(s.Name, metav1.GetOptions{})

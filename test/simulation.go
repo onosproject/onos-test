@@ -20,6 +20,7 @@ import (
 	"time"
 )
 
+// ChartSimulationSuite :: simulation
 type ChartSimulationSuite struct {
 	simulation.Suite
 }
@@ -40,16 +41,19 @@ func (s *ChartSimulationSuite) ScheduleSimulator(sim *simulation.Simulator) {
 	sim.Schedule("baz", s.SimulateBaz, 30*time.Second, 1)
 }
 
+// SimulateFoo :: simulation
 func (s *ChartSimulationSuite) SimulateFoo(sim *simulation.Simulator) error {
 	println(sim.Arg("foo").String("<none>"))
 	return nil
 }
 
+// SimulateBar :: simulation
 func (s *ChartSimulationSuite) SimulateBar(sim *simulation.Simulator) error {
 	println(sim.Arg("bar").String("<none>"))
 	return nil
 }
 
+// SimulateBaz :: simulation
 func (s *ChartSimulationSuite) SimulateBaz(sim *simulation.Simulator) error {
 	println(sim.Arg("baz").String("<none>"))
 	return nil

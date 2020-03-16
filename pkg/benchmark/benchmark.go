@@ -130,7 +130,6 @@ type Benchmark struct {
 	requests    int
 	duration    *time.Duration
 	parallelism int
-	result      *RunResponse
 	maxLatency  *time.Duration
 }
 
@@ -191,7 +190,7 @@ func (b *Benchmark) warmRequests(f func() error) {
 		wg.Add(1)
 		go func() {
 			for range requestCh {
-				f()
+				_ = f()
 			}
 			wg.Done()
 		}()
@@ -219,7 +218,7 @@ func (b *Benchmark) runRequests(f func() error) (int, time.Duration, []time.Dura
 		go func() {
 			for range requestCh {
 				start := time.Now()
-				f()
+				_ = f()
 				end := time.Now()
 				resultCh <- end.Sub(start)
 			}

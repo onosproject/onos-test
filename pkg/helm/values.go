@@ -18,15 +18,15 @@ import (
 	"encoding/json"
 )
 
-var args = make(map[string]string)
-
 // Values is a list of values
 type Values []string
 
+// Marshal marshals the values
 func (v *Values) Marshal() ([]byte, error) {
 	return json.Marshal(v)
 }
 
+// Unmarshal unmarshals the values
 func (v *Values) Unmarshal(value []byte) error {
 	return json.Unmarshal(value, v)
 }

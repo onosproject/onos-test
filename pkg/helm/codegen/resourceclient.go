@@ -16,12 +16,14 @@ package codegen
 
 import "path"
 
+// ResourceClientOptions contains options for generating a resource client
 type ResourceClientOptions struct {
 	Location Location
 	Package  Package
 	Types    ResourceClientTypes
 }
 
+// ResourceClientTypes contains types for generating a resource client
 type ResourceClientTypes struct {
 	Interface string
 	Struct    string

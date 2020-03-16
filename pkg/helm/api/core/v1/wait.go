@@ -21,6 +21,7 @@ import (
 	"time"
 )
 
+// Wait waits for the Pod to be ready
 func (p *Pod) Wait(timeout time.Duration) error {
 	return wait.Poll(time.Second, timeout, func() (bool, error) {
 		pod, err := p.Clientset().CoreV1().Pods(p.Namespace).Get(p.Name, metav1.GetOptions{})
@@ -36,6 +37,7 @@ func (p *Pod) Wait(timeout time.Duration) error {
 	})
 }
 
+// Wait waits for the Service to be ready
 func (s *Service) Wait(timeout time.Duration) error {
 	return wait.Poll(time.Second, timeout, func() (bool, error) {
 		service, err := s.Clientset().CoreV1().Services(s.Namespace).Get(s.Name, metav1.GetOptions{})

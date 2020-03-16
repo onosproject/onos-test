@@ -16,6 +16,7 @@ package codegen
 
 import "path"
 
+// GroupOptions contains options for generating a group client
 type GroupOptions struct {
 	Location Location
 	Package  Package
@@ -25,11 +26,13 @@ type GroupOptions struct {
 	Versions map[string]*VersionOptions
 }
 
+// GroupTypes contains types for generating a group client
 type GroupTypes struct {
 	Interface string
 	Struct    string
 }
 
+// GroupNames contains names for generating a group client
 type GroupNames struct {
 	Natural string
 	Proper  string

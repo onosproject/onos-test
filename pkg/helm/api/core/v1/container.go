@@ -25,12 +25,14 @@ import (
 	"strings"
 )
 
+// Container is a Kubernetes container
 type Container struct {
 	resource.Client
 	corev1.Container
 	pod *corev1.Pod
 }
 
+// Exec executes the given command in the container
 func (c *Container) Exec(command ...string) (output []string, code int, err error) {
 	fullCommand := append([]string{"/bin/bash", "-c"}, command...)
 	req := c.Clientset().CoreV1().RESTClient().Post().

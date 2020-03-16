@@ -16,6 +16,7 @@ package codegen
 
 import "path"
 
+// ResourceOptions contains options for generating a resource
 type ResourceOptions struct {
 	Client    *ResourceClientOptions
 	Reader    *ResourceReaderOptions
@@ -25,6 +26,7 @@ type ResourceOptions struct {
 	Version   *VersionOptions
 }
 
+// ResourceObjectOptions contains options for generating a resource object
 type ResourceObjectOptions struct {
 	Location   Location
 	Package    Package
@@ -34,6 +36,7 @@ type ResourceObjectOptions struct {
 	References []*ResourceOptions
 }
 
+// ResourceObjectKind contains kinds for generating a resource kind
 type ResourceObjectKind struct {
 	Package  Package
 	Group    string
@@ -42,12 +45,14 @@ type ResourceObjectKind struct {
 	ListKind string
 }
 
+// ResourceObjectTypes contains types for generating a resource object
 type ResourceObjectTypes struct {
 	Kind     string
 	Resource string
 	Struct   string
 }
 
+// ResourceObjectNames contains names for generating a resource object
 type ResourceObjectNames struct {
 	Singular string
 	Plural   string

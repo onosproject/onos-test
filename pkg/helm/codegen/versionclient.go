@@ -16,6 +16,7 @@ package codegen
 
 import "path"
 
+// VersionOptions contains options for generating a version client
 type VersionOptions struct {
 	Location  Location
 	Package   Package
@@ -26,11 +27,13 @@ type VersionOptions struct {
 	Resources map[string]*ResourceOptions
 }
 
+// VersionTypes contains types for generating a version client
 type VersionTypes struct {
 	Interface string
 	Struct    string
 }
 
+// VersionNames contains names for generating a version client
 type VersionNames struct {
 	Natural string
 	Proper  string
