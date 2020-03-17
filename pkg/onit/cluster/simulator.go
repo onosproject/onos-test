@@ -472,6 +472,7 @@ func (s *Simulator) createServiceRole() error {
 		},
 		Rules: []rbac.PolicyRule{
 			{
+				APIGroups:     []string{""},
 				Resources:     []string{"services"},
 				ResourceNames: []string{s.name},
 				Verbs:         []string{"get", "watch", "list", "update"},

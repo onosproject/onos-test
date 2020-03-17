@@ -198,6 +198,8 @@ func (c *Cluster) createClusterRole() error {
 				Resources: []string{
 					"clusterroles",
 					"clusterrolebindings",
+					"roles",
+					"rolebindings",
 				},
 				Verbs: []string{
 					"*",
