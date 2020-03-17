@@ -16,12 +16,14 @@ package helm
 
 import (
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
+	"helm.sh/helm/v3/pkg/action"
 )
 
-func newChart(name string, client resource.Client) *Chart {
+func newChart(name string, client resource.Client, config *action.Configuration) *Chart {
 	return &Chart{
 		Client:   client,
 		name:     name,
+		config:   config,
 		releases: make(map[string]*Release),
 	}
 }
@@ -30,6 +32,7 @@ func newChart(name string, client resource.Client) *Chart {
 type Chart struct {
 	resource.Client
 	ReleaseClient
+	config     *action.Configuration
 	name       string
 	repository string
 	releases   map[string]*Release
@@ -64,7 +67,7 @@ func (c *Chart) Releases() []*Release {
 func (c *Chart) Release(name string) *Release {
 	release, ok := c.releases[name]
 	if !ok {
-		release = newRelease(name, c)
+		release = newRelease(name, c, c.config)
 		c.releases[name] = release
 	}
 	return release

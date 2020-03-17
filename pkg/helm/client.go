@@ -16,6 +16,8 @@ package helm
 
 import (
 	"github.com/onosproject/onos-test/pkg/kubernetes"
+	"helm.sh/helm/v3/pkg/action"
+	"log"
 )
 
 var clients = make(map[string]Client)
@@ -34,13 +36,27 @@ func Helm() Client {
 func getClient(namespace string) Client {
 	client, ok := clients[namespace]
 	if !ok {
+		config, err := getConfig(namespace)
+		if err != nil {
+			panic(err)
+		}
 		client = &helmClient{
 			Client: kubernetes.NewClient(namespace),
 			charts: make(map[string]*Chart),
+			config: config,
 		}
 		clients[namespace] = client
 	}
 	return client
+}
+
+// getConfig gets the Helm configuration for the given namespace
+func getConfig(namespace string) (*action.Configuration, error) {
+	config := &action.Configuration{}
+	if err := config.Init(settings.RESTClientGetter(), namespace, "memory", log.Printf); err != nil {
+		return nil, err
+	}
+	return config, nil
 }
 
 // Client is a Helm client
@@ -74,6 +90,7 @@ type ReleaseClient interface {
 type helmClient struct {
 	kubernetes.Client
 	charts map[string]*Chart
+	config *action.Configuration
 }
 
 func (c *helmClient) Namespace(namespace string) Client {
@@ -93,7 +110,7 @@ func (c *helmClient) Charts() []*Chart {
 func (c *helmClient) Chart(name string) *Chart {
 	chart, ok := c.charts[name]
 	if !ok {
-		chart = newChart(name, c.Client)
+		chart = newChart(name, c.Client, c.config)
 		c.charts[name] = chart
 	}
 	return chart

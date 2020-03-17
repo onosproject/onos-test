@@ -32,7 +32,6 @@ import (
 	"helm.sh/helm/v3/pkg/strvals"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"log"
 	"os"
 	"path"
 	"reflect"
@@ -82,7 +81,7 @@ func getValues(name string) (map[string]interface{}, error) {
 	return values, nil
 }
 
-func newRelease(name string, chart *Chart) *Release {
+func newRelease(name string, chart *Chart, config *action.Configuration) *Release {
 	var release *Release
 	var filter resource.Filter = func(kind metav1.GroupVersionKind, meta metav1.ObjectMeta) (bool, error) {
 		resources, err := release.getResources()
@@ -110,6 +109,7 @@ func newRelease(name string, chart *Chart) *Release {
 	release = &Release{
 		Client:    api.NewClient(chart.Client, filter),
 		chart:     chart,
+		config:    config,
 		name:      name,
 		values:    make(map[string]interface{}),
 		overrides: values,
@@ -121,6 +121,7 @@ func newRelease(name string, chart *Chart) *Release {
 type Release struct {
 	api.Client
 	chart     *Chart
+	config    *action.Configuration
 	name      string
 	values    map[string]interface{}
 	overrides map[string]interface{}
@@ -160,22 +161,9 @@ func (r *Release) SkipCRDs() bool {
 	return r.skipCRDs
 }
 
-// getConfig gets the Helm configuration
-func (r *Release) getConfig() (*action.Configuration, error) {
-	config := &action.Configuration{}
-	if err := config.Init(settings.RESTClientGetter(), r.Namespace(), "memory", log.Printf); err != nil {
-		return nil, err
-	}
-	return config, nil
-}
-
 // getResources returns a list of chart resources
 func (r *Release) getResources() (helm.ResourceList, error) {
-	config, err := r.getConfig()
-	if err != nil {
-		return nil, err
-	}
-	resources, err := config.KubeClient.Build(bytes.NewBufferString(r.release.Manifest), true)
+	resources, err := r.config.KubeClient.Build(bytes.NewBufferString(r.release.Manifest), true)
 	if err != nil {
 		return nil, err
 	}
@@ -184,12 +172,7 @@ func (r *Release) getResources() (helm.ResourceList, error) {
 
 // Install installs the Helm chart
 func (r *Release) Install(wait bool) error {
-	config, err := r.getConfig()
-	if err != nil {
-		return err
-	}
-
-	install := action.NewInstall(config)
+	install := action.NewInstall(r.config)
 	install.Namespace = r.Namespace()
 	install.SkipCRDs = r.SkipCRDs()
 	install.RepoURL = r.chart.Repository()
@@ -248,12 +231,8 @@ func (r *Release) Install(wait bool) error {
 
 // Uninstall uninstalls the Helm chart
 func (r *Release) Uninstall() error {
-	config, err := r.getConfig()
-	if err != nil {
-		return err
-	}
-	uninstall := action.NewUninstall(config)
-	_, err = uninstall.Run(r.Name())
+	uninstall := action.NewUninstall(r.config)
+	_, err := uninstall.Run(r.Name())
 	return err
 }
 
