@@ -65,7 +65,7 @@ func (r *{{ $resource.Types.Struct }}) Delete() error {
         {{ .Group.Names.Proper }}().
         RESTClient().
 	    Delete().
-		Namespace(r.Namespace).
+	    NamespaceIfScoped(r.Namespace, {{ .Resource.Types.Kind }}.Scoped).
 		Resource({{ .Resource.Types.Resource }}.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

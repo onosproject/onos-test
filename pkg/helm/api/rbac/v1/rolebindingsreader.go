@@ -67,7 +67,7 @@ func (c *roleBindingsReader) List() ([]*RoleBinding, error) {
 		RbacV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), RoleBindingKind.Scoped).
 		Resource(RoleBindingResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

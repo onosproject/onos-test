@@ -38,7 +38,7 @@ func (r *Endpoints) Delete() error {
 		CoreV1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, EndpointsKind.Scoped).
 		Resource(EndpointsResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

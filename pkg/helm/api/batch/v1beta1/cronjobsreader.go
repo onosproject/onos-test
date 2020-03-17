@@ -67,7 +67,7 @@ func (c *cronJobsReader) List() ([]*CronJob, error) {
 		BatchV1beta1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), CronJobKind.Scoped).
 		Resource(CronJobResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

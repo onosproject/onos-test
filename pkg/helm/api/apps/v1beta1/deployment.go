@@ -44,7 +44,7 @@ func (r *Deployment) Delete() error {
 		AppsV1beta1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, DeploymentKind.Scoped).
 		Resource(DeploymentResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

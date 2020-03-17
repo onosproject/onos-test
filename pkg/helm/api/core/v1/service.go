@@ -40,7 +40,7 @@ func (r *Service) Delete() error {
 		CoreV1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, ServiceKind.Scoped).
 		Resource(ServiceResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

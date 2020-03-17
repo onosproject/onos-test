@@ -38,7 +38,7 @@ func (r *Ingress) Delete() error {
 		ExtensionsV1beta1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, IngressKind.Scoped).
 		Resource(IngressResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

@@ -38,7 +38,7 @@ func (r *Secret) Delete() error {
 		CoreV1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, SecretKind.Scoped).
 		Resource(SecretResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

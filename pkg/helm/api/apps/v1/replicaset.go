@@ -41,7 +41,7 @@ func (r *ReplicaSet) Delete() error {
 		AppsV1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, ReplicaSetKind.Scoped).
 		Resource(ReplicaSetResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

@@ -67,7 +67,7 @@ func (c *nodesReader) List() ([]*Node, error) {
 		CoreV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), NodeKind.Scoped).
 		Resource(NodeResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

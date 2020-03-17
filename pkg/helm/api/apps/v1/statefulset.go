@@ -41,7 +41,7 @@ func (r *StatefulSet) Delete() error {
 		AppsV1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, StatefulSetKind.Scoped).
 		Resource(StatefulSetResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

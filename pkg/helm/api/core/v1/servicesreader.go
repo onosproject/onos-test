@@ -67,7 +67,7 @@ func (c *servicesReader) List() ([]*Service, error) {
 		CoreV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), ServiceKind.Scoped).
 		Resource(ServiceResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

@@ -38,7 +38,7 @@ func (r *ClusterRole) Delete() error {
 		RbacV1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, ClusterRoleKind.Scoped).
 		Resource(ClusterRoleResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

@@ -38,7 +38,7 @@ func (r *ConfigMap) Delete() error {
 		CoreV1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, ConfigMapKind.Scoped).
 		Resource(ConfigMapResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

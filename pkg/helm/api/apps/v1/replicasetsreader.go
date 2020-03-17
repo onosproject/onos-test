@@ -67,7 +67,7 @@ func (c *replicaSetsReader) List() ([]*ReplicaSet, error) {
 		AppsV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), ReplicaSetKind.Scoped).
 		Resource(ReplicaSetResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

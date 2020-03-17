@@ -71,7 +71,7 @@ func (c *{{ .Reader.Types.Struct }}) List() ([]*{{ .Resource.Types.Struct }}, er
         {{ .Group.Names.Proper }}().
         RESTClient().
 	    Get().
-		Namespace(c.Namespace()).
+	    NamespaceIfScoped(c.Namespace(), {{ .Resource.Types.Kind }}.Scoped).
 		Resource({{ .Resource.Types.Resource }}.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

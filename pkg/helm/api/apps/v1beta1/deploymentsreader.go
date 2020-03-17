@@ -67,7 +67,7 @@ func (c *deploymentsReader) List() ([]*Deployment, error) {
 		AppsV1beta1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), DeploymentKind.Scoped).
 		Resource(DeploymentResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

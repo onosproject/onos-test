@@ -67,7 +67,7 @@ func (c *statefulSetsReader) List() ([]*StatefulSet, error) {
 		AppsV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), StatefulSetKind.Scoped).
 		Resource(StatefulSetResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

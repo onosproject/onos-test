@@ -38,7 +38,7 @@ func (r *Role) Delete() error {
 		RbacV1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, RoleKind.Scoped).
 		Resource(RoleResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

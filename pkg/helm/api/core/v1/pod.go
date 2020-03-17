@@ -38,7 +38,7 @@ func (r *Pod) Delete() error {
 		CoreV1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, PodKind.Scoped).
 		Resource(PodResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

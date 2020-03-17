@@ -67,7 +67,7 @@ func (c *podsReader) List() ([]*Pod, error) {
 		CoreV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), PodKind.Scoped).
 		Resource(PodResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

@@ -67,7 +67,7 @@ func (c *configMapsReader) List() ([]*ConfigMap, error) {
 		CoreV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), ConfigMapKind.Scoped).
 		Resource(ConfigMapResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

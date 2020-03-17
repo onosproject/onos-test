@@ -38,7 +38,7 @@ func (r *Job) Delete() error {
 		BatchV1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, JobKind.Scoped).
 		Resource(JobResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

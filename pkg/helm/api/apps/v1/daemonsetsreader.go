@@ -67,7 +67,7 @@ func (c *daemonSetsReader) List() ([]*DaemonSet, error) {
 		AppsV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), DaemonSetKind.Scoped).
 		Resource(DaemonSetResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

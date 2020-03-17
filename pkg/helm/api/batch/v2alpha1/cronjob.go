@@ -38,7 +38,7 @@ func (r *CronJob) Delete() error {
 		BatchV2alpha1().
 		RESTClient().
 		Delete().
-		Namespace(r.Namespace).
+		NamespaceIfScoped(r.Namespace, CronJobKind.Scoped).
 		Resource(CronJobResource.Name).
 		Name(r.Name).
 		VersionedParams(&metav1.DeleteOptions{}, metav1.ParameterCodec).

@@ -67,7 +67,7 @@ func (c *secretsReader) List() ([]*Secret, error) {
 		CoreV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), SecretKind.Scoped).
 		Resource(SecretResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

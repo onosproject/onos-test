@@ -67,7 +67,7 @@ func (c *clusterRolesReader) List() ([]*ClusterRole, error) {
 		RbacV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), ClusterRoleKind.Scoped).
 		Resource(ClusterRoleResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).

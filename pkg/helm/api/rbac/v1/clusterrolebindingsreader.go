@@ -67,7 +67,7 @@ func (c *clusterRoleBindingsReader) List() ([]*ClusterRoleBinding, error) {
 		RbacV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), ClusterRoleBindingKind.Scoped).
 		Resource(ClusterRoleBindingResource.Name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).
 		Timeout(time.Minute).
