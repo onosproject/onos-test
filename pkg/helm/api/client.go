@@ -11,6 +11,7 @@ import (
 	corev1 "github.com/onosproject/onos-test/pkg/helm/api/core/v1"
 	extensionsv1beta1 "github.com/onosproject/onos-test/pkg/helm/api/extensions/v1beta1"
 	networkingv1beta1 "github.com/onosproject/onos-test/pkg/helm/api/networking/v1beta1"
+	rbacv1 "github.com/onosproject/onos-test/pkg/helm/api/rbac/v1"
 	"github.com/onosproject/onos-test/pkg/helm/api/resource"
 )
 
@@ -24,6 +25,7 @@ type Client interface {
 	CoreV1() corev1.Client
 	ExtensionsV1beta1() extensionsv1beta1.Client
 	NetworkingV1beta1() networkingv1beta1.Client
+	RbacV1() rbacv1.Client
 }
 
 func NewClient(resources resource.Client, filter resource.Filter) Client {
@@ -68,4 +70,8 @@ func (c *client) ExtensionsV1beta1() extensionsv1beta1.Client {
 
 func (c *client) NetworkingV1beta1() networkingv1beta1.Client {
 	return networkingv1beta1.NewClient(c.Client, c.filter)
+}
+
+func (c *client) RbacV1() rbacv1.Client {
+	return rbacv1.NewClient(c.Client, c.filter)
 }

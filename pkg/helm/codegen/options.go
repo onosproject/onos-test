@@ -17,6 +17,7 @@ package codegen
 import (
 	"fmt"
 	"path"
+	"strings"
 )
 
 // Location is the location of a code file
@@ -51,17 +52,23 @@ func getOptionsFromConfig(config Config) ClientOptions {
 	}
 
 	for _, resource := range config.Resources {
+		group := resource.Group
+		index := strings.Index(group, ".")
+		if index != -1 {
+			group = group[:index]
+		}
+
 		versionOpts, ok := options.Groups[fmt.Sprintf("%s%s", resource.Group, resource.Version)]
 		if !ok {
 			versionOpts = &GroupOptions{
 				Location: Location{
-					Path: fmt.Sprintf("%s/%s/%s", config.Path, resource.Group, resource.Version),
+					Path: fmt.Sprintf("%s/%s/%s", config.Path, group, resource.Version),
 					File: "client.go",
 				},
 				Package: Package{
 					Name:  resource.Version,
-					Path:  fmt.Sprintf("%s/%s/%s", config.Package, resource.Group, resource.Version),
-					Alias: fmt.Sprintf("%s%s", resource.Group, resource.Version),
+					Path:  fmt.Sprintf("%s/%s/%s", config.Package, group, resource.Version),
+					Alias: fmt.Sprintf("%s%s", group, resource.Version),
 				},
 				Group:   resource.Group,
 				Version: resource.Version,
@@ -70,7 +77,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 					Struct:    "client",
 				},
 				Names: GroupNames{
-					Proper: fmt.Sprintf("%s%s", upperFirst(resource.Group), upperFirst(resource.Version)),
+					Proper: fmt.Sprintf("%s%s", upperFirst(group), upperFirst(resource.Version)),
 				},
 				Resources: make(map[string]*ResourceOptions),
 			}
@@ -81,18 +88,18 @@ func getOptionsFromConfig(config Config) ClientOptions {
 		if !ok {
 			pkg := resource.Package
 			if pkg == "" {
-				pkg = fmt.Sprintf("k8s.io/api/%s/%s", resource.Group, resource.Version)
+				pkg = fmt.Sprintf("k8s.io/api/%s/%s", group, resource.Version)
 			}
 			resourceOpts := &ResourceOptions{
 				Client: &ResourceClientOptions{
 					Location: Location{
-						Path: fmt.Sprintf("%s/%s/%s", config.Path, resource.Group, resource.Version),
+						Path: fmt.Sprintf("%s/%s/%s", config.Path, group, resource.Version),
 						File: fmt.Sprintf("%sclient.go", toLowerCase(resource.PluralKind)),
 					},
 					Package: Package{
 						Name:  resource.Version,
-						Path:  fmt.Sprintf("%s/%s/%s", config.Package, resource.Group, resource.Version),
-						Alias: fmt.Sprintf("%s%s", resource.Group, resource.Version),
+						Path:  fmt.Sprintf("%s/%s/%s", config.Package, group, resource.Version),
+						Alias: fmt.Sprintf("%s%s", group, resource.Version),
 					},
 					Types: ResourceClientTypes{
 						Interface: fmt.Sprintf("%sClient", resource.PluralKind),
@@ -101,13 +108,13 @@ func getOptionsFromConfig(config Config) ClientOptions {
 				},
 				Reader: &ResourceReaderOptions{
 					Location: Location{
-						Path: fmt.Sprintf("%s/%s/%s", config.Path, resource.Group, resource.Version),
+						Path: fmt.Sprintf("%s/%s/%s", config.Path, group, resource.Version),
 						File: fmt.Sprintf("%sreader.go", toLowerCase(resource.PluralKind)),
 					},
 					Package: Package{
 						Name:  resource.Version,
-						Path:  fmt.Sprintf("%s/%s/%s", config.Package, resource.Group, resource.Version),
-						Alias: fmt.Sprintf("%s%s", resource.Group, resource.Version),
+						Path:  fmt.Sprintf("%s/%s/%s", config.Package, group, resource.Version),
+						Alias: fmt.Sprintf("%s%s", group, resource.Version),
 					},
 					Types: ResourceReaderTypes{
 						Interface: fmt.Sprintf("%sReader", resource.PluralKind),
@@ -116,19 +123,19 @@ func getOptionsFromConfig(config Config) ClientOptions {
 				},
 				Resource: &ResourceObjectOptions{
 					Location: Location{
-						Path: fmt.Sprintf("%s/%s/%s", config.Path, resource.Group, resource.Version),
+						Path: fmt.Sprintf("%s/%s/%s", config.Path, group, resource.Version),
 						File: fmt.Sprintf("%s.go", toLowerCase(resource.Kind)),
 					},
 					Package: Package{
 						Name:  resource.Version,
-						Path:  fmt.Sprintf("%s/%s/%s", config.Package, resource.Group, resource.Version),
-						Alias: fmt.Sprintf("%s%s", resource.Group, resource.Version),
+						Path:  fmt.Sprintf("%s/%s/%s", config.Package, group, resource.Version),
+						Alias: fmt.Sprintf("%s%s", group, resource.Version),
 					},
 					Kind: ResourceObjectKind{
 						Package: Package{
 							Name:  path.Base(pkg),
 							Path:  pkg,
-							Alias: fmt.Sprintf("%s%s", resource.Group, resource.Version),
+							Alias: fmt.Sprintf("%s%s", group, resource.Version),
 						},
 						Group:    resource.Group,
 						Version:  resource.Version,
