@@ -64,30 +64,30 @@ type Step struct {
 // Log logs a progress message
 func (s *Step) Log(message string) {
 	if s.verbose {
-		fmt.Fprintln(writer, fmt.Sprintf("  %s %s %s", time.Now().Format(time.RFC3339), s.test, message))
+		_, _ = fmt.Fprintf(writer, "  %s %s %s\n", time.Now().Format(time.RFC3339), s.test, message)
 	}
 }
 
 // Logf logs a progress message
 func (s *Step) Logf(message string, args ...interface{}) {
 	if s.verbose {
-		fmt.Fprintln(writer, fmt.Sprintf("  %s %s %s", time.Now().Format(time.RFC3339), s.test, fmt.Sprintf(message, args...)))
+		_, _ = fmt.Fprintf(writer, "  %s %s %s\n", time.Now().Format(time.RFC3339), s.test, fmt.Sprintf(message, args...))
 	}
 }
 
 // Start starts the step
 func (s *Step) Start() {
-	fmt.Fprintln(writer, color.CyanString(fmt.Sprintf("%s %s %s %s", start, time.Now().Format(time.RFC3339), s.test, s.name)))
+	_, _ = fmt.Fprintln(writer, color.CyanString("%s %s %s %s\n", start, time.Now().Format(time.RFC3339), s.test, s.name))
 }
 
 // Complete completes the step
 func (s *Step) Complete() {
-	fmt.Fprintln(writer, color.GreenString(fmt.Sprintf("%s %s %s %s", success, time.Now().Format(time.RFC3339), s.test, s.name)))
+	_, _ = fmt.Fprintln(writer, color.GreenString("%s %s %s %s\n", success, time.Now().Format(time.RFC3339), s.test, s.name))
 }
 
 // Fail fails the step with the given error
 func (s *Step) Fail(err error) {
-	fmt.Fprintln(writer, color.RedString(fmt.Sprintf("%s %s %s %s", failure, time.Now().Format(time.RFC3339), s.test, s.name)))
+	_, _ = fmt.Fprintln(writer, color.RedString("%s %s %s %s\n", failure, time.Now().Format(time.RFC3339), s.test, s.name))
 }
 
 // Print prints the given log line
@@ -96,12 +96,12 @@ func Print(line string) {
 		return
 	}
 	if len(line) >= len(start) && line[:len(start)] == start {
-		fmt.Fprintln(writer, color.CyanString(line))
+		_, _ = fmt.Fprintln(writer, color.CyanString(line))
 	} else if len(line) >= len(success) && line[:len(success)] == success {
-		fmt.Fprintln(writer, color.GreenString(line))
+		_, _ = fmt.Fprintln(writer, color.GreenString(line))
 	} else if len(line) >= len(failure) && line[:len(failure)] == failure {
-		fmt.Fprintln(writer, color.RedString(line))
+		_, _ = fmt.Fprintln(writer, color.RedString(line))
 	} else {
-		fmt.Fprintln(writer, line)
+		_, _ = fmt.Fprintln(writer, line)
 	}
 }

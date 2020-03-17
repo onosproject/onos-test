@@ -28,6 +28,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	corev1 "k8s.io/api/core/v1"
+	rbac "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -298,6 +299,16 @@ func (s *Simulator) Setup() error {
 		step.Fail(err)
 		return err
 	}
+	step.Logf("Creating %s Service Role", s.Name())
+	if err := s.createServiceRole(); err != nil {
+		step.Fail(err)
+		return err
+	}
+	step.Logf("Creating %s Service Role Binding", s.Name())
+	if err := s.createServiceRoleBinding(); err != nil {
+		step.Fail(err)
+		return err
+	}
 	step.Logf("Waiting for %s to become ready", s.Name())
 	if err := s.awaitReady(); err != nil {
 		step.Fail(err)
@@ -450,6 +461,48 @@ func (s *Simulator) createService() error {
 	}
 
 	_, err := s.kubeClient.CoreV1().Services(s.namespace).Create(service)
+	return err
+}
+
+func (s *Simulator) createServiceRole() error {
+	role := &rbac.Role{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-service-role", s.name),
+			Namespace: s.namespace,
+		},
+		Rules: []rbac.PolicyRule{
+			{
+				APIGroups:     []string{""},
+				Resources:     []string{"services"},
+				ResourceNames: []string{s.name},
+				Verbs:         []string{"get", "watch", "list", "update"},
+			},
+		},
+	}
+	_, err := s.kubeClient.RbacV1().Roles(s.namespace).Create(role)
+	return err
+}
+
+func (s *Simulator) createServiceRoleBinding() error {
+	rolebinding := &rbac.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-access-services", s.name),
+			Namespace: s.namespace,
+		},
+		Subjects: []rbac.Subject{
+			{
+				Kind:      rbac.ServiceAccountKind,
+				Name:      "default",
+				Namespace: s.namespace,
+			},
+		},
+		RoleRef: rbac.RoleRef{
+			Kind:     "Role",
+			Name:     fmt.Sprintf("%s-service-role", s.name),
+			APIGroup: rbac.GroupName,
+		},
+	}
+	_, err := s.kubeClient.RbacV1().RoleBindings(s.namespace).Create(rolebinding)
 	return err
 }
 

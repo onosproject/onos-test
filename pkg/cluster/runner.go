@@ -225,6 +225,8 @@ func (r *Runner) createClusterRole() error {
 					"rbac.authorization.k8s.io",
 				},
 				Resources: []string{
+					"roles",
+					"rolebindings",
 					"clusterroles",
 					"clusterrolebindings",
 				},
