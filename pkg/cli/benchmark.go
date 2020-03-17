@@ -15,7 +15,6 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/helm"
 	"time"
 
 	"github.com/onosproject/onos-test/pkg/benchmark"
@@ -34,6 +33,7 @@ func getBenchCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("image", "i", "", "the benchmark image to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	cmd.Flags().StringArrayP("values", "f", []string{}, "release values paths")
 	cmd.Flags().StringArray("set", []string{}, "cluster argument overrides")
 	cmd.Flags().StringP("suite", "s", "", "the benchmark suite to run")
 	cmd.Flags().StringP("benchmark", "b", "", "the name of the benchmark to run")
@@ -59,6 +59,7 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 	workers, _ := cmd.Flags().GetInt("workers")
 	parallelism, _ := cmd.Flags().GetInt("parallel")
 	requests, _ := cmd.Flags().GetInt("requests")
+	files, _ := cmd.Flags().GetStringArray("values")
 	sets, _ := cmd.Flags().GetStringArray("set")
 	args, _ := cmd.Flags().GetStringToString("args")
 	timeout, _ := cmd.Flags().GetDuration("timeout")
@@ -80,8 +81,12 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		maxLatency = &d
 	}
 
-	values := helm.Values(sets)
-	bytes, err := values.Marshal()
+	env, err := parseEnv(sets)
+	if err != nil {
+		return err
+	}
+
+	data, err := parseData(files)
 	if err != nil {
 		return err
 	}
@@ -97,17 +102,16 @@ func runBenchCommand(cmd *cobra.Command, _ []string) error {
 		Requests:        requests,
 		Duration:        duration,
 		Args:            args,
-		Env: map[string]string{
-			"HELM_VALUES": string(bytes),
-		},
-		Timeout:    timeout,
-		MaxLatency: maxLatency,
+		Env:             env,
+		Timeout:         timeout,
+		MaxLatency:      maxLatency,
 	}
 
 	job := &cluster.Job{
 		ID:              config.ID,
 		Image:           image,
 		ImagePullPolicy: pullPolicy,
+		Data:            data,
 		Env:             config.ToEnv(),
 		Timeout:         timeout,
 		Type:            "benchmark",

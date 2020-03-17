@@ -19,14 +19,17 @@ import (
 	"errors"
 	"fmt"
 	"github.com/onosproject/onos-test/pkg/cluster"
+	"github.com/onosproject/onos-test/pkg/helm"
 	kube "github.com/onosproject/onos-test/pkg/kubernetes"
 	"github.com/onosproject/onos-test/pkg/registry"
 	"github.com/onosproject/onos-test/pkg/util/logging"
+	"io/ioutil"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"os"
+	"path"
 	"strconv"
 	"sync"
 	"time"
@@ -216,6 +219,51 @@ func (t *WorkerTask) createTestJob() error {
 	zero := int32(0)
 	one := int32(1)
 
+	var volumes []corev1.Volume
+	var volumeMounts []corev1.VolumeMount
+	if file, err := os.Open(path.Join(helm.ValuesPath, helm.ValuesFile)); err == nil {
+		bytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			return err
+		}
+
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      t.config.ID,
+				Namespace: t.config.ID,
+				Annotations: map[string]string{
+					"job": t.config.ID,
+				},
+			},
+			Data: map[string]string{
+				helm.ValuesFile: string(bytes),
+			},
+		}
+		if _, err := t.client.CoreV1().ConfigMaps(t.config.ID).Create(cm); err != nil {
+			return err
+		}
+
+		volumes = []corev1.Volume{
+			{
+				Name: "config",
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: t.config.ID,
+						},
+					},
+				},
+			},
+		}
+		volumeMounts = []corev1.VolumeMount{
+			{
+				Name:      "config",
+				MountPath: helm.ValuesPath,
+				ReadOnly:  true,
+			},
+		}
+	}
+
 	env := t.config.ToEnv()
 	env[kube.NamespaceEnv] = t.config.ID
 	env[testContextEnv] = string(testContextWorker)
@@ -274,8 +322,10 @@ func (t *WorkerTask) createTestJob() error {
 							Image:           t.config.Image,
 							ImagePullPolicy: t.config.ImagePullPolicy,
 							Env:             envVars,
+							VolumeMounts:    volumeMounts,
 						},
 					},
+					Volumes: volumes,
 				},
 			},
 		},

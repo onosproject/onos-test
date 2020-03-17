@@ -30,14 +30,57 @@ import (
 	helm "helm.sh/helm/v3/pkg/kube"
 	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/strvals"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"log"
 	"os"
+	"path"
 	"reflect"
+	"sigs.k8s.io/yaml"
 	"strings"
 )
 
+const ValuesEnv = "HELM_VALUES"
+const ValuesPath = "/etc/onit"
+const ValuesFile = "values.yaml"
+
 var settings = cli.New()
+
+func getValues(name string) (map[string]interface{}, error) {
+	values := make(map[string]interface{})
+	file, err := os.Open(path.Join(ValuesPath, ValuesFile))
+	if err == nil {
+		bytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			return nil, err
+		}
+		rawValues := make(map[string]interface{})
+		if err := yaml.Unmarshal(bytes, &rawValues); err != nil {
+			return nil, err
+		}
+		if releaseValues, ok := rawValues[name]; ok {
+			for _, value := range releaseValues.([]interface{}) {
+				values = mergeMaps(values, value.(map[string]interface{}))
+			}
+		}
+	}
+
+	valuesEnv := os.Getenv("HELM_VALUES")
+	if valuesEnv != "" {
+		rawValues := make(map[string]interface{})
+		if err := yaml.Unmarshal([]byte(valuesEnv), &rawValues); err != nil {
+			return nil, err
+		}
+		if releaseValues, ok := rawValues[name]; ok {
+			for _, value := range releaseValues.([]string) {
+				if err := strvals.ParseInto(value, values); err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+	return values, nil
+}
 
 func newRelease(name string, chart *Chart) *Release {
 	var release *Release
@@ -59,28 +102,17 @@ func newRelease(name string, chart *Chart) *Release {
 		return false, nil
 	}
 
-	values := Values{}
-	valuesEnv := os.Getenv("HELM_VALUES")
-	println(valuesEnv)
-	if err := values.Unmarshal([]byte(valuesEnv)); err != nil {
+	values, err := getValues(name)
+	if err != nil {
 		panic(err)
 	}
 
-	parsed := make(map[string]interface{})
-	prefix := fmt.Sprintf("%s.", name)
-	for _, value := range values {
-		if strings.HasPrefix(value, prefix) {
-			if err := strvals.ParseInto(value[len(prefix):], parsed); err != nil {
-				panic(err)
-			}
-		}
-	}
-
 	release = &Release{
-		Client: api.NewClient(chart.Client, filter),
-		chart:  chart,
-		name:   name,
-		values: parsed,
+		Client:    api.NewClient(chart.Client, filter),
+		chart:     chart,
+		name:      name,
+		values:    make(map[string]interface{}),
+		overrides: values,
 	}
 	return release
 }
@@ -88,11 +120,12 @@ func newRelease(name string, chart *Chart) *Release {
 // Release is a Helm chart release
 type Release struct {
 	api.Client
-	chart    *Chart
-	name     string
-	values   map[string]interface{}
-	skipCRDs bool
-	release  *release.Release
+	chart     *Chart
+	name      string
+	values    map[string]interface{}
+	overrides map[string]interface{}
+	skipCRDs  bool
+	release   *release.Release
 }
 
 // Name returns the release name
@@ -204,7 +237,8 @@ func (r *Release) Install(wait bool) error {
 		}
 	}
 
-	release, err := install.Run(chart, normalize(r.values).(map[string]interface{}))
+	values := mergeMaps(r.overrides, normalize(r.values).(map[string]interface{}))
+	release, err := install.Run(chart, values)
 	if err != nil {
 		return err
 	}
@@ -221,6 +255,25 @@ func (r *Release) Uninstall() error {
 	uninstall := action.NewUninstall(config)
 	_, err = uninstall.Run(r.Name())
 	return err
+}
+
+func mergeMaps(a, b map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{}, len(a))
+	for k, v := range a {
+		out[k] = v
+	}
+	for k, v := range b {
+		if v, ok := v.(map[string]interface{}); ok {
+			if bv, ok := out[k]; ok {
+				if bv, ok := bv.(map[string]interface{}); ok {
+					out[k] = mergeMaps(bv, v)
+					continue
+				}
+			}
+		}
+		out[k] = v
+	}
+	return out
 }
 
 // getValue gets the value for the given path

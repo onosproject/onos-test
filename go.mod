@@ -17,7 +17,7 @@ require (
 	github.com/spf13/cobra v0.0.6
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
-	golang.org/x/tools v0.0.0-20200313205530-4303120df7d8 // indirect
+	golang.org/x/tools v0.0.0-20200313205530-4303120df7d8
 	google.golang.org/grpc v1.27.1
 	gopkg.in/yaml.v2 v2.2.8
 	helm.sh/helm/v3 v3.1.1
@@ -27,6 +27,7 @@ require (
 	k8s.io/cli-runtime v0.17.3
 	k8s.io/client-go v0.17.3
 	sigs.k8s.io/controller-runtime v0.1.12
+	sigs.k8s.io/yaml v1.1.0
 )
 
 replace github.com/docker/docker => github.com/docker/engine v1.4.2-0.20200229013735-71373c6105e3

@@ -17,6 +17,7 @@ package cluster
 import (
 	"bufio"
 	"errors"
+	"github.com/onosproject/onos-test/pkg/helm"
 	"os"
 	"time"
 
@@ -37,8 +38,7 @@ type Job struct {
 	ID              string
 	Image           string
 	ImagePullPolicy corev1.PullPolicy
-	ModelChecker    bool
-	ModelData       map[string]string
+	Data            map[string]string
 	Args            []string
 	Env             map[string]string
 	Timeout         time.Duration
@@ -382,6 +382,44 @@ func (r *Runner) createJob(job *Job) error {
 		return err
 	}
 
+	var volumes []corev1.Volume
+	var volumeMounts []corev1.VolumeMount
+	if len(job.Data) > 0 {
+		cm := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      job.ID,
+				Namespace: namespace,
+				Annotations: map[string]string{
+					"job":  job.ID,
+					"type": job.Type,
+				},
+			},
+			Data: job.Data,
+		}
+		if _, err := r.client.CoreV1().ConfigMaps(namespace).Create(cm); err != nil {
+			return err
+		}
+		volumes = []corev1.Volume{
+			{
+				Name: "config",
+				VolumeSource: corev1.VolumeSource{
+					ConfigMap: &corev1.ConfigMapVolumeSource{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: job.ID,
+						},
+					},
+				},
+			},
+		}
+		volumeMounts = []corev1.VolumeMount{
+			{
+				Name:      "config",
+				MountPath: helm.ValuesPath,
+				ReadOnly:  true,
+			},
+		}
+	}
+
 	zero := int32(0)
 	one := int32(1)
 	batchJob := &batchv1.Job{
@@ -420,8 +458,10 @@ func (r *Runner) createJob(job *Job) error {
 									ContainerPort: 5000,
 								},
 							},
+							VolumeMounts: volumeMounts,
 						},
 					},
+					Volumes: volumes,
 				},
 			},
 		},

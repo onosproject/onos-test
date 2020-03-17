@@ -15,7 +15,6 @@
 package cli
 
 import (
-	"github.com/onosproject/onos-test/pkg/helm"
 	"github.com/onosproject/onos-test/pkg/simulation"
 	"strconv"
 	"strings"
@@ -52,6 +51,7 @@ func getSimulateCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("image", "i", "", "the simulation image to run")
 	cmd.Flags().String("image-pull-policy", string(corev1.PullIfNotPresent), "the Docker image pull policy")
+	cmd.Flags().StringArrayP("values", "f", []string{}, "release values paths")
 	cmd.Flags().StringArray("set", []string{}, "cluster argument overrides")
 	cmd.Flags().StringP("simulation", "s", "", "the simulation to run")
 	cmd.Flags().IntP("simulators", "w", 1, "the number of simulator workers to run")
@@ -70,6 +70,7 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 	sim, _ := cmd.Flags().GetString("simulation")
 	workers, _ := cmd.Flags().GetInt("simulators")
 	duration, _ := cmd.Flags().GetDuration("duration")
+	files, _ := cmd.Flags().GetStringArray("values")
 	sets, _ := cmd.Flags().GetStringArray("set")
 	args, _ := cmd.Flags().GetStringToString("args")
 	operations, _ := cmd.Flags().GetStringToString("schedule")
@@ -100,8 +101,12 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		rates[name] = d
 	}
 
-	values := helm.Values(sets)
-	bytes, err := values.Marshal()
+	env, err := parseEnv(sets)
+	if err != nil {
+		return err
+	}
+
+	data, err := parseData(files)
 	if err != nil {
 		return err
 	}
@@ -116,15 +121,14 @@ func runSimulateCommand(cmd *cobra.Command, _ []string) error {
 		Rates:           rates,
 		Jitter:          jitters,
 		Args:            args,
-		Env: map[string]string{
-			"HELM_VALUES": string(bytes),
-		},
+		Env:             env,
 	}
 
 	job := &cluster.Job{
 		ID:              config.ID,
 		Image:           image,
 		ImagePullPolicy: pullPolicy,
+		Data:            data,
 		Env:             config.ToEnv(),
 		Timeout:         timeout,
 		Type:            "simulation",
