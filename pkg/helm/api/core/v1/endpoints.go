@@ -13,6 +13,7 @@ var EndpointsKind = resource.Kind{
 	Group:   "core",
 	Version: "v1",
 	Kind:    "Endpoints",
+	Scoped:  true,
 }
 
 var EndpointsResource = resource.Type{

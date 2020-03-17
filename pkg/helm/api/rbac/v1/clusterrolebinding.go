@@ -13,6 +13,7 @@ var ClusterRoleBindingKind = resource.Kind{
 	Group:   "rbac.authorization.k8s.io",
 	Version: "v1",
 	Kind:    "ClusterRoleBinding",
+	Scoped:  false,
 }
 
 var ClusterRoleBindingResource = resource.Type{

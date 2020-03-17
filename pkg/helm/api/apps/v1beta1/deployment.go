@@ -15,6 +15,7 @@ var DeploymentKind = resource.Kind{
 	Group:   "apps",
 	Version: "v1beta1",
 	Kind:    "Deployment",
+	Scoped:  true,
 }
 
 var DeploymentResource = resource.Type{

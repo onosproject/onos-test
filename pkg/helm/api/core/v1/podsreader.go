@@ -34,7 +34,7 @@ func (c *podsReader) Get(name string) (*Pod, error) {
 		CoreV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), PodKind.Scoped).
 		Resource(PodResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

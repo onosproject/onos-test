@@ -13,6 +13,7 @@ var CronJobKind = resource.Kind{
 	Group:   "batch",
 	Version: "v1beta1",
 	Kind:    "CronJob",
+	Scoped:  true,
 }
 
 var CronJobResource = resource.Type{

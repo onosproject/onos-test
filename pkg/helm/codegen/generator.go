@@ -42,6 +42,7 @@ type Resource struct {
 	Kind         string     `yaml:"kind,omitempty"`
 	ListKind     string     `yaml:"listKind,omitempty"`
 	PluralKind   string     `yaml:"pluralKind,omitempty"`
+	Scope        string     `yaml:"scope,omitempty"`
 	SubResources []Resource `yaml:"subResources"`
 }
 

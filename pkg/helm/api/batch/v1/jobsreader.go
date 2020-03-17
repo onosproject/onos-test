@@ -34,7 +34,7 @@ func (c *jobsReader) Get(name string) (*Job, error) {
 		BatchV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), JobKind.Scoped).
 		Resource(JobResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

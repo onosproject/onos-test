@@ -34,7 +34,7 @@ func (c *daemonSetsReader) Get(name string) (*DaemonSet, error) {
 		AppsV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), DaemonSetKind.Scoped).
 		Resource(DaemonSetResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

@@ -13,6 +13,7 @@ var JobKind = resource.Kind{
 	Group:   "batch",
 	Version: "v1",
 	Kind:    "Job",
+	Scoped:  true,
 }
 
 var JobResource = resource.Type{

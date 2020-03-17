@@ -38,7 +38,7 @@ func (c *{{ .Reader.Types.Struct }}) Get(name string) (*{{ .Resource.Types.Struc
         {{ .Group.Names.Proper }}().
         RESTClient().
 	    Get().
-		Namespace(c.Namespace()).
+	    NamespaceIfScoped(c.Namespace(), {{ .Resource.Types.Kind }}.Scoped).
 		Resource({{ .Resource.Types.Resource }}.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

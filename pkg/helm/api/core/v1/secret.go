@@ -13,6 +13,7 @@ var SecretKind = resource.Kind{
 	Group:   "core",
 	Version: "v1",
 	Kind:    "Secret",
+	Scoped:  true,
 }
 
 var SecretResource = resource.Type{

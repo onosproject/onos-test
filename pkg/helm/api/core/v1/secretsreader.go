@@ -34,7 +34,7 @@ func (c *secretsReader) Get(name string) (*Secret, error) {
 		CoreV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), SecretKind.Scoped).
 		Resource(SecretResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

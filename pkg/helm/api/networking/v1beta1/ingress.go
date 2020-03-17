@@ -13,6 +13,7 @@ var IngressKind = resource.Kind{
 	Group:   "networking",
 	Version: "v1beta1",
 	Kind:    "Ingress",
+	Scoped:  true,
 }
 
 var IngressResource = resource.Type{

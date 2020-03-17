@@ -34,7 +34,7 @@ func (c *rolesReader) Get(name string) (*Role, error) {
 		RbacV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), RoleKind.Scoped).
 		Resource(RoleResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

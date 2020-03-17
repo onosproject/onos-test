@@ -34,7 +34,7 @@ func (c *configMapsReader) Get(name string) (*ConfigMap, error) {
 		CoreV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), ConfigMapKind.Scoped).
 		Resource(ConfigMapResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

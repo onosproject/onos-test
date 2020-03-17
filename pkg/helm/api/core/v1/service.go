@@ -13,6 +13,7 @@ var ServiceKind = resource.Kind{
 	Group:   "core",
 	Version: "v1",
 	Kind:    "Service",
+	Scoped:  true,
 }
 
 var ServiceResource = resource.Type{

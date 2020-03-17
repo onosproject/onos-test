@@ -34,7 +34,7 @@ func (c *deploymentsReader) Get(name string) (*Deployment, error) {
 		AppsV1beta1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), DeploymentKind.Scoped).
 		Resource(DeploymentResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

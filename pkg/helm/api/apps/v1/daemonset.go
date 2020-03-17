@@ -14,6 +14,7 @@ var DaemonSetKind = resource.Kind{
 	Group:   "apps",
 	Version: "v1",
 	Kind:    "DaemonSet",
+	Scoped:  true,
 }
 
 var DaemonSetResource = resource.Type{

@@ -34,7 +34,7 @@ func (c *cronJobsReader) Get(name string) (*CronJob, error) {
 		BatchV1beta1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), CronJobKind.Scoped).
 		Resource(CronJobResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

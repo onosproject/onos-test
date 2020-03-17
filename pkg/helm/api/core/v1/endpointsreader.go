@@ -34,7 +34,7 @@ func (c *endpointsReader) Get(name string) (*Endpoints, error) {
 		CoreV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), EndpointsKind.Scoped).
 		Resource(EndpointsResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

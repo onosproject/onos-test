@@ -42,6 +42,7 @@ type ResourceObjectKind struct {
 	Version  string
 	Kind     string
 	ListKind string
+	Scoped   bool
 }
 
 // ResourceObjectTypes contains types for generating a resource object

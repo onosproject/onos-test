@@ -34,7 +34,7 @@ func (c *ingressesReader) Get(name string) (*Ingress, error) {
 		NetworkingV1beta1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), IngressKind.Scoped).
 		Resource(IngressResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

@@ -22,6 +22,11 @@ var {{ $resource.Types.Kind }} = resource.Kind{
 	Group:   {{ $resource.Kind.Group | quote }},
 	Version: {{ $resource.Kind.Version | quote }},
 	Kind:    {{ $resource.Kind.Kind | quote }},
+	{{- if $resource.Kind.Scoped }}
+	Scoped: true,
+	{{- else }}
+	Scoped: false,
+	{{- end }}
 }
 
 var {{ $resource.Types.Resource }} = resource.Type{

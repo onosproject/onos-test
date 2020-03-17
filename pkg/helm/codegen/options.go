@@ -141,6 +141,7 @@ func getOptionsFromConfig(config Config) ClientOptions {
 						Version:  resource.Version,
 						Kind:     resource.Kind,
 						ListKind: resource.ListKind,
+						Scoped:   resource.Scope != "Cluster",
 					},
 					Types: ResourceObjectTypes{
 						Kind:     fmt.Sprintf("%sKind", resource.Kind),

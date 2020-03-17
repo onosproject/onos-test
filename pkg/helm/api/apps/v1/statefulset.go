@@ -14,6 +14,7 @@ var StatefulSetKind = resource.Kind{
 	Group:   "apps",
 	Version: "v1",
 	Kind:    "StatefulSet",
+	Scoped:  true,
 }
 
 var StatefulSetResource = resource.Type{

@@ -14,6 +14,7 @@ var ReplicaSetKind = resource.Kind{
 	Group:   "apps",
 	Version: "v1",
 	Kind:    "ReplicaSet",
+	Scoped:  true,
 }
 
 var ReplicaSetResource = resource.Type{

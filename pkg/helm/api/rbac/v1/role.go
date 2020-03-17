@@ -13,6 +13,7 @@ var RoleKind = resource.Kind{
 	Group:   "rbac.authorization.k8s.io",
 	Version: "v1",
 	Kind:    "Role",
+	Scoped:  true,
 }
 
 var RoleResource = resource.Type{

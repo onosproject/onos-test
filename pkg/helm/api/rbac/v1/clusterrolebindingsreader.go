@@ -34,7 +34,7 @@ func (c *clusterRoleBindingsReader) Get(name string) (*ClusterRoleBinding, error
 		RbacV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), ClusterRoleBindingKind.Scoped).
 		Resource(ClusterRoleBindingResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

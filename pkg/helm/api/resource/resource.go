@@ -32,6 +32,7 @@ type Kind struct {
 	Group   string
 	Version string
 	Kind    string
+	Scoped  bool
 }
 
 // Waiter is an interface for resources that support waiting for readiness

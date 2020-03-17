@@ -13,6 +13,7 @@ var NodeKind = resource.Kind{
 	Group:   "core",
 	Version: "v1",
 	Kind:    "Node",
+	Scoped:  true,
 }
 
 var NodeResource = resource.Type{

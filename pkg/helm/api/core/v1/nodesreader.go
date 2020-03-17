@@ -34,7 +34,7 @@ func (c *nodesReader) Get(name string) (*Node, error) {
 		CoreV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), NodeKind.Scoped).
 		Resource(NodeResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

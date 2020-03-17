@@ -13,6 +13,7 @@ var PodKind = resource.Kind{
 	Group:   "core",
 	Version: "v1",
 	Kind:    "Pod",
+	Scoped:  true,
 }
 
 var PodResource = resource.Type{

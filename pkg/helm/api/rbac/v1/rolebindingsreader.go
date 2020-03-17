@@ -34,7 +34,7 @@ func (c *roleBindingsReader) Get(name string) (*RoleBinding, error) {
 		RbacV1().
 		RESTClient().
 		Get().
-		Namespace(c.Namespace()).
+		NamespaceIfScoped(c.Namespace(), RoleBindingKind.Scoped).
 		Resource(RoleBindingResource.Name).
 		Name(name).
 		VersionedParams(&metav1.ListOptions{}, metav1.ParameterCodec).

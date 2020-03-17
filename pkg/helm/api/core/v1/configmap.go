@@ -13,6 +13,7 @@ var ConfigMapKind = resource.Kind{
 	Group:   "core",
 	Version: "v1",
 	Kind:    "ConfigMap",
+	Scoped:  true,
 }
 
 var ConfigMapResource = resource.Type{
