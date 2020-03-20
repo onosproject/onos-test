@@ -75,6 +75,9 @@ func RunTests(t *testing.T, suite TestingSuite, config *Config) {
 
 	methodFinder := reflect.TypeOf(suite)
 	tests := []testing.InternalTest{}
+
+	checkTestName(t, config, methodFinder)
+
 	for index := 0; index < methodFinder.NumMethod(); index++ {
 		method := methodFinder.Method(index)
 		ok, err := testFilter(method.Name, config)
@@ -146,4 +149,26 @@ func testFilter(name string, config *Config) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+// checkTestName checks that if specific test(s) are given, they are present in the image
+// will abort the test if it fails
+func checkTestName(t *testing.T, config *Config, methodFinder reflect.Type) {
+	for _, test := range config.Tests {
+		if test == "" {
+			continue
+		}
+		found := false
+		for index := 0; index < methodFinder.NumMethod(); index++ {
+			method := methodFinder.Method(index)
+			if test == method.Name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("No tests found matching %s", test)
+			t.FailNow()
+		}
+	}
 }

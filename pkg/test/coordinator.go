@@ -152,7 +152,8 @@ func (t *WorkerTask) Run() (int, error) {
 	// Get the stream of logs for the pod
 	pod, err := t.getPod(func(pod corev1.Pod) bool {
 		return len(pod.Status.ContainerStatuses) > 0 &&
-			pod.Status.ContainerStatuses[0].State.Running != nil
+			(pod.Status.ContainerStatuses[0].State.Running != nil ||
+				pod.Status.ContainerStatuses[0].State.Terminated != nil)
 	})
 	if err != nil {
 		_ = t.tearDown()
@@ -280,7 +281,8 @@ func (t *WorkerTask) awaitTestJobRunning() error {
 	for {
 		pod, err := t.getPod(func(pod corev1.Pod) bool {
 			return len(pod.Status.ContainerStatuses) > 0 &&
-				pod.Status.ContainerStatuses[0].Ready
+				(pod.Status.ContainerStatuses[0].Ready ||
+					pod.Status.ContainerStatuses[0].State.Terminated != nil)
 		})
 		if err != nil {
 			return err
