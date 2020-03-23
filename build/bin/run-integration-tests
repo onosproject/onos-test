@@ -47,6 +47,15 @@ case "$testSuite" in
     onit benchmark --image onosproject/onos-ric-benchmarks:latest --benchmark BenchmarkGetStations --requests 10000 --max-latency 2ms
     popd;;
 
+"onos-helm-charts")
+    # onos-helm-charts
+    pushd ..
+    git clone https://github.com/onosproject/onos-helm-charts.git
+    cd onos-helm-charts
+    make kind
+    onit test --image onosproject/onos-helm-charts-tests:latest
+    popd;;
+
 *) echo "You have failed to specify test suite."
     exit 1
     ;;
