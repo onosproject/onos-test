@@ -21,6 +21,7 @@ branches:
 
 before_script:
   - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.23.6
+  - go clean --modcache
 
 jobs:
   include:
@@ -77,8 +78,6 @@ jobs:
 
         # Download and install KinD
         - GO111MODULE=on go get sigs.k8s.io/kind
-        - git checkout go.mod go.sum
-        - GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
         - git checkout go.mod go.sum
         - kind create cluster
         - build/bin/run-integration-tests onos-ric

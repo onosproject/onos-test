@@ -41,6 +41,7 @@ case "$testSuite" in
     pushd ..
     git clone https://github.com/onosproject/onos-ric.git
     git clone https://github.com/onosproject/onos-helm-charts.git
+    GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
     cd onos-ric
     make kind
     helmit test ./cmd/onos-ric-tests -c ../onos-helm-charts
