@@ -4,7 +4,6 @@ export GO111MODULE=on
 .PHONY: build
 
 ONOS_TEST_VERSION := latest
-ONOS_TEST_DEBUG_VERSION := debug
 ONOS_BUILD_VERSION := stable
 
 build: # @HELP build the Go binaries and run all validations (default)
