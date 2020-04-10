@@ -19,6 +19,7 @@ case "$testSuite" in
      pushd ..
      GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
      git clone https://github.com/onosproject/onos-topo.git
+     git clone https://github.com/onosproject/onos-helm-charts.git
      cd onos-topo
      make kind
      helmit test ./cmd/onos-topo-tests -c ../onos-helm-charts
@@ -29,6 +30,7 @@ case "$testSuite" in
     pushd ..
     GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
     git clone https://github.com/onosproject/onos-config.git
+    git clone https://github.com/onosproject/onos-helm-charts.git
     cd onos-config
     make kind
     helmit test ./cmd/onos-config-tests -c ../onos-helm-charts
