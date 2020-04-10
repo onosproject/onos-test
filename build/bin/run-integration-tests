@@ -17,6 +17,7 @@ case "$testSuite" in
 "onos-topo")
      # onos-topo
      pushd ..
+     GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
      git clone https://github.com/onosproject/onos-topo.git
      cd onos-topo
      make kind
@@ -26,6 +27,7 @@ case "$testSuite" in
 "onos-config")
     # onos-config
     pushd ..
+    GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
     git clone https://github.com/onosproject/onos-config.git
     cd onos-config
     make kind
@@ -39,6 +41,7 @@ case "$testSuite" in
 "onos-ric")
     # onos-ric
     pushd ..
+    GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
     git clone https://github.com/onosproject/onos-ric.git
     git clone https://github.com/onosproject/onos-helm-charts.git
     GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
@@ -52,6 +55,7 @@ case "$testSuite" in
 "onos-helm-charts")
     # onos-helm-charts
     pushd ..
+    GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
     git clone https://github.com/onosproject/onos-helm-charts.git
     cd onos-helm-charts
     helmit test ./test -c .
