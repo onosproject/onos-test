@@ -20,7 +20,7 @@ case "$testSuite" in
      git clone https://github.com/onosproject/onos-topo.git
      cd onos-topo
      make kind
-     onit test --image onosproject/onos-topo-tests:latest --suite topo
+     helmit test ./cmd/onos-topo-tests -c ../onos-helm-charts
      popd;;
 
 "onos-config")
@@ -29,11 +29,11 @@ case "$testSuite" in
     git clone https://github.com/onosproject/onos-config.git
     cd onos-config
     make kind
-    # temporary fix - only run one controller until problems with subscribe are fixed.
-    onit test --image onosproject/onos-config-tests:latest --suite gnmi --suite cli --set onos-config.replicas=1
+    helmit test ./cmd/onos-config-tests -c ../onos-helm-charts
 
-    onit benchmark --image onosproject/onos-config-benchmarks:latest --requests 5000 --max-latency 5ms --benchmark BenchmarkGet
-    onit benchmark --image onosproject/onos-config-benchmarks:latest --requests 5000 --max-latency 20ms --benchmark BenchmarkSet
+    helmit benchmark ./cmd/onos-config-benchmarks -c ../onos-helm-charts --requests 5000 --max-latency 5ms --benchmark BenchmarkGet
+    helmit benchmark ./cmd/onos-config-benchmarks -c ../onos-helm-charts --requests 5000 --max-latency 20ms --benchmark BenchmarkSet
+
     popd;;
 
 "onos-ric")
@@ -54,8 +54,7 @@ case "$testSuite" in
     pushd ..
     git clone https://github.com/onosproject/onos-helm-charts.git
     cd onos-helm-charts
-    make kind
-    onit test --image onosproject/onos-helm-charts-tests:latest
+    helmit test ./test -c .
     popd;;
 
 *) echo "You have failed to specify test suite."
