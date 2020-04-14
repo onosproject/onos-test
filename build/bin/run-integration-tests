@@ -21,7 +21,7 @@ case "$testSuite" in
      git clone https://github.com/onosproject/onos-topo.git
      git clone https://github.com/onosproject/onos-helm-charts.git
      cd onos-topo
-     GO111MODULE=on make kind
+     make kind
      helmit test ./cmd/onos-topo-tests -c ../onos-helm-charts
      popd;;
 
