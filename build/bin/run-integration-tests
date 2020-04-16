@@ -51,7 +51,7 @@ case "$testSuite" in
     make kind
     helmit test ./cmd/onos-ric-tests -c ../onos-helm-charts
 
-    helmit benchmark --benchmark BenchmarkGetStations --requests 10000 --max-latency 2ms ./cmd/onos-ric-benchmarks -c ../onos-helm-charts
+    helmit benchmark --benchmark BenchmarkGetStations --requests 10000 --max-latency 2.5ms ./cmd/onos-ric-benchmarks -c ../onos-helm-charts
     popd;;
 
 "onos-helm-charts")
