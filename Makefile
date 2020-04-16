@@ -77,7 +77,7 @@ kind: images
 	kind load docker-image onosproject/onit:${ONOS_TEST_VERSION}
 
 publish: # @HELP publish version on github and dockerhub
-	./../build-tools/publish-version ${VERSION} onosproject/onos-docs-manager
+	./../build-tools/publish-version ${VERSION} onosproject/model-checker onosproject/onit 
 
 all: build images tests
 
