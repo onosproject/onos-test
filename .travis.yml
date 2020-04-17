@@ -24,7 +24,7 @@ jobs:
     # Run integration tests only on merge commits
     - stage: integration-tests
       name: "onos-topo integration tests"
-
+      if: type != pull_request
       script:
         # Download and install kubectl
         - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
