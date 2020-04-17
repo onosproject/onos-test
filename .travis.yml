@@ -24,14 +24,6 @@ jobs:
     # Run integration tests only on merge commits
     - stage: integration-tests
       name: "onos-topo integration tests"
-      if: type != pull_request
-      notifications:
-        email:
-          - andrea@opennetworking.org
-          - jordan@opennetworking.org
-          - ray@opennetworking.org
-          - sean@opennetworking.org
-          - tom@opennetworking.org
 
       script:
         # Download and install kubectl
