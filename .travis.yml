@@ -42,7 +42,6 @@ jobs:
 
         # Download and install KinD
         - GO111MODULE=on go get sigs.k8s.io/kind
-        - git checkout go.mod go.sum
         - kind create cluster
         - build/bin/run-integration-tests onos-config
     - # stage name not required, will continue to use `integration-tests`
@@ -54,7 +53,6 @@ jobs:
 
         # Download and install KinD
         - GO111MODULE=on go get sigs.k8s.io/kind
-        - git checkout go.mod go.sum
         - kind create cluster
         - build/bin/run-integration-tests onos-ric
     - # stage name not required, will continue to use `integration-tests`
@@ -66,7 +64,6 @@ jobs:
 
         # Download and install KinD
         - GO111MODULE=on go get sigs.k8s.io/kind
-        - git checkout go.mod go.sum
         - kind create cluster
         - build/bin/run-integration-tests onos-helm-charts
 
