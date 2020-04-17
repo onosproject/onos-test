@@ -1,12 +1,6 @@
 sudo: false
 
-language: go
-
-go:
-  - '1.14.x'
-
-services:
-  - docker
+language: minimal
 
 notifications:
   email: false
@@ -15,24 +9,19 @@ branches:
   only:
     - master
 
-#cache:
-#  directories:
-#    - $HOME/gopath/pkg/mod         # Cache the Go modules
-
-before_script:
-  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.23.6
-  - go clean --modcache
-
 jobs:
   include:
+    # This is the verification step for PRs. It is currently always successful.
     - stage: tests
-      script: make coverage
+      script: true
 
+    # Build the docs
     - stage: docs build
       if: type != pull_request
       script:
         - sh build/bin/trigger-docs-travis $TRAVIS_ACCESS_TOKEN
 
+    # Run integration tests only on merge commits
     - stage: integration-tests
       name: "onos-topo integration tests"
       if: type != pull_request
@@ -90,7 +79,3 @@ jobs:
         - kind create cluster
         - build/bin/run-integration-tests onos-helm-charts
 
-    - stage: push images
-      if: type != pull_request
-      script:
-          - bash ./build/bin/push-images
