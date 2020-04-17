@@ -13,28 +13,41 @@ then
   testSuite=$1
 fi
 
+# Download and install kubectl
+curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+
+# Download and install KinD
+GO111MODULE=on go get sigs.k8s.io/kind
+
+# Make a kind cluster
+kind create cluster --quiet
+
+# Download helmit
+pushd .. && GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit && popd
+
+# Download the onos helm charts
+pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
+
 case "$testSuite" in
 "onos-topo")
      # onos-topo
      pushd ..
-     GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
      git clone https://github.com/onosproject/onos-topo.git
-     git clone https://github.com/onosproject/onos-helm-charts.git
+
      cd onos-topo
      make kind
      helmit test ./cmd/onos-topo-tests -c ../onos-helm-charts
+
      popd;;
 
 "onos-config")
     # onos-config
     pushd ..
-    GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
     git clone https://github.com/onosproject/onos-config.git
-    git clone https://github.com/onosproject/onos-helm-charts.git
+
     cd onos-config
     make kind
     helmit test ./cmd/onos-config-tests -c ../onos-helm-charts
-
     helmit benchmark ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 5ms --benchmark BenchmarkGet
     helmit benchmark ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkSet
 
@@ -43,21 +56,18 @@ case "$testSuite" in
 "onos-ric")
     # onos-ric
     pushd ..
-    GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
     git clone https://github.com/onosproject/onos-ric.git
-    git clone https://github.com/onosproject/onos-helm-charts.git
+
     cd onos-ric
     make kind
     helmit test ./cmd/onos-ric-tests -c ../onos-helm-charts
-
     helmit benchmark --benchmark BenchmarkGetStations --iterations 10000 --max-latency 2.5ms ./cmd/onos-ric-benchmarks -c ../onos-helm-charts
     popd;;
 
 "onos-helm-charts")
     # onos-helm-charts
     pushd ..
-    GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
-    git clone https://github.com/onosproject/onos-helm-charts.git
+    
     cd onos-helm-charts
     helmit test ./test -c .
     popd;;
