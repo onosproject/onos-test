@@ -1,6 +1,9 @@
 sudo: false
 
-language: minimal
+language: go
+
+go:
+  - '1.14.x'
 
 notifications:
   email: false
