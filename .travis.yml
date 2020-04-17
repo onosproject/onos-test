@@ -11,6 +11,8 @@ branches:
 
 jobs:
   include:
+    - stage: tests
+      script: true
 
     - stage: docs build
       if: type != pull_request
