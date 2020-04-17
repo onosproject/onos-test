@@ -35,8 +35,8 @@ case "$testSuite" in
     make kind
     helmit test ./cmd/onos-config-tests -c ../onos-helm-charts
 
-    helmit benchmark ./cmd/onos-config-benchmarks -c ../onos-helm-charts --requests 5000 --max-latency 5ms --benchmark BenchmarkGet
-    helmit benchmark ./cmd/onos-config-benchmarks -c ../onos-helm-charts --requests 5000 --max-latency 20ms --benchmark BenchmarkSet
+    helmit benchmark ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 5ms --benchmark BenchmarkGet
+    helmit benchmark ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkSet
 
     popd;;
 
@@ -46,12 +46,11 @@ case "$testSuite" in
     GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
     git clone https://github.com/onosproject/onos-ric.git
     git clone https://github.com/onosproject/onos-helm-charts.git
-    GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit
     cd onos-ric
     make kind
     helmit test ./cmd/onos-ric-tests -c ../onos-helm-charts
 
-    helmit benchmark --benchmark BenchmarkGetStations --requests 10000 --max-latency 2.5ms ./cmd/onos-ric-benchmarks -c ../onos-helm-charts
+    helmit benchmark --benchmark BenchmarkGetStations --iterations 10000 --max-latency 2.5ms ./cmd/onos-ric-benchmarks -c ../onos-helm-charts
     popd;;
 
 "onos-helm-charts")
