@@ -76,7 +76,3 @@ jobs:
         - kind create cluster
         - build/bin/run-integration-tests onos-helm-charts
 
-    - stage: push images
-      if: type != pull_request
-      script:
-          - bash ./build/bin/push-images
