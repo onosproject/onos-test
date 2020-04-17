@@ -17,14 +17,14 @@ jobs:
 
     # Build the docs
     - stage: docs build
-      #if: type != pull_request
+    if: type != pull_request
       script:
         - sh build/bin/trigger-docs-travis $TRAVIS_ACCESS_TOKEN
 
     # Run integration tests only on merge commits
     - stage: integration-tests
       name: "onos-topo integration tests"
-      if: type != pull_request
+      #if: type != pull_request
       notifications:
         email:
           - andrea@opennetworking.org
