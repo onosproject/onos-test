@@ -12,6 +12,13 @@ branches:
   only:
     - master
 
+before_install:
+  - wget https://kubernetes-helm.storage.googleapis.com/helm-v3.0.1-linux-amd64.tar.gz
+  - tar xzvf helm-v3.0.1-linux-amd64.tar.gz
+  - mv linux-amd64/helm helm
+  - chmod u+x helm
+  - mv helm /home/travis/bin/
+
 jobs:
   include:
     # This is the verification step for PRs. It is currently always successful.
