@@ -69,6 +69,7 @@ case "$testSuite" in
     pushd ..
     
     cd onos-helm-charts
+    helm dependency update sd-ran
     helmit test ./test -c .
     popd;;
 
