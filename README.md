@@ -6,8 +6,7 @@
 
 
 These tests for the [onos project] use 
-[helmit] for
-running end-to-end integration tests on [Kubernetes].
+[helmit] for running end-to-end integration tests on [Kubernetes].
 
 [Kubernetes]: https://kubernetes.io
 [onos project]: https://github.com/onosproject
