@@ -57,4 +57,9 @@ jobs:
       if: type != pull_request
       script:
         - build/bin/run-integration-tests onos-helm-charts
+    - # stage name not required, will continue to use `integration-tests`
+      name: "master build test"
+      #if: type != pull_request
+      script:
+        - build/bin/run-integration-tests master-build
 
