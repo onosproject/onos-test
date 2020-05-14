@@ -76,8 +76,6 @@ case "$testSuite" in
 "master-build")
     # build of all micro onos components
     pushd ..
-    git clone https://github.com/onosproject/build-tools.git
-    cd ..
     build-tools/build/release/release-micro-onos
     popd;;
 
