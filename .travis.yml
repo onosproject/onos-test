@@ -9,7 +9,7 @@ notifications:
   email: false
 
 branches:
-  only:
+  only: 
     - master
 
 before_install:
