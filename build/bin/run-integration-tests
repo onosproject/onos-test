@@ -28,7 +28,7 @@ pushd .. && GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit && po
 
 # Download the onos helm charts
 pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
-pushd onos-helm-charts && helm dependency update sd-ran && popd
+pushd ../onos-helm-charts && helm dependency update sd-ran && popd
 
 case "$testSuite" in
 "onos-topo")
