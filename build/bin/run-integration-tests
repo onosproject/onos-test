@@ -74,6 +74,14 @@ case "$testSuite" in
     helmit test ./test -c . --no-teardown
     popd;;
 
+"sdran-helm-charts")
+    # sdran-helm-charts
+    pushd ..
+
+    cd sdran-helm-charts
+    helmit test ./test -c . --no-teardown
+    popd;;
+
 "master-build")
     # build of all micro onos components
     pushd ..
