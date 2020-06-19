@@ -66,7 +66,7 @@ case "$testSuite" in
 
     cd onos-ric
     make kind
-    helmit test ./cmd/onos-ric-tests -c ../onos-helm-charts --no-teardown
+    helmit test ./cmd/onos-ric-tests -c ../sdran-helm-charts --no-teardown
     helmit benchmark --benchmark BenchmarkGetStations --iterations 10000 --max-latency 4ms ./cmd/onos-ric-benchmarks -c ../onos-helm-charts --no-teardown
     popd;;
 
