@@ -60,6 +60,11 @@ jobs:
       script:
         - build/bin/run-integration-tests onos-helm-charts
     - # stage name not required, will continue to use `integration-tests`
+      name: "sdran-helm-charts integration tests"
+      if: type != pull_request
+      script:
+        - build/bin/run-integration-tests sdran-helm-charts
+    - # stage name not required, will continue to use `integration-tests`
       name: "master build test"
       if: type != pull_request
       script:
