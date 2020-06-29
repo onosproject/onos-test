@@ -22,9 +22,11 @@ before_install:
   - mv linux-amd64/helm helm
   - chmod u+x helm
   - mv helm /home/travis/bin/
+  - git config --global url."https://onos-builder:${CI_TOKEN}@github.com".insteadOf "https://github.com"
 
 before_script:
   - pushd .. && git clone https://github.com/onosproject/build-tools.git && popd
+  - export GOPRIVATE="github.com/onosproject/onos-ric"
 
 jobs:
   include:
