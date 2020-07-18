@@ -45,30 +45,30 @@ jobs:
       name: "onos-topo integration tests"
       if: type != pull_request
       script:
-        - build/bin/run-integration-tests onos-topo
+        - build/bin/run-integration-tests onos-topo $WEBSITE_USER $WEBSITE_PASSWORD
     - # stage name not required, will continue to use `integration-tests`
       name: "onos-config integration tests"
       if: type != pull_request
       script:
-        - build/bin/run-integration-tests onos-config
+        - build/bin/run-integration-tests onos-config $WEBSITE_USER $WEBSITE_PASSWORD
     - # stage name not required, will continue to use `integration-tests`
       name: "onos-ric integration tests"
       if: type != pull_request
       script:
-        - build/bin/run-integration-tests onos-ric
+        - build/bin/run-integration-tests onos-ric $WEBSITE_USER $WEBSITE_PASSWORD
     - # stage name not required, will continue to use `integration-tests`
       name: "onos-helm-charts integration tests"
       if: type != pull_request
       script:
-        - build/bin/run-integration-tests onos-helm-charts
+        - build/bin/run-integration-tests onos-helm-charts $WEBSITE_USER $WEBSITE_PASSWORD
     - # stage name not required, will continue to use `integration-tests`
       name: "sdran-helm-charts integration tests"
       if: type != pull_request
       script:
-        - build/bin/run-integration-tests sdran-helm-charts
+        - build/bin/run-integration-tests sdran-helm-charts $WEBSITE_USER $WEBSITE_PASSWORD
     - # stage name not required, will continue to use `integration-tests`
       name: "master build test"
       if: type != pull_request
       script:
-        - build/bin/run-integration-tests master-build
+        - build/bin/run-integration-tests master-build $WEBSITE_USER $WEBSITE_PASSWORD
 
