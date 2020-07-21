@@ -74,7 +74,6 @@ case "$testSuite" in
     cd onos-ric
     make kind
     helm repo update
-    helm dep build
     helmit test ./cmd/onos-ric-tests -c .. --no-teardown
     helmit benchmark --benchmark BenchmarkGetStations --iterations 10000 --max-latency 4ms ./cmd/onos-ric-benchmarks -c ../sdran-helm-charts --no-teardown
     popd;;
