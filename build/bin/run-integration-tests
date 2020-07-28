@@ -91,6 +91,7 @@ case "$testSuite" in
 
 "master-build")
     # build of all micro onos components
+    helm repo add sdran --username ${WEBSITE_USER} --password ${WEBSITE_PASSWORD} https://sdrancharts.onosproject.org
     pushd ..
     export VERSION=v7.8.9 && build-tools/build/release/release-micro-onos
     popd;;
