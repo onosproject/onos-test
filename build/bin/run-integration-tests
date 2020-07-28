@@ -84,9 +84,8 @@ case "$testSuite" in
     pushd ..
 
     cd sdran-helm-charts
-    cd sd-ran-umbrella; helm dependency build; cd ..
-    helm dependency build
-    helmit test ./test -c . --no-teardown
+    cd sd-ran; helm dependency build; cd ..
+    make test
     popd;;
 
 "master-build")
