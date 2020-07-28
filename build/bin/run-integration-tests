@@ -66,8 +66,8 @@ case "$testSuite" in
 
     cd onos-ric
     make kind
-    helmit test ./cmd/onos-ric-tests -c .. --no-teardown
-    helmit benchmark --benchmark BenchmarkGetStations --iterations 10000 --max-latency 4ms ./cmd/onos-ric-benchmarks -c ../sdran-helm-charts --no-teardown
+    helmit test --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" ./cmd/onos-ric-tests -c .. --no-teardown
+    helmit benchmark --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" --benchmark BenchmarkGetStations --iterations 10000 --max-latency 4ms ./cmd/onos-ric-benchmarks -c ../sdran-helm-charts --no-teardown
     popd;;
 
 "onos-helm-charts")
