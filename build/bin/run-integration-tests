@@ -84,7 +84,7 @@ case "$testSuite" in
     pushd ..
 
     cd sdran-helm-charts
-    helm repo add sdran --username ${WEBSITE_USER} ${WEBSITE_PASSWORD} https://sdrancharts.onosproject.org
+    helm repo add sdran --username ${WEBSITE_USER} --password ${WEBSITE_PASSWORD} https://sdrancharts.onosproject.org
     cd sd-ran; helm dependency build; cd ..
     make test
     popd;;
