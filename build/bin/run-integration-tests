@@ -75,6 +75,7 @@ case "$testSuite" in
     pushd ..
 
     cd onos-helm-charts
+    helm repo add sdran --username ${WEBSITE_USER} ${WEBSITE_PASSWORD} https://sdrancharts.onosproject.org
     cd onos-umbrella; helm dependency build; cd ..
     helmit test ./test -c . --no-teardown
     popd;;
