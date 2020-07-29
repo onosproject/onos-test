@@ -71,4 +71,9 @@ jobs:
       if: type != pull_request
       script:
         - build/bin/run-integration-tests master-build $WEBSITE_USER $WEBSITE_PASSWORD
+    - # stage name not required, will continue to use `integration-tests`
+      name: "sdran smoke test"
+      if: type != pull_request
+      script:
+        - build/bin/smoke-sd-ran $WEBSITE_USER $WEBSITE_PASSWORD
 
