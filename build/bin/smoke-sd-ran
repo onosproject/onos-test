@@ -51,6 +51,10 @@ GO111MODULE=on go get sigs.k8s.io/kind
 # Make a kind cluster
 kind create cluster --quiet
 
+# Download the onos helm charts
+pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
+pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
+
 repo_user=$1
 repo_password=$2
 
