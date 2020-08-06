@@ -82,7 +82,7 @@ cd ..
 helm dependency update sd-ran
 
 helm install -n micro-onos \
-     --set global.store.controller=atomix-controller-kubernetes-controller:5679 \
+     --set global.storage.controller=atomix-controller-kubernetes-controller:5679 \
      --set import.nem-monitoring.enabled=false \
      --set import.onos-gui.enabled=true \
      --set import.onos-config.enabled=true \
