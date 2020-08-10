@@ -52,14 +52,19 @@ case "$testSuite" in
 
     cd onos-config
     make kind
-    helmit test ./cmd/onos-config-tests -c ../onos-helm-charts --no-teardown --suite cli
-    kind delete cluster && kind create cluster
-    helmit test ./cmd/onos-config-tests -c ../onos-helm-charts --no-teardown --suite gnmi
-    kind delete cluster && kind create cluster
-    helmit benchmark ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 5ms --benchmark BenchmarkGet --no-teardown
-    kind delete cluster && kind create cluster
-    helmit benchmark ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkSet --no-teardown
 
+    kubectl create ns cli-test
+    helmit test -n cli-test ./cmd/onos-config-tests --suite cli
+
+    kubectl create ns gnmi-test
+    helmit test -n gnmi-test ./cmd/onos-config-tests --suite gnmi
+
+    kubectl create ns gnmi-bench-set
+    helmit benchmark -n gnmi-bench-set ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkSet
+
+    kubectl create ns gnmi-bench-get
+    helmit benchmark -n gnmi-bench-get ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkGet
+    
     popd;;
 
 "onos-ric")
