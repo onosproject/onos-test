@@ -30,9 +30,9 @@ before_script:
 
 jobs:
   include:
-    # This is the verification step for PRs. It is currently always successful.
+    # This is the verification step for PRs.
     - stage: tests
-      script: true
+      script: make test
 
     # Build the docs
     - stage: docs build
