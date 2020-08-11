@@ -22,6 +22,7 @@ before_install:
   - mv linux-amd64/helm helm
   - chmod u+x helm
   - mv helm /home/travis/bin/
+  - mv linux-amd64 /home/travis
   - git config --global url."https://onos-builder:${CI_TOKEN}@github.com".insteadOf "https://github.com"
 
 before_script:
