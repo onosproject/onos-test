@@ -1,3 +1,3 @@
-module github.com/onosproject/onos-ric
+module github.com/onosproject/onos-test
 
 go 1.14
