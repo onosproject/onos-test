@@ -22,7 +22,7 @@ license_check: # @HELP examine and ensure license headers exist
 	./../build-tools/licensing/boilerplate.py -v --rootdir=${CURDIR}
 
 publish: # @HELP publish version on github and dockerhub
-	./../build-tools/publish-version ${VERSION}
+	bash -x ./../build-tools/publish-version ${VERSION}
 
 all: test
 
