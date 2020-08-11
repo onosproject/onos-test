@@ -33,8 +33,11 @@ jobs:
   include:
     # This is the verification step for PRs.
     - stage: tests
-      script: make test
-
+      script:
+        - make test
+        - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+             bash -x ../build-tools/release-merge-commit;
+           fi'
     # Build the docs
     - stage: docs build
       if: type != pull_request
