@@ -54,16 +54,16 @@ case "$testSuite" in
     make kind
 
     kubectl create ns cli-test
-    helmit test -n cli-test ./cmd/onos-config-tests --suite cli
+    helmit test -n cli-test ./cmd/onos-config-tests --suite cli --no-teardown
 
     kubectl create ns gnmi-test
-    helmit test -n gnmi-test ./cmd/onos-config-tests --suite gnmi
+    helmit test -n gnmi-test ./cmd/onos-config-tests --suite gnmi --no-teardown
 
     kubectl create ns gnmi-bench-set
-    helmit benchmark -n gnmi-bench-set ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkSet
+    helmit benchmark -n gnmi-bench-set ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkSet --no-teardown
 
     kubectl create ns gnmi-bench-get
-    helmit benchmark -n gnmi-bench-get ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkGet
+    helmit benchmark -n gnmi-bench-get ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkGet --no-teardown
     
     popd;;
 
