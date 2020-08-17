@@ -83,9 +83,10 @@ helm dependency update sd-ran
 
 helm install -n micro-onos \
      --set global.storage.controller=atomix-controller-kubernetes-controller:5679 \
-     --set import.nem-monitoring.enabled=false \
+     --set import.nem-monitoring.enabled=true \
      --set import.onos-gui.enabled=true \
      --set import.onos-config.enabled=true \
+     --set import.onos-cli.enabled=true \
      --set onos-ric.image.tag=latest \
      --set onos-ric-ho.image.tag=latest \
      --set onos-ric-mlb.image.tag=latest \
@@ -122,5 +123,9 @@ for i in $(seq 1 5); do
   fi
   currentCount=${newCount}
 done
+
+latency_string=$(kubectl -n micro-onos exec -it $(kubectl -n micro-onos get pods -l type=cli -o name) -- curl 'http://sd-ran-prometheus-server/api/v1/query?query=histogram_quantile(0.99,sum(onosproject_ransimulator_hometrics_bucket)by(le))' | jq .data.result[0].value[1] | sed s/\"//g )
+latency=$(bc <<< "scale=4;$latency_string/1000.0")
+echo $latency
 
 echo "Smoke test completed successfully!"
