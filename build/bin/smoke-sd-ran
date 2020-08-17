@@ -43,7 +43,7 @@ if [ "$#" -ne 2 ]; then
 fi
 
 # Download and install kubectl
-curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 
 # Download and install KinD
 GO111MODULE=on go get sigs.k8s.io/kind
@@ -124,8 +124,16 @@ for i in $(seq 1 5); do
   currentCount=${newCount}
 done
 
-latency_string=$(kubectl -n micro-onos exec -it $(kubectl -n micro-onos get pods -l type=cli -o name) -- curl 'http://sd-ran-prometheus-server/api/v1/query?query=histogram_quantile(0.99,sum(onosproject_ransimulator_hometrics_bucket)by(le))' | jq .data.result[0].value[1] | sed s/\"//g )
+# query the p99 latency
+latency_string=$(kubectl -n micro-onos exec -it "$(kubectl -n micro-onos get pods -l type=cli -o name)" -- curl 'http://sd-ran-prometheus-server/api/v1/query?query=histogram_quantile(0.99,sum(onosproject_ransimulator_hometrics_bucket)by(le))' | jq .data.result[0].value[1] | sed s/\"//g )
 latency=$(bc <<< "scale=4;$latency_string/1000.0")
-echo $latency
+
+# check the p99 latency
+p99_in_thousands=$(printf "%.0f" "$(bc <<< "$latency*1000")")
+if ((p99_in_thousands > 10000)) ; then
+  echo "P99 latency is too high at $latency"
+  exit 1;
+fi
+echo "p99 latency of $latency is acceptable."
 
 echo "Smoke test completed successfully!"
