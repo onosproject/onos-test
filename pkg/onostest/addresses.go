@@ -20,7 +20,7 @@ const (
 	SdranChartRepo                  = "https://sdrancharts.onosproject.org"
 	AtomixControllerPort            = "5679"
 	SecretsName                     = "helmit-secrets"
-	ControllerChartName             = "kubernetes-controller"
+	ControllerChartName             = "atomix-controller"
 	RaftStorageControllerChartName  = "raft-storage-controller"
 	CacheStorageControllerChartName = "cache-storage-controller"
 )
