@@ -30,7 +30,7 @@ func AtomixName(testName string, componentName string) string {
 }
 
 func AtomixControllerName(testName string, componentName string) string {
-	return AtomixName(testName, componentName) + "-kubernetes-controller"
+	return AtomixName(testName, componentName) + "-atomix-controller"
 }
 
 func AtomixController(testName string, componentName string) string {
