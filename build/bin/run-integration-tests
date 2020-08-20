@@ -99,6 +99,10 @@ case "$testSuite" in
 
     cd sdran-helm-charts
     helm repo add sdran --username ${WEBSITE_USER} --password ${WEBSITE_PASSWORD} https://sdrancharts.onosproject.org
+    helm repo add cord https://charts.opencord.org
+    helm repo add atomix https://charts.atomix.io
+    helm repo add onos https://charts.onosproject.org
+    helm repo update
     cd sd-ran; helm dependency build; cd ..
     make test
     popd;;
