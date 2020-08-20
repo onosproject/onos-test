@@ -110,6 +110,10 @@ case "$testSuite" in
 "master-build")
     # build of all micro onos components
     helm repo add sdran --username ${WEBSITE_USER} --password ${WEBSITE_PASSWORD} https://sdrancharts.onosproject.org
+    helm repo add cord https://charts.opencord.org
+    helm repo add atomix https://charts.atomix.io
+    helm repo add onos https://charts.onosproject.org
+    helm repo update
     pushd ..
     export VERSION=v7.8.9 && build-tools/build/release/release-micro-onos
     popd;;
