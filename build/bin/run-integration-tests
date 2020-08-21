@@ -90,7 +90,7 @@ case "$testSuite" in
 
     cd onos-helm-charts
     cd onos-umbrella; helm dependency build; cd ..
-    helmit test ./test -c . --no-teardown
+    make test
     popd;;
 
 "sdran-helm-charts")
