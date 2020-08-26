@@ -47,7 +47,7 @@ case "$testSuite" in
 
      popd;;
 
-"onos-config")
+"onos-config-tests")
     # onos-config
     pushd ..
     git clone https://github.com/onosproject/onos-config.git
@@ -61,12 +61,22 @@ case "$testSuite" in
     kubectl create ns gnmi-test
     helmit test -n gnmi-test ./cmd/onos-config-tests --suite gnmi --no-teardown
 
+    popd;;
+
+"onos-config-benchmarks")
+    # onos-config
+    pushd ..
+    git clone https://github.com/onosproject/onos-config.git
+
+    cd onos-config
+    make kind
+
     kubectl create ns gnmi-bench-set
     helmit benchmark -n gnmi-bench-set ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkSet --no-teardown
 
     kubectl create ns gnmi-bench-get
     helmit benchmark -n gnmi-bench-get ./cmd/onos-config-benchmarks -c ../onos-helm-charts --iterations 5000 --max-latency 20ms --benchmark BenchmarkGet --no-teardown
-    
+
     popd;;
 
 "onos-ric")
