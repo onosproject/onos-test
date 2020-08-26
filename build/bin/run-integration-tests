@@ -77,8 +77,11 @@ case "$testSuite" in
     cd onos-ric
     make kind
 
-    kubectl create ns ric-test
-    helmit test -n ric-test --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" ./cmd/onos-ric-tests -c .. --no-teardown
+    kubectl create ns ric-nb-test
+    helmit test -n ric-nb-test --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" ./cmd/onos-ric-tests --suite nb -c .. --no-teardown
+
+    kubectl create ns ric-ha-test
+    helmit test -n ric-ha-test --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" ./cmd/onos-ric-tests --suite ha -c .. --no-teardown
 
     kubectl create ns ric-bench-get
     helmit benchmark -n ric-bench-get --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" --benchmark BenchmarkGetStations --iterations 10000 --max-latency 4ms ./cmd/onos-ric-benchmarks -c ../sdran-helm-charts --no-teardown
