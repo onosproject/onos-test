@@ -55,7 +55,12 @@ jobs:
       name: "onos-config integration tests"
       if: type != pull_request
       script:
-        - build/bin/run-integration-tests onos-config $WEBSITE_USER $WEBSITE_PASSWORD
+        - build/bin/run-integration-tests onos-config-tests $WEBSITE_USER $WEBSITE_PASSWORD
+    - # stage name not required, will continue to use `integration-tests`
+      name: "onos-config benchmarks"
+      if: type != pull_request
+      script:
+        - build/bin/run-integration-tests onos-config-benchmarks $WEBSITE_USER $WEBSITE_PASSWORD
     - # stage name not required, will continue to use `integration-tests`
       name: "onos-ric integration tests"
       if: type != pull_request
