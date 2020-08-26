@@ -94,7 +94,7 @@ case "$testSuite" in
     helmit test -n ric-ha-test --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" ./cmd/onos-ric-tests --suite ha -c .. --no-teardown
 
     kubectl create ns ric-bench-get
-    helmit benchmark -n ric-bench-get --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" --benchmark BenchmarkGetStations --iterations 10000 --max-latency 4ms ./cmd/onos-ric-benchmarks -c ../sdran-helm-charts --no-teardown
+    helmit benchmark -n ric-bench-get --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" --benchmark BenchmarkGetStations --iterations 10000 --max-latency 4ms ./cmd/onos-ric-benchmarks -c .. --no-teardown
     popd;;
 
 "onos-helm-charts")
