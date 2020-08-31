@@ -91,11 +91,12 @@ helm install -n micro-onos \
      --set onos-ric-ho.image.tag=latest \
      --set onos-ric-mlb.image.tag=latest \
      --set onos-topo.image.tag=latest \
+     --set onos-config.image.tag=latest \
      --set onos-ric.replicaCount=1 \
      --set ran-simulator.image.tag=latest \
      --set ran-simulator.maxUEs=20000 \
      --set ran.simulator.minUEs=10000 \
-     --set onos-cli.image.tag=latest \
+     --set onos-sdran-cli.image.tag=latest \
      sd-ran ./sd-ran
 
 
