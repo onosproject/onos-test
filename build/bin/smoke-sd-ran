@@ -37,23 +37,26 @@ function countHandOvers {
   echo "${count}"
 }
 
-if [ "$#" -ne 2 ]; then
-  echo "Usage: smoke-sd-ran chart-repo-username chart-repo-password"
+if [ "$#" -gt 3 ]; then
+  echo "Usage: smoke-sd-ran chart-repo-username chart-repo-password [--no-installs]"
   exit 1
 fi
 
-# Download and install kubectl
-curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+if [ "$#" -eq 2 ]; then
+  # Download and install kubectl
+  curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 
-# Download and install KinD
-GO111MODULE=on go get sigs.k8s.io/kind
+  # Download and install KinD
+  GO111MODULE=on go get sigs.k8s.io/kind
+
+  # Download the onos helm charts
+  pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
+  pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
+fi
+
 
 # Make a kind cluster
 kind create cluster --quiet
-
-# Download the onos helm charts
-pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
-pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
 
 repo_user=$1
 repo_password=$2
@@ -66,23 +69,23 @@ helm repo add onos https://charts.onosproject.org
 helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
 helm repo update
 
+# install Atomix
+kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
+kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
+kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
+
+# create a namespace for ONOS
 kubectl create namespace micro-onos
 
-helm -n micro-onos install atomix-controller atomix/kubernetes-controller --set scope=Namespace
-helm -n micro-onos install cache-controller atomix/cache-storage-controller --set scope=Namespace
-helm -n micro-onos install raft-controller atomix/raft-storage-controller --set scope=Namespace
-
-sleep 20
-
+# get the chart dependencies up to date
 cd sdran-helm-charts/sd-ran
 rm -rf charts Chart.lock
 helm dep build
 cd ..
-
 helm dependency update sd-ran
 
+# install the sd-raan chart
 helm install -n micro-onos \
-     --set global.storage.controller=atomix-controller-kubernetes-controller:5679 \
      --set import.nem-monitoring.enabled=true \
      --set import.onos-gui.enabled=true \
      --set import.onos-config.enabled=true \
@@ -107,12 +110,14 @@ waitForCluster
 kubectl -n micro-onos port-forward "$(kubectl -n micro-onos get pods -l type=sim -o name)" 9090:9090 &
 sleep 5
 
+# make sure that handovers start
 startCount=$(countHandOvers)
 if (( startCount <= 0 )); then
     echo "Initial handover count is too small: ${startCount}"
     exit 1
 fi
 
+# make sure that handovers continue to happen
 currentCount=${startCount}
 for i in $(seq 1 12); do
   sleep 20
