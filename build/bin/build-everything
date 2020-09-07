@@ -1,0 +1,106 @@
+#!/bin/bash
+# Copyright 2020-present Open Networking Foundation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Script to do a dry run build of all the micro onos components
+
+
+set -e -u -o pipefail
+
+cd ..
+mkdir ./build-work-space
+cd ./build-work-space
+
+# pull master branches of included components
+for component in build-tools onos-lib-go helmit onos-topo onos-ric ran-simulator config-models onos-config onos-ztp onos-cli onos-helm-charts onos-docs onos-gui gnxi-simulators sdran-helm-charts
+do
+  echo "Cloning ${component}"
+  git clone git@github.com:onosproject/${component}.git --quiet
+done
+
+# build-tools
+cd ./build-tools
+make images
+cd ..
+
+# onos-lib-go
+cd ./onos-lib-go
+make
+cd ..
+
+# helmit
+cd ./helmit
+make
+cd ..
+
+# onos-topo
+cd ./onos-topo
+make images
+cd ..
+
+# onos-ric
+cd ./onos-ric
+make images
+cd ..
+
+# ran-simulator
+cd ./ran-simulator
+make images
+cd ..
+
+# config-models
+cd ./config-models
+make images
+cd ..
+
+# onos-config
+cd ./onos-config
+make images
+cd ..
+
+# onos-ztp
+cd ./onos-ztp
+make images
+cd ..
+
+# onos-cli
+cd ./onos-cli
+make images
+cd ..
+
+# onos-docs
+cd ./onos-docs
+make images
+cd ..
+
+# onos-gui
+cd ./onos-gui
+docker container run --rm -it -v $(pwd):/opt -w /opt teracy/angular-cli make deps build
+cd ..
+
+# gnxi-simulators
+cd ./gnxi-simulators
+make images
+cd ..
+
+
+
+
+
+
+
+
+
+
+
