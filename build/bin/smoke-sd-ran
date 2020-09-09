@@ -98,7 +98,7 @@ helm install -n micro-onos \
      --set onos-ric.replicaCount=1 \
      --set ran-simulator.image.tag=latest \
      --set ran-simulator.maxUEs=20000 \
-     --set ran.simulator.minUEs=10000 \
+     --set ran-simulator.minUEs=1000 \
      --set onos-sdran-cli.image.tag=latest \
      sd-ran ./sd-ran
 
