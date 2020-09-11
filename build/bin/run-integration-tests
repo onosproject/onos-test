@@ -87,6 +87,11 @@ case "$testSuite" in
     cd onos-ric
     make kind
 
+    # install Atomix
+    kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
+    kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
+    kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
+
     kubectl create ns ric-nb-test
     helmit test -n ric-nb-test --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" ./cmd/onos-ric-tests --suite nb -c .. --no-teardown
 
