@@ -61,6 +61,9 @@ case "$testSuite" in
     kubectl create ns gnmi-test
     helmit test -n gnmi-test ./cmd/onos-config-tests --suite gnmi --no-teardown
 
+    kubectl create ns ha-test
+    helmit test -n ha-test ./cmd/onos-config-tests --suite ha --no-teardown
+
     popd;;
 
 "onos-config-benchmarks")
