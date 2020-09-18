@@ -45,7 +45,12 @@ jobs:
       if: type != pull_request && fork == false
       script:
         - sh ../build-tools/build/travis/trigger-travis onosproject onos-docs master "`git rev-parse --short HEAD`" $TRAVIS_ACCESS_TOKEN
-
+    # release the component if needed
+    - stage: release
+      if: type != pull_request && fork == false
+      script:
+        - make test
+        - bash ../build-tools/release-merge-commit
     # Run integration tests only on merge commits
     - stage: integration-tests
       name: "onos-topo integration tests"
@@ -87,9 +92,3 @@ jobs:
       if: type != pull_request && fork == false
       script:
         - build/bin/smoke-sd-ran $WEBSITE_USER $WEBSITE_PASSWORD
-
-    - stage: release
-      if: type != pull_request && fork == false
-      script:
-        - make test
-        - bash ../build-tools/release-merge-commit
