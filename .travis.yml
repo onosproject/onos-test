@@ -16,9 +16,12 @@ branches:
     - master
 
 before_install:
-  - if [[ $TRAVIS_PULL_REQUEST == "false" && $TRAVIS_BRANCH == "master" ]] ; then openssl aes-256-cbc -K $encrypted_83d143b79455_key -iv $encrypted_83d143b79455_iv -in .ssh/id_rsa.enc -out ~/.ssh/id_rsa -d && chmod 600 ~/.ssh/id_rsa; fi
-  - wget https://get.helm.sh/helm-v3.2.0-linux-amd64.tar.gz
-  - tar xzvf helm-v3.2.0-linux-amd64.tar.gz
+  - 'if [[ $TRAVIS_PULL_REQUEST == "false" && $TRAVIS_BRANCH == "master" && $TRAVIS_SECURE_ENV_VARS == "true" ]] ; then
+         openssl aes-256-cbc -K $encrypted_83d143b79455_key -iv $encrypted_83d143b79455_iv -in .ssh/id_rsa.enc -out ~/.ssh/id_rsa -d &&
+         chmod 600 ~/.ssh/id_rsa;
+       fi'
+  - wget -q https://get.helm.sh/helm-v3.2.0-linux-amd64.tar.gz
+  - tar xzf helm-v3.2.0-linux-amd64.tar.gz
   - mv linux-amd64/helm helm
   - chmod u+x helm
   - mv helm /home/travis/bin/
@@ -34,56 +37,59 @@ jobs:
   include:
     # This is the verification step for PRs.
     - stage: tests
+      if: type == pull_request ||  fork == false
       script:
         - make test
-        - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-             bash -x ../build-tools/release-merge-commit;
-           fi'
     # Build the docs
     - stage: docs build
-      if: type != pull_request
+      if: type != pull_request && fork == false
       script:
         - sh ../build-tools/build/travis/trigger-travis onosproject onos-docs master "`git rev-parse --short HEAD`" $TRAVIS_ACCESS_TOKEN
 
     # Run integration tests only on merge commits
     - stage: integration-tests
       name: "onos-topo integration tests"
-      if: type != pull_request
+      if: type != pull_request && fork == false
       script:
         - build/bin/run-integration-tests onos-topo $WEBSITE_USER $WEBSITE_PASSWORD
     - # stage name not required, will continue to use `integration-tests`
       name: "onos-config integration tests"
-      if: type != pull_request
+      if: type != pull_request && fork == false
       script:
         - build/bin/run-integration-tests onos-config-tests $WEBSITE_USER $WEBSITE_PASSWORD
-    - # stage name not required, will continue to use `integration-tests`
+    -
       name: "onos-config benchmarks"
-      if: type != pull_request
+      if: type != pull_request && fork == false
       script:
         - build/bin/run-integration-tests onos-config-benchmarks $WEBSITE_USER $WEBSITE_PASSWORD
-    - # stage name not required, will continue to use `integration-tests`
+    -
       name: "onos-ric integration tests"
-      if: type != pull_request
+      if: type != pull_request && fork == false
       script:
         - build/bin/run-integration-tests onos-ric $WEBSITE_USER $WEBSITE_PASSWORD
-    - # stage name not required, will continue to use `integration-tests`
+    -
       name: "onos-helm-charts integration tests"
-      if: type != pull_request
+      if: type != pull_request && fork == false
       script:
         - build/bin/run-integration-tests onos-helm-charts $WEBSITE_USER $WEBSITE_PASSWORD
-    - # stage name not required, will continue to use `integration-tests`
+    -
       name: "sdran-helm-charts integration tests"
-      if: type != pull_request
+      if: type != pull_request && fork == false
       script:
         - build/bin/run-integration-tests sdran-helm-charts $WEBSITE_USER $WEBSITE_PASSWORD
-    - # stage name not required, will continue to use `integration-tests`
+    -
       name: "master build test"
-      if: type != pull_request
+      if: type != pull_request && fork == false
       script:
         - build/bin/run-integration-tests master-build $WEBSITE_USER $WEBSITE_PASSWORD
-    - # stage name not required, will continue to use `integration-tests`
+    -
       name: "sdran smoke test"
-      if: type != pull_request
+      if: type != pull_request && fork == false
       script:
         - build/bin/smoke-sd-ran $WEBSITE_USER $WEBSITE_PASSWORD
 
+    - stage: release
+      if: type != pull_request && fork == false
+      script:
+        - make test
+        - bash ../build-tools/release-merge-commit
