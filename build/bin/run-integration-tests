@@ -101,6 +101,9 @@ case "$testSuite" in
     kubectl create ns ric-ha-test
     helmit test -n ric-ha-test --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" ./cmd/onos-ric-tests --suite ha -c .. --no-teardown
 
+    kubectl create ns ric-k8s-ha-test
+    helmit test -n ric-k8s-ha-test --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" ./cmd/onos-ric-tests --suite hak8s -c .. --no-teardown
+
     kubectl create ns ric-mlb-test
     helmit test -n ric-mlb-test --secret "sd-ran-username=$WEBSITE_USER" --secret sd-ran-password="$WEBSITE_PASSWORD" ./cmd/onos-ric-tests --suite mlb --no-teardown -f sd-ran=test/mlb/prometheus.yml
 
