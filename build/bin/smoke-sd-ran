@@ -61,6 +61,8 @@ kind create cluster --quiet
 repo_user=$1
 repo_password=$2
 
+max_allowed_latency=500000
+
 pushd ..
 
 helm repo add cord https://charts.opencord.org
@@ -137,7 +139,7 @@ latency=$(bc <<< "scale=4;$latency_string/1000.0")
 
 # check the p99 latency
 p99_in_thousands=$(printf "%.0f" "$(bc <<< "$latency*1000")")
-if ((p99_in_thousands > 10000)) ; then
+if ((p99_in_thousands > max_allowed_latency)) ; then
   echo "P99 latency is too high at $latency"
   exit 1;
 fi
