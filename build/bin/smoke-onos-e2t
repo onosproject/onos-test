@@ -40,7 +40,7 @@ if [ "$#" -gt 1 ]; then
   exit 1
 fi
 
-if [ "$#" -eq 1 ]; then
+if [ "$#" -eq 0 ]; then
   # Download and install kubectl
   curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 
