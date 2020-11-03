@@ -108,7 +108,7 @@ while read -r line ; do
         continue
     fi
     if [ $headers_found = "1" ]; then
-        if [ ${tokens[0]} != "2289551029" ]; then
+        if [ ${tokens[0]} != "0x8877c6b5" ]; then
             echo "Global ID is incorrect. Failure!"
             exit 1
         fi
