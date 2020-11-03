@@ -1,0 +1,135 @@
+#!/bin/bash
+# Copyright 2020-present Open Networking Foundation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script is intended to be run from the onos-test directory as part of CI
+
+set -eu -o pipefail
+
+function waitForE2t {
+  while true; do
+    if kubectl -n micro-onos get pods -l type=e2t | grep -q "1/1"; then
+      break
+    fi
+    sleep 3
+  done
+}
+
+function waitForSim {
+  while true; do
+    if kubectl -n micro-onos get pods -l type=e2-simulator | grep -q "1/1"; then
+      break
+    fi
+    sleep 3
+  done
+}
+
+if [ "$#" -gt 1 ]; then
+  echo "Usage: smoke-onos-e2t [--no-installs]"
+  exit 1
+fi
+
+if [ "$#" -eq 0 ]; then
+  # Download and install kubectl
+  curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+
+  # Download and install KinD
+  GO111MODULE=on go get sigs.k8s.io/kind
+
+  # Pull the source repos
+  pushd .. && git clone git@github.com:onosproject/onos-e2t.git && popd
+  pushd .. && git clone git@github.com:onosproject/e2-simulator.git && popd
+  pushd .. && git clone git@github.com:onosproject/onos-cli.git && popd
+
+   # Download the onos helm charts
+  pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
+  pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
+fi
+
+# Make a kind cluster
+kind delete cluster && kind create cluster --quiet
+
+# Build the images
+pushd ../onos-e2t && make kind && popd
+pushd ../e2-simulator && make kind && popd
+pushd ../onos-cli && make kind && popd
+
+pushd ..
+
+helm repo add cord https://charts.opencord.org
+helm repo add atomix https://charts.atomix.io
+helm repo add onos https://charts.onosproject.org
+#helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
+helm repo update
+
+# create a namespace for ONOS
+kubectl create namespace micro-onos
+
+# get the chart dependencies up to date
+cd sdran-helm-charts/sd-ran
+rm -rf charts Chart.lock
+helm dep build
+cd ..
+helm dependency update sd-ran
+
+# install onos-e2t
+helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-e2t sdran/onos-e2t
+
+# Install the E2 simulator
+helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest e2-simulator sdran/e2-simulator
+
+popd
+
+waitForE2t
+waitForSim
+
+tmpfile="/tmp/smoke$$"
+kubectl run onos-sdran-cli -n micro-onos --rm -it --image onosproject/onos-sdran-cli:latest --restart Never --command /usr/local/bin/sdran e2t get connections > $tmpfile
+
+headers_found="0"
+while read -r line ; do
+    tokens=( $line )
+    if [ ${tokens[0]} = "Global" -a ${tokens[1]} = "ID" ]; then
+        headers_found="1"
+        continue
+    fi
+    if [ $headers_found = "1" ]; then
+        if [ ${tokens[0]} != "2289551029" ]; then
+            echo "Global ID is incorrect. Failure!"
+            exit 1
+        fi
+        if [ ${tokens[1]} != "onf" ]; then
+            echo "PLNM ID is incorrect. Failure!"
+            exit 1
+        fi
+        if [[ ! ${tokens[2]} =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            echo "IP address is incorrect. Failure!"
+            exit 1
+        fi
+        if [ ${tokens[3]} != "36422" ]; then
+            echo "Port is incorrect. Failure!"
+            exit 1
+        fi
+        break
+    fi
+done < $tmpfile
+
+if [ $headers_found != "1" ]; then
+    echo "CLI headers are wrong. Failure!"
+    exit 1
+fi
+
+rm $tmpfile
+
+echo "Smoke test completed successfully!"
