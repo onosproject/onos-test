@@ -60,7 +60,7 @@ jobs:
     - name: "E2 terminator smoke test"
       if: type != pull_request && fork == false
       script:
-        - build/bin/smoke-onos-e2t
+        - build/bin/smoke-onos-e2t $WEBSITE_USER $WEBSITE_PASSWORD
     - # stage name not required, will continue to use `integration-tests`
       name: "onos-config integration tests"
       if: type != pull_request && fork == false

@@ -35,12 +35,12 @@ function waitForSim {
   done
 }
 
-if [ "$#" -gt 1 ]; then
+if [ "$#" -gt 3 ]; then
   echo "Usage: smoke-onos-e2t [--no-installs]"
   exit 1
 fi
 
-if [ "$#" -eq 0 ]; then
+if [ "$#" -eq 2 ]; then
   # Download and install kubectl
   curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 
@@ -57,6 +57,9 @@ if [ "$#" -eq 0 ]; then
   pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
 fi
 
+repo_user=$1
+repo_password=$2
+
 # Make a kind cluster
 kind delete cluster && kind create cluster --quiet
 
@@ -70,7 +73,7 @@ pushd ..
 helm repo add cord https://charts.opencord.org
 helm repo add atomix https://charts.atomix.io
 helm repo add onos https://charts.onosproject.org
-#helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
+helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
 helm repo update
 
 # create a namespace for ONOS
