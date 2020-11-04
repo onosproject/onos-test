@@ -72,11 +72,6 @@ jobs:
       script:
         - build/bin/run-integration-tests onos-config-benchmarks $WEBSITE_USER $WEBSITE_PASSWORD
     -
-      name: "onos-ric integration tests"
-      if: type != pull_request && fork == false
-      script:
-        - build/bin/run-integration-tests onos-ric $WEBSITE_USER $WEBSITE_PASSWORD
-    -
       name: "onos-helm-charts integration tests"
       if: type != pull_request && fork == false
       script:
