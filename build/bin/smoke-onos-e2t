@@ -24,6 +24,7 @@ function waitForE2t {
     fi
     sleep 3
   done
+  echo "Terminator is running"
 }
 
 function waitForSim {
@@ -33,6 +34,7 @@ function waitForSim {
     fi
     sleep 3
   done
+  echo "Simulator is running"
 }
 
 if [ "$#" -gt 3 ]; then
@@ -94,6 +96,7 @@ helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest 
 
 popd
 
+# wait for nodes to start up
 waitForE2t
 waitForSim
 
@@ -124,6 +127,11 @@ while read -r line ; do
             echo "Port is incorrect. Failure!"
             exit 1
         fi
+        if [ ${tokens[4]} != "G_NB" ]; then
+            echo "Connection type is incorrect. Failure!"
+            exit 1
+        fi
+
         break
     fi
 done < $tmpfile
