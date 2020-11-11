@@ -86,8 +86,4 @@ jobs:
       if: type != pull_request && fork == false
       script:
         - build/bin/run-integration-tests master-build $WEBSITE_USER $WEBSITE_PASSWORD
-    -
-      name: "sdran smoke test"
-      if: type != pull_request && fork == false
-      script:
-        - build/bin/smoke-sd-ran $WEBSITE_USER $WEBSITE_PASSWORD
+    
