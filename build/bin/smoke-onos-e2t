@@ -76,6 +76,11 @@ repo_password=$2
 # Make a kind cluster
 kind delete cluster && kind create cluster --quiet
 
+# Create Atomix resources
+kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
+kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
+kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
+
 # Build the images
 pushd ../onos-e2t && make kind && popd
 pushd ../onos-e2sub && make kind && popd
