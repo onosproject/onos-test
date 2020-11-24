@@ -37,6 +37,16 @@ function waitForSim {
   echo "Simulator is running"
 }
 
+function waitForSub {
+  while true; do
+    if kubectl -n micro-onos get pods -l type=e2sub | grep -q "1/1"; then
+      break
+    fi
+    sleep 3
+  done
+  echo "Subscription service is running"
+}
+
 if [ "$#" -gt 3 ]; then
   echo "Usage: smoke-onos-e2t [--no-installs]"
   exit 1
@@ -99,6 +109,7 @@ popd
 # wait for nodes to start up
 waitForE2t
 waitForSim
+waitForSub
 
 tmpfile="/tmp/smoke$$"
 kubectl run onos-sdran-cli -n micro-onos --rm -it --image onosproject/onos-sdran-cli:latest --restart Never --command /usr/local/bin/sdran e2t list connections > $tmpfile
