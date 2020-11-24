@@ -61,6 +61,7 @@ if [ "$#" -eq 2 ]; then
 
   # Pull the source repos
   pushd .. && git clone git@github.com:onosproject/onos-e2t.git && popd
+  pushd .. && git clone git@github.com:onosproject/onos-e2sub.git && popd
   pushd .. && git clone git@github.com:onosproject/e2-simulator.git && popd
   pushd .. && git clone git@github.com:onosproject/onos-cli.git && popd
 
@@ -77,6 +78,7 @@ kind delete cluster && kind create cluster --quiet
 
 # Build the images
 pushd ../onos-e2t && make kind && popd
+pushd ../onos-e2sub && make kind && popd
 pushd ../e2-simulator && make kind && popd
 pushd ../onos-cli && make kind && popd
 
@@ -103,6 +105,9 @@ helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest 
 
 # Install the E2 simulator
 helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest e2-simulator sdran/e2-simulator
+
+# install onos-e2sub
+helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-e2sub sdran/onos-e2sub
 
 popd
 
