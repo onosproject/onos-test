@@ -29,7 +29,7 @@ function waitForE2t {
 
 function waitForSim {
   while true; do
-    if kubectl -n micro-onos get pods -l type=sim | grep -q "1/1"; then
+    if kubectl -n micro-onos get pods -l type=e2-simulator | grep -q "1/1"; then
       break
     fi
     sleep 3
@@ -62,7 +62,7 @@ if [ "$#" -eq 2 ]; then
   # Pull the source repos
   pushd .. && git clone git@github.com:onosproject/onos-e2t.git && popd
   pushd .. && git clone git@github.com:onosproject/onos-e2sub.git && popd
-  pushd .. && git clone git@github.com:onosproject/ran-simulator.git && popd
+  pushd .. && git clone git@github.com:onosproject/e2-simulator.git && popd
   pushd .. && git clone git@github.com:onosproject/onos-cli.git && popd
   pushd .. && git clone git@github.com:onosproject/onos-topo.git && popd
 
@@ -81,7 +81,7 @@ kind delete cluster && kind create cluster --quiet
 pushd ../onos-e2t && make kind && popd
 pushd ../onos-e2sub && make kind && popd
 pushd ../onos-topo && make kind && popd
-pushd ../ran-simulator && make kind && popd
+pushd ../e2-simulator && make kind && popd
 pushd ../onos-cli && make kind && popd
 
 pushd ..
@@ -92,18 +92,13 @@ helm repo add onos https://charts.onosproject.org
 helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
 helm repo update
 
-# install Atomix
-kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
-kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
-kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
-
 # create a namespace for ONOS
 kubectl create namespace micro-onos
 
 # get the chart dependencies up to date
 
 # install onos-topo
-helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-topo onos/onos-topo
+pushd ons-helm-charts && helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-topo onosproject/onos-topo && popd
 
 cd sdran-helm-charts/sd-ran
 rm -rf charts Chart.lock
@@ -114,8 +109,8 @@ helm dependency update sd-ran
 # install onos-e2t
 helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-e2t sdran/onos-e2t
 
-# Install the ran simulator
-helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest ran-simulator sdran/ran-simulator
+# Install the E2 simulator
+helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest e2-simulator sdran/e2-simulator
 
 # install onos-e2sub
 helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-e2sub sdran/onos-e2sub
@@ -138,11 +133,11 @@ while read -r line ; do
         continue
     fi
     if [ $headers_found = "1" ]; then
-        if [[ ! ${tokens[0]} =~ ^[a-f0-9]*:[a-f0-9]*$ ]]; then
+        if [[ ! $tokens[0] =~ ^[a-f0-9]*:[a-f0-9]*$ ]]; then
             echo "Global ID is incorrect. Failure!"
             exit 1
         fi
-        if [ ${tokens[1]} != "onf" ]; then
+        if [ $tokens[1] != "onf" ]; then
             echo "plnm ID is incorrect. Failure!"
             exit 1
         fi
@@ -150,7 +145,7 @@ while read -r line ; do
             echo "IP address is incorrect. Failure!"
             exit 1
         fi
-        if [[ ! ${tokens[3]} =~ ^[0-9]*$ ]]; then
+        if [ ${tokens[3]} != "36422" ]; then
             echo "Port is incorrect. Failure!"
             exit 1
         fi
