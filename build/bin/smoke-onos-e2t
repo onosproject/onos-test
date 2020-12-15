@@ -103,7 +103,7 @@ cd ..
 helm dependency update sd-ran
 
 # install onos-topo
-helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-topo sdran/onos-topo
+helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-topo onosproject/onos-topo
 
 # install onos-e2t
 helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-e2t sdran/onos-e2t
