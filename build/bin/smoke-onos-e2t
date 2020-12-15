@@ -64,6 +64,7 @@ if [ "$#" -eq 2 ]; then
   pushd .. && git clone git@github.com:onosproject/onos-e2sub.git && popd
   pushd .. && git clone git@github.com:onosproject/e2-simulator.git && popd
   pushd .. && git clone git@github.com:onosproject/onos-cli.git && popd
+  pushd .. && git clone git@github.com:onosproject/onos-topo.git && popd
 
    # Download the onos helm charts
   pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
@@ -79,6 +80,7 @@ kind delete cluster && kind create cluster --quiet
 # Build the images
 pushd ../onos-e2t && make kind && popd
 pushd ../onos-e2sub && make kind && popd
+pushd ../onos-topo && make kind && popd
 pushd ../e2-simulator && make kind && popd
 pushd ../onos-cli && make kind && popd
 
@@ -99,6 +101,9 @@ rm -rf charts Chart.lock
 helm dep build
 cd ..
 helm dependency update sd-ran
+
+# install onos-topo
+helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-topo sdran/onos-topo
 
 # install onos-e2t
 helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-e2t sdran/onos-e2t
