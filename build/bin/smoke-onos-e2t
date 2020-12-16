@@ -97,11 +97,6 @@ helm repo add onos https://charts.onosproject.org
 helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
 helm repo update
 
-# install Atomix
-kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
-kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
-kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
-
 # create a namespace for ONOS
 kubectl create namespace micro-onos
 
