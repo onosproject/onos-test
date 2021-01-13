@@ -25,7 +25,7 @@ set -e -u -o pipefail
 USAGE="Usage: smoke-riab sudo-password cord-repo-user cord-repo-password sdran-repo-user sdran-repo-password"
 
 if [ "$#" -ne 5 ]; then
-  echo $USAGE
+  echo "$USAGE"
   exit 1
 fi
 
@@ -35,7 +35,7 @@ CORD_PASSWORD=$3
 SDRAN_USERNAME=$4
 SDRAN_PASSWORD=$5
 
-echo $SUDO_PASSWORD | sudo -S ls
+echo "$SUDO_PASSWORD" | sudo -S ls
 
 export SDRAN_USERNAME
 export SDRAN_PASSWORD
@@ -78,7 +78,8 @@ make
 
 sleep 30
 
-for i in 1 2 3 4 5 6
+ITERATIONS=6
+for ((i=1;i<=ITERATIONS;i++))
 do
     if kubectl run cli-check-conenctions -n riab --rm -it --image onosproject/onos-sdran-cli:latest --restart Never --command /usr/local/bin/sdran e2t list connections | grep --text G_NB
     then
