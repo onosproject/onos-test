@@ -1,0 +1,92 @@
+#!/bin/bash
+# Copyright 2020-present Open Networking Foundation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# This is a smoke test for the Ran in a box (RiaB) sdran configuration using KinD. It is intended to be
+# run in a directory where the onosproject/sdran-in-a-box repo has been pulled.
+#
+# The script pulls the helm charts for Aether and SD-RAN from their source code repos on gerrit and github
+# respectively. You must set up an HTTP password on gerrit and pass it in the the script, as well as have an
+# ssh key already set up to access the private sdran repos on github.
+
+set -e -u -o pipefail
+
+USAGE="Usage: smoke-riab sudo-password cord-repo-user cord-repo-password sdran-repo-user sdran-repo-password"
+
+if [ "$#" -ne 5 ]; then
+  echo $USAGE
+  exit 1
+fi
+
+SUDO_PASSWORD=$1
+CORD_USERNAME=$2
+CORD_PASSWORD=$3
+SDRAN_USERNAME=$4
+SDRAN_PASSWORD=$5
+
+echo $SUDO_PASSWORD | sudo -S ls
+
+export SDRAN_USERNAME
+export SDRAN_PASSWORD
+
+# pull down the chart repos
+
+rm -rf ~/helm-charts
+mkdir ~/helm-charts
+pushd ~/helm-charts
+
+# aether charts
+git config --global credential.helper '!'"f() { echo \"username=${CORD_USERNAME}\\npassword=${CORD_PASSWORD}\"; }; f"
+git clone https://gerrit.opencord.org/aether-helm-charts
+git config --global credential.helper ""
+
+# onos sdran charts
+git clone git@github.com:onosproject/sdran-helm-charts.git
+
+popd
+
+kind delete cluster && kind create cluster
+
+sleep 30
+
+make clean
+
+sleep 30
+
+git checkout sdran-in-a-box*.yaml
+
+sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:v1.0.0#spgwc: docker.io/onosproject/riab-spgw:v1.0.0-onfvm-1#" sdran-in-a-box-values.yaml
+sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/onosproject/riab-bess-upf:v1.0.0-onfvm-1#" sdran-in-a-box-values.yaml
+sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values.yaml
+
+sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:v1.0.0#spgwc: docker.io/onosproject/riab-spgw:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
+sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/onosproject/riab-bess-upf:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
+sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
+
+make
+
+sleep 30
+
+for i in 1 2 3 4 5 6
+do
+    if kubectl run cli-check-conenctions -n riab --rm -it --image onosproject/onos-sdran-cli:latest --restart Never --command /usr/local/bin/sdran e2t list connections | grep --text G_NB
+    then
+        echo RAN in a Box smoke test passed!
+        exit 0
+    fi
+    sleep 10
+done
+
+echo *** No G_NB connection found. Smoke test failed! ***
+exit 1
