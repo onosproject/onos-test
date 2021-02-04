@@ -142,7 +142,7 @@ case "$testSuite" in
 "master-build")
     # build of all micro onos components
     pushd ..
-    onos-test/build/bin/build-everything
+    ../onos-test/build/bin/build-everything
     popd;;
 
 *) echo "You have failed to specify test suite."
