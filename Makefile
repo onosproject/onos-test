@@ -38,6 +38,15 @@ onos-topo-integration-tests:
 onos-config-integration-tests:
 	./build/bin/run-integration-tests onos-config-tests
 
+onos-helm-charts-tests:
+	./build/bin/run-integration-tests onos-helm-charts
+
+sdran-helm-charts-tests:
+	./build/bin/run-integration-tests sdran-helm-charts
+
+onos-master-build-test:
+	./build/bin/run-integration-tests master-build
+
 help:
 	@grep -E '^.*: *# *@HELP' $(MAKEFILE_LIST) \
     | sort \
