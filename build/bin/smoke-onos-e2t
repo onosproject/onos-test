@@ -52,13 +52,7 @@ if [ "$#" -gt 1 ]; then
   exit 1
 fi
 
-if [ "$#" -eq 1 ]; then
-  # Download and install kubectl
-  curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-
-  # Download and install KinD
-  GO111MODULE=on go get sigs.k8s.io/kind
-
+if [ "$#" -eq 0 ]; then
   # Pull the source repos
   pushd .. && git clone git@github.com:onosproject/onos-e2t.git && popd
   pushd .. && git clone git@github.com:onosproject/onos-e2sub.git && popd
@@ -71,7 +65,7 @@ if [ "$#" -eq 1 ]; then
   pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
 fi
 
-mkdir smoke && pushd smoke
+rm -rf smoke && mkdir smoke && pushd smoke
 
 # Make a kind cluster
 kind delete cluster && kind create cluster --quiet
