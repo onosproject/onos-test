@@ -43,7 +43,7 @@ pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && pop
 pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
 
 case "$testSuite" in
-"onos-topo")
+"onos-topo-tests")
      # onos-topo
      pushd ..
      git clone https://github.com/onosproject/onos-topo.git
