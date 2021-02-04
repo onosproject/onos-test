@@ -29,6 +29,9 @@ all: test
 clean: # @HELP remove all the build artifacts
 	rm -rf ./build/_output ./vendor
 
+e2t-smoke:
+	./build/bin/smoke-onos-e2t
+
 help:
 	@grep -E '^.*: *# *@HELP' $(MAKEFILE_LIST) \
     | sort \

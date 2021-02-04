@@ -47,12 +47,12 @@ function waitForSub {
   echo "Subscription service is running"
 }
 
-if [ "$#" -gt 3 ]; then
+if [ "$#" -gt 1 ]; then
   echo "Usage: smoke-onos-e2t [--no-installs]"
   exit 1
 fi
 
-if [ "$#" -eq 2 ]; then
+if [ "$#" -eq 1 ]; then
   # Download and install kubectl
   curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 
@@ -71,8 +71,7 @@ if [ "$#" -eq 2 ]; then
   pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
 fi
 
-repo_user=$1
-repo_password=$2
+mkdir smoke && pushd smoke
 
 # Make a kind cluster
 kind delete cluster && kind create cluster --quiet
