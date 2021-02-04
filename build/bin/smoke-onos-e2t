@@ -53,6 +53,8 @@ if [ "$#" -gt 1 ]; then
 fi
 
 if [ "$#" -eq 0 ]; then
+  rm -rf smoke && mkdir smoke && pushd smoke
+
   # Pull the source repos
   pushd .. && git clone git@github.com:onosproject/onos-e2t.git && popd
   pushd .. && git clone git@github.com:onosproject/onos-e2sub.git && popd
@@ -64,8 +66,6 @@ if [ "$#" -eq 0 ]; then
   pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
   pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
 fi
-
-rm -rf smoke && mkdir smoke && pushd smoke
 
 # Make a kind cluster
 kind delete cluster && kind create cluster --quiet
