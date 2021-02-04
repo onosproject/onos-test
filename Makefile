@@ -33,10 +33,10 @@ e2t-smoke:
 	./build/bin/smoke-onos-e2t
 
 onos-topo-integration-tests:
-	./build/bin/run-integration-tests onos-topo
+	./build/bin/run-integration-tests onos-topo-tests
 
 onos-config-integration-tests:
-	./build/bin/run-integration-tests onos-config
+	./build/bin/run-integration-tests onos-config-tests
 
 help:
 	@grep -E '^.*: *# *@HELP' $(MAKEFILE_LIST) \
