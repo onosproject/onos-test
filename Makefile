@@ -32,6 +32,12 @@ clean: # @HELP remove all the build artifacts
 e2t-smoke:
 	./build/bin/smoke-onos-e2t
 
+onos-topo-integration-tests:
+	./build/bin/run-integration-tests onos-topo
+
+onos-config-integration-tests:
+	./build/bin/run-integration-tests onos-config
+
 help:
 	@grep -E '^.*: *# *@HELP' $(MAKEFILE_LIST) \
     | sort \
