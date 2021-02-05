@@ -96,7 +96,7 @@ cd ..
 
 # onos-gui
 cd ./onos-gui
-docker container run --rm -it -v $(pwd):/opt -w /opt teracy/angular-cli make deps build
+docker container run --rm -v $(pwd):/opt -w /opt teracy/angular-cli make deps build
 cd ..
 
 # gnxi-simulators
