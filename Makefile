@@ -38,6 +38,9 @@ onos-topo-integration-tests:
 onos-config-integration-tests:
 	./build/bin/run-integration-tests onos-config-tests
 
+onos-e2t-integration-tests:
+	./build/bin/run-integration-tests onos-e2t-tests
+
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 

@@ -42,6 +42,8 @@ pushd .. && GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit && po
 pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
 pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
 
+common_args="--secret sd-ran-username=$repo_user --secret sd-ran-password=$repo_password --no-teardown"
+
 case "$testSuite" in
 "onos-topo-tests")
      # onos-topo
@@ -91,8 +93,31 @@ case "$testSuite" in
 
     popd;;
 
+"onos-e2t-tests")
+    # onos-e2t
+    pushd ..
+    git clone git@github.com:onosproject/onos-e2t.git
+
+    cd onos-e2t
+    make kind
+
+    kubectl delete ns e2t-sub-test || true
+    kubectl create ns e2t-sub-test
+    helmit test -n e2t-sub-test $common_args ./cmd/onos-e2t-tests --test TestSubscription
+
+    kubectl delete ns e2t-sub-del-test || true
+    kubectl create ns e2t-sub-del-test
+    helmit test -n e2t-sub-del-test $common_args ./cmd/onos-e2t-tests --test TestSubscriptionDelete
+
+    kubectl delete ns e2t-sub-node-down-test || true
+    kubectl create ns e2t-sub-node-down-test
+    helmit test -n e2t-sub-node-down-test $common_args ./cmd/onos-e2t-tests --test TestE2NodeDownSubscription
+
+    popd;;
+
 "onos-ric")
     # onos-ric
+    # DEPRECATED
     pushd ..
     git clone git@github.com:onosproject/onos-ric.git
 
