@@ -32,6 +32,9 @@ clean: # @HELP remove all the build artifacts
 e2t-smoke:
 	./build/bin/smoke-onos-e2t
 
+riab-smoke:
+	./build/bin/smoke-riab
+
 onos-topo-integration-tests:
 	./build/bin/run-integration-tests onos-topo-tests
 

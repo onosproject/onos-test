@@ -22,23 +22,7 @@
 
 set -e -u -o pipefail
 
-USAGE="Usage: smoke-riab sudo-password cord-repo-user cord-repo-password sdran-repo-user sdran-repo-password"
-
-if [ "$#" -ne 5 ]; then
-  echo "$USAGE"
-  exit 1
-fi
-
-SUDO_PASSWORD=$1
-CORD_USERNAME=$2
-CORD_PASSWORD=$3
-SDRAN_USERNAME=$4
-SDRAN_PASSWORD=$5
-
-echo "$SUDO_PASSWORD" | sudo -S ls
-
-export SDRAN_USERNAME
-export SDRAN_PASSWORD
+echo "$sdran_vm_password" | sudo -S ls
 
 # pull down the chart repos
 
@@ -47,14 +31,16 @@ mkdir ~/helm-charts
 pushd ~/helm-charts
 
 # aether charts
-git config --global credential.helper '!'"f() { echo \"username=${CORD_USERNAME}\\npassword=${CORD_PASSWORD}\"; }; f"
-git clone https://gerrit.opencord.org/aether-helm-charts
-git config --global credential.helper ""
+git clone git@gerrit.opencord.org:29418/aether-helm-charts.git
 
 # onos sdran charts
 git clone git@github.com:onosproject/sdran-helm-charts.git
 
 popd
+
+rmdir -rf riab-workspace && mkdir riab-workspace
+pushd riab-workspace
+git clone git@github.com:onosproject/sdran-in-a-box.git
 
 kind delete cluster && kind create cluster
 
