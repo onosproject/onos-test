@@ -27,6 +27,10 @@ echo "$sdran_vm_password" | sudo -S ls
 # pull down the chart repos
 
 WORKSPACE=${WORKSPACE:-~}
+
+export SDRAN_USERNAME=$repo_user
+export SDRAN_PASSWORD=$repo_password
+
 rm -rf ${WORKSPACE}/helm-charts
 mkdir ${WORKSPACE}/helm-charts
 pushd ${WORKSPACE}/helm-charts
