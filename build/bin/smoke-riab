@@ -41,6 +41,7 @@ popd
 rm -rf riab-workspace && mkdir riab-workspace
 pushd riab-workspace
 git clone git@github.com:onosproject/sdran-in-a-box.git
+cd sdran-in-a-box
 
 kind delete cluster && kind create cluster
 
