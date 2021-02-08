@@ -26,9 +26,10 @@ echo "$sdran_vm_password" | sudo -S ls
 
 # pull down the chart repos
 
-rm -rf ~/helm-charts
-mkdir ~/helm-charts
-pushd ~/helm-charts
+WORKSPACE=${WORKSPACE:-~}
+rm -rf ${WORKSPACE}/helm-charts
+mkdir ${WORKSPACE}/helm-charts
+pushd ${WORKSPACE}/helm-charts
 
 # aether charts
 git clone ssh://jenkins@gerrit.opencord.org:29418/aether-helm-charts
