@@ -22,8 +22,7 @@
 
 set -e -u -o pipefail
 
-sdran_vm_password="jenkins"
-echo "$sdran_vm_password" | sudo -S ls
+echo jenkins | sudo -S ls
 
 # pull down the chart repos
 
