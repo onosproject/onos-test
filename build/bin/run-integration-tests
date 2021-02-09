@@ -115,6 +115,20 @@ case "$testSuite" in
 
     popd;;
 
+"ran-sim-tests")
+    # ran-simulator
+    pushd ..
+    git clone git@github.com:onosproject/ran-simulator.git
+
+    cd ran-simulator
+    make kind
+
+    kubectl delete ns ran-sim-test || true
+    kubectl create ns ran-sim-test
+    helmit test -n ran-sim-test $common_args ./cmd/ransim-tests
+
+    popd;;
+
 "onos-ric")
     # onos-ric
     # DEPRECATED

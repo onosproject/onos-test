@@ -44,6 +44,9 @@ onos-config-integration-tests:
 onos-e2t-integration-tests:
 	./build/bin/run-integration-tests onos-e2t-tests
 
+ran-sim-integration-tests:
+	./build/bin/run-integration-tests ran-sim-tests
+
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 
