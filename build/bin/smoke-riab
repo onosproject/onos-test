@@ -22,18 +22,19 @@
 
 set -e -u -o pipefail
 
-echo "$sdran_vm_password" | sudo -S ls
-
-# pull down the chart repos
-
+# set a default workspace if not running on Jenkins
 WORKSPACE=${WORKSPACE:-~}
 
+# import sdran chart repo credentials
 export SDRAN_USERNAME=$repo_user
 export SDRAN_PASSWORD=$repo_password
 
+# directory to hold the dowloaded charts
 rm -rf ${WORKSPACE}/helm-charts
 mkdir ${WORKSPACE}/helm-charts
 pushd ${WORKSPACE}/helm-charts
+
+# pull down the chart repos
 
 # aether charts
 git clone ssh://jenkins@gerrit.opencord.org:29418/aether-helm-charts
@@ -43,19 +44,21 @@ git clone git@github.com:onosproject/sdran-helm-charts.git
 
 popd
 
+# clone the RIAB sources
 rm -rf riab-workspace && mkdir riab-workspace
 pushd riab-workspace
 git clone git@github.com:onosproject/sdran-in-a-box.git
 cd sdran-in-a-box
 
+# set up a KinD cluster
 kind delete cluster && kind create cluster
-
 sleep 30
 
+# initialize the system
 make clean
-
 sleep 30
 
+# override defaults for RIAB versions
 git checkout sdran-in-a-box*.yaml
 
 sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:v1.0.0#spgwc: docker.io/onosproject/riab-spgw:v1.0.0-onfvm-1#" sdran-in-a-box-values.yaml
@@ -66,10 +69,11 @@ sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:v1.0.0#spgwc: docker.io/onos
 sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/onosproject/riab-bess-upf:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
 sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
 
+# Install RIAB
 make
-
 sleep 30
 
+# make sure that RIAB is running by checking for an onos e2t connection
 ITERATIONS=6
 for ((i=1;i<=ITERATIONS;i++))
 do
