@@ -122,6 +122,7 @@ waitForSub
 
 tmpfile="/tmp/smoke$$"
 kubectl run onos-sdran-cli -n micro-onos --rm -it --image onosproject/onos-sdran-cli:latest --restart Never --command /usr/local/bin/sdran e2t list connections > $tmpfile
+cat $tmpfile
 
 headers_found="0"
 while read -r line ; do
@@ -135,7 +136,7 @@ while read -r line ; do
             echo "Global ID is incorrect. Failure!"
             exit 1
         fi
-        if [ ${tokens[1]} != "onf" ]; then
+        if [[ ! ${tokens[1]} =~ ^[0-9]*$ ]]; then
             echo "plnm ID is incorrect. Failure!"
             exit 1
         fi
@@ -161,7 +162,6 @@ if [ $headers_found != "1" ]; then
     exit 1
 fi
 
-cat $tmpfile
 rm $tmpfile
 
 echo "Smoke test completed successfully!"
