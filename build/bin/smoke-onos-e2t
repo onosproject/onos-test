@@ -161,6 +161,7 @@ if [ $headers_found != "1" ]; then
     exit 1
 fi
 
+cat $tmpfile
 rm $tmpfile
 
 echo "Smoke test completed successfully!"
