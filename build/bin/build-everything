@@ -99,13 +99,4 @@ cd ./gnxi-simulators
 make images
 cd ..
 
-
-
-
-
-
-
-
-
-
-
+sudo chown -R jenkins build-work-space
