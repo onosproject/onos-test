@@ -121,7 +121,7 @@ waitForSim
 waitForSub
 
 tmpfile="/tmp/smoke$$"
-kubectl run onos-sdran-cli -n micro-onos --rm -it --image onosproject/onos-sdran-cli:latest --restart Never --command /usr/local/bin/sdran e2t list connections > $tmpfile
+kubectl run onos-cli -n micro-onos --rm -it --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections > $tmpfile
 cat $tmpfile
 
 headers_found="0"
