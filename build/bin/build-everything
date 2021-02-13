@@ -23,7 +23,7 @@ mkdir ./build-work-space
 cd ./build-work-space
 
 # pull master branches of included components
-for component in build-tools onos-lib-go helmit onos-topo ran-simulator config-models onos-config onos-ztp onos-cli onos-helm-charts onos-docs onos-gui gnxi-simulators sdran-helm-charts onos-e2sub onos-e2t onos-ric-sdk-go
+for component in build-tools onos-lib-go helmit onos-topo ran-simulator config-models onos-config onos-cli onos-helm-charts onos-docs onos-gui gnxi-simulators sdran-helm-charts onos-e2sub onos-e2t onos-ric-sdk-go
 do
   echo "Cloning ${component}"
   git clone git@github.com:onosproject/${component}.git --quiet
@@ -76,11 +76,6 @@ cd ..
 
 # onos-config
 cd ./onos-config
-make images
-cd ..
-
-# onos-ztp
-cd ./onos-ztp
 make images
 cd ..
 
