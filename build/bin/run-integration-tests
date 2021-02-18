@@ -101,6 +101,10 @@ case "$testSuite" in
     cd onos-e2t
     make kind
 
+    kubectl delete ns e2t-invalid-action-id-test || true
+    kubectl create ns e2t-invalid-action-id-test
+    helmit test -n e2t-invalid-action-id-test $common_args ./cmd/onos-e2t-tests --test TestInvalidActionID
+
     kubectl delete ns e2t-sub-test || true
     kubectl create ns e2t-sub-test
     helmit test -n e2t-sub-test $common_args ./cmd/onos-e2t-tests --test TestSubscription
