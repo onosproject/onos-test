@@ -8,6 +8,7 @@ test: deps license_check linters
 
 jenkins-test:  # @HELP run the unit tests and source code validation producing a junit style report for Jenkins
 jenkins-test: build-tools deps license_check linters
+	TEST_PACKAGES=github.com/onosproject/onos-test/pkg/... ./../build-tools/build/jenkins/make-unit
 
 coverage: # @HELP generate unit test coverage data
 coverage: test
