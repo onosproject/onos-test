@@ -1,5 +1,6 @@
 export CGO_ENABLED=0
 export GO111MODULE=on
+export CGO_ENABLED=1
 
 .PHONY: build
 
