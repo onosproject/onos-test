@@ -26,152 +26,106 @@ then
   testSuite=$1
 fi
 
+# Create a clean KinD cluster
 kind delete cluster && kind create cluster --quiet
-
-rm -rf integration-tests && mkdir integration-tests && pushd integration-tests
 
 # install Atomix
 kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
 kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
 kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
 
+rm -rf integration-tests && mkdir integration-tests && pushd integration-tests
+
 # Download helmit
 pushd .. && GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit && popd
 
 # Download the onos helm charts
-pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
-pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
+git clone https://github.com/onosproject/onos-helm-charts.git
+git clone git@github.com:onosproject/sdran-helm-charts.git
 
 common_args="--secret sd-ran-username=$repo_user --secret sd-ran-password=$repo_password --no-teardown"
+
+run_integration_test() {
+     test_name=$1
+     binary_name=$2
+     export NAMESPACE=$(echo $test_name | tr "[:upper:]" "[:lower:]" )
+     export NAMESPACE=${NAMESPACE}-ns
+     echo $NAMESPACE
+     ( kubectl delete ns "$NAMESPACE" || true ) && kubectl create ns "$NAMESPACE"
+     helmit test -n "$NAMESPACE" $common_args "$binary_name" --test "$test_name" --no-teardown
+     ../../build/bin/check-test-log-errors
+}
+
+run_integration_test_suite() {
+     suite_name=$1
+     binary_name=$2
+     export NAMESPACE=$(echo $suite_name | tr "[:upper:]" "[:lower:]" )
+     export NAMESPACE=${NAMESPACE}-ns
+     echo $NAMESPACE
+     ( kubectl delete ns "$NAMESPACE" || true ) && kubectl create ns "$NAMESPACE"
+     helmit test -n "$NAMESPACE" $common_args "$binary_name" --suite "$suite_name" --no-teardown
+     ../../build/bin/check-test-log-errors
+}
 
 case "$testSuite" in
 "onos-topo-tests")
      # onos-topo
-     pushd ..
      git clone https://github.com/onosproject/onos-topo.git
 
      cd onos-topo
      make kind
 
-     kubectl create ns topo-test
-     helmit test -n topo-test ./cmd/onos-topo-tests -c ../onos-helm-charts --no-teardown
+     run_integration_test_suite "topo" "./cmd/onos-topo-tests"
 
-     popd;;
+     ;;
 
 "onos-config-tests")
     # onos-config
-    pushd ..
     git clone https://github.com/onosproject/onos-config.git
 
     cd onos-config
     make kind
 
-    kubectl create ns cli-test
-    helmit test -n cli-test ./cmd/onos-config-tests --suite cli --no-teardown
+    run_integration_test_suite "cli" "./cmd/onos-config-tests"
+    run_integration_test_suite "gnmi" "./cmd/onos-config-tests"
+    run_integration_test_suite "ha" "./cmd/onos-config-tests"
 
-    kubectl create ns gnmi-test
-    helmit test -n gnmi-test ./cmd/onos-config-tests --suite gnmi --no-teardown
-
-    kubectl create ns ha-test
-    helmit test -n ha-test ./cmd/onos-config-tests --suite ha --no-teardown
-
-    popd;;
-
-"onos-config-benchmarks")
-    # onos-config
-    pushd ..
-    git clone https://github.com/onosproject/onos-config.git
-
-    cd onos-config
-    make kind
-
-    kubectl create ns gnmi-bench-set
-    helmit benchmark -n gnmi-bench-set ./cmd/onos-config-benchmarks --iterations 5000 --max-latency 20ms --benchmark BenchmarkSet --no-teardown
-
-    kubectl create ns gnmi-bench-get
-    helmit benchmark -n gnmi-bench-get ./cmd/onos-config-benchmarks --iterations 5000 --max-latency 20ms --benchmark BenchmarkGet --no-teardown
-
-    popd;;
+    ;;
 
 "onos-e2t-tests")
     # onos-e2t
-    pushd ..
     git clone git@github.com:onosproject/onos-e2t.git
 
     cd onos-e2t
     make kind
 
-    kubectl delete ns e2t-invalid-action-id-test || true
-    kubectl create ns e2t-invalid-action-id-test
-    helmit test -n e2t-invalid-action-id-test $common_args ./cmd/onos-e2t-tests --test TestInvalidActionID
-
-    kubectl delete ns e2t-sub-test || true
-    kubectl create ns e2t-sub-test
-    helmit test -n e2t-sub-test $common_args ./cmd/onos-e2t-tests --test TestSubscription
-
-    kubectl delete ns e2t-sub-del-test || true
-    kubectl create ns e2t-sub-del-test
-    helmit test -n e2t-sub-del-test $common_args ./cmd/onos-e2t-tests --test TestSubscriptionDelete
-
-    kubectl delete ns e2t-sub-node-down-test || true
-    kubectl create ns e2t-sub-node-down-test
-    helmit test -n e2t-sub-node-down-test $common_args ./cmd/onos-e2t-tests --test TestE2NodeDownSubscription
+    run_integration_test "TestSubscription" "./cmd/onos-e2t-tests"
+    run_integration_test "TestSubscriptionDelete" "./cmd/onos-e2t-tests"
+    run_integration_test "TestE2NodeDownSubscription" "./cmd/onos-e2t-tests"
+    run_integration_test "TestInvalidActionID" "./cmd/onos-e2t-tests"
 
     popd;;
 
 "ran-sim-tests")
     # ran-simulator
-    pushd ..
     git clone git@github.com:onosproject/ran-simulator.git
 
     cd ran-simulator
     make kind
 
-    kubectl delete ns ran-sim-test || true
-    kubectl create ns ran-sim-test
-    helmit test -n ran-sim-test $common_args ./cmd/ransim-tests
-
-    popd;;
-
-"onos-ric")
-    # onos-ric
-    # DEPRECATED
-    pushd ..
-    git clone git@github.com:onosproject/onos-ric.git
-
-    cd onos-ric
-    make kind
-
-    kubectl create ns ric-nb-test
-    helmit test -n ric-nb-test --secret "sd-ran-username=$repo_user" --secret sd-ran-password="$repo_password" ./cmd/onos-ric-tests --suite nb --no-teardown
-
-    kubectl create ns ric-ha-test
-    helmit test -n ric-ha-test --secret "sd-ran-username=$repo_user" --secret sd-ran-password="$repo_password" ./cmd/onos-ric-tests --suite ha --no-teardown
-
-    kubectl create ns ric-k8s-ha-test
-    helmit test -n ric-k8s-ha-test --secret "sd-ran-username=$repo_user" --secret sd-ran-password="$repo_password" ./cmd/onos-ric-tests --suite hak8s --no-teardown
-
-    kubectl create ns ric-mlb-test
-    helmit test -n ric-mlb-test --secret "sd-ran-username=$repo_user" --secret sd-ran-password="$repo_password" ./cmd/onos-ric-tests --suite mlb --no-teardown -f sd-ran=test/mlb/prometheus.yml
-
-    kubectl create ns ric-bench-get
-    helmit benchmark -n ric-bench-get --secret "sd-ran-username=$repo_user" --secret sd-ran-password="$repo_password" --benchmark BenchmarkGetStations --iterations 10000 --max-latency 4ms ./cmd/onos-ric-benchmarks -c .. --no-teardown
-
-    popd;;
+    run_integration_test_suite "e2t" "./cmd/ransim-tests"
+    ;;
 
 "onos-helm-charts")
     # onos-helm-charts
-    pushd ..
 
     cd onos-helm-charts
     cd onos-umbrella; helm dependency build; cd ..
     make test
-    popd;;
+    ;;
 
 "sdran-helm-charts")
     # sdran-helm-charts
-    pushd ..
-
     cd sdran-helm-charts
     helm repo add sdran --username ${repo_user} --password ${repo_password} https://sdrancharts.onosproject.org
     helm repo add cord https://charts.opencord.org
@@ -180,13 +134,12 @@ case "$testSuite" in
     helm repo update
     cd sd-ran; helm dependency build; cd ..
     make test
-    popd;;
+    ;;
 
 "master-build")
     # build of all micro onos components
-    pushd ..
-    ../onos-test/build/bin/build-everything
-    popd;;
+    ../build/bin/build-everything
+    ;;
 
 *) echo "You have failed to specify test suite."
     exit 1
@@ -194,3 +147,5 @@ case "$testSuite" in
 esac
 
 popd
+
+echo "Test suite $testSuite passed!"
