@@ -34,6 +34,9 @@ kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller
 kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
 kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
 
+# initialize the operator
+kubectl create -f https://raw.githubusercontent.com/onosproject/onos-operator/v0.2.0/deploy/onos-operator.yaml
+
 rm -rf integration-tests && mkdir integration-tests && pushd integration-tests
 
 # Download helmit
