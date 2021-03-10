@@ -35,8 +35,9 @@ kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controll
 kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
 
 # initialize the operator
-kubectl create -f https://raw.githubusercontent.com/onosproject/onos-operator/master/deploy/onos-operator.yaml
+helm install -n kube-system onos-operator onos/onos-operator --wait
 
+# make a directory to hold the downloaded source trees
 rm -rf integration-tests && mkdir integration-tests && pushd integration-tests
 
 # Download helmit
@@ -89,7 +90,7 @@ case "$testSuite" in
     cd onos-config
     make kind
 
-    #run_integration_test_suite "cli" "./cmd/onos-config-tests"
+    run_integration_test_suite "cli" "./cmd/onos-config-tests"
     run_integration_test_suite "gnmi" "./cmd/onos-config-tests"
     run_integration_test_suite "ha" "./cmd/onos-config-tests"
 
@@ -102,10 +103,7 @@ case "$testSuite" in
     cd onos-e2t
     make kind
 
-    run_integration_test "TestSubscription" "./cmd/onos-e2t-tests"
-    run_integration_test "TestSubscriptionDelete" "./cmd/onos-e2t-tests"
-    run_integration_test "TestE2NodeDownSubscription" "./cmd/onos-e2t-tests"
-    run_integration_test "TestInvalidActionID" "./cmd/onos-e2t-tests"
+    run_integration_test_suite "e2" "./cmd/onos-e2t-tests"
 
     ;;
 
