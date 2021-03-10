@@ -76,7 +76,7 @@ kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controll
 kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
 
 # initialize the operator
-kubectl create -f https://raw.githubusercontent.com/onosproject/onos-operator/v0.2.0/deploy/onos-operator.yaml
+kubectl create -f https://raw.githubusercontent.com/onosproject/onos-operator/master/deploy/onos-operator.yaml
 
 # Build the images
 pushd ../onos-e2t && make kind && popd
