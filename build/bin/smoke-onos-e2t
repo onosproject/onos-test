@@ -17,36 +17,6 @@
 
 set -eu -o pipefail
 
-function waitForE2t {
-  while true; do
-    if kubectl -n micro-onos get pods -l type=e2t | grep -q "1/1"; then
-      break
-    fi
-    sleep 3
-  done
-  echo "Terminator is running"
-}
-
-function waitForSim {
-  while true; do
-    if kubectl -n micro-onos get pods -l type=sim | grep -q "1/1"; then
-      break
-    fi
-    sleep 3
-  done
-  echo "Simulator is running"
-}
-
-function waitForSub {
-  while true; do
-    if kubectl -n micro-onos get pods -l type=e2sub | grep -q "1/1"; then
-      break
-    fi
-    sleep 3
-  done
-  echo "Subscription service is running"
-}
-
 if [ "$#" -gt 1 ]; then
   echo "Usage: smoke-onos-e2t [--no-installs]"
   exit 1
@@ -54,17 +24,20 @@ fi
 
 if [ "$#" -eq 0 ]; then
   rm -rf smoke && mkdir smoke && pushd smoke
+  sources_root="."
 
   # Pull the source repos
-  pushd .. && git clone git@github.com:onosproject/onos-e2t.git && popd
-  pushd .. && git clone git@github.com:onosproject/onos-e2sub.git && popd
-  pushd .. && git clone git@github.com:onosproject/ran-simulator.git && popd
-  pushd .. && git clone git@github.com:onosproject/onos-cli.git && popd
-  pushd .. && git clone git@github.com:onosproject/onos-topo.git && popd
+  git clone git@github.com:onosproject/onos-e2t.git
+  git clone git@github.com:onosproject/onos-e2sub.git
+  git clone git@github.com:onosproject/ran-simulator.git
+  git clone git@github.com:onosproject/onos-cli.git
+  git clone git@github.com:onosproject/onos-topo.git
 
    # Download the onos helm charts
-  pushd .. && git clone https://github.com/onosproject/onos-helm-charts.git && popd
-  pushd .. && git clone git@github.com:onosproject/sdran-helm-charts.git && popd
+  git clone https://github.com/onosproject/onos-helm-charts.git
+  git clone git@github.com:onosproject/sdran-helm-charts.git
+else
+  sources_root=".."
 fi
 
 # Make a kind cluster
@@ -79,13 +52,13 @@ kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-control
 kubectl create -f https://raw.githubusercontent.com/onosproject/onos-operator/master/deploy/onos-operator.yaml
 
 # Build the images
-pushd ../onos-e2t && make kind && popd
-pushd ../onos-e2sub && make kind && popd
-pushd ../onos-topo && make kind && popd
-pushd ../ran-simulator && make kind && popd
-pushd ../onos-cli && make kind && popd
+pushd ${sources_root}/onos-e2t && make kind && popd
+pushd ${sources_root}/onos-e2sub && make kind && popd
+pushd ${sources_root}/onos-topo && make kind && popd
+pushd ${sources_root}/ran-simulator && make kind && popd
+pushd ${sources_root}/onos-cli && make kind && popd
 
-pushd ..
+pushd ${sources_root}
 
 helm repo add cord https://charts.opencord.org
 helm repo add atomix https://charts.atomix.io
@@ -119,12 +92,10 @@ helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest 
 popd
 
 # wait for nodes to start up
-waitForE2t
-waitForSim
-waitForSub
+kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
 
 tmpfile="/tmp/smoke$$"
-kubectl run onos-cli -n micro-onos --rm -it --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections > $tmpfile
+kubectl run onos-cli -n micro-onos --rm -it --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep -v deleted > $tmpfile
 cat $tmpfile
 
 headers_found="0"
@@ -166,5 +137,9 @@ if [ $headers_found != "1" ]; then
 fi
 
 rm $tmpfile
+
+if [ "$#" -eq 0 ]; then
+  popd
+fi
 
 echo "Smoke test completed successfully!"
