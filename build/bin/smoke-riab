@@ -70,7 +70,7 @@ sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/on
 sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
 
 # Install RIAB
-make
+make riab-ransim-master-stable && make riab-oai-master-stable
 sleep 30
 
 # make sure that RIAB is running by checking for an onos e2t connection
