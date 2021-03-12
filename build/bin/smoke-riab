@@ -69,6 +69,10 @@ sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:v1.0.0#spgwc: docker.io/onos
 sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/onosproject/riab-bess-upf:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
 sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
 
+sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:v1.0.0#spgwc: docker.io/onosproject/riab-spgw:v1.0.0-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
+sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/onosproject/riab-bess-upf:v1.0.0-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
+sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
+
 # Install RIAB
 make riab-oai-master-stable
 sleep 30
