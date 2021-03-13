@@ -81,7 +81,7 @@ sleep 30
 ITERATIONS=6
 for ((i=1;i<=ITERATIONS;i++))
 do
-    if kubectl run cli-check-connections -n riab --rm -it --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep --text G_NB
+    if kubectl run cli-check-connections -n riab --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep --text G_NB
     then
         echo RAN in a Box smoke test passed!
         exit 0
