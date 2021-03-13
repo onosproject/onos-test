@@ -95,7 +95,7 @@ popd
 kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
 
 tmpfile="/tmp/smoke$$"
-kubectl run onos-cli -n micro-onos --rm -it --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep -v deleted > $tmpfile
+kubectl run onos-cli -n micro-onos --rm --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep -v deleted > $tmpfile
 cat $tmpfile
 
 headers_found="0"
