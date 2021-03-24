@@ -71,7 +71,7 @@ cd ..
 
 # config-models
 cd ./config-models
-make images
+make build
 cd ..
 
 # onos-config
