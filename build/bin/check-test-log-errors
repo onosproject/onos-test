@@ -35,9 +35,13 @@ do
   IFS='/' read -ra readyValues <<< "$ready"
   if [ "${readyValues[0]}" != "${readyValues[1]}" ]
   then
-    echo "Pod " "$pod" " is not fully ready " "$ready"
-    kubectl get pod -n "$NAMESPACE" "$pod"
-    exit 1
+    running=$( kubectl get pod -n "$NAMESPACE" "$pod" | grep -q Running )
+    if (( $? != 0 ))
+    then
+      echo "Pod " "$pod" " is not fully ready " "$ready"
+      kubectl get pod -n "$NAMESPACE" "$pod"
+      exit 1
+    fi
   fi
 
   # Make sure no pods have restarted
