@@ -63,6 +63,9 @@ onos-e2t-integration-tests:
 ran-sim-integration-tests:
 	./build/bin/run-integration-tests ran-sim-tests
 
+onos-pci-integration-tests:
+	./build/bin/run-integration-tests onos-pci-tests
+
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 
