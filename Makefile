@@ -51,6 +51,9 @@ e2t-smoke:
 riab-smoke:
 	./build/bin/smoke-riab
 
+fb-ah-smoke:
+	./build/bin/smoke-fb-ah
+
 onos-topo-integration-tests:
 	./build/bin/run-integration-tests onos-topo-tests
 
