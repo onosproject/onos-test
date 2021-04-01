@@ -50,8 +50,7 @@ pushd riab-workspace
 git clone git@github.com:onosproject/sdran-in-a-box.git
 cd sdran-in-a-box
 
-# remove any old KinD cluster
-kind delete cluster || true
+kind delete cluster || kind create cluster
 
 # initialize the system
 make clean
