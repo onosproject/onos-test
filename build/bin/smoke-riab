@@ -50,9 +50,8 @@ pushd riab-workspace
 git clone git@github.com:onosproject/sdran-in-a-box.git
 cd sdran-in-a-box
 
-# set up a KinD cluster
-kind delete cluster && kind create cluster
-sleep 30
+# remove any old KinD cluster
+kind delete cluster || true
 
 # initialize the system
 make clean
@@ -74,6 +73,7 @@ sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/on
 sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
 
 # Install RIAB
+make clean-all
 make riab-oai-master-stable
 sleep 30
 
@@ -84,6 +84,7 @@ do
     if kubectl run cli-check-connections -n riab --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep --text G_NB
     then
         echo RAN in a Box smoke test passed!
+        make clean-all
         exit 0
     fi
     sleep 10
