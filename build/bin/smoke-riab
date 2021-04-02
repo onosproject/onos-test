@@ -52,7 +52,7 @@ pushd ${WORKSPACE}/helm-charts
 # pull down the chart repos
 
 # aether charts
-git clone ssh://ray@gerrit.opencord.org:29418/aether-helm-charts
+git clone ssh://jenkins@gerrit.opencord.org:29418/aether-helm-charts
 
 # onos sdran charts
 git clone git@github.com:onosproject/sdran-helm-charts.git
