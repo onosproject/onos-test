@@ -86,6 +86,7 @@ do
     then
         echo RAN in a Box smoke test passed!
         make clean-all >/dev/null 2>/dev/null
+        sudo systemctl restart docker
         exit 0
     fi
     sleep 10
