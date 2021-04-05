@@ -25,6 +25,9 @@ set -e -u -o pipefail
 # set a default workspace if not running on Jenkins
 WORKSPACE=${WORKSPACE:-~}
 
+# in case there is a left over KinD cluster, delete it
+kind delete cluster
+
 # import sdran chart repo credentials
 export SDRAN_USERNAME=$repo_user
 export SDRAN_PASSWORD=$repo_password
@@ -37,9 +40,6 @@ git clone git@github.com:onosproject/sdran-in-a-box.git
 # clean up from any previous runs
 cd sdran-in-a-box
 make clean-all
-
-# in case there is a left over KinD cluster, delete it
-kind delete cluster
 
 # Force images to be downloaded
 docker rmi --force $(docker images -a -q) || true
