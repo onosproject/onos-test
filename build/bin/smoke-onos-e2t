@@ -22,6 +22,8 @@ if [ "$#" -gt 1 ]; then
   exit 1
 fi
 
+onos_test=$PWD
+
 if [ "$#" -eq 0 ]; then
   rm -rf smoke && mkdir smoke && pushd smoke
   sources_root="."
@@ -95,46 +97,14 @@ popd
 kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
 
 tmpfile="/tmp/smoke$$"
+
 kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep -v deleted > $tmpfile
 cat $tmpfile
+$onos_test/build/bin/check-e2t-connections <$tmpfile
 
-headers_found="0"
-while read -r line ; do
-    tokens=( $line )
-    if [ ${tokens[0]} = "Global" -a ${tokens[1]} = "ID" ]; then
-        headers_found="1"
-        continue
-    fi
-    if [ $headers_found = "1" ]; then
-        if [[ ! ${tokens[0]} =~ ^[a-f0-9]*:[a-f0-9]*$ ]]; then
-            echo "Global ID is incorrect. Failure!"
-            exit 1
-        fi
-        if [[ ! ${tokens[1]} =~ ^[0-9]*$ ]]; then
-            echo "plnm ID is incorrect. Failure!"
-            exit 1
-        fi
-        if [[ ! ${tokens[2]} =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            echo "IP address is incorrect. Failure!"
-            exit 1
-        fi
-        if [[ ! ${tokens[3]} =~ ^[0-9]*$ ]]; then
-            echo "Port is incorrect. Failure!"
-            exit 1
-        fi
-        if [ ${tokens[4]} != "G_NB" ]; then
-            echo "Connection type is incorrect. Failure!"
-            exit 1
-        fi
-
-        break
-    fi
-done < $tmpfile
-
-if [ $headers_found != "1" ]; then
-    echo "CLI headers are wrong. Failure!"
-    exit 1
-fi
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list endpoints | grep -v deleted > $tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-e2sub-endpoints <$tmpfile
 
 rm $tmpfile
 
@@ -142,4 +112,4 @@ if [ "$#" -eq 0 ]; then
   popd
 fi
 
-echo "Smoke test completed successfully!"
+echo "E2T Smoke test completed successfully!"
