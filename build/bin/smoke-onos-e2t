@@ -74,7 +74,7 @@ kubectl create namespace micro-onos
 # get the chart dependencies up to date
 
 # install onos-topo
-helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-topo onos/onos-topo
+helm install -n micro-onos --set image.tag=latest onos-topo onos/onos-topo
 
 cd sdran-helm-charts/sd-ran
 rm -rf charts Chart.lock
@@ -83,13 +83,13 @@ cd ..
 helm dependency update sd-ran
 
 # install onos-e2t
-helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-e2t sdran/onos-e2t
+helm install -n micro-onos --set image.tag=latest onos-e2t sdran/onos-e2t
 
 # Install the ran simulator
-helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest ran-simulator sdran/ran-simulator
+helm install -n micro-onos --set image.tag=latest ran-simulator sdran/ran-simulator
 
 # install onos-e2sub
-helm install -n micro-onos --set image.pullPolicy=Always --set image.tag=latest onos-e2sub sdran/onos-e2sub
+helm install -n micro-onos --set image.tag=latest onos-e2sub sdran/onos-e2sub
 
 popd
 
