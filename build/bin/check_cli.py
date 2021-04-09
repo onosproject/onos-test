@@ -58,7 +58,7 @@ def do_check(name, cli_lines, expected_headers, expected_regexes):
         print('No connections found')
         return False
 
-    print(name + 'CLI output for ' + name + ' is correct!')
+    print(name + ' CLI output is correct!')
     return True
 
 

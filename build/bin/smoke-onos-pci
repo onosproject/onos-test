@@ -17,8 +17,21 @@
 
 set -eu -o pipefail
 
+repo_user=${repo_user:-}
+repo_password=${repo_password:-}
+
+if [ -z $repo_user ]; then
+  echo "repo_user must be set"
+  exit 1
+fi
+
+if [ -z $repo_password ]; then
+  echo "repo_password must be set"
+  exit 1
+fi
+
 if [ "$#" -gt 1 ]; then
-  echo "Usage: smoke-onos-fb-ah [--no-installs]"
+  echo "Usage: smoke-onos-e2t [--no-installs]"
   exit 1
 fi
 
@@ -31,6 +44,7 @@ if [ "$#" -eq 0 ]; then
   # Pull the source repos
   git clone git@github.com:onosproject/onos-e2t.git
   git clone git@github.com:onosproject/onos-e2sub.git
+  git clone git@github.com:onosproject/onos-pci.git
   git clone git@github.com:onosproject/ran-simulator.git
   git clone git@github.com:onosproject/onos-cli.git
   git clone git@github.com:onosproject/onos-topo.git
@@ -53,12 +67,10 @@ kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-control
 # initialize the operator
 kubectl create -f https://raw.githubusercontent.com/onosproject/onos-operator/master/deploy/onos-operator.yaml
 
-sleep 45
-kubectl wait pod -n kube-system --for=condition=Ready -l name=config-operator --timeout=10m
-
 # Build the images
 pushd ${sources_root}/onos-e2t && make kind && popd
 pushd ${sources_root}/onos-e2sub && make kind && popd
+pushd ${sources_root}/onos-pci && make kind && popd
 pushd ${sources_root}/onos-topo && make kind && popd
 pushd ${sources_root}/ran-simulator && make kind && popd
 pushd ${sources_root}/onos-cli && make kind && popd
@@ -71,34 +83,58 @@ helm repo add onos https://charts.onosproject.org
 helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
 helm repo update
 
-# create a namespace for the test
-kubectl create namespace smoke-fb-ah
+# create a namespace for ONOS
+kubectl create namespace micro-onos
 
-helm install -n smoke-fb-ah \
-   --set import.fb-ah-xapp.enabled=true \
-   --set import.fb-ah-gui.enabled=true \
-   --set import.ah-eson-test-server.enabled=true \
-   --set import.ran-simulator.enabled=true \
-   sd-ran sdran/sd-ran
+# get the chart dependencies up to date
 
+# install onos-topo
+helm install -n micro-onos --set image.tag=latest onos-topo onos/onos-topo
+
+cd sdran-helm-charts/sd-ran
+rm -rf charts Chart.lock
+helm dep build
+cd ..
+helm dependency update sd-ran
+
+# install onos-e2t
+helm install -n micro-onos --set image.tag=latest onos-e2t sdran/onos-e2t
+
+# Install the ran simulator
+helm install -n micro-onos --set image.tag=latest ran-simulator sdran/ran-simulator
+
+# install onos-e2sub
+helm install -n micro-onos --set image.tag=latest onos-e2sub sdran/onos-e2sub
+
+# install onos-pci
+helm install -n micro-onos --set image.tag=latest onos-pci sdran/onos-pci
+
+# install onos-kpimon
+helm install -n micro-onos --set image.tag=latest onos-kpimon sdran/onos-kpimon
+
+popd
 
 # wait for nodes to start up
+kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
 sleep 30
-kubectl wait pod -n smoke-fb-ah  --for=condition=Ready -l app=airhop --timeout=10m
 
 tmpfile="/tmp/smoke$$"
 
-kubectl run onos-cli -n smoke-fb-ah --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep -v deleted > $tmpfile
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep -v deleted > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2t-connections <$tmpfile
 
-kubectl run onos-cli -n smoke-fb-ah --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list endpoints | grep -v deleted > $tmpfile
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list endpoints | grep -v deleted > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2sub-endpoints <$tmpfile
 
-kubectl run onos-cli -n smoke-fb-ah --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list subscriptions | grep -v deleted > $tmpfile
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list subscriptions | grep -v deleted > $tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-e2sub-subscriptions fb-ah <$tmpfile
+$onos_test/build/bin/check-e2sub-subscriptions onos-pci <$tmpfile
+
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos pci listall pci | grep -v deleted > $tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-pci-listall-pci onos-pci <$tmpfile
 
 rm $tmpfile
 
@@ -106,13 +142,4 @@ if [ "$#" -eq 0 ]; then
   popd
 fi
 
-
-kubectl run onos-cli -n smoke-fb-ah --quiet --rm -i --image onosproject/onos-cli:latest --restart Never --command -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
-grep Alive $tmpfile
-if (( $? != 0 ))
-then
-  echo FB AH xapp is not reporting alive status
-  exit 1
-fi
-
-echo "Smoke test completed successfully!"
+echo "ONOS PCI Smoke test completed successfully!"
