@@ -48,6 +48,7 @@ if [ "$#" -eq 0 ]; then
   git clone git@github.com:onosproject/ran-simulator.git
   git clone git@github.com:onosproject/onos-cli.git
   git clone git@github.com:onosproject/onos-topo.git
+  git clone git@github.com:onosproject/onos-e2-sm.git
 
    # Download the onos helm charts
   git clone https://github.com/onosproject/onos-helm-charts.git
@@ -74,6 +75,7 @@ pushd ${sources_root}/onos-pci && make kind && popd
 pushd ${sources_root}/onos-topo && make kind && popd
 pushd ${sources_root}/ran-simulator && make kind && popd
 pushd ${sources_root}/onos-cli && make kind && popd
+pushd ${sources_root}/onos-e2-sm && make kind && popd
 
 pushd ${sources_root}
 
@@ -84,6 +86,7 @@ helm repo add sdran --username "$repo_user" --password "$repo_password" https://
 helm repo update
 
 # create a namespace for ONOS
+kubectl delete namespace micro-onos || true
 kubectl create namespace micro-onos
 
 # get the chart dependencies up to date
@@ -120,21 +123,29 @@ sleep 30
 
 tmpfile="/tmp/smoke$$"
 
-kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep -v deleted > $tmpfile
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2t-connections <$tmpfile
 
-kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list endpoints | grep -v deleted > $tmpfile
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list endpoints > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2sub-endpoints <$tmpfile
 
-kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list subscriptions | grep -v deleted > $tmpfile
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list subscriptions > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2sub-subscriptions onos-pci <$tmpfile
 
-kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos pci listall pci | grep -v deleted > $tmpfile
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos pci listall pci > $tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-pci-listall-pci onos-pci <$tmpfile
+$onos_test/build/bin/check-pci-listall-pci <$tmpfile
+
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos pci listall metric > $tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-pci-listall-metric <$tmpfile
+
+kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos pci listall neighbors > $tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-pci-listall-neighbors <$tmpfile
 
 rm $tmpfile
 

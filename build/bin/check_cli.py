@@ -24,6 +24,7 @@ import re
 def do_check(name, cli_lines, expected_headers, expected_regexes):
     connections_found = 0
     headers_found = 0
+    pod_deleted_regexp = r'^pod ".*" deleted$'
 
     if len(cli_lines) == 0:
         print('No CLI output')
@@ -36,6 +37,8 @@ def do_check(name, cli_lines, expected_headers, expected_regexes):
     headers_found += 1
 
     for connection in cli_lines[1:]:
+        if re.fullmatch(pod_deleted_regexp, connection):
+            continue
         connection_fields = connection.split()
         for index in range(0, len(expected_regexes)-1):
             expected_field = expected_regexes[index]

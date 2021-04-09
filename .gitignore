@@ -2,6 +2,7 @@ cmd/onos-test/onit
 cmd/onos-test/onit-k8s
 vendor
 **/_output
+**/__pycache__
 *.DS_Store
 coverage.txt
 *.coverprofile
