@@ -133,7 +133,7 @@ $onos_test/build/bin/check-e2sub-endpoints <$tmpfile
 
 kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list subscriptions > $tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-e2sub-subscriptions onos-pci <$tmpfile
+$onos_test/build/bin/check-e2sub-subscriptions 'onos-pci|onos-kpimon-v2' <$tmpfile
 
 kubectl run onos-cli -n micro-onos --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos pci listall pci > $tmpfile
 cat $tmpfile
