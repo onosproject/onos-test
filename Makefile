@@ -54,6 +54,9 @@ riab-smoke:
 fb-ah-smoke:
 	./build/bin/smoke-fb-ah
 
+pci-smoke:
+	./build/bin/smoke-onos-pci
+
 onos-topo-integration-tests:
 	./build/bin/run-integration-tests onos-topo-tests
 
