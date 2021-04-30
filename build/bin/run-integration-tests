@@ -99,87 +99,48 @@ case "$testSuite" in
 "onos-topo-tests")
      # onos-topo
      git clone https://github.com/onosproject/onos-topo.git
-
      cd onos-topo
      make kind
 
      run_integration_test_suite "topo" "./cmd/onos-topo-tests" "onos-topo"
-
      ;;
 
 "onos-config-tests")
     # onos-config
     git clone https://github.com/onosproject/onos-config.git
-
     cd onos-config
     make kind
 
     run_integration_test_suite "cli" "./cmd/onos-config-tests" "onos-umbrella"
     run_integration_test_suite "gnmi" "./cmd/onos-config-tests" "onos-umbrella"
     run_integration_test_suite "ha" "./cmd/onos-config-tests" "onos-umbrella"
-
     ;;
 
 "onos-e2t-tests")
-    # ran-simulator
-    git clone git@github.com:onosproject/ran-simulator.git
-    cd ran-simulator
-    make kind
-    cd ..
-
     # onos-e2t
     git clone git@github.com:onosproject/onos-e2t.git
     cd onos-e2t
     make kind
 
-    # onos-e2sub
-    git clone git@github.com:onosproject/onos-e2sub.git
-    cd onos-e2sub
-    make kind
-
     run_integration_test_suite "e2" "./cmd/onos-e2t-tests" "sd-ran"
-
     ;;
 
 "ran-sim-tests")
     # ran-simulator
     git clone git@github.com:onosproject/ran-simulator.git
-
     cd ran-simulator
-    make kind
-
-    # onos-e2t
-    git clone git@github.com:onosproject/onos-e2t.git
-    cd onos-e2t
-    make kind
-
-    # onos-e2sub
-    git clone git@github.com:onosproject/onos-e2sub.git
-    cd onos-e2sub
     make kind
 
     run_integration_test_suite "e2t" "./cmd/ransim-tests" "sd-ran"
     ;;
 
 "onos-pci-tests")
-    # onos-e2t
+    # onos-pci
     git clone git@github.com:onosproject/onos-pci.git
-
     cd onos-pci
     make kind
 
-    # onos-e2t
-    git clone git@github.com:onosproject/onos-e2t.git
-    cd onos-e2t
-    make kind
-
-    # onos-e2sub
-    git clone git@github.com:onosproject/onos-e2sub.git
-    cd onos-e2sub
-    make kind
-
     run_integration_test_suite "pci" "./cmd/onos-pci-tests" "sd-ran"
-
     ;;
 
 "onos-helm-charts")
