@@ -132,6 +132,11 @@ case "$testSuite" in
     cd onos-e2t
     make kind
 
+    # onos-e2sub
+    git clone git@github.com:onosproject/onos-e2sub.git
+    cd onos-e2sub
+    make kind
+
     run_integration_test_suite "e2" "./cmd/onos-e2t-tests" "sd-ran"
 
     ;;
@@ -143,6 +148,16 @@ case "$testSuite" in
     cd ran-simulator
     make kind
 
+    # onos-e2t
+    git clone git@github.com:onosproject/onos-e2t.git
+    cd onos-e2t
+    make kind
+
+    # onos-e2sub
+    git clone git@github.com:onosproject/onos-e2sub.git
+    cd onos-e2sub
+    make kind
+
     run_integration_test_suite "e2t" "./cmd/ransim-tests" "sd-ran"
     ;;
 
@@ -151,6 +166,16 @@ case "$testSuite" in
     git clone git@github.com:onosproject/onos-pci.git
 
     cd onos-pci
+    make kind
+
+    # onos-e2t
+    git clone git@github.com:onosproject/onos-e2t.git
+    cd onos-e2t
+    make kind
+
+    # onos-e2sub
+    git clone git@github.com:onosproject/onos-e2sub.git
+    cd onos-e2sub
     make kind
 
     run_integration_test_suite "pci" "./cmd/onos-pci-tests" "sd-ran"
