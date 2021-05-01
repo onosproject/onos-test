@@ -62,6 +62,10 @@ git clone https://github.com/onosproject/onos-helm-charts.git
 git clone git@github.com:onosproject/sdran-helm-charts.git
 
 common_args="--secret sd-ran-username=$repo_user --secret sd-ran-password=$repo_password --no-teardown"
+if [ $use_proxy = "1" ]; then
+   common_args="$common_args --args registry=mirror.registry.opennetworking.org --image mirror.registry.opennetworking.org/onosproject/helmit-runner:latest"
+fi
+atomix_storage_version="v0.5.3"
 
 run_integration_test() {
      test_name=$1
@@ -69,7 +73,7 @@ run_integration_test() {
      chart_name=$3
      proxy_args=""
      if [ $use_proxy = "1" ]; then
-         proxy_args="--set $chart_name.global.image.registry=$proxy --set ran-simulator.global.image.registry=$proxy --set $chart_name.global.storage.consensus.image=$proxy/atomix/raft-storage-node"
+         proxy_args="--set $chart_name.global.image.registry=$proxy --set $chart_name.global.image.registry=$proxy --set $chart_name.global.storage.consensus.image=$proxy/atomix/raft-storage-node:$atomix_storage_version"
      fi
      export NAMESPACE=$(echo $test_name | tr "[:upper:]" "[:lower:]" )
      export NAMESPACE=${NAMESPACE}-ns
@@ -85,7 +89,7 @@ run_integration_test_suite() {
      chart_name=$3
      proxy_args=""
      if [ $use_proxy = "1" ]; then
-         proxy_args="--set $chart_name.global.image.registry=$proxy --set ran-simulator.global.image.registry=$proxy --set $chart_name.global.storage.consensus.image=$proxy/atomix/raft-storage-node"
+         proxy_args="--set $chart_name.global.image.registry=$proxy --set $chart_name.global.image.registry=$proxy --set $chart_name.global.storage.consensus.image=$proxy/atomix/raft-storage-node:$atomix_storage_version"
      fi
      export NAMESPACE=$(echo $suite_name | tr "[:upper:]" "[:lower:]" )
      export NAMESPACE=${NAMESPACE}-ns
