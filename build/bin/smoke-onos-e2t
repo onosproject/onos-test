@@ -45,13 +45,31 @@ fi
 # Make a kind cluster
 kind delete cluster && kind create cluster --quiet
 
-# Create Atomix resources
-kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
-kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
-kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
+use_proxy="1"
+proxy="mirror.registry.opennetworking.org"
+atomix_storage_node="$proxy/atomix/raft-storage-node"
+
+# install Atomix
+if [ $use_proxy == 0 ]; then
+   kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
+   kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
+   kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
+   registry=""
+   atomix_storage_node=""
+else
+   helm install --set image.repository=$proxy/atomix/kubernetes-controller atomix-controller atomix/atomix-controller -n kube-system
+   helm install --set image.repository=$proxy/atomix/raft-storage-controller raft atomix/raft-storage-controller -n kube-system
+   helm install --set image.repository=$proxy/atomix/cache-storage-controller cache atomix/cache-storage-controller -n kube-system
+   registry="--set global.image.registry=$proxy"
+   atomix_storage_node="--set storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
+fi
 
 # initialize the operator
-kubectl create -f https://raw.githubusercontent.com/onosproject/onos-operator/master/deploy/onos-operator.yaml
+if [ $use_proxy == 0 ]; then
+   helm install -n kube-system onos-operator onos/onos-operator --wait
+else
+   helm install $registry -n kube-system onos-operator onos/onos-operator --wait
+fi
 
 # Build the images
 pushd ${sources_root}/onos-e2t && make kind && popd
@@ -74,7 +92,7 @@ kubectl create namespace micro-onos
 # get the chart dependencies up to date
 
 # install onos-topo
-helm install -n micro-onos --set image.tag=latest onos-topo onos/onos-topo
+helm install -n micro-onos --set image.tag=latest $registry $atomix_storage_node onos-topo onos/onos-topo
 
 cd sdran-helm-charts/sd-ran
 rm -rf charts Chart.lock
@@ -83,18 +101,19 @@ cd ..
 helm dependency update sd-ran
 
 # install onos-e2t
-helm install -n micro-onos --set image.tag=latest onos-e2t sdran/onos-e2t
+helm install -n micro-onos --set image.tag=latest $registry --set onos-e2t.global.image.registry=$proxy onos-e2t sdran/onos-e2t
 
 # Install the ran simulator
-helm install -n micro-onos --set image.tag=latest ran-simulator sdran/ran-simulator
+helm install -n micro-onos --set image.tag=latest $registry ran-simulator sdran/ran-simulator
 
 # install onos-e2sub
-helm install -n micro-onos --set image.tag=latest onos-e2sub sdran/onos-e2sub
+helm install -n micro-onos --set image.tag=latest $registry --set onos-e2sub.global.image.registry=$proxy $atomix_storage_node onos-e2sub sdran/onos-e2sub
 
 popd
 
 # wait for nodes to start up
 kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
+sleep 30
 
 tmpfile="/tmp/smoke$$"
 
