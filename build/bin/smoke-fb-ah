@@ -24,32 +24,24 @@ fi
 
 onos_test=$PWD
 
-use_proxy="1"
+# configure proxy variables
 proxy="mirror.registry.opennetworking.org"
+cli_image="onosproject/onos-cli:latest"
 
-if [ "$#" -eq 0 ]; then
-  rm -rf smoke && mkdir smoke && pushd smoke
-  sources_root="."
-
-  # Pull the source repos
-  git clone git@github.com:onosproject/onos-e2t.git
-  git clone git@github.com:onosproject/onos-e2sub.git
-  git clone git@github.com:onosproject/ran-simulator.git
-  git clone git@github.com:onosproject/onos-cli.git
-  git clone git@github.com:onosproject/onos-topo.git
-
-   # Download the onos helm charts
-  git clone https://github.com/onosproject/onos-helm-charts.git
-  git clone git@github.com:onosproject/sdran-helm-charts.git
+if [ $proxy == "" ]; then
+   registry=""
+   atomix_storage_node=""
 else
-  sources_root=".."
+   registry="--set global.image.registry=$proxy"
+   cli_image="$proxy/$cli_image"
+   atomix_storage_node="--set storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
 fi
 
 # Make a kind cluster
 kind delete cluster && kind create cluster --quiet
 
 # install Atomix
-if [ $use_proxy == 0 ]; then
+if [ $proxy == "" ]; then
    kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
    kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
    kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
@@ -68,20 +60,11 @@ else
 fi
 
 # initialize the operator
-if [ $use_proxy == 0 ]; then
+if [ $proxy == "" ]; then
    helm install -n kube-system onos-operator onos/onos-operator --wait
 else
    helm install $registry -n kube-system onos-operator onos/onos-operator --wait
 fi
-
-# Build the images
-pushd ${sources_root}/onos-e2t && make kind && popd
-pushd ${sources_root}/onos-e2sub && make kind && popd
-pushd ${sources_root}/onos-topo && make kind && popd
-pushd ${sources_root}/ran-simulator && make kind && popd
-pushd ${sources_root}/onos-cli && make kind && popd
-
-pushd ${sources_root}
 
 helm repo add cord https://charts.opencord.org
 helm repo add atomix https://charts.atomix.io
@@ -104,31 +87,27 @@ helm install -n smoke-fb-ah \
 
 
 # wait for nodes to start up
-sleep 30
+sleep 15
 kubectl wait pod -n smoke-fb-ah  --for=condition=Ready -l app=airhop --timeout=10m
+sleep 60
 
 tmpfile="/tmp/smoke$$"
 
-kubectl run onos-cli -n smoke-fb-ah --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep -v deleted > $tmpfile
+kubectl run onos-cli -n smoke-fb-ah --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos e2t list connections | grep -v deleted > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2t-connections <$tmpfile
 
-kubectl run onos-cli -n smoke-fb-ah --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list endpoints | grep -v deleted > $tmpfile
+kubectl run onos-cli -n smoke-fb-ah --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos e2sub list endpoints | grep -v deleted > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2sub-endpoints <$tmpfile
 
-kubectl run onos-cli -n smoke-fb-ah --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2sub list subscriptions | grep -v deleted > $tmpfile
+kubectl run onos-cli -n smoke-fb-ah --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos e2sub list subscriptions | grep -v deleted > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2sub-subscriptions fb-ah <$tmpfile
 
 rm $tmpfile
 
-if [ "$#" -eq 0 ]; then
-  popd
-fi
-
-
-kubectl run onos-cli -n smoke-fb-ah --quiet --rm -i --image onosproject/onos-cli:latest --restart Never --command -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
+kubectl run onos-cli -n smoke-fb-ah --quiet --rm -i --image $cli_image --restart Never --command -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
 grep Alive $tmpfile
 if (( $? != 0 ))
 then
@@ -136,4 +115,4 @@ then
   exit 1
 fi
 
-echo "Smoke test completed successfully!"
+echo "FB AH Smoke test completed successfully!"
