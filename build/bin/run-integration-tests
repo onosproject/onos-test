@@ -106,7 +106,7 @@ case "$testSuite" in
      cd onos-topo
      make kind
 
-     run_integration_test_suite "topo" "./cmd/onos-topo-tests" "onos-topo"
+     #run_integration_test_suite "topo" "./cmd/onos-topo-tests" "onos-topo"
      ;;
 
 "onos-config-tests")
@@ -117,7 +117,7 @@ case "$testSuite" in
 
     run_integration_test_suite "cli" "./cmd/onos-config-tests" "onos-umbrella"
     run_integration_test_suite "gnmi" "./cmd/onos-config-tests" "onos-umbrella"
-    run_integration_test_suite "ha" "./cmd/onos-config-tests" "onos-umbrella"
+    #run_integration_test_suite "ha" "./cmd/onos-config-tests" "onos-umbrella"
     ;;
 
 "onos-e2t-tests")
