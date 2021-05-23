@@ -37,14 +37,6 @@ rm -rf riab-workspace && mkdir riab-workspace
 pushd riab-workspace
 git clone git@github.com:onosproject/sdran-in-a-box.git
 
-# clean up from any previous runs
-cd sdran-in-a-box
-make infra-kubespray
-make clean-all
-
-# Force images to be downloaded
-docker rmi --force $(docker images -a -q) || true
-
 # directory to hold the downloaded charts
 rm -rf ${WORKSPACE}/helm-charts
 mkdir ${WORKSPACE}/helm-charts
@@ -59,6 +51,14 @@ git clone ssh://jenkins@gerrit.opencord.org:29418/aether-helm-charts
 git clone git@github.com:onosproject/sdran-helm-charts.git
 
 popd
+
+# clean up from any previous runs
+cd sdran-in-a-box
+make infra-kubespray
+make clean
+
+# Force images to be downloaded
+docker rmi --force $(docker images -a -q) || true
 
 # override defaults for RIAB versions
 git checkout sdran-in-a-box*.yaml
