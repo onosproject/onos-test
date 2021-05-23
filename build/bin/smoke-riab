@@ -75,6 +75,9 @@ sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:v1.0.0#spgwc: docker.io/onos
 sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/onosproject/riab-bess-upf:v1.0.0-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
 sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
 
+# restart Docker service to prevent occasional etcd installation failure
+sudo systemctl restart docker || true
+
 # Install RIAB
 make riab OPT=ransim
 sleep 30
