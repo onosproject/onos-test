@@ -33,16 +33,18 @@ export SDRAN_USERNAME=$repo_user
 export SDRAN_PASSWORD=$repo_password
 
 # clean up from any previous runs
+pushd riab-workspace
 cd sdran-in-a-box
 make clean-all
+popd
 
 # Force images to be downloaded
 docker rmi --force $(docker images -a -q) || true
 
 # clone the RIAB sources
 rm -rf riab-workspace && mkdir riab-workspace
-pushd riab-workspace
 git clone git@github.com:onosproject/sdran-in-a-box.git
+pushd riab-workspace
 
 # directory to hold the downloaded charts
 rm -rf ${WORKSPACE}/helm-charts
@@ -75,7 +77,7 @@ sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/on
 sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
 
 # Install RIAB
-make riab-oai-master-stable
+make riab OPT=ransim
 sleep 30
 
 # make sure that RIAB is running by checking for an onos e2t connection
