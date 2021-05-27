@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+""""
+ Copyright 2021-present Open Networking Foundation.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+ Reads the standard input for CLI command output from 'onos e2t list connections'
+ and checks that the output is correct.
+"""
+
+import check_cli
+
+expected_headers = ['Relation', 'ID', 'Kind', 'ID', 'Source', 'ID', 'Target', 'ID', 'Labels', 'Aspects']
+
+RELATION_ID_REGEX = r'^[0-9:-]+$'
+TARGET_ID_REGEX = r'^[0-9a-zA-Z-]+$'
+KIND_ID_REGEX = r'^CONTAINS|CONTROLS$'
+LABEL_REGEX = r'^[0-9]+$'
+
+expected_regexes = [
+    RELATION_ID_REGEX,
+    KIND_ID_REGEX,
+    TARGET_ID_REGEX,
+    LABEL_REGEX,
+]
+error = int(1)
+
+if __name__ == '__main__':
+    # Check that the output is consistent
+    ok, cli_lines = check_cli.check_cli_output('topo relations', expected_headers, expected_regexes)
+
+    if not ok:
+        exit(error)
+
+    # Check that there two e2t connections in the output
+    e2t_found = int(0)
+    for line in cli_lines:
+        tokens = line.split()
+        if tokens[1] == "CONTROLS" and "onos-e2t" in tokens[2]:
+            e2t_found += 1
+
+    if e2t_found != 2:
+        print("Wrong number of e2t relations found: ", str(e2t_found))
+        exit(error)
+    print ("topo relations are correct!")
