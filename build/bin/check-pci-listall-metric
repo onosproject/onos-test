@@ -37,7 +37,11 @@ expected_regexes = [
 ]
 
 if __name__ == '__main__':
-    ok = check_cli.check_cli_output('PCI app metrics entries', expected_headers, expected_regexes)
+    check = 'PCI app metrics entries'
+    ok,output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
 
     if not ok:
+        print ("Check " + check + " failed")
         exit(1)
+
+        print ("Check " + check + " passed")

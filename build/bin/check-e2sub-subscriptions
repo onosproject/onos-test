@@ -22,26 +22,30 @@ import sys
 import time
 import check_cli
 
+expected_headers = ['ID', 'Revision', 'App', 'ID', 'Service', 'Model', 'ID', 'E2', 'NodeID', 'Status']
+
+ID_REGEX = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+REVISION_REGEX = r'^[0-9]*'
+APP_ID_REGEX = r'^' + sys.argv[1] + r'$'
+SERVICE_MODEL_ID_REGEX = r'^oran-e2sm-.*:v[0-9]{1}$'
+E2_NODE_ID_REGEX = r'^[0-9-]+'
+STATUS_REGEX = r'[0-9]{1}'
+
+expected_regexes = [
+    ID_REGEX,
+    REVISION_REGEX,
+    APP_ID_REGEX,
+    SERVICE_MODEL_ID_REGEX,
+    E2_NODE_ID_REGEX,
+    STATUS_REGEX
+]
+
 if __name__ == '__main__':
-
-    expected_headers = ['ID', 'Revision', 'App', 'ID', 'Service', 'Model', 'ID', 'E2', 'NodeID', 'Status']
-
-    ID_REGEX = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-    REVISION_REGEX = r'^[0-9]*'
-    APP_ID_REGEX = r'^' + sys.argv[1] + r'$'
-    SERVICE_MODEL_ID_REGEX = r'^oran-e2sm-.*:v[0-9]{1}$'
-    E2_NODE_ID_REGEX = r'^[0-9a-f]{16}:0'
-    STATUS_REGEX = r'[0-9]{1}'
-
-    expected_regexes = [
-        ID_REGEX,
-        REVISION_REGEX,
-        APP_ID_REGEX,
-        SERVICE_MODEL_ID_REGEX,
-        E2_NODE_ID_REGEX,
-        STATUS_REGEX
-    ]
-    ok = check_cli.check_cli_output('E2Sub subscriptions', expected_headers, expected_regexes)
+    check = 'E2Sub subscriptions'
+    ok,output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
 
     if not ok:
+        print ("Check " + check + " failed")
         exit(1)
+
+        print ("Check " + check + " passed")
