@@ -29,7 +29,12 @@ cli_image="onosproject/onos-cli:latest"
 setup_test_cluster
 
 # install sd-ran
-helm install -n micro-onos $registry --set image.tag=latest --set import.ran-simulator.enabled=true --set import.onos-config.enabled=false --set import.onos-cli.enabled=false sdran sdran/sd-ran
+helm install -n micro-onos $registry \
+     --set image.tag=latest \
+     --set import.ran-simulator.enabled=true \
+     --set import.onos-config.enabled=false \
+     --set import.onos-cli.enabled=false \
+     sdran sdran/sd-ran
 sleep 15
 
 # wait for nodes to start up
@@ -37,12 +42,13 @@ kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
 sleep 45
 
 tmpfile="/tmp/smoke$$"
+cli_command="kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --quiet --command"
 
-kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos topo get relations | grep -v deleted > $tmpfile
+$cli_command /usr/local/bin/onos topo get relations >$tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-topo-relations <$tmpfile
 
-kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos e2sub list endpoints | grep -v deleted > $tmpfile
+$cli_command /usr/local/bin/onos e2sub list endpoints >$tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2sub-endpoints <$tmpfile
 

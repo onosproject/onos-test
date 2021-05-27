@@ -17,116 +17,56 @@
 
 set -eu -o pipefail
 
-repo_user=${repo_user:-}
-repo_password=${repo_password:-}
-
-if [ -z $repo_user ]; then
-  echo "repo_user must be set"
-  exit 1
-fi
-
-if [ -z $repo_password ]; then
-  echo "repo_password must be set"
-  exit 1
-fi
-
 onos_test=$PWD
 
 # configure proxy variables
+use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
 cli_image="onosproject/onos-cli:latest"
 
-if [ $proxy == "" ]; then
-   registry=""
-   atomix_storage_node=""
-else
-   registry="--set global.image.registry=$proxy"
-   cli_image="$proxy/$cli_image"
-   atomix_storage_node="--set storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
-fi
+# set up the test KinD cluster
+. $onos_test/build/bin/setup-test-cluster
+setup_test_cluster
 
-# Make a kind cluster
-kind delete cluster && kind create cluster --quiet
 
-# install Atomix
-if [ $proxy == "" ]; then
-   kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
-   kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
-   kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
-   registry=""
-   atomix_storage_node=""
-else
-   helm install --set image.repository=$proxy/atomix/kubernetes-controller atomix-controller atomix/atomix-controller -n kube-system
-   helm install --set image.repository=$proxy/atomix/raft-storage-controller raft atomix/raft-storage-controller -n kube-system
-   helm install --set image.repository=$proxy/atomix/cache-storage-controller cache atomix/cache-storage-controller -n kube-system
-   registry="--set global.image.registry=$proxy"
-   atomix_storage_node="--set storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
-fi
-
-# initialize the operator
-if [ $proxy == "" ]; then
-   helm install -n kube-system onos-operator onos/onos-operator --wait
-else
-   helm install $registry -n kube-system onos-operator onos/onos-operator --wait
-fi
-
-helm repo add cord https://charts.opencord.org
-helm repo add atomix https://charts.atomix.io
-helm repo add onos https://charts.onosproject.org
-helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
-helm repo update
-
-# create a namespace for ONOS
-kubectl delete namespace micro-onos || true
-kubectl create namespace micro-onos
-
-# get the chart dependencies up to date
-
-# install onos-topo
-helm install -n micro-onos --set image.tag=latest $registry $atomix_storage_node onos-topo onos/onos-topo
-
-# install onos-e2t
-helm install -n micro-onos --set image.tag=latest $registry onos-e2t sdran/onos-e2t
-
-# Install the ran simulator
-helm install -n micro-onos --set image.tag=latest $registry ran-simulator sdran/ran-simulator
-
-# install onos-e2sub
-helm install -n micro-onos --set image.tag=latest $registry $atomix_storage_node onos-e2sub sdran/onos-e2sub
-
-# install onos-pci
-helm install -n micro-onos --set image.tag=latest $registry onos-pci sdran/onos-pci
-
-# install onos-kpimon
-helm install -n micro-onos --set image.tag=latest $registry onos-kpimon sdran/onos-kpimon
+# install sd-ran
+helm install -n micro-onos $registry --set image.tag=latest \
+                                     --set import.ran-simulator.enabled=true \
+                                     --set import.onos-config.enabled=false \
+                                     --set import.onos-cli.enabled=false \
+                                     --set import.onos-pci.enabled=true \
+                                     --set import.onos-kpimon.enabled=true \
+                                     sdran sdran/sd-ran
+sleep 15
 
 # wait for nodes to start up
 kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
 sleep 60
 
 tmpfile="/tmp/smoke$$"
+cli_command="kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --quiet --command"
 
-kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos e2t list connections > $tmpfile
+$cli_command /usr/local/bin/onos topo get relations | grep -v deleted > $tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-e2t-connections <$tmpfile
+$onos_test/build/bin/check-topo-relations <$tmpfile
 
-kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos e2sub list endpoints > $tmpfile
+$cli_command /usr/local/bin/onos e2sub list endpoints > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2sub-endpoints <$tmpfile
 
-kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos e2sub list subscriptions > $tmpfile
+$cli_command /usr/local/bin/onos e2sub list subscriptions > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2sub-subscriptions 'onos-pci|onos-kpimon-v2' <$tmpfile
 
-kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos pci listall pci > $tmpfile
+$cli_command /usr/local/bin/onos pci listall pci > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-pci-listall-pci <$tmpfile
 
-kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos pci listall metric > $tmpfile
+$cli_command /usr/local/bin/onos pci listall metric > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-pci-listall-metric <$tmpfile
 
-kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --command /usr/local/bin/onos pci listall neighbors > $tmpfile
+$cli_command /usr/local/bin/onos pci listall neighbors > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-pci-listall-neighbors <$tmpfile
 

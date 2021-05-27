@@ -18,6 +18,19 @@
 set -eu -o pipefail
 
 setup_test_cluster () {
+  repo_user=${repo_user:-}
+  repo_password=${repo_password:-}
+
+  if [ -z $repo_user ]; then
+    echo "repo_user must be set"
+    exit 1
+  fi
+
+  if [ -z $repo_password ]; then
+    echo "repo_password must be set"
+    exit 1
+  fi
+
   if [ $proxy == "" ]; then
      registry=""
   else
@@ -38,11 +51,11 @@ setup_test_cluster () {
      helm install --set image.registry=$proxy \
                   --set init.image.registry=$proxy \
                   --set broker.image.registry=$proxy \
-                  atomix-controller atomix/atomix-controller -n kube-system
+                  atomix-controller atomix/atomix-controller -n kube-system --wait
      helm install --set image.registry=$proxy \
                   --set driver.image.registry=$proxy \
                   --set node.image.registry=$proxy \
-                  atomix-raft-storage atomix/atomix-raft-storage -n kube-system
+                  atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
      registry="--set global.image.registry=$proxy --set global.store.consensus.image.registry=$proxy --set global.storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
   fi
 
