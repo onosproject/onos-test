@@ -68,4 +68,4 @@ def do_check(name, cli_lines, expected_headers, expected_regexes):
 def check_cli_output(name, expected_headers, expected_regexes):
     cli_lines = str.splitlines(sys.stdin.read())
 
-    return do_check(name, cli_lines, expected_headers, expected_regexes)
+    return do_check(name, cli_lines, expected_headers, expected_regexes), cli_lines

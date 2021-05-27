@@ -26,30 +26,15 @@ then
   testSuite=$1
 fi
 
-# Create a clean KinD cluster
-kind delete cluster && kind create cluster --quiet
-
+# configure proxy variables
 use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
+cli_image="onosproject/onos-cli:latest"
 
-# install Atomix
-if [ $use_proxy == 0 ]; then
-   kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
-   kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
-   kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
-else
-   helm install --set image.repository=$proxy/atomix/kubernetes-controller atomix-controller atomix/atomix-controller -n kube-system
-   helm install --set image.repository=$proxy/atomix/raft-storage-controller raft atomix/raft-storage-controller -n kube-system
-   helm install --set image.repository=$proxy/atomix/cache-storage-controller cache atomix/cache-storage-controller -n kube-system
-fi
-
-# initialize the operator
-if [ $use_proxy == 0 ]; then
-   helm install -n kube-system onos-operator onos/onos-operator --wait
-else
-   helm install --set global.image.registry=$proxy -n kube-system  onos-operator onos/onos-operator --wait
-fi
-
+# set up the test KinD cluster
+onos_test=$PWD
+. $onos_test/build/bin/setup-test-cluster
+setup_test_cluster
 
 # make a directory to hold the downloaded source trees
 rm -rf integration-tests && mkdir integration-tests && pushd integration-tests
