@@ -136,8 +136,13 @@ case "$testSuite" in
     # onos-helm-charts
 
     cd onos-helm-charts
-    cd onos-umbrella; helm dependency build; cd ..
-    make test
+    helm repo add cord https://charts.opencord.org
+    helm repo add atomix https://charts.atomix.io
+    helm repo add onos https://charts.onosproject.org
+    helm repo update
+    run_integration_test_suite "onos-topo" "./test" "onos-topo"
+    run_integration_test_suite "onos-config" "./test" "onos-config"
+    run_integration_test_suite "onos-umbrella" "./test" "onos-umbrella"
     ;;
 
 "sdran-helm-charts")
@@ -148,8 +153,8 @@ case "$testSuite" in
     helm repo add atomix https://charts.atomix.io
     helm repo add onos https://charts.onosproject.org
     helm repo update
-    cd sd-ran; helm dependency build; cd ..
-    make test
+    run_integration_test_suite "sd-ran" "./test" "sd-ran"
+    run_integration_test_suite "aether-roc-umbrella" "./test" "aether-roc-umbrella"
     ;;
 
 "master-build")
