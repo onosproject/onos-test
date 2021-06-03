@@ -15,7 +15,7 @@
 #
 # Script to build and run all of the onos integration tests
 
-#set -eu -o pipefail
+set -eu -o pipefail
 
 if [ -z $1 ]
 then
@@ -46,7 +46,7 @@ pushd .. && GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit && po
 git clone https://github.com/onosproject/onos-helm-charts.git
 git clone git@github.com:onosproject/sdran-helm-charts.git
 
-common_args="--secret sd-ran-username=$repo_user --secret sd-ran-password=$repo_password --no-teardown"
+common_args="--timeout 20m --secret sd-ran-username=$repo_user --secret sd-ran-password=$repo_password --no-teardown"
 if [ $use_proxy = "1" ]; then
    common_args="$common_args --args registry=mirror.registry.opennetworking.org --image mirror.registry.opennetworking.org/onosproject/helmit-runner:latest"
 fi
@@ -64,7 +64,11 @@ run_integration_test() {
      export NAMESPACE=${NAMESPACE}-ns
      echo $NAMESPACE
      ( kubectl delete ns "$NAMESPACE" || true ) && kubectl create ns "$NAMESPACE"
-     helmit test -n "$NAMESPACE" $common_args "$binary_name" --test "$test_name" --no-teardown $proxy_args
+     if ! helmit test -n "$NAMESPACE" $common_args "$binary_name" --test "$test_name" --no-teardown $proxy_args; then
+         err=$?
+         echo "helmit returned error $err"
+         exit $err
+     fi
      ../../build/bin/check-test-log-errors
 }
 
@@ -80,9 +84,11 @@ run_integration_test_suite() {
      export NAMESPACE=${NAMESPACE}-ns
      echo $NAMESPACE
      ( kubectl delete ns "$NAMESPACE" || true ) && kubectl create ns "$NAMESPACE"
-     helmit test -n "$NAMESPACE" $common_args "$binary_name" --suite "$suite_name" --no-teardown $proxy_args
-     err=$?
-     echo "Helmit exit code is $err"
+     if ! helmit test -n "$NAMESPACE" $common_args "$binary_name" --suite "$suite_name" --no-teardown $proxy_args; then
+         err=$?
+         echo "helmit returned error $err"
+         exit $err
+     fi
      ../../build/bin/check-test-log-errors
 }
 
