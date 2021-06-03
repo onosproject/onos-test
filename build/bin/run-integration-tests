@@ -15,7 +15,7 @@
 #
 # Script to build and run all of the onos integration tests
 
-set -eu -o pipefail
+#set -eu -o pipefail
 
 if [ -z $1 ]
 then
@@ -81,6 +81,8 @@ run_integration_test_suite() {
      echo $NAMESPACE
      ( kubectl delete ns "$NAMESPACE" || true ) && kubectl create ns "$NAMESPACE"
      helmit test -n "$NAMESPACE" $common_args "$binary_name" --suite "$suite_name" --no-teardown $proxy_args
+     err=$?
+     echo "Helmit exit code is $err"
      ../../build/bin/check-test-log-errors
 }
 
