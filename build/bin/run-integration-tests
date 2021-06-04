@@ -52,26 +52,6 @@ if [ $use_proxy = "1" ]; then
 fi
 atomix_storage_version="v0.5.3"
 
-run_integration_test() {
-     test_name=$1
-     binary_name=$2
-     chart_name=$3
-     proxy_args=""
-     if [ $use_proxy = "1" ]; then
-         proxy_args="--set $chart_name.global.image.registry=$proxy --set $chart_name.global.image.registry=$proxy --set $chart_name.global.storage.consensus.image=$proxy/atomix/raft-storage-node:$atomix_storage_version"
-     fi
-     export NAMESPACE=$(echo $test_name | tr "[:upper:]" "[:lower:]" )
-     export NAMESPACE=${NAMESPACE}-ns
-     echo $NAMESPACE
-     ( kubectl delete ns "$NAMESPACE" || true ) && kubectl create ns "$NAMESPACE"
-     if ! helmit test -n "$NAMESPACE" $common_args "$binary_name" --test "$test_name" --no-teardown $proxy_args; then
-         err=$?
-         echo "helmit returned error $err"
-         exit $err
-     fi
-     ../../build/bin/check-test-log-errors
-}
-
 run_integration_test_suite() {
      suite_name=$1
      binary_name=$2
@@ -83,10 +63,15 @@ run_integration_test_suite() {
      export NAMESPACE=$(echo $suite_name | tr "[:upper:]" "[:lower:]" )
      export NAMESPACE=${NAMESPACE}-ns
      echo $NAMESPACE
+     err="0"
      ( kubectl delete ns "$NAMESPACE" || true ) && kubectl create ns "$NAMESPACE"
      if ! helmit test -n "$NAMESPACE" $common_args "$binary_name" --suite "$suite_name" --no-teardown $proxy_args; then
-         err=$?
+         err=${PIPESTATUS[0]}
          echo "helmit returned error $err"
+     fi
+     ../../build/bin/archive-artifacts
+     if [ "$err" -ne "0" ]; then
+         echo "Smoke test failed"
          exit $err
      fi
      ../../build/bin/check-test-log-errors
