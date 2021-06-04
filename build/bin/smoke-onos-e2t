@@ -49,7 +49,7 @@ $cli_command /usr/local/bin/onos topo get relations >$tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-topo-relations <$tmpfile
 
-$cli_command /usr/local/bin/onos e2sub list endpoints #>$tmpfile
+$cli_command /usr/local/bin/onos e2sub list endpoints >$tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2sub-endpoints <$tmpfile
 
