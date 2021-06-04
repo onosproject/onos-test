@@ -23,8 +23,7 @@ if [ "$#" -gt 1 ]; then
 fi
 
 onos_test=$PWD
-
-onos_test=$PWD
+trap "$onos_test/build/bin/archive-artifacts" EXIT
 
 # configure proxy variables
 use_proxy="1"

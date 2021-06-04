@@ -16,8 +16,8 @@
 # This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail
-
 onos_test=$PWD
+trap "$onos_test/build/bin/archive-artifacts" EXIT
 
 # configure proxy variables
 use_proxy="1"
