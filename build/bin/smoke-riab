@@ -21,6 +21,8 @@
 # ssh key already set up to access the private sdran repos on github.
 
 set -e -u -o pipefail
+onos_test=$PWD
+trap "$onos_test/build/bin/archive-artifacts" EXIT
 
 # set a default workspace if not running on Jenkins
 WORKSPACE=${WORKSPACE:-~}

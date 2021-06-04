@@ -16,8 +16,8 @@
 # This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail
-
 onos_test=$PWD
+trap "$onos_test/build/bin/archive-artifacts" EXIT
 
 # configure proxy variables
 use_proxy="1"
@@ -34,6 +34,7 @@ helm install -n micro-onos $registry \
      --set import.ran-simulator.enabled=true \
      --set import.onos-config.enabled=false \
      --set import.onos-cli.enabled=false \
+     --set import.onos-uenib.enabled=false \
      sdran sdran/sd-ran
 sleep 15
 
@@ -48,7 +49,7 @@ $cli_command /usr/local/bin/onos topo get relations >$tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-topo-relations <$tmpfile
 
-$cli_command /usr/local/bin/onos e2sub list endpoints >$tmpfile
+$cli_command /usr/local/bin/onos e2sub list endpoints #>$tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2sub-endpoints <$tmpfile
 
