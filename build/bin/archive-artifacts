@@ -35,6 +35,6 @@ for pair in "${pods[@]}"; do
   IFS='/' read -ra tokens <<< "$pair"
   namespace=${tokens[0]}
   podname=${tokens[1]}
-  kubectl logs -n $namespace $podname --all-containers >$ARCHIVE/log-$namespace-$podname.log
+  kubectl logs -n $namespace $podname --all-containers >$ARCHIVE/log-$namespace-$podname.log || true
 
 done
