@@ -82,7 +82,7 @@ sudo systemctl restart docker || true
 
 # Install RIAB
 make riab OPT=ransim
-sleep 30
+sleep 60
 
 # make sure that RIAB is running by checking for an onos e2t connection
 ITERATIONS=6
