@@ -99,4 +99,10 @@ cd ./gnxi-simulators
 make images
 cd ..
 
+ARCHIVE="$WORKSPACE/published-logs"
+rm -rf $ARCHIVE
+mkdir -p $ARCHIVE
+
+docker image ls >$ARCHIVE/all-images.log
+
 sudo chown -R jenkins .
