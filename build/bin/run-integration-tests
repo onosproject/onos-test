@@ -113,7 +113,7 @@ case "$testSuite" in
     cd ran-simulator
     make kind
 
-    run_integration_test_suite "e2t" "./cmd/ransim-tests" "sd-ran"
+    #run_integration_test_suite "e2t" "./cmd/ransim-tests" "sd-ran"
     ;;
 
 "onos-pci-tests")
