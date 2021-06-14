@@ -22,12 +22,12 @@ import re
 
 
 def do_check(name, cli_lines, expected_headers, expected_regexes):
-    connections_found = 0
-    headers_found = 0
+    items_found = int(0)
+    headers_found = int(0)
 
-    if len(cli_lines) == 0:
+    if int(len(cli_lines)) == 0:
         print('No CLI output')
-        exit(1)
+        exit(int(1))
     cli_headers = cli_lines[0].split()
 
     if cli_headers != expected_headers:
@@ -35,27 +35,27 @@ def do_check(name, cli_lines, expected_headers, expected_regexes):
         return False
     headers_found += 1
 
-    for connection in cli_lines[1:]:
-        connection_fields = connection.split()
-        for index in range(0, len(expected_regexes)-1):
+    for item in cli_lines[1:]:
+        fields = item.split()
+        for index in range(int(0), int(len(expected_regexes)-1)):
             expected_field = expected_regexes[index]
 
-            if len(connection_fields) != len(expected_regexes):
-                print('Wrong number of fields in: ' + connection)
+            if int(len(fields)) != len(expected_regexes):
+                print('Wrong number of fields in: ' + item)
                 return False
 
-            if not re.fullmatch(expected_field, connection_fields[index]):
-                print('Connection incorrect: ' + connection_fields[index] + ' does not match ' + expected_field)
+            if not re.fullmatch(expected_field, fields[index]):
+                print('Item incorrect: ' + fields[index] + ' does not match ' + expected_field)
                 return False
 
-        connections_found += 1
+        items_found += 1
 
     if headers_found == 0:
         print('CLI Headers not found')
         return False
 
-    if connections_found == 0:
-        print('No connections found')
+    if items_found == 0:
+        print('No items found')
         return False
 
     print(name + ' CLI output is correct!')
