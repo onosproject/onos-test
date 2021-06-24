@@ -24,7 +24,7 @@ expected_headers = ['Relation', 'ID', 'Kind', 'ID', 'Source', 'ID', 'Target', 'I
 
 RELATION_ID_REGEX = r'^[0-9a-zA-Z:-]+$'
 TARGET_ID_REGEX = r'^[0-9a-zA-Z-]+$'
-KIND_ID_REGEX = r'^CONTAINS|CONTROLS$'
+KIND_ID_REGEX = r'^contains|controls$'
 LABEL_REGEX = r'^[0-9]+$'
 
 expected_regexes = [
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     e2t_found = int(0)
     for line in cli_lines:
         tokens = line.split()
-        if tokens[1] == "CONTROLS" and "onos-e2t" in tokens[2]:
+        if tokens[1] == "controls" and "onos-e2t" in tokens[2]:
             e2t_found += 1
 
     if e2t_found != 2:
