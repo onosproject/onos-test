@@ -18,24 +18,26 @@
  and checks that the output is correct.
 """
 
-import sys
 import check_cli
-import time
 
-expected_headers = ['ID', 'IP', 'Port']
+expected_headers = ['Global', 'ID', 'PLNM', 'ID', 'IP', 'Addr', 'Port', 'Conn', 'Type']
 
-ID_REGEX = r'onos-e2t-[0-9a-z]{7,10}-[0-9a-z]{5}'
+GLOBAL_ID_REGEX = r'^[0-9]{8}-[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{12}$'
+PLNMID_REGEX = r'^[0-9]+$'
 IP_REGEX = r'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'
 PORT_REGEX = r'[0-9]*'
+CONN_TYPE_REGEX = r'^G_NB$'
 
 expected_regexes = [
-    ID_REGEX,
+    GLOBAL_ID_REGEX,
+    PLNMID_REGEX,
     IP_REGEX,
     PORT_REGEX,
+    CONN_TYPE_REGEX
 ]
 
 if __name__ == '__main__':
-    check = 'E2Sub endpoints'
+    check = 'E2T connections'
     ok,output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
 
     if not ok:
