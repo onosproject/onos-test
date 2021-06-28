@@ -40,7 +40,7 @@ sleep 15
 
 # wait for nodes to start up
 kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
-sleep 45
+sleep 70
 
 tmpfile="/tmp/smoke$$"
 cli_command="kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --quiet --command"
@@ -49,9 +49,9 @@ $cli_command /usr/local/bin/onos topo get relations >$tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-topo-relations <$tmpfile
 
-$cli_command /usr/local/bin/onos e2sub list endpoints >$tmpfile
+$cli_command /usr/local/bin/onos e2t list connections >$tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-e2sub-endpoints <$tmpfile
+$onos_test/build/bin/check-e2t-connections <$tmpfile
 
 rm $tmpfile
 

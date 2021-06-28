@@ -25,13 +25,13 @@ import check_cli
 expected_headers = ['ID', 'Revision', 'Service', 'Model', 'ID', 'E2', 'NodeID', 'Encoding', 'Phase', 'State']
 
 ID_REGEX = r'^[0-9a-f]{32}:[0-9a-f]+$'
-REVISION_REGEX = r'^[0-9]*'
-APP_ID_REGEX = r'^' + sys.argv[1] + r'$'
+REVISION_REGEX = r'^[0-9]+'
 SERVICE_MODEL_ID_REGEX = r'^oran-e2sm-.*:v[0-9]{1}$'
 E2_NODE_ID_REGEX = r'^[0-9a-f]+$'
 ENCODING_REGEX = r'^ASN1_[PBX]ER$'
-PHASE_REGEX = r'^SUBSCRIPTION_.+$'
-STATE_REGEX = r'^SUBSCRIPTION_.+$'
+
+PHASE_REGEX = r'^SUBSCRIPTION_OPEN'
+STATE_REGEX = r'SUBSCRIPTION_COMPLETE'
 
 expected_regexes = [
     ID_REGEX,
@@ -44,7 +44,7 @@ expected_regexes = [
 ]
 
 if __name__ == '__main__':
-    check = 'E2Sub subscriptions'
+    check = 'E2T subscriptions'
     ok,output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
 
     if not ok:
