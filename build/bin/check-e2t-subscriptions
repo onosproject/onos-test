@@ -22,13 +22,14 @@ import sys
 import time
 import check_cli
 
-expected_headers = ["ID", "Revision", "Service", "Model", "ID", "E2", "NodeID", "Encoding", "Phase", "State"]
+expected_headers = ['ID', 'Revision', 'Service', 'Model', 'ID', 'E2', 'NodeID', 'Encoding', 'Phase', 'State']
 
-ID_REGEX = r'^[0-9a-f]{32}:[0-9a-f]{4}'
+ID_REGEX = r'^[0-9a-f]{32}:[0-9a-f]+$'
 REVISION_REGEX = r'^[0-9]+'
 SERVICE_MODEL_ID_REGEX = r'^oran-e2sm-.*:v[0-9]{1}$'
-E2_NODE_ID_REGEX = r'^[0-9]{4}'
-ENCODING_REGEX = r'^' + sys.argv[1] + r'$'
+E2_NODE_ID_REGEX = r'^[0-9a-f]+$'
+ENCODING_REGEX = r'^ASN1_[PBX]ER$'
+
 PHASE_REGEX = r'^SUBSCRIPTION_OPEN'
 STATE_REGEX = r'SUBSCRIPTION_COMPLETE'
 

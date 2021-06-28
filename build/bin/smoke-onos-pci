@@ -50,6 +50,14 @@ $cli_command /usr/local/bin/onos topo get relations | grep -v deleted > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-topo-relations <$tmpfile
 
+$cli_command /usr/local/bin/onos e2t list subscriptions > $tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-e2t-subscriptions 'onos-pci|onos-kpimon-v2' <$tmpfile
+
+$cli_command /usr/local/bin/onos e2sub list endpoints > $tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-e2sub-endpoints <$tmpfile
+
 $cli_command /usr/local/bin/onos pci listall pci > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-pci-listall-pci <$tmpfile
