@@ -20,20 +20,24 @@
 
 import check_cli
 
-expected_headers = ['Global', 'ID', 'PLNM', 'ID', 'IP', 'Addr', 'Port', 'Conn', 'Type']
+expected_headers = ['Connection', 'ID', 'PLMN', 'ID', 'Node', 'ID', 'Node', 'Type', 'IP', 'Addr', 'Port', 'Status']
 
-GLOBAL_ID_REGEX = r'^[0-9]{8}-[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{12}$'
-PLNMID_REGEX = r'^[0-9]+$'
+ID_REGEX = r'^[0-9]{8}-[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{12}$'
+PLNMID_REGEX = r'^[0-9a-f]+$'
+NODEID_REGEX = r'^([0-9a-f<>]+|<None>)$'
+NODE_TYPE_REGEX = r'^G_NB$'
 IP_REGEX = r'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'
 PORT_REGEX = r'[0-9]*'
-CONN_TYPE_REGEX = r'^G_NB$'
+STATUS_REGEX = r'[0-9hms]*'
 
 expected_regexes = [
-    GLOBAL_ID_REGEX,
+    ID_REGEX,
     PLNMID_REGEX,
+    NODEID_REGEX,
+    NODE_TYPE_REGEX,
     IP_REGEX,
     PORT_REGEX,
-    CONN_TYPE_REGEX
+    STATUS_REGEX
 ]
 
 if __name__ == '__main__':
