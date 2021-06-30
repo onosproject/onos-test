@@ -49,6 +49,10 @@ $cli_command /usr/local/bin/onos topo get relations >$tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-topo-relations <$tmpfile
 
+$cli_command /usr/local/bin/onos topo get entities >$tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-topo-entities <$tmpfile
+
 $cli_command /usr/local/bin/onos e2t list connections >$tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2t-connections <$tmpfile

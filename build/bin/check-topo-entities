@@ -20,39 +20,36 @@
 
 import check_cli
 
-expected_headers = ['Relation', 'ID', 'Kind', 'ID', 'Source', 'ID', 'Target', 'ID', 'Labels', 'Aspects']
+expected_headers = ['Entity', 'ID', 'Kind', 'ID', 'Labels', 'Aspects']
 
-RELATION_ID_REGEX = r'^[0-9a-zA-Z:-]+$'
-KIND_ID_REGEX = r'^contains|controls$'
-SOURCE_ID_REGEX = r'^[0-9a-zA-Z-]+$'
-TARGET_ID_REGEX = r'^[0-9a-zA-Z-]+$'
+ENTITY_ID_REGEX = r'^[0-9a-zA-Z:-]+$'
+KIND_ID_REGEX = r'^e2node|e2cell$'
 NONE_REGEX = r'^<None>$'
+ASPECTS_REGEX = r'^onos\.topo\.[0-9a-zA-Z-]+$'
 
 expected_regexes = [
-    RELATION_ID_REGEX,
+    ENTITY_ID_REGEX,
     KIND_ID_REGEX,
-    SOURCE_ID_REGEX,
-    TARGET_ID_REGEX,
     NONE_REGEX,
-    NONE_REGEX
+    ASPECTS_REGEX,
 ]
 error = int(1)
 
 if __name__ == '__main__':
     # Check that the output is consistent
-    ok, cli_lines = check_cli.check_cli_output('topo relations', expected_headers, expected_regexes)
+    ok, cli_lines = check_cli.check_cli_output('topo entities', expected_headers, expected_regexes)
 
     if not ok:
         exit(error)
 
-    # Check that there two e2t connections in the output
-    e2t_found = int(0)
+    # Check that there two e2t nodes in the output
+    e2t_node_found = int(0)
     for line in cli_lines:
         tokens = line.split()
-        if tokens[1] == "controls" and "onos-e2t" in tokens[2]:
-            e2t_found += 1
+        if tokens[1] == "e2node":
+            e2t_node_found += 1
 
-    if e2t_found != 2:
-        print("Wrong number of e2t relations found: ", str(e2t_found))
+    if e2t_node_found != 2:
+        print("Wrong number of e2t nodes found: ", str(e2t_node_found))
         exit(error)
-    print("topo relations are correct!")
+    print("topo entities are correct!")
