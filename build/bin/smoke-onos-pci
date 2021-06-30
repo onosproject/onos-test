@@ -34,8 +34,7 @@ helm install -n micro-onos $registry --set image.tag=latest \
                                      --set import.ran-simulator.enabled=true \
                                      --set import.onos-config.enabled=false \
                                      --set import.onos-cli.enabled=false \
-                                     --set import.onos-pci.enabled=false \
-                                    #  --set import.onos-pci.enabled=true \
+                                     --set import.onos-pci.enabled=true \
                                      --set import.onos-kpimon.enabled=true \
                                      sdran sdran/sd-ran
 sleep 15
