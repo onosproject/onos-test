@@ -34,7 +34,8 @@ helm install -n micro-onos $registry --set image.tag=latest \
                                      --set import.ran-simulator.enabled=true \
                                      --set import.onos-config.enabled=false \
                                      --set import.onos-cli.enabled=false \
-                                     --set import.onos-pci.enabled=true \
+                                     --set import.onos-pci.enabled=false \
+                                    #  --set import.onos-pci.enabled=true \
                                      --set import.onos-kpimon.enabled=true \
                                      sdran sdran/sd-ran
 sleep 15
@@ -54,21 +55,9 @@ $cli_command /usr/local/bin/onos e2t list subscriptions > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2t-subscriptions 'onos-pci|onos-kpimon-v2' <$tmpfile
 
-$cli_command /usr/local/bin/onos e2sub list endpoints > $tmpfile
+$cli_command /usr/local/bin/onos pci get cells > $tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-e2sub-endpoints <$tmpfile
-
-$cli_command /usr/local/bin/onos pci listall pci > $tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-pci-listall-pci <$tmpfile
-
-$cli_command /usr/local/bin/onos pci listall metric > $tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-pci-listall-metric <$tmpfile
-
-$cli_command /usr/local/bin/onos pci listall neighbors > $tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-pci-listall-neighbors <$tmpfile
+$onos_test/build/bin/check-pci-get-cells <$tmpfile
 
 rm $tmpfile
 
