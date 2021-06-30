@@ -42,10 +42,12 @@ def do_check(name, cli_lines, expected_headers, expected_regexes):
 
             if int(len(fields)) != len(expected_regexes):
                 print('Wrong number of fields in: ' + item)
+                print(fields)
                 return False
 
             if not re.fullmatch(expected_field, fields[index]):
                 print('Item incorrect: ' + fields[index] + ' does not match ' + expected_field)
+                print(fields)
                 return False
 
         items_found += 1
