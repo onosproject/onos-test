@@ -95,6 +95,7 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "cli" "./cmd/onos-config-tests" "onos-umbrella" ""
+    kubectl delete ns $NAMESPACE
     run_integration_test_suite "gnmi" "./cmd/onos-config-tests" "onos-umbrella" ""
     #run_integration_test_suite "ha" "./cmd/onos-config-tests" "onos-umbrella" ""
     ;;
@@ -144,8 +145,11 @@ case "$testSuite" in
     helm repo add onos https://charts.onosproject.org
     helm repo update
     run_integration_test_suite "onos-topo" "./test" "onos-topo" ""
+    kubectl delete ns $NAMESPACE
     run_integration_test_suite "onos-config" "./test" "onos-config" ""
+    kubectl delete ns $NAMESPACE
     run_integration_test_suite "onos-umbrella" "./test" "onos-umbrella" ""
+    kubectl delete ns $NAMESPACE
     ;;
 
 "sdran-helm-charts")
@@ -157,7 +161,9 @@ case "$testSuite" in
     helm repo add onos https://charts.onosproject.org
     helm repo update
     run_integration_test_suite "sd-ran" "./test" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
     run_integration_test_suite "aether-roc-umbrella" "./test" "aether-roc-umbrella" ""
+    kubectl delete ns $NAMESPACE
     ;;
 
 "master-build")
