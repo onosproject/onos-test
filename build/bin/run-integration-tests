@@ -125,6 +125,10 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "pci" "./cmd/onos-pci-tests" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
+    run_integration_test_suite "scale" "./cmd/onos-pci-tests" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
+
     ;;
 
 "onos-uenib-tests")
@@ -162,8 +166,8 @@ case "$testSuite" in
     helm repo update
     run_integration_test_suite "sd-ran" "./test" "sd-ran" ""
     kubectl delete ns $NAMESPACE
-    run_integration_test_suite "aether-roc-umbrella" "./test" "aether-roc-umbrella" ""
-    kubectl delete ns $NAMESPACE
+    #run_integration_test_suite "aether-roc-umbrella" "./test" "aether-roc-umbrella" ""
+    #kubectl delete ns $NAMESPACE
     ;;
 
 "master-build")
