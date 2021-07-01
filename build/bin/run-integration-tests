@@ -106,7 +106,7 @@ case "$testSuite" in
     cd onos-e2t
     make kind
 
-    run_integration_test_suite "e2" "./cmd/onos-e2t-tests" "sd-ran" "--set sd-ran.onos-e2t.logging.loggers.root.level=debug"
+    run_integration_test_suite "e2" "./cmd/onos-e2t-tests" "sd-ran" ""
     ;;
 
 "ran-sim-tests")
