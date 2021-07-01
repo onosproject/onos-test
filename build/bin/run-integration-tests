@@ -125,6 +125,15 @@ case "$testSuite" in
     run_integration_test_suite "pci" "./cmd/onos-pci-tests" "sd-ran"
     ;;
 
+"onos-uenib-tests")
+    # onos-pci
+    git clone git@github.com:onosproject/onos-uenib.git
+    cd onos-uenib
+    make kind
+
+    run_integration_test_suite "uenib" "./cmd/onos-uenib-tests" "sd-ran"
+    ;;
+
 "onos-helm-charts")
     # onos-helm-charts
 

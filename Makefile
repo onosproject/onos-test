@@ -75,6 +75,9 @@ ran-sim-integration-tests:
 onos-pci-integration-tests:
 	./build/bin/run-integration-tests onos-pci-tests
 
+onos-uenib-integration-tests:
+	./build/bin/run-integration-tests onos-uenib-tests
+
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 
