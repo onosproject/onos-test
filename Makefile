@@ -57,6 +57,9 @@ fb-ah-smoke:
 pci-smoke:
 	./build/bin/smoke-onos-pci
 
+uenib-smoke:
+	./build/bin/smoke-onos-uenib
+
 onos-topo-integration-tests:
 	./build/bin/run-integration-tests onos-topo-tests
 
