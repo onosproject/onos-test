@@ -36,6 +36,7 @@ helm install -n micro-onos $registry --set image.tag=latest \
                                      --set import.onos-cli.enabled=false \
                                      --set import.onos-pci.enabled=true \
                                      --set import.onos-kpimon.enabled=true \
+                                     --set onos-kpimon.logging.loggers.root.level=debug \
                                      sdran sdran/sd-ran
 sleep 15
 
@@ -57,6 +58,12 @@ $onos_test/build/bin/check-e2t-subscriptions 'onos-pci|onos-kpimon-v2' <$tmpfile
 $cli_command /usr/local/bin/onos pci get cells > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-pci-get-cells <$tmpfile
+
+$cli_command /usr/local/bin/onos kpimon list metrics > $tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-kpimon-list-metrics <$tmpfile
+
+$onos_test/build/bin/check-kpimon-report-interval
 
 rm $tmpfile
 
