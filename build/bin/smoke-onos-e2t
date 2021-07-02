@@ -35,6 +35,7 @@ helm install -n micro-onos $registry \
      --set import.onos-config.enabled=false \
      --set import.onos-cli.enabled=false \
      --set import.onos-uenib.enabled=false \
+     --set import.onos-kpimon.enabled=true \
      sdran sdran/sd-ran
 sleep 15
 
@@ -56,6 +57,16 @@ $onos_test/build/bin/check-topo-entities <$tmpfile
 $cli_command /usr/local/bin/onos e2t list connections >$tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-e2t-connections <$tmpfile
+
+$cli_command /usr/local/bin/onos e2t list subscriptions > $tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-e2t-subscriptions 'onos-kpimon-v2' <$tmpfile
+
+$cli_command /usr/local/bin/onos kpimon list metrics > $tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-kpimon-list-metrics <$tmpfile
+
+$onos_test/build/bin/check-kpimon-report-interval
 
 rm $tmpfile
 
