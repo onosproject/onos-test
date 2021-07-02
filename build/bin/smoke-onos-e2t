@@ -36,6 +36,7 @@ helm install -n micro-onos $registry \
      --set import.onos-cli.enabled=false \
      --set import.onos-uenib.enabled=false \
      --set import.onos-kpimon.enabled=true \
+     --set onos-kpimon.logging.loggers.root.level=debug \
      sdran sdran/sd-ran
 sleep 15
 
