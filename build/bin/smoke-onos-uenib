@@ -38,7 +38,7 @@ helm install -n micro-onos $registry \
      --set import.onos-cli.enabled=false \
      --set import.onos-uenib.enabled=true \
      sdran sdran/sd-ran
-sleep 15
+sleep 60
 
 # wait for nodes to start up
 kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
