@@ -65,6 +65,8 @@ $onos_test/build/bin/check-kpimon-list-metrics <$tmpfile
 
 $onos_test/build/bin/check-kpimon-report-interval
 
+$onos_test/build/bin/check-kpimon-uenib-num-ues
+
 rm $tmpfile
 
 echo "ONOS PCI Smoke test completed successfully!"
