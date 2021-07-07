@@ -17,7 +17,7 @@
 
 set -eu -o pipefail
 onos_test=$PWD
-trap "$onos_test/build/bin/archive-artifacts" EXIT
+trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
 
 # configure proxy variables
 use_proxy="1"
