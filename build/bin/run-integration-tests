@@ -85,7 +85,7 @@ case "$testSuite" in
      cd onos-topo
      make kind
 
-     #run_integration_test_suite "topo" "./cmd/onos-topo-tests" "onos-topo"
+     run_integration_test_suite "topo" "./cmd/onos-topo-tests" "onos-topo"
      ;;
 
 "onos-config-tests")
@@ -138,6 +138,32 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "uenib" "./cmd/onos-uenib-tests" "sd-ran" ""
+    ;;
+
+"onos-kpimon-tests")
+    # onos-kpimon
+    git clone git@github.com:onosproject/onos-kpimon.git
+    cd onos-kpimon
+    make kind
+
+    run_integration_test_suite "kpm" "./cmd/onos-pci-tests" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
+
+    ;;
+
+"onos-mlb-tests")
+    # onos-mlb
+    git clone git@github.com:onosproject/onos-mlb.git
+    cd onos-mlb
+    make kind
+
+    run_integration_test_suite "overload" "./cmd/onos-mlb-tests" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
+    run_integration_test_suite "underload" "./cmd/onos-mlb-tests" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
+    run_integration_test_suite "targetload" "./cmd/onos-mlb-tests" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
+
     ;;
 
 "onos-helm-charts")
