@@ -21,8 +21,8 @@ set -eu -o pipefail
 
 ARCHIVE="$WORKSPACE/published-logs"
 
-kubectl get pods -A >$ARCHIVE/$namespace-all-pods.log
-kubectl describe pods -A > $ARCHIVE/$namespace-all-describe.log
+kubectl get pods -A >$ARCHIVE/$NAMESPACE-all-pods.log
+kubectl describe pods -A > $ARCHIVE/$NAMESPACE-all-describe.log
 
 podstring=$(for pod in $(kubectl get pods -A | awk '{print $1 "/" $2}' | tail -n +2); do echo $pod; done)
 pods=($podstring)
