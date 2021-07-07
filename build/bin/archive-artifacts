@@ -20,6 +20,7 @@
 set -eu -o pipefail
 
 ARCHIVE="$WORKSPACE/published-logs"
+NAMESPACE=${NAMESPACE:-"test"}
 
 kubectl get pods -A >$ARCHIVE/$NAMESPACE-all-pods.log
 kubectl describe pods -A > $ARCHIVE/$NAMESPACE-all-describe.log
