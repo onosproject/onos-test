@@ -146,7 +146,7 @@ case "$testSuite" in
     cd onos-kpimon
     make kind
 
-    run_integration_test_suite "kpm" "./cmd/onos-pci-tests" "sd-ran" ""
+    run_integration_test_suite "kpm" "./cmd/onos-kpimon-test" "sd-ran" ""
     kubectl delete ns $NAMESPACE
 
     ;;
@@ -157,11 +157,11 @@ case "$testSuite" in
     cd onos-mlb
     make kind
 
-    run_integration_test_suite "overload" "./cmd/onos-mlb-tests" "sd-ran" ""
+    run_integration_test_suite "overload" "./cmd/onos-mlb-test" "sd-ran" ""
     kubectl delete ns $NAMESPACE
-    run_integration_test_suite "underload" "./cmd/onos-mlb-tests" "sd-ran" ""
+    run_integration_test_suite "underload" "./cmd/onos-mlb-test" "sd-ran" ""
     kubectl delete ns $NAMESPACE
-    run_integration_test_suite "targetload" "./cmd/onos-mlb-tests" "sd-ran" ""
+    run_integration_test_suite "targetload" "./cmd/onos-mlb-test" "sd-ran" ""
     kubectl delete ns $NAMESPACE
 
     ;;
