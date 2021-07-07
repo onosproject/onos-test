@@ -19,18 +19,6 @@
 
 set -eu -o pipefail
 
-kubectl get pods -A >$ARCHIVE/$namespace-all-pods.log
-kubectl describe pods -A > $ARCHIVE/$namespace-all-describe.log
-
-podstring=$(for pod in $(kubectl get pods -A | awk '{print $1 "/" $2}' | tail -n +2); do echo $pod; done)
-pods=($podstring)
-
-for pair in "${pods[@]}"; do
-  echo $pair
-
-  IFS='/' read -ra tokens <<< "$pair"
-  namespace=${tokens[0]}
-  podname=${tokens[1]}
-  kubectl logs -n $namespace $podname --all-containers >$ARCHIVE/log-$namespace-$podname.log || true
-
-done
+ARCHIVE="$WORKSPACE/published-logs"
+rm -rf $ARCHIVE
+mkdir -p $ARCHIVE
