@@ -34,7 +34,7 @@ helm install -n micro-onos $registry --set image.tag=latest \
                                      --set import.ran-simulator.enabled=true \
                                      --set import.onos-config.enabled=false \
                                      --set import.onos-cli.enabled=false \
-                                     --set import.onos-pci.enabled=true \
+                                     --set import.onos-pci.enabled=false \
                                      --set import.onos-kpimon.enabled=true \
                                      --set onos-kpimon.logging.loggers.root.level=debug \
                                      sdran sdran/sd-ran
@@ -58,6 +58,14 @@ $onos_test/build/bin/check-e2t-subscriptions 'onos-pci|onos-kpimon-v2' <$tmpfile
 $cli_command /usr/local/bin/onos pci get cells > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-pci-get-cells <$tmpfile
+
+$cli_command /usr/local/bin/onos ransim get cells > $tmpfile
+$cli_command /usr/local/bin/onos ransim set cell 138426014550001 --pci 115 >> $tmpfile
+$cli_command /usr/local/bin/onos pci get cells >> $tmpfile
+$cli_command /usr/local/bin/onos pci get conflicts >> $tmpfile
+$cli_command /usr/local/bin/onos pci get resolved >> $tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-conflicts.py <$tmpfile
 
 $cli_command /usr/local/bin/onos kpimon list metrics > $tmpfile
 cat $tmpfile
