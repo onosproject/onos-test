@@ -19,6 +19,8 @@
 
 set -eu -o pipefail
 
+ARCHIVE="$WORKSPACE/published-logs"
+
 kubectl get pods -A >$ARCHIVE/$namespace-all-pods.log
 kubectl describe pods -A > $ARCHIVE/$namespace-all-describe.log
 
