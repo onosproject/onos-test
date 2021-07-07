@@ -78,6 +78,12 @@ onos-pci-integration-tests:
 onos-uenib-integration-tests:
 	./build/bin/run-integration-tests onos-uenib-tests
 
+onos-kpimon-integration-tests:
+	./build/bin/run-integration-tests onos-kpimon-tests
+
+onos-mlb-integration-tests:
+	./build/bin/run-integration-tests onos-mlb-tests
+
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 
