@@ -59,13 +59,9 @@ $cli_command /usr/local/bin/onos pci get cells > $tmpfile
 cat $tmpfile
 $onos_test/build/bin/check-pci-get-cells <$tmpfile
 
-$cli_command /usr/local/bin/onos ransim get cells > $tmpfile
-$cli_command /usr/local/bin/onos ransim set cell 138426014550001 --pci 115 >> $tmpfile
-$cli_command /usr/local/bin/onos pci get cells >> $tmpfile
-$cli_command /usr/local/bin/onos pci get conflicts >> $tmpfile
-$cli_command /usr/local/bin/onos pci get resolved >> $tmpfile
+$cli_command /usr/local/bin/onos pci get resolved > $tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-conflicts.py <$tmpfile
+$onos_test/build/bin/check-resolved <$tmpfile
 
 $cli_command /usr/local/bin/onos kpimon list metrics > $tmpfile
 cat $tmpfile
