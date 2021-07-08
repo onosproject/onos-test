@@ -22,7 +22,7 @@ import sys
 import time
 import check_cli
 
-expected_headers = ['ID', 'Revision', 'Service', 'Model', 'ID', 'E2', 'NodeID', 'Encoding', 'Phase', 'State']
+expected_headers = ['Subscription', 'ID', 'Revision', 'Service', 'Model', 'ID', 'E2', 'NodeID', 'Encoding', 'Phase', 'State']
 
 ID_REGEX = r'^[0-9a-f]{32}:[0-9a-f]+$'
 REVISION_REGEX = r'^[0-9]+'
