@@ -79,8 +79,39 @@ sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: d
 # restart Docker service to prevent occasional etcd installation failure
 sudo systemctl restart docker || true
 
-# Install RIAB
+# Install RIAB with ransim option
+echo Starting RiaB ransim option smoke test
 make riab OPT=ransim
+sleep 60
+
+# make sure that RIAB is running by checking for an onos e2t connection
+ITERATIONS=6
+RANSIM_FLAG=false
+for ((i=1;i<=ITERATIONS;i++))
+do
+    if kubectl run cli-check-connections -n riab --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep --text G_NB
+    then
+        echo RiaB ransim option smoke test passed!
+        RANSIM_FLAG=true
+        break
+    fi
+    sleep 10
+done
+
+if [ $RANSIM_FLAG == "false" ]
+then
+    echo '***' No G_NB connection found. RiaB ransim option smoke test failed! '***'
+    $onos_test/build/bin/archive-artifacts
+    exit 1
+fi
+
+# reset ric
+make reset-ric >/dev/null 2>/dev/null
+sleep 60
+
+# Install RiaB with OAI option
+echo Starting RiaB oai option smoke test
+make riab OPT=oai
 sleep 60
 
 # make sure that RIAB is running by checking for an onos e2t connection
@@ -89,7 +120,7 @@ for ((i=1;i<=ITERATIONS;i++))
 do
     if kubectl run cli-check-connections -n riab --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep --text G_NB
     then
-        echo RAN in a Box smoke test passed!
+        echo RiaB oai smoke test passed!
         $onos_test/build/bin/archive-artifacts
         make clean-all >/dev/null 2>/dev/null
         sudo systemctl restart docker
@@ -98,6 +129,6 @@ do
     sleep 10
 done
 
-echo '***' No G_NB connection found. Smoke test failed! '***'
+echo '***' No G_NB connection found. RiaB oai option smoke test failed! '***'
 $onos_test/build/bin/archive-artifacts
 exit 1
