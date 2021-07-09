@@ -16,6 +16,7 @@
 # This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail
+NAMESPACE=${NAMESPACE:-"micro-onos"}
 
 setup_test_cluster () {
   repo_user=${repo_user:-}
@@ -76,5 +77,5 @@ setup_test_cluster () {
   helm repo update
 
   # create a namespace for ONOS
-  kubectl create namespace micro-onos
+  kubectl create namespace $NAMESPACE
 }

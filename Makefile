@@ -60,6 +60,9 @@ pci-smoke:
 uenib-smoke:
 	./build/bin/smoke-onos-uenib
 
+fb-kpimon-smoke:
+	./build/bin/smoke-fb-kpimon-xapp
+
 onos-topo-integration-tests:
 	./build/bin/run-integration-tests onos-topo-tests
 
