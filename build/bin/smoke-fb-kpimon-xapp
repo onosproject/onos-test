@@ -39,11 +39,11 @@ setup_test_cluster
 
 # install SD RAN, ONF KPIMON and ransim
 helm install -n $NAMESPACE \
-   --set ran-simulator.image.tag=latest \
-   --set onos-e2t.image.tag=latest \
-   --set onos-kpimon.image.tag=latest \
+   --set global.image.tag=latest \
    --set import.ran-simulator.enabled=true \
    --set import.onos-kpimon.enabled=true \
+   --set import.onos-config.enabled=false \
+   --set import.onos-cli.enabled=false \
    $registry \
    $fb_registries \
    sd-ran sdran/sd-ran --wait
