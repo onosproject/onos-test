@@ -1,0 +1,93 @@
+#!/bin/bash
+# Copyright 2021-present Open Networking Foundation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script is intended to be run from the onos-test directory as part of CI
+# Smoke test to test FB KPIMON app along with ONF KPIMON app
+
+set -eu -o pipefail
+
+onos_test=$PWD
+trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
+
+# configure proxy variables
+use_proxy="1"
+proxy="mirror.registry.opennetworking.org"
+cli_image="onosproject/onos-cli:latest"
+NAMESPACE="smoke-fb-kpimon-xapp"
+
+if [ $proxy == "" ]; then
+  fb_registries=""
+else
+    fb_registries=" --set fb-kpimon-xapp.image.repository=mirror.registry.opennetworking.org/onosproject/fb-kpimon-xapp "
+fi
+
+# set up the test KinD cluster
+. $onos_test/build/bin/setup-test-cluster
+setup_test_cluster
+
+# install SD RAN, ONF KPIMON and ransim
+helm install -n $NAMESPACE \
+   --set ran-simulator.image.tag=latest \
+   --set onos-e2t.image.tag=latest \
+   --set onos-kpimon.image.tag=latest \
+   --set import.ran-simulator.enabled=true \
+   --set import.onos-kpimon.enabled=true \
+   $registry \
+   $fb_registries \
+   sd-ran sdran/sd-ran --wait
+
+# install FB KPIMON
+helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp --wait
+
+# wait for nodes to start up
+sleep 30
+
+tmpfile="/tmp/smoke$$"
+cli_command="kubectl run onos-cli -n $NAMESPACE --rm -i --image $cli_image --restart Never --quiet --command -- "
+
+# check that 4 subscriptions were created, 2 xapps and 2 nodes
+$cli_command /usr/local/bin/onos e2t get subscriptions --no-headers >$tmpfile
+cat $tmpfile
+subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile)
+if (( subcount != 4 && subcount != 3 )); then
+  echo Subscription count is wrong: $subcount
+  exit 1
+else
+  echo Subscription count is correct
+fi
+
+# check that the FB KPIMON is seeing connections
+$cli_command /usr/bin/curl -s http://fb-kpimon-xapp:8080/metrics >$tmpfile 2>/dev/null
+connections=$(grep xappkpimon_rrc_conn_avg{ $tmpfile | fgrep -c -v " 0.0 ")
+if (( connections == 0 ))
+then
+  echo FB KPIMON xapp is not seeing connections
+  exit 1
+else
+  echo FB KPIMON xapp connections are correct
+fi
+
+# check that the ONF KPIMON app is seeing connections
+$cli_command onos kpimon list metrics --no-headers >$tmpfile
+connections=$(grep -c -v "0 *0 *0 *0 *0 *0 *0 *0 *" $tmpfile)
+if (( connections == 0 ))
+then
+  echo ONF KPIMON xapp is not seeing connections
+  exit 1
+else
+  echo ONF KPIMON xapp connections are correct
+fi
+
+echo "FB/ONF KPIMON Smoke test completed successfully!"
