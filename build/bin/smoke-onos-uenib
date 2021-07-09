@@ -30,7 +30,7 @@ setup_test_cluster
 
 # install sd-ran
 helm install -n micro-onos $registry \
-     --set image.tag=latest \
+     --set global.image.tag=latest \
      --set import.ran-simulator.enabled=false \
      --set import.onos-config.enabled=false \
      --set import.onos-topo.enabled=false \
