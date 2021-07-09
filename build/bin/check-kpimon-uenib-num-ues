@@ -26,7 +26,7 @@ if __name__ == '__main__':
     success = int(0)
     KPIMON_NODE_ID = 0
     KPIMON_CELL_ID = 1
-    KPIMON_UE_COUNT = 3
+    KPIMON_UE_COUNT = 4
     UENIB_CELL_KEY = 0
     UENIB_UE_COUNT = 2
     kubectl_command = 'kubectl run onos-cli -n micro-onos --quiet'
