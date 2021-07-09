@@ -21,17 +21,22 @@ import sys
 import re
 
 
+def print_with_identifier(name, message):
+    identifier = '**** (' + name + ') '
+    print(identifier + message)
+
+
 def do_check(name, cli_lines, expected_headers, expected_regexes):
     items_found = int(0)
     headers_found = int(0)
 
     if int(len(cli_lines)) == 0:
-        print('No CLI output')
+        print_with_identifier(name, 'No CLI output')
         exit(int(1))
     cli_headers = cli_lines[0].split()
 
     if cli_headers != expected_headers:
-        print('CLI headers are incorrect: ' + cli_lines[0])
+        print_with_identifier(name, 'CLI headers are incorrect: ' + cli_lines[0])
         return False
     headers_found += 1
 
@@ -41,26 +46,26 @@ def do_check(name, cli_lines, expected_headers, expected_regexes):
             expected_field = expected_regexes[index]
 
             if int(len(fields)) != len(expected_regexes):
-                print('Wrong number of fields in: ' + item)
+                print_with_identifier(name, 'Wrong number of fields in: ' + item)
                 print(fields)
                 return False
 
             if not re.fullmatch(expected_field, fields[index]):
-                print('Item incorrect: ' + fields[index] + ' does not match ' + expected_field)
+                print_with_identifier(name, 'Item incorrect: ' + fields[index] + ' does not match ' + expected_field)
                 print(fields)
                 return False
 
         items_found += 1
 
     if headers_found == 0:
-        print('CLI Headers not found')
+        print_with_identifier(name, 'CLI Headers not found')
         return False
 
     if items_found == 0:
-        print('No items found')
+        print_with_identifier(name, 'No items found')
         return False
 
-    print(name + ' CLI output is correct!')
+    print_with_identifier(name, 'CLI output is correct!')
     return True
 
 
