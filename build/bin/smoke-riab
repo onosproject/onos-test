@@ -106,8 +106,15 @@ then
 fi
 
 # reset ric
-make reset-ric >/dev/null 2>/dev/null
+make reset-ric
 sleep 60
+
+# Check whether all pods down
+kubectl get po --all-namespaces
+
+# delete and recreate riab namespace
+kubectl delete namespace riab
+kubectl create namespace riab
 
 # Install RiaB with OAI option
 echo Starting RiaB oai option smoke test
