@@ -20,6 +20,12 @@
 # respectively. You must set up an HTTP password on gerrit and pass it in the the script, as well as have an
 # ssh key already set up to access the private sdran repos on github.
 
+function post_test_job {
+    $onos_test/build/bin/archive-artifacts
+    make clean-all >/dev/null 2>/dev/null
+    sudo systemctl restart docker
+}
+
 set -e -u -o pipefail
 onos_test=$PWD
 
@@ -81,7 +87,7 @@ sudo systemctl restart docker || true
 
 # Install RIAB with ransim option
 echo Starting RiaB ransim option smoke test
-make riab OPT=ransim
+make riab OPT=ransim || post_test_job
 sleep 60
 
 # make sure that RIAB is running by checking for an onos e2t connection
@@ -106,7 +112,7 @@ then
 fi
 
 # reset ric
-make reset-ric
+make reset-ric || post_test_job
 sleep 60
 
 # Check whether all pods down
@@ -118,7 +124,7 @@ kubectl create namespace riab
 
 # Install RiaB with OAI option
 echo Starting RiaB oai option smoke test
-make riab OPT=oai
+make riab OPT=oai || post_test_job
 sleep 60
 
 # make sure that RIAB is running by checking for an onos e2t connection
@@ -128,14 +134,13 @@ do
     if kubectl run cli-check-connections -n riab --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep --text E_NB
     then
         echo RiaB oai smoke test passed!
-        $onos_test/build/bin/archive-artifacts
-        make clean-all >/dev/null 2>/dev/null
-        sudo systemctl restart docker
+        post_test_job
         exit 0
     fi
     sleep 10
 done
 
-echo '***' No G_NB connection found. RiaB oai option smoke test failed! '***'
-$onos_test/build/bin/archive-artifacts
+echo '***' No E_NB connection found. RiaB oai option smoke test failed! '***'
+post_test_job
 exit 1
+
