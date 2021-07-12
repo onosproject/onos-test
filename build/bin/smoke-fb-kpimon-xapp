@@ -90,4 +90,14 @@ else
   echo ONF KPIMON xapp connections are correct
 fi
 
+# check that e2t is seeing channels
+$cli_command onos e2t get channels --no-headers >$tmpfile
+channels=$(grep -c -v "[^:]+:[^:]+:\d+:[^ ]+ *\d+ [^:]+v. *\d+ *ASN1_[PBX]ER *CHANNEL_[^ ]+ *CHANNEL_[^ ]+ *" $tmpfile)
+if (( channels != 4 && channels != 3 )); then
+  echo ONF e2t Channel count is wrong: $channels
+  exit 1
+else
+  echo ONF e2t Channel count is incorrect
+fi
+
 echo "FB/ONF KPIMON Smoke test completed successfully!"
