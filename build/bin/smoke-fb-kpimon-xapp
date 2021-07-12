@@ -61,7 +61,7 @@ cli_command="kubectl run onos-cli -n $NAMESPACE --rm -i --image $cli_image --res
 $cli_command /usr/local/bin/onos e2t get subscriptions --no-headers >$tmpfile
 cat $tmpfile
 subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile)
-if (( subcount != 4 && subcount != 3 )); then
+if (( subcount != 2 )); then
   echo Subscription count is wrong: $subcount
   exit 1
 else
