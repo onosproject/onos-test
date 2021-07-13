@@ -43,7 +43,7 @@ if __name__ == '__main__':
     for item in kpimon_output.splitlines():
         fields = item.split()
         node_id = fields[KPIMON_NODE_ID]
-        cell_id = str(int(fields[KPIMON_CELL_ID], 16))
+        cell_id = fields[KPIMON_CELL_ID]
         key = node_id + ":" + cell_id
         value = fields[KPIMON_UE_COUNT]
         ues[key] = value
