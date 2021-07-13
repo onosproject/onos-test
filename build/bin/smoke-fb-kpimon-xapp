@@ -57,7 +57,7 @@ sleep 30
 tmpfile="/tmp/smoke$$"
 cli_command="kubectl run onos-cli -n $NAMESPACE --rm -i --image $cli_image --restart Never --quiet --command -- "
 
-# check that 4 subscriptions were created, 2 xapps and 2 nodes
+# check that 2 subscriptions were created, 2 xapps should share the subscriptions to 2 nodes
 $cli_command /usr/local/bin/onos e2t get subscriptions --no-headers >$tmpfile
 cat $tmpfile
 subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile)
@@ -67,6 +67,18 @@ if (( subcount != 2 )); then
 else
   echo Subscription count is correct
 fi
+
+# check that 4 channels were created, 2 xapps with 2 nodes each
+$cli_command /usr/local/bin/onos e2t get channels --no-headers >$tmpfile
+cat $tmpfile
+chancount=$(grep -c CHANNEL_OPEN $tmpfile)
+if (( chancount != 4 )); then
+  echo Channel count is wrong: $chancount
+  exit 1
+else
+  echo Channel count is correct
+fi
+
 
 # check that the FB KPIMON is seeing connections
 $cli_command /usr/bin/curl -s http://fb-kpimon-xapp:8080/metrics >$tmpfile 2>/dev/null

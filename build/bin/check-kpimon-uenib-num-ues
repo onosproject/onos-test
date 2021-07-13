@@ -26,17 +26,24 @@ if __name__ == '__main__':
     success = int(0)
     KPIMON_NODE_ID = 0
     KPIMON_CELL_ID = 1
-    KPIMON_UE_COUNT = 4
-    UENIB_CELL_KEY = 0
+    KPIMON_UE_COUNT = 5
+    UENIB_KEY = 0
     UENIB_UE_COUNT = 2
     kubectl_command = 'kubectl run onos-cli -n micro-onos --quiet'
     base_cli_command = kubectl_command + ' --rm -it --image onosproject/onos-cli:latest --restart "Never" --command -- '
     kpimon_cli_command = base_cli_command + 'onos kpimon list metrics --no-headers'
-    uenib_cli_command = base_cli_command + 'onos uenib get ues --aspect RRC.Conn.Avg --no-headers'
+    uenib_cli_command = base_cli_command + 'onos uenib get ues --aspect RRC.Conn.Max --no-headers'
 
     # capture CLI output from KPIMON and UENIB
-    kpimon_output = subprocess.check_output(args=kpimon_cli_command, shell=True).decode("utf-8")
-    uenib_output = subprocess.check_output(args=uenib_cli_command, shell=True).decode("utf-8")
+    kpimon_output = ""
+    while kpimon_output == "":
+        kpimon_output = subprocess.check_output(args=kpimon_cli_command, shell=True).decode("utf-8")
+    print("kpimon output:\n" + kpimon_output)
+
+    uenib_output = ""
+    while uenib_output == "":
+        uenib_output = subprocess.check_output(args=uenib_cli_command, shell=True).decode("utf-8")
+    print("uenib output:\n" + uenib_output)
 
     # process the KPIMON output
     ues = {}
@@ -51,10 +58,13 @@ if __name__ == '__main__':
     # Now check that the values in the UE NIB are correct
     for item in uenib_output.splitlines():
         fields = item.split()
-        key = fields[UENIB_CELL_KEY]
+        key = fields[UENIB_KEY]
         value = fields[UENIB_UE_COUNT]
-        if ues[key] != value:
-            print("UE NIB value for " + key + " is wrong. Wanted " + ues[key] + " got " + value)
+        kpimon_value = ues.get(key, "<None>")
+        if kpimon_value != value:
+            print("kpimon output:" + kpimon_output)
+            print("uenib output:" + uenib_output)
+            print("UE NIB value for " + key + " is wrong. Wanted " + kpimon_value + " got " + value)
             exit(failure)
 
     print("Check " + check + " passed!")
