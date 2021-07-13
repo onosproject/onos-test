@@ -60,7 +60,7 @@ cli_command="kubectl run onos-cli -n $NAMESPACE --rm -i --image $cli_image --res
 # check that 2 subscriptions were created, 2 xapps should share the subscriptions to 2 nodes
 $cli_command /usr/local/bin/onos e2t get subscriptions --no-headers >$tmpfile
 cat $tmpfile
-subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile)
+subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile || : )
 if (( subcount != 2 )); then
   echo Subscription count is wrong: $subcount
   exit 1
@@ -71,7 +71,7 @@ fi
 # check that 4 channels were created, 2 xapps with 2 nodes each
 $cli_command /usr/local/bin/onos e2t get channels --no-headers >$tmpfile
 cat $tmpfile
-chancount=$(grep -c CHANNEL_OPEN $tmpfile)
+chancount=$(grep -c CHANNEL_OPEN $tmpfile || : )
 if (( chancount != 4 )); then
   echo Channel count is wrong: $chancount
   exit 1
@@ -82,7 +82,7 @@ fi
 
 # check that the FB KPIMON is seeing connections
 $cli_command /usr/bin/curl -s http://fb-kpimon-xapp:8080/metrics >$tmpfile 2>/dev/null
-connections=$(grep xappkpimon_rrc_conn_avg{ $tmpfile | fgrep -c -v " 0.0 ")
+connections=$(grep xappkpimon_rrc_conn_avg{ $tmpfile | fgrep -c -v " 0.0 " || : )
 if (( connections == 0 ))
 then
   echo FB KPIMON xapp is not seeing connections
@@ -93,7 +93,7 @@ fi
 
 # check that the ONF KPIMON app is seeing connections
 $cli_command onos kpimon list metrics --no-headers >$tmpfile
-connections=$(grep -c -v "0 *0 *0 *0 *0 *0 *0 *0 *" $tmpfile)
+connections=$(grep -c -v "0 *0 *0 *0 *0 *0 *0 *0 *" $tmpfile || : )
 if (( connections == 0 ))
 then
   echo ONF KPIMON xapp is not seeing connections
@@ -104,12 +104,12 @@ fi
 
 # check that e2t is seeing channels
 $cli_command onos e2t get channels --no-headers >$tmpfile
-channels=$(grep -c -v "[^:]+:[^:]+:\d+:[^ ]+ *\d+ [^:]+v. *\d+ *ASN1_[PBX]ER *CHANNEL_[^ ]+ *CHANNEL_[^ ]+ *" $tmpfile)
+channels=$(grep -c -v "[^:]+:[^:]+:\d+:[^ ]+ *\d+ [^:]+v. *\d+ *ASN1_[PBX]ER *CHANNEL_[^ ]+ *CHANNEL_[^ ]+ *" $tmpfile || : )
 if (( channels != 4 && channels != 3 )); then
   echo ONF e2t Channel count is wrong: $channels
   exit 1
 else
-  echo ONF e2t Channel count is incorrect
+  echo ONF e2t Channel count is correct
 fi
 
 echo "FB/ONF KPIMON Smoke test completed successfully!"
