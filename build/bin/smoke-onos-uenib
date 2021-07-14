@@ -44,7 +44,7 @@ sleep 60
 kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
 
 tmpfile="/tmp/smoke$$"
-cli_command="kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --quiet --command"
+cli_command="kubectl run onos-cli -n micro-onos --rm -it --image $cli_image --restart Never --quiet --command"
 
 $cli_command -- /usr/local/bin/onos uenib create ue UE-1 --aspect aspect1=value1,aspect2=value2,aspect3=value3
 $cli_command -- /usr/local/bin/onos uenib create ue UE-2 --aspect aspect2=value2,aspect3=value3,aspect4=value4
