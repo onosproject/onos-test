@@ -96,6 +96,12 @@ sdran-helm-charts-tests:
 onos-master-build-test:
 	./build/bin/run-integration-tests master-build
 
+mlb-overload-smoke:
+	./build/bin/smoke-onos-mlb-overload
+
+mlb-underload-smoke:
+	./build/bin/smoke-onos-mlb-underload
+
 help:
 	@grep -E '^.*: *# *@HELP' $(MAKEFILE_LIST) \
     | sort \
