@@ -14,7 +14,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
- Reads the standard input for CLI command output from 'onos e2sub list endpoints'
+ Reads the standard input for CLI command output from 'onos mlb list ocns'
  and checks that the output is correct.
 """
 
@@ -23,22 +23,6 @@ import sys
 
 expected_headers = ['sCell', 'node', 'ID', 'sCell', 'PLMN', 'ID', 'sCell', 'cell', 'ID', 'sCell', 'object', 'ID',
                     'nCell', 'PLMN', 'ID', 'nCell', 'cell', 'ID', 'Ocn', '[dB]']
-
-"""
-sCell node ID   sCell PLMN ID   sCell cell ID   sCell object ID   nCell PLMN ID   nCell cell ID   Ocn [dB]
-53510000        313338343236    1454c001        13842601454c001   138426          1454c002        -18
-53510000        313338343236    1454c001        13842601454c001   138426          1454c003        -18
-53510000        313338343236    1454c002        13842601454c002   138426          1454c001        -18
-53510000        313338343236    1454c002        13842601454c002   138426          1454c003        -18
-53510000        313338343236    1454c003        13842601454c003   138426          1454c001        -18
-53510000        313338343236    1454c003        13842601454c003   138426          1454c002        -18
-54510000        313338343236    14550001        138426014550001   138426          14550002        -18
-54510000        313338343236    14550001        138426014550001   138426          14550003        -18
-54510000        313338343236    14550002        138426014550002   138426          14550001        -18
-54510000        313338343236    14550002        138426014550002   138426          14550003        -18
-54510000        313338343236    14550003        138426014550003   138426          14550001        -18
-54510000        313338343236    14550003        138426014550003   138426          14550002        -18
-"""
 
 
 SCELL_NODE_ID_REGEX = r'^[0-9]{8}$'
