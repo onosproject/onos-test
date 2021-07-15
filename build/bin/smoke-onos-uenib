@@ -62,6 +62,14 @@ $cli_command -- /usr/local/bin/onos uenib get ues --aspect aspect4 >$tmpfile-asp
 cat $tmpfile-aspect4
 $onos_test/build/bin/check-uenib-aspects <$tmpfile-aspect4
 
+$cli_command -- /usr/local/bin/onos uenib get ue UE-1 >$tmpfile-aspect5
+cat $tmpfile-aspect5
+$onos_test/build/bin/check-uenib-aspects <$tmpfile-aspect5
+
+$cli_command -- /usr/local/bin/onos uenib get ues >$tmpfile-aspect6
+cat $tmpfile-aspect6
+$onos_test/build/bin/check-uenib-aspects <$tmpfile-aspect6
+
 rm $tmpfile-aspect*
 
 echo "UE NIB Smoke test completed successfully!"
