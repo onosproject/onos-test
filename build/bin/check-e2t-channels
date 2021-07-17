@@ -22,7 +22,7 @@ import check_cli
 
 expected_headers = ['Channel', 'ID', 'Revision', 'Service', 'Model', 'ID', 'E2', 'NodeID', 'Encoding', 'Phase', 'State']
 
-CHANNEL_ID_REGEX = r'^[\-_:0-9a-z]*:515[3-4]{1}:[\-_:0-9a-z]*$'
+CHANNEL_ID_REGEX = r'^[\-a-z]+:[\-a-z0-9]+:[\d]+:[\-a-z]+$'
 REVISION_REGEX = r'^\d+$'
 SM_ID_REGEX = r'^[\-0-9a-z]+:v2$'
 E2_NODE_ID_REGEX = r'^515[3-4]{1}$'
