@@ -43,6 +43,7 @@ helm install -n micro-onos $registry \
      --set import.ran-simulator.enabled=true \
      --set onos-mlb.config.mlb.thresholds.overload=101 \
      --set onos-mlb.config.mlb.thresholds.target=101 \
+     --set onos-mlb.config.mlb.config_json.controller.interval=1 \
      sdran sdran/sd-ran
 
 # wait for nodes to start up
