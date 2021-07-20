@@ -99,7 +99,7 @@ for ((i=1;i<=ITERATIONS;i++))
 do
     if kubectl run cli-check-connections -n riab --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep --text G_NB
     then
-        echo RiaB ransim option smoke test passed!
+        echo '***' RiaB ransim option smoke test passed! '***'
         RANSIM_FLAG=true
         break
     fi
@@ -131,16 +131,63 @@ sleep 60
 
 # make sure that RIAB is running by checking for an onos e2t connection
 ITERATIONS=6
+OAI_RIC_FLAG=false
+OAI_PING_ROUTER_FLAG=false
+OAI_PING_INTERNET_FLAG=false
+OAI_PING_DNS_FLAG=false
 for ((i=1;i<=ITERATIONS;i++))
 do
     if kubectl run cli-check-connections -n riab --rm -i --image onosproject/onos-cli:latest --restart Never --command /usr/local/bin/onos e2t list connections | grep --text E_NB
     then
-        echo RiaB oai smoke test passed!
-        exit 0
+        echo [RiaB OAI smoke test] RIC Control plane is working!
+        OAI_RIC_FLAG=true
+        break
     fi
     sleep 10
 done
 
-echo '***' No E_NB connection found. RiaB oai option smoke test failed! '***'
-exit 1
+for ((i=1;i<=ITERATIONS;i++))
+do
+    if ping -c 1 -n -w 1 192.168.250.1 -I oaitun_ue1
+    then
+        echo [RiaB OAI smoke test] Internal user plane connectivity looks good!
+        OAI_PING_ROUTER_FLAG=true
+        break
+    fi
+    sleep 10
+done
 
+for ((i=1;i<=ITERATIONS;i++))
+do
+    if ping -c 1 -n -w 1 8.8.8.8 -I oaitun_ue1
+    then
+        echo [RiaB OAI smoke test] Internet connectivity looks good!
+        OAI_PING_INTERNET_FLAG=true
+        break
+    fi
+    sleep 10
+done
+
+for ((i=1;i<=ITERATIONS;i++))
+do
+    if ping -c 1 -n -w 1 google.com -I oaitun_ue1
+    then
+        echo [RiaB OAI smoke test] Domain name can be resolved!
+        OAI_PING_DNS_FLAG=true
+        break
+    fi
+    sleep 10
+done
+
+if [ $OAI_RIC_FLAG == "true" ] && [ $OAI_PING_ROUTER_FLAG == "true" ] && [ $OAI_PING_INTERNET_FLAG == "true" ] && [ $OAI_PING_DNS_FLAG == "true" ]
+then
+    echo '***' RiaB OAI option smoke test passed! '***'
+    exit 0
+fi
+
+echo '***' No E_NB connection found. RiaB oai option smoke test failed! '***'
+echo OAI_RIC_FLAG: $OAI_RIC_FLAG
+echo OAI_PING_ROUTER_FLAG: $OAI_PING_ROUTER_FLAG
+echo OAI_PING_INTERNET_FLAG: $OAI_PING_INTERNET_FLAG
+echo OAI_PING_DNS_FLAG: $OAI_PING_DNS_FLAG
+exit 1
