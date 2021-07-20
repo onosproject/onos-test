@@ -17,15 +17,15 @@
  Reads the standard input for CLI command output from 'onos e2t get channels'
  and checks that the output is correct.
 """
+import sys
 
 import check_cli
 
 expected_headers = ['Channel', 'ID', 'Revision', 'Service', 'Model', 'ID', 'E2', 'NodeID', 'Encoding', 'Phase', 'State']
 
-CHANNEL_ID_REGEX = r'^[\-a-z]+:[\-a-z0-9]+:[\d]+:[\-a-z]+$'
 REVISION_REGEX = r'^\d+$'
-SM_ID_REGEX = r'^[\-0-9a-z]+:v2$'
-E2_NODE_ID_REGEX = r'^[0-9]+$'
+SM_ID_REGEX = r'^oran-e2sm-.*:v[0-9]{1}$'
+E2_NODE_ID_REGEX = r'^515[0-9]+$'
 ENCODING_REGEX = r'^ASN1_PER$'
 PHASE_REGEX = r'^CHANNEL_OPEN$'
 STATE_REGEX = r'^CHANNEL_COMPLETE$'
@@ -33,6 +33,16 @@ STATE_REGEX = r'^CHANNEL_COMPLETE$'
 if __name__ == '__main__':
     success = int(0)
     failure = int(1)
+
+    if int(len(sys.argv)) != 4:
+        print("usage: check-e2t-channels subname appname channame")
+        exit(failure)
+
+    subname = sys.argv[1]
+    appname = sys.argv[2]
+    channame = sys.argv[3]
+
+    CHANNEL_ID_REGEX = r'^' + subname + ':' + appname + r'-[\-a-z0-9]+:515[3-4]+:' + channame + '$'
 
     expected_regexes = [
         CHANNEL_ID_REGEX,
