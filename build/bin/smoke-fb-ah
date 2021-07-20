@@ -82,7 +82,7 @@ fi
 
 $cli_command /usr/local/bin/onos e2t list channels > $tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-e2t-channels <$tmpfile
+$onos_test/build/bin/check-e2t-channels fb-ah fb-ah-xapp '(fb-kpimon_oran-e2sm-kpm_sub|fb-ah_oran-e2sm-rc-pre_sub)' <$tmpfile
 chancount=$(grep -c CHANNEL_OPEN $tmpfile || : )
 if (( chancount != 4 )); then
   echo Channel count is wrong: $chancount

@@ -16,6 +16,9 @@
 # Script to install helm
 
 HELM_VERSION=3.5.4
+version=$(helm version)
+if [[ "$version" == *"v$HELM_VERSION"* ]]; then exit 0; fi
+
 
 curl -s https://get.helm.sh/helm-v${HELM_VERSION}-linux-386.tar.gz >/tmp/helm.tar.gz
 cd /tmp ; tar xf /tmp/helm.tar.gz ; sudo cp linux-386/helm /usr/local/bin/helm

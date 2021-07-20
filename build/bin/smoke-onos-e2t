@@ -65,7 +65,7 @@ $onos_test/build/bin/check-e2t-subscriptions 'onos-kpimon-v2' <$tmpfile
 
 $cli_command /usr/local/bin/onos e2t list channels > $tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-e2t-channels <$tmpfile
+$onos_test/build/bin/check-e2t-channels 'onos-kpimon' 'onos-kpimon' 'onos-kpimon-subscription' <$tmpfile
 
 $cli_command /usr/local/bin/onos kpimon list metrics > $tmpfile
 cat $tmpfile
