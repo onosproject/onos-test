@@ -25,12 +25,12 @@ expected_headers = ['sCell', 'node', 'ID', 'sCell', 'PLMN', 'ID', 'sCell', 'cell
                     'nCell', 'PLMN', 'ID', 'nCell', 'cell', 'ID', 'Ocn', '[dB]']
 
 
-SCELL_NODE_ID_REGEX = r'^[0-9]{8}$'
-SCELL_PLNMID_REGEX = r'^[0-9a-f]{12}$'
-SCELL_CELL_ID_REGEX = r'^[0-9a-f]{8}$'
-SCELL_OBJECT_ID_REGEX = r'^[0-9a-f]{15}$'
-NCELL_PLNM_ID_REGEX = r'^[0-9]{6}$'
-NCELL_CELL_ID_REGEX = r'^[0-9a-f]{8}$'
+SCELL_NODE_ID_REGEX = r'^[0-9a-f]{2,8}$'
+SCELL_PLNMID_REGEX = r'^[0-9a-f]{5,6}$'
+SCELL_CELL_ID_REGEX = r'^[0-9a-f]{6,10}$'
+SCELL_OBJECT_ID_REGEX = r'^[0-9a-f]{12,15}$'
+NCELL_PLNM_ID_REGEX = r'^[0-9]{5,6}$'
+NCELL_CELL_ID_REGEX = r'^[0-9a-f]{6,10}$'
 
 if __name__ == '__main__':
     success = int(0)
