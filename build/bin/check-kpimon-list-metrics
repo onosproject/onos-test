@@ -21,8 +21,8 @@
 import check_cli
 
 expected_headers = ['Node', 'ID', 'Cell', 'Object', 'ID', 'Cell', 'Global', 'ID', 'Time',
-                    'RRC.Conn.Avg', 'RRC.Conn.Max', 'RRC.ConnEstabAtt.Tot', 'RRC.ConnEstabSucc.Tot',
-                    'RRC.ConnReEstabAtt.HOFail', 'RRC.ConnReEstabAtt.Other', 'RRC.ConnReEstabAtt.Tot',
+                    'RRC.Conn.Avg', 'RRC.Conn.Max', 'RRC.ConnEstabAtt.Sum', 'RRC.ConnEstabSucc.Sum',
+                    'RRC.ConnReEstabAtt.HOFail', 'RRC.ConnReEstabAtt.Other', 'RRC.ConnReEstabAtt.Sum',
                     'RRC.ConnReEstabAtt.reconfigFail']
 
 NODE_ID_REGEX = r'[0-9a-f]+'
