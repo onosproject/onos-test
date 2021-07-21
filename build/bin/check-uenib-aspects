@@ -20,16 +20,14 @@
 
 import check_cli
 
-expected_headers = ['UE', 'ID', 'Aspect', 'Type', 'Aspect', 'Value']
+expected_headers = ['UE', 'ID', 'Aspect', 'Types']
 
 UE_ID_REGEX = r'UE-\d$'
-ASPECT_TYPE_REGEX = r'^aspect\d$'
-ASPECT_VALUE_REGEX = r'^value\d$'
+ASPECT_TYPE_REGEX = r'^(aspect\d[,])+$'
 
 expected_regexes = [
     UE_ID_REGEX,
     ASPECT_TYPE_REGEX,
-    ASPECT_VALUE_REGEX,
 ]
 
 if __name__ == '__main__':
