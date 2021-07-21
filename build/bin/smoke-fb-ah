@@ -44,6 +44,7 @@ fi
 setup_test_cluster
 
 helm install -n micro-onos \
+   --set global.image.tag=latest \
    --set import.fb-ah-xapp.enabled=true \
    --set import.fb-ah-gui.enabled=true \
    --set import.ah-eson-test-server.enabled=true \

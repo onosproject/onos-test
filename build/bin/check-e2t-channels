@@ -42,7 +42,7 @@ if __name__ == '__main__':
     appname = sys.argv[2]
     channame = sys.argv[3]
 
-    CHANNEL_ID_REGEX = r'^' + subname + ':' + appname + r'-[\-a-z0-9]+:515[3-4]+:' + channame + '$'
+    CHANNEL_ID_REGEX = r'^' + subname + ':' + appname + r'-[\-a-z0-9]+:[0-9]+:' + channame + '$'
 
     expected_regexes = [
         CHANNEL_ID_REGEX,
