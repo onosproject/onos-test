@@ -109,7 +109,9 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "e2" "./cmd/onos-e2t-tests" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
     run_integration_test_suite "ha" "./cmd/onos-e2t-tests" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
     ;;
 
 "ran-sim-tests")
