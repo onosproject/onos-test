@@ -27,12 +27,13 @@ if __name__ == '__main__':
     KPIMON_NODE_ID = 0
     KPIMON_CELL_ID = 1
     KPIMON_UE_COUNT = 5
-    UENIB_KEY = 0
-    UENIB_UE_COUNT = 2
+    UENIB_KEY = 1
+    ASPECT = 1
+    UENIB_UE_COUNT = 1
     kubectl_command = 'kubectl run onos-cli -n micro-onos --quiet'
     base_cli_command = kubectl_command + ' --rm -it --image onosproject/onos-cli:latest --restart "Never" --command -- '
     kpimon_cli_command = base_cli_command + 'onos kpimon list metrics --no-headers'
-    uenib_cli_command = base_cli_command + 'onos uenib get ues --aspect RRC.Conn.Max --no-headers'
+    uenib_cli_command = base_cli_command + 'onos uenib get ues --aspect RRC.Conn.Max --no-headers --verbose'
 
     # capture CLI output from KPIMON and UENIB
     kpimon_output = ""
@@ -58,14 +59,17 @@ if __name__ == '__main__':
     # Now check that the values in the UE NIB are correct
     for item in uenib_output.splitlines():
         fields = item.split()
-        key = fields[UENIB_KEY]
-        value = fields[UENIB_UE_COUNT]
-        kpimon_value = ues.get(key, "<None>")
-        if kpimon_value != value:
-            print("kpimon output:" + kpimon_output)
-            print("uenib output:" + uenib_output)
-            print("UE NIB value for " + key + " is wrong. Wanted " + kpimon_value + " got " + value)
-            exit(failure)
+        if fields[0] == "ID:":
+            key = fields[UENIB_KEY]
+        elif fields[0] != "Aspects:":
+            av = fields[ASPECT].split("=")
+            value = av[UENIB_UE_COUNT]
+            kpimon_value = ues.get(key, "<None>")
+            if kpimon_value != value:
+                print("kpimon output:" + kpimon_output)
+                print("uenib output:" + uenib_output)
+                print("UE NIB value for " + key + " is wrong. Wanted " + kpimon_value + " got " + value)
+                exit(failure)
 
     print("Check " + check + " passed!")
     exit(success)
