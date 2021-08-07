@@ -23,7 +23,7 @@ import check_cli
 expected_headers = ['Entity', 'ID', 'Kind', 'ID', 'Labels', 'Aspects']
 
 ENTITY_ID_REGEX = r'^[0-9a-zA-Z:-]+$'
-KIND_ID_REGEX = r'^e2node|e2cell$'
+KIND_ID_REGEX = r'^e2node|e2cell|e2t$'
 NONE_REGEX = r'^<None>$'
 ASPECTS_REGEX = r'^onos\.topo\.[0-9a-zA-Z-]+$'
 
