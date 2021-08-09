@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+""""
+ Copyright 2021-present Open Networking Foundation.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+ Reads the standard input for CLI command output from 'onos e2t list connections'
+ and checks that the output is correct.
+"""
+
+import check_cli
+
+expected_headers = ['Entity', 'ID', 'Kind', 'ID', 'Labels', 'Aspects']
+
+ENTITY_ID_REGEX = r'^[0-9a-zA-Z:-]+$'
+ANYTHING_REGEX = r'^.*$'
+NONE_REGEX = r'^<None>$'
+
+expected_regexes = [
+    ENTITY_ID_REGEX,
+    ANYTHING_REGEX,
+    NONE_REGEX,
+    NONE_REGEX,
+]
+error = int(1)
+
+if __name__ == '__main__':
+    # Check that the output is consistent
+    ok, cli_lines = check_cli.check_cli_output('topo creation', expected_headers, expected_regexes)
+
+    if not ok:
+        exit(error)
+
+    cli_lines.pop(0)  # remove header
+    # Check that there abcde12345 is the only entity
+    for line in cli_lines:
+        tokens = line.split()
+        if not "abcde12345" in tokens[0]:
+            print("Did not find inserted entity")
+            exit(error)
+    print("topo creation is correct!")
