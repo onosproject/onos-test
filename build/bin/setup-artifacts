@@ -19,6 +19,7 @@
 
 set -eu -o pipefail
 
+WORKSPACE=${WORKSPACE:-/tmp}
 ARCHIVE="$WORKSPACE/published-logs"
 rm -rf $ARCHIVE
 mkdir -p $ARCHIVE

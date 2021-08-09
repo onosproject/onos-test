@@ -15,6 +15,12 @@
 #
 # Script to install helm
 
+SKIP_HELM_INSTALL=${SKIP_HELM_INSTALL:-"0"}
+
+if [ "$SKIP_HELM_INSTALL" == "1" ]; then
+  exit 0
+fi
+
 HELM_VERSION=3.5.4
 version=$(helm version)
 if [[ "$version" == *"v$HELM_VERSION"* ]]; then exit 0; fi

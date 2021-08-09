@@ -30,27 +30,33 @@ if __name__ == '__main__':
     base_cli_command = kubectl_command + ' --rm -it --image onosproject/onos-cli:latest --restart "Never" --command -- onos '
 
     cli_command = base_cli_command
-    for arg in sys.argv[1:]:
+    checker = sys.argv[1]
+    for arg in sys.argv[2:]:
         cli_command = cli_command + " " + arg
 
-    print ("Eecuting command: " + cli_command)
+    print ("Executing command: " + cli_command)
+    result=failure
     # capture CLI output from KPIMON and UENIB
-    cli_output = ""
-    max_attempts = int(5)
-    while cli_output == "":
+    max_attempts = int(10)
+    done = False
+    while not done:
         try:
-            cli_output = subprocess.check_output(args=cli_command, shell=True).decode("utf-8")
-            break
+            cli_output = subprocess.check_output(args=cli_command, shell=True)
+            print("CLI output:\n" + cli_output.decode("utf-8"))
+
         except subprocess.CalledProcessError:
             cli_output = ""
 
-        max_attempts -= 1
+        try:
+            checker_output = subprocess.check_output(args=checker, input=cli_output, shell=True)
+            exit(success)
+        except subprocess.CalledProcessError as e:
+            print("Checker error: " + e.output.decode("utf-8"))
+            max_attempts -= 1
+
         if max_attempts == 0:
-            break
-        time.sleep(2)
+            done = True
+            continue
+        time.sleep(6)
 
-    print("CLI output:\n" + cli_output)
-
-    if cli_output == "":
-        exit(failure)
-    exit(success)
+    exit(failure)
