@@ -24,10 +24,10 @@ import check_cli
 
 expected_headers = ['Subscription', 'ID', 'Revision', 'Service', 'Model', 'ID', 'E2', 'NodeID', 'Encoding', 'Phase', 'State']
 
-ID_REGEX = r'^[0-9a-f]{32}:[0-9a-f]+$'
+ID_REGEX = r'^[0-9a-f]{32}:e2:1(\/[a-z0-9]+)$'
 REVISION_REGEX = r'^[0-9]+'
 SERVICE_MODEL_ID_REGEX = r'^oran-e2sm-.*:v[0-9]{1}$'
-E2_NODE_ID_REGEX = r'^[0-9a-f]+$'
+E2_NODE_ID_REGEX = r'^e2:([a-zA-Z0-9-]+|1\/[a-z0-9]+)$'
 ENCODING_REGEX = r'^ASN1_[PBX]ER$'
 
 PHASE_REGEX = r'^SUBSCRIPTION_OPEN'

@@ -22,10 +22,10 @@ import check_cli
 
 expected_headers = ['Relation', 'ID', 'Kind', 'ID', 'Source', 'ID', 'Target', 'ID', 'Labels', 'Aspects']
 
-RELATION_ID_REGEX = r'^[0-9a-zA-Z:-]+$'
+RELATION_ID_REGEX = r'^uuid:[0-9a-z-]+$'
 KIND_ID_REGEX = r'^contains|controls$'
-SOURCE_ID_REGEX = r'^[0-9a-zA-Z-]+$'
-TARGET_ID_REGEX = r'^[0-9a-zA-Z-]+$'
+SOURCE_ID_REGEX = r'^e2:([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+)$'
+TARGET_ID_REGEX = r'^e2:1(\/[a-z0-9]+){1,2}$'
 NONE_REGEX = r'^<None>$'
 
 expected_regexes = [

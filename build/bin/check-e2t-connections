@@ -22,9 +22,9 @@ import check_cli
 
 expected_headers = ['Connection', 'ID', 'PLMN', 'ID', 'Node', 'ID', 'Node', 'Type', 'IP', 'Addr', 'Port', 'Status']
 
-ID_REGEX = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+ID_REGEX = r'uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
 PLNMID_REGEX = r'^[0-9a-f]+$'
-NODEID_REGEX = r'^([0-9a-f<>]+|<None>)$'
+NODEID_REGEX = r'^e2:([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+)$'
 NODE_TYPE_REGEX = r'^G_NB$'
 IP_REGEX = r'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'
 PORT_REGEX = r'[0-9]*'
