@@ -25,7 +25,7 @@ expected_headers = ['Channel', 'ID', 'Revision', 'Service', 'Model', 'ID', 'E2',
 
 REVISION_REGEX = r'^\d+$'
 SM_ID_REGEX = r'^oran-e2sm-.*:v[0-9]{1}$'
-E2_NODE_ID_REGEX = r'^515[0-9]+$'
+E2_NODE_ID_REGEX = r'^e2:([a-zA-Z0-9-]+|1\/[a-z0-9]+)$'
 ENCODING_REGEX = r'^ASN1_PER$'
 PHASE_REGEX = r'^CHANNEL_OPEN$'
 STATE_REGEX = r'^CHANNEL_COMPLETE$'
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     appname = sys.argv[2]
     channame = sys.argv[3]
 
-    CHANNEL_ID_REGEX = r'^' + subname + ':' + appname + r'-[\-a-z0-9]+:[0-9]+:' + channame + '$'
+    CHANNEL_ID_REGEX = r'^' + subname + ':' + appname + r'-[\-a-z0-9]+:e2:([a-zA-Z0-9-]+|1\/[a-z0-9]+):' + channame + '$'
 
     expected_regexes = [
         CHANNEL_ID_REGEX,
