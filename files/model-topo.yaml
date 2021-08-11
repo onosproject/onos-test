@@ -1,0 +1,462 @@
+apiVersion: topo.onosproject.org/v1beta1
+kind: Entity
+metadata:
+  name: e2.1.5153
+spec:
+  uri: e2:1/5153
+  kind:
+    name: e2node
+  aspects:
+    onos.topo.E2Node:
+      service_models:
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Entity
+metadata:
+  name: e2.1.5154
+spec:
+  uri: e2:1/5154
+  kind:
+    name: e2node
+  aspects:
+    onos.topo.E2Node:
+      service_models:
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Entity
+metadata:
+  name: e2.1.5153.1
+spec:
+  uri: e2:1/5153/1
+  kind:
+    name: e2cell
+  aspects:
+    onos.topo.Location:
+      lat: 52.486405
+      lng: 13.412234
+    onos.topo.E2Cell:
+      earfcn: 42
+      cell_type: OUTDOOR_SMALL
+    onos.topo.Coverage:
+      arc_width: 120
+      tilt: 1
+      height: 43
+      azimuth: 0
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.b3357e0d-243b-4b02-bb4d-ef7ffa60f98e
+spec:
+  uri: rid:b3357e0d-243b-4b02-bb4d-ef7ffa60f98e
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5153/1
+  target:
+    uri: e2:1/5153/2
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.c52605c1-c83b-44ac-abbf-fada2900c670
+spec:
+  uri: rid:c52605c1-c83b-44ac-abbf-fada2900c670
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5153/1
+  target:
+    uri: e2:1/5153/3
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.28c25ae5-f657-4b82-a221-f2a7b32c19d4
+spec:
+  uri: rid:28c25ae5-f657-4b82-a221-f2a7b32c19d4
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5153/1
+  target:
+    uri: e2:1/5154/1
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Entity
+metadata:
+  name: e2.1.5153.2
+spec:
+  uri: e2:1/5153/2
+  kind:
+    name: e2cell
+  aspects:
+    onos.topo.Location:
+      lat: 52.486405
+      lng: 13.412234
+    onos.topo.E2Cell:
+      earfcn: 43
+      cell_type: OUTDOOR_SMALL
+    onos.topo.Coverage:
+      arc_width: 120
+      tilt: -10
+      height: 28
+      azimuth: 120
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.413bf111-5d7c-4a52-b8e3-e081e4280a3b
+spec:
+  uri: rid:413bf111-5d7c-4a52-b8e3-e081e4280a3b
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5153/2
+  target:
+    uri: e2:1/5153/1
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.d53afc32-4200-44cf-87a6-49146a0c8a25
+spec:
+  uri: rid:d53afc32-4200-44cf-87a6-49146a0c8a25
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5153/2
+  target:
+    uri: e2:1/5153/3
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.b4dad380-58c5-4ce5-b658-74c890429037
+spec:
+  uri: rid:b4dad380-58c5-4ce5-b658-74c890429037
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5153/2
+  target:
+    uri: e2:1/5154/2
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Entity
+metadata:
+  name: e2.1.5153.3
+spec:
+  uri: e2:1/5153/3
+  kind:
+    name: e2cell
+  aspects:
+    onos.topo.Location:
+      lat: 52.486405
+      lng: 13.412234
+    onos.topo.E2Cell:
+      earfcn: 44
+      cell_type: MACRO
+    onos.topo.Coverage:
+      arc_width: 120
+      tilt: -10
+      height: 22
+      azimuth: 240
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.077c19f8-95ad-48e0-8bcb-df14019be87a
+spec:
+  uri: rid:077c19f8-95ad-48e0-8bcb-df14019be87a
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5153/3
+  target:
+    uri: e2:1/5153/1
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.4c9d70a9-c745-4c16-9363-9623e5b959cf
+spec:
+  uri: rid:4c9d70a9-c745-4c16-9363-9623e5b959cf
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5153/3
+  target:
+    uri: e2:1/5153/2
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.3077e19d-54a0-4f52-bf14-0609bd8d034f
+spec:
+  uri: rid:3077e19d-54a0-4f52-bf14-0609bd8d034f
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5153/3
+  target:
+    uri: e2:1/5154/3
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Entity
+metadata:
+  name: e2.1.5154.1
+spec:
+  uri: e2:1/5154/1
+  kind:
+    name: e2cell
+  aspects:
+    onos.topo.Location:
+      lat: 52.504315
+      lng: 13.453262
+    onos.topo.E2Cell:
+      earfcn: 45
+      cell_type: OUTDOOR_SMALL
+    onos.topo.Coverage:
+      arc_width: 120
+      tilt: -15
+      height: 46
+      azimuth: 0
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.f780bd5c-2bb3-43c8-9d93-5b3183714a39
+spec:
+  uri: rid:f780bd5c-2bb3-43c8-9d93-5b3183714a39
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5154/1
+  target:
+    uri: e2:1/5154/3
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.64d13156-359b-45ee-ae7a-bde43f15c285
+spec:
+  uri: rid:64d13156-359b-45ee-ae7a-bde43f15c285
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5154/1
+  target:
+    uri: e2:1/5153/1
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.db0771ad-6c94-45cf-b7ac-b89ef80b5157
+spec:
+  uri: rid:db0771ad-6c94-45cf-b7ac-b89ef80b5157
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5154/1
+  target:
+    uri: e2:1/5154/2
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Entity
+metadata:
+  name: e2.1.5154.2
+spec:
+  uri: e2:1/5154/2
+  kind:
+    name: e2cell
+  aspects:
+    onos.topo.Location:
+      lat: 52.504315
+      lng: 13.453262
+    onos.topo.E2Cell:
+      earfcn: 46
+      cell_type: MACRO
+    onos.topo.Coverage:
+      arc_width: 120
+      tilt: 10
+      height: 49
+      azimuth: 120
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.db862601-6a03-4cc8-aad7-04bae414164e
+spec:
+  uri: rid:db862601-6a03-4cc8-aad7-04bae414164e
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5154/2
+  target:
+    uri: e2:1/5153/2
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.90ec1a57-0f91-4898-8afa-a5b2900072ec
+spec:
+  uri: rid:90ec1a57-0f91-4898-8afa-a5b2900072ec
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5154/2
+  target:
+    uri: e2:1/5154/1
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.fefc1daf-1412-4a26-a2db-81b8466f0fe6
+spec:
+  uri: rid:fefc1daf-1412-4a26-a2db-81b8466f0fe6
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5154/2
+  target:
+    uri: e2:1/5154/3
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Entity
+metadata:
+  name: e2.1.5154.3
+spec:
+  uri: e2:1/5154/3
+  kind:
+    name: e2cell
+  aspects:
+    onos.topo.Location:
+      lat: 52.504315
+      lng: 13.453262
+    onos.topo.E2Cell:
+      earfcn: 47
+      cell_type: FEMTO
+    onos.topo.Coverage:
+      arc_width: 120
+      tilt: -6
+      height: 29
+      azimuth: 240
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.83f37f51-889f-4b2b-a732-23914c7f3dce
+spec:
+  uri: rid:83f37f51-889f-4b2b-a732-23914c7f3dce
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5154/3
+  target:
+    uri: e2:1/5153/3
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.8433c4d1-7819-4052-a739-0cf7e441e983
+spec:
+  uri: rid:8433c4d1-7819-4052-a739-0cf7e441e983
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5154/3
+  target:
+    uri: e2:1/5154/1
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.40dd6c57-d3c7-456b-ac6e-e7972acd1dd2
+spec:
+  uri: rid:40dd6c57-d3c7-456b-ac6e-e7972acd1dd2
+  kind:
+    name: neighbors
+  source:
+    uri: e2:1/5154/3
+  target:
+    uri: e2:1/5154/2
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.f7c8f006-73ab-4a07-9afe-a2567887c5d0
+spec:
+  uri: rid:f7c8f006-73ab-4a07-9afe-a2567887c5d0
+  kind:
+    name: contains
+  source:
+    uri: e2:1/5153
+  target:
+    uri: e2:1/5153/1
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.41827035-c6a4-4aa1-8a51-ae07350dabe4
+spec:
+  uri: rid:41827035-c6a4-4aa1-8a51-ae07350dabe4
+  kind:
+    name: contains
+  source:
+    uri: e2:1/5153
+  target:
+    uri: e2:1/5153/2
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.fbdb1817-767c-4ac8-adab-669a726f6073
+spec:
+  uri: rid:fbdb1817-767c-4ac8-adab-669a726f6073
+  kind:
+    name: contains
+  source:
+    uri: e2:1/5153
+  target:
+    uri: e2:1/5153/3
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.28f4fe66-745c-416c-9d88-88151805c372
+spec:
+  uri: rid:28f4fe66-745c-416c-9d88-88151805c372
+  kind:
+    name: contains
+  source:
+    uri: e2:1/5154
+  target:
+    uri: e2:1/5154/1
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.f4c0daec-4839-471f-ba4b-32ad7517a7bc
+spec:
+  uri: rid:f4c0daec-4839-471f-ba4b-32ad7517a7bc
+  kind:
+    name: contains
+  source:
+    uri: e2:1/5154
+  target:
+    uri: e2:1/5154/2
+---
+apiVersion: topo.onosproject.org/v1beta1
+kind: Relation
+metadata:
+  name: rid.dfa8bee5-3c8e-4ad8-8a04-0ef156bd0f49
+spec:
+  uri: rid:dfa8bee5-3c8e-4ad8-8a04-0ef156bd0f49
+  kind:
+    name: contains
+  source:
+    uri: e2:1/5154
+  target:
+    uri: e2:1/5154/3
+---

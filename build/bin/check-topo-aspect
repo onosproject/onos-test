@@ -18,7 +18,7 @@
  and checks that the output is correct.
 """
 
-import check_cli
+import check_cli, sys
 
 expected_headers = ['Entity', 'ID', 'Kind', 'ID', 'Labels', 'Aspects']
 
@@ -42,15 +42,17 @@ if __name__ == '__main__':
     if not ok:
         exit(error)
 
+    id = sys.argv[1]
+    aspect = sys.argv[2]
     # Check that there abcde12345 is the only entity and that it has aspect foo
     cli_lines.pop(0) # remove headers
     for line in cli_lines:
         tokens = line.split()
-        if not "abcde12345" in tokens[0]:
-            print("Did not find inserted entity")
-            exit(error)
-        if not "foo" in tokens[3]:
-            print("Did not find foo aspect")
-            exit(error)
+        if id in tokens[0]:
+            print("topo aspect is correct!")
+            if not aspect in tokens[3]:
+                print("Did not find aspect: ", aspect)
+                exit(error)
+            exit(0)
+    print("Did not find inserted entity")
 
-    print("topo aspect is correct!")

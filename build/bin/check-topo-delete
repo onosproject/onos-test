@@ -26,10 +26,13 @@ error = int(1)
 if __name__ == '__main__':
     cli_lines = str.splitlines(sys.stdin.read())
 
+    id = sys.argv[1]
     cli_lines.pop(0) # remove header
 
-    if len(cli_lines) != 0:
-        print("entity was not deleted")
-        exit(error)
-
+    # Check that there is no abcde12345 entity
+    for line in cli_lines:
+        tokens = line.split()
+        if id in tokens[0]:
+            print("entity was not deleted")
+            exit(error)
     print("topo deletion is correct!")

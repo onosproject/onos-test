@@ -51,17 +51,30 @@ cli_command="kubectl run onos-cli -n micro-onos --rm -it --image $cli_image --re
 $cli_command /usr/local/bin/onos topo create entity "abcde12345" -- --kind "kind-id"
 $cli_command /usr/local/bin/onos topo get entities >$tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-topo-create <$tmpfile
+$onos_test/build/bin/check-topo-create "abcde12345" <$tmpfile
 
 $cli_command /usr/local/bin/onos topo set entity "abcde12345" -- -a [foo=bar]
 $cli_command /usr/local/bin/onos topo get entities >$tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-topo-aspect <$tmpfile
+$onos_test/build/bin/check-topo-aspect "abcde12345" "foo" <$tmpfile
 
 $cli_command /usr/local/bin/onos topo delete entity "abcde12345"
 $cli_command /usr/local/bin/onos topo get entities >$tmpfile
 cat $tmpfile
-$onos_test/build/bin/check-topo-delete <$tmpfile
+$onos_test/build/bin/check-topo-delete "abcde12345" <$tmpfile
+
+# Exercise the topo operator
+kubectl -n micro-onos create -f $onos_test/files/model-topo.yaml
+$cli_command /usr/local/bin/onos topo get entities >$tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-topo-create "e2:1/5154" <$tmpfile
+$onos_test/build/bin/check-topo-create "e2:1/5154/1" <$tmpfile
+
+kubectl -n micro-onos delete -f $onos_test/files/model-topo.yaml
+$cli_command /usr/local/bin/onos topo get entities >$tmpfile
+cat $tmpfile
+$onos_test/build/bin/check-topo-delete "e2:1/5154" <$tmpfile
+$onos_test/build/bin/check-topo-delete "e2:1/5154/1" <$tmpfile
 
 rm $tmpfile
 
