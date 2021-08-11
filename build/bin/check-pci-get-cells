@@ -25,7 +25,7 @@ import check_cli
 expected_headers = ['ID', 'Node', 'ID', 'Dlearfcn', 'Cell', 'Type', 'PCI', 'PCI', 'Pool']
 
 ID_REGEX = r'[0-9a-f]{15}'
-NODE_ID_REGEX = r'[0-9a-f]+'
+NODE_ID_REGEX = r'^e2:([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+)$'
 DLEARFCN_REGEX = r'\d+'
 CELL_TYPE_REGEX = r'FEMTO|ENTERPRISE|OUTDOOR_SMALL|MACRO'
 PCI_REGEX = r'\d+'
