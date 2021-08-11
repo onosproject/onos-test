@@ -53,9 +53,9 @@ $cli_command $onos_test/build/bin/check-e2t-connections e2t list connections
 
 $cli_command $onos_test/build/bin/check-e2t-subscriptions e2t list subscriptions
 
-$cli_command $onos_test/build/bin/check-e2t-channels e2t list channels > $tmpfile
+$cli_command $onos_test/build/bin/check-e2t-channels e2t list channels
 
-$cli_command $onos_test/build/bin/check-kpimon-list-metrics kpimon list metrics > $tmpfile
+$cli_command $onos_test/build/bin/check-kpimon-list-metrics kpimon list metrics
 
 $onos_test/build/bin/check-kpimon-report-interval
 
