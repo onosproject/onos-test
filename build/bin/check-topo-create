@@ -18,11 +18,11 @@
  and checks that the output is correct.
 """
 
-import check_cli
+import check_cli, sys
 
 expected_headers = ['Entity', 'ID', 'Kind', 'ID', 'Labels', 'Aspects']
 
-ENTITY_ID_REGEX = r'^[0-9a-zA-Z:-]+$'
+ENTITY_ID_REGEX = r'^[0-9a-zA-Z:/-]+$'
 ANYTHING_REGEX = r'^.*$'
 NONE_REGEX = r'^<None>$'
 
@@ -41,11 +41,13 @@ if __name__ == '__main__':
     if not ok:
         exit(error)
 
+    id = sys.argv[1]
     cli_lines.pop(0)  # remove header
-    # Check that there abcde12345 is the only entity
+    # Check that there is an abcde12345 entity
     for line in cli_lines:
         tokens = line.split()
-        if not "abcde12345" in tokens[0]:
-            print("Did not find inserted entity")
-            exit(error)
-    print("topo creation is correct!")
+        if id in tokens[0]:
+            print("topo creation is correct!")
+            exit(0)
+    print("Did not find inserted entity")
+    exit(error)
