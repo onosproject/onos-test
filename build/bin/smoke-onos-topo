@@ -43,9 +43,7 @@ sleep 15
 
 # wait for nodes to start up
 kubectl wait pod -n micro-onos --for=condition=Ready -l app=onos --timeout=300s
-sleep 60
 
-tmpfile="/tmp/smoke$$"
 cli_command="kubectl run onos-cli -n micro-onos --rm -it --image $cli_image --restart Never --quiet --command"
 cli_retry_command="$onos_test/build/bin/run-cli-command-with-retry"
 
@@ -60,17 +58,11 @@ $cli_retry_command "$onos_test/build/bin/check-topo-delete abcde12345" "topo get
 
 # Exercise the topo operator
 kubectl -n micro-onos create -f $onos_test/files/model-topo.yaml
-$cli_command /usr/local/bin/onos topo get entities >$tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-topo-create "e2:1/5154" <$tmpfile
-$onos_test/build/bin/check-topo-create "e2:1/5154/1" <$tmpfile
+$cli_retry_command "$onos_test/build/bin/check-topo-create e2:1/5154/1" "topo get entities"
 
 kubectl -n micro-onos delete -f $onos_test/files/model-topo.yaml
-$cli_command /usr/local/bin/onos topo get entities >$tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-topo-delete "e2:1/5154" <$tmpfile
-$onos_test/build/bin/check-topo-delete "e2:1/5154/1" <$tmpfile
 
-rm $tmpfile
+$cli_retry_command "$onos_test/build/bin/check-topo-delete e2:1/5154" "topo get entities"
+$cli_retry_command "$onos_test/build/bin/check-topo-delete e2:1/5154/1" "topo get entities"
 
 echo "ONOS TOPO Smoke test completed successfully!"
