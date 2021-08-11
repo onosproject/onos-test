@@ -43,7 +43,7 @@ setup_test_cluster () {
   kind delete cluster && kind create cluster --quiet
 
   # install the preferred version of helm
-  # build/bin/install-helm
+  build/bin/install-helm
 
   # install Atomix
   if [ $proxy == "" ]; then
