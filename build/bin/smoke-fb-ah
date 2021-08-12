@@ -51,7 +51,7 @@ helm install -n micro-onos \
    --set import.ran-simulator.enabled=true \
    $registry \
    $fb_registries \
-   sd-ran sdran/sd-ran --wait
+   sd-ran sdran/sd-ran --wait --timeout 10m
 
 
 tmpfile="/tmp/smoke$$"
