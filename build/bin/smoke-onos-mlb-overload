@@ -44,18 +44,10 @@ helm install -n micro-onos $registry \
      --set onos-mlb.config.mlb.thresholds.overload=101 \
      --set onos-mlb.config.mlb.thresholds.target=101 \
      --set onos-mlb.config.mlb.config_json.controller.interval=1 \
-     sdran sdran/sd-ran
+     sdran sdran/sd-ran --wait
 
-# wait for nodes to start up
-kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
-sleep 45
+cli_command="$onos_test/build/bin/run-cli-command-with-retry"
 
-tmpfile="/tmp/smoke$$"
-cli_command="kubectl run onos-cli -n micro-onos --rm -it --image $cli_image --restart Never --quiet --command -- "
+$cli_command "$onos_test/build/bin/check-mlb-ocns overload" "mlb list ocns"
 
-$cli_command onos mlb list ocns >$tmpfile
-$onos_test/build/bin/check-mlb-ocns overload <$tmpfile
-
-rm $tmpfile*
-
-echo "ONOS MLB Smoke test completed successfully!"
+echo "ONOS MLB overload smoke test completed successfully!"
