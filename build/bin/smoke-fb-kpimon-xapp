@@ -25,7 +25,7 @@ trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artif
 use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
 cli_image="onosproject/onos-cli:latest"
-NAMESPACE="smoke-fb-kpimon-xapp"
+NAMESPACE="micro-onos"
 
 if [ $proxy == "" ]; then
   fb_registries=""
@@ -51,11 +51,15 @@ helm install -n $NAMESPACE \
 # install FB KPIMON
 helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp --wait
 
-# wait for nodes to start up
-sleep 30
-
 tmpfile="/tmp/smoke$$"
 cli_command="kubectl run onos-cli -n $NAMESPACE --rm -it --image $cli_image --restart Never --quiet --command -- "
+cli_retry_command="$onos_test/build/bin/run-cli-command-with-retry"
+
+$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
+
+$cli_retry_command "$onos_test/build/bin/check-e2t-connections" "e2t list connections"
+
+$cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
 # check that 2 subscriptions were created, 2 xapps should share the subscriptions to 2 nodes
 $cli_command /usr/local/bin/onos e2t get subscriptions --no-headers >$tmpfile

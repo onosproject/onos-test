@@ -38,11 +38,7 @@ helm install -n micro-onos $registry --set global.image.tag=latest \
                                      --set import.onos-topo.enabled=true \
                                      --set import.onos-kpimon.enabled=false \
                                      --set onos-kpimon.logging.loggers.root.level=debug \
-                                     sdran sdran/sd-ran
-sleep 15
-
-# wait for nodes to start up
-kubectl wait pod -n micro-onos --for=condition=Ready -l app=onos --timeout=300s
+                                     sdran sdran/sd-ran --wait
 
 cli_command="kubectl run onos-cli -n micro-onos --rm -it --image $cli_image --restart Never --quiet --command"
 cli_retry_command="$onos_test/build/bin/run-cli-command-with-retry"

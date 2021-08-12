@@ -37,13 +37,8 @@ helm install -n micro-onos $registry \
      --set import.onos-e2t.enabled=false \
      --set import.onos-cli.enabled=false \
      --set import.onos-uenib.enabled=true \
-     sdran sdran/sd-ran
-sleep 60
+     sdran sdran/sd-ran --wait
 
-# wait for nodes to start up
-kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
-
-tmpfile="/tmp/smoke$$"
 cli_command="kubectl run onos-cli -n micro-onos --rm -it --image $cli_image --restart Never --quiet --command -- "
 cli_retry_command="$onos_test/build/bin/run-cli-command-with-retry"
 
