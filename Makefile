@@ -102,6 +102,9 @@ mlb-overload-smoke:
 mlb-underload-smoke:
 	./build/bin/smoke-onos-mlb-underload
 
+topo-smoke:
+	./build/bin/smoke-onos-topo
+
 help:
 	@grep -E '^.*: *# *@HELP' $(MAKEFILE_LIST) \
     | sort \
