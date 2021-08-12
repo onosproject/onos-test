@@ -37,40 +37,22 @@ helm install -n micro-onos $registry --set global.image.tag=latest \
                                      --set import.onos-pci.enabled=true \
                                      --set import.onos-kpimon.enabled=true \
                                      --set onos-kpimon.logging.loggers.root.level=debug \
-                                     sdran sdran/sd-ran
-sleep 15
+                                     sdran sdran/sd-ran --wait
 
-# wait for nodes to start up
-kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
-sleep 60
+cli_command="$onos_test/build/bin/run-cli-command-with-retry"
 
-tmpfile="/tmp/smoke$$"
-cli_command="kubectl run onos-cli -n micro-onos --rm -it --image $cli_image --restart Never --quiet --command"
+$cli_command "$onos_test/build/bin/check-topo-relations" "topo get relations"
 
-$cli_command /usr/local/bin/onos topo get relations >$tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-topo-relations <$tmpfile
+$cli_command "$onos_test/build/bin/check-e2t-subscriptions onos-pci\|onos-kpimon-v2" "e2t list subscriptions"
 
-$cli_command /usr/local/bin/onos e2t list subscriptions >$tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-e2t-subscriptions 'onos-pci|onos-kpimon-v2' <$tmpfile
+$cli_command "$onos_test/build/bin/check-pci-get-cells" "pci get cells"
 
-$cli_command /usr/local/bin/onos pci get cells >$tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-pci-get-cells <$tmpfile
+$cli_command "$onos_test/build/bin/check-resolved" "pci get resolved"
 
-$cli_command /usr/local/bin/onos pci get resolved >$tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-resolved <$tmpfile
-
-$cli_command /usr/local/bin/onos kpimon list metrics >$tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-kpimon-list-metrics <$tmpfile
+$cli_command "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
 
 $onos_test/build/bin/check-kpimon-report-interval
 
 $onos_test/build/bin/check-kpimon-uenib-num-ues
-
-rm $tmpfile
 
 echo "ONOS PCI Smoke test completed successfully!"

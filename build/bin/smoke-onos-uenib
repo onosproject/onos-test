@@ -37,39 +37,19 @@ helm install -n micro-onos $registry \
      --set import.onos-e2t.enabled=false \
      --set import.onos-cli.enabled=false \
      --set import.onos-uenib.enabled=true \
-     sdran sdran/sd-ran
-sleep 60
+     sdran sdran/sd-ran --wait
 
-# wait for nodes to start up
-kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
+cli_command="kubectl run onos-cli -n micro-onos --rm -it --image $cli_image --restart Never --quiet --command -- "
+cli_retry_command="$onos_test/build/bin/run-cli-command-with-retry"
 
-tmpfile="/tmp/smoke$$"
-cli_command="kubectl run onos-cli -n micro-onos --rm -it --image $cli_image --restart Never --quiet --command"
+$cli_command /usr/local/bin/onos uenib create ue UE-1 --aspect aspect1=value1,aspect2=value2,aspect3=value3
+$cli_command /usr/local/bin/onos uenib create ue UE-2 --aspect aspect2=value2,aspect3=value3,aspect4=value4
+$cli_command /usr/local/bin/onos uenib create ue UE-3 --aspect aspect3=value3,aspect4=value4,aspect5=value5
 
-$cli_command -- /usr/local/bin/onos uenib create ue UE-1 --aspect aspect1=value1,aspect2=value2,aspect3=value3
-$cli_command -- /usr/local/bin/onos uenib create ue UE-2 --aspect aspect2=value2,aspect3=value3,aspect4=value4
-$cli_command -- /usr/local/bin/onos uenib create ue UE-3 --aspect aspect3=value3,aspect4=value4,aspect5=value5
-
-$cli_command -- /usr/local/bin/onos uenib get ues --aspect aspect2 >$tmpfile-aspect2
-cat $tmpfile-aspect2
-$onos_test/build/bin/check-uenib-aspects <$tmpfile-aspect2
-
-$cli_command -- /usr/local/bin/onos uenib get ues --aspect aspect3 >$tmpfile-aspect3
-cat $tmpfile-aspect3
-$onos_test/build/bin/check-uenib-aspects <$tmpfile-aspect3
-
-$cli_command -- /usr/local/bin/onos uenib get ues --aspect aspect4 >$tmpfile-aspect4
-cat $tmpfile-aspect4
-$onos_test/build/bin/check-uenib-aspects <$tmpfile-aspect4
-
-$cli_command -- /usr/local/bin/onos uenib get ue UE-1 >$tmpfile-aspect5
-cat $tmpfile-aspect5
-$onos_test/build/bin/check-uenib-aspects <$tmpfile-aspect5
-
-$cli_command -- /usr/local/bin/onos uenib get ues >$tmpfile-aspect6
-cat $tmpfile-aspect6
-$onos_test/build/bin/check-uenib-aspects <$tmpfile-aspect6
-
-rm $tmpfile-aspect*
+$cli_retry_command "$onos_test/build/bin/check-uenib-aspects" "uenib get ues --aspect aspect2"
+$cli_retry_command "$onos_test/build/bin/check-uenib-aspects" "uenib get ues --aspect aspect3"
+$cli_retry_command "$onos_test/build/bin/check-uenib-aspects" "uenib get ues --aspect aspect4"
+$cli_retry_command "$onos_test/build/bin/check-uenib-aspects" "uenib get ue UE-1"
+$cli_retry_command "$onos_test/build/bin/check-uenib-aspects" "uenib get ues"
 
 echo "UE NIB Smoke test completed successfully!"

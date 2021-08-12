@@ -37,42 +37,22 @@ helm install -n micro-onos $registry \
      --set import.onos-uenib.enabled=true \
      --set import.onos-kpimon.enabled=true \
      --set onos-kpimon.logging.loggers.root.level=debug \
-     sdran sdran/sd-ran
-sleep 15
+     sdran sdran/sd-ran --wait
 
-# wait for nodes to start up
-kubectl wait pod -n micro-onos  --for=condition=Ready -l app=onos --timeout=300s
-sleep 70
+cli_command="$onos_test/build/bin/run-cli-command-with-retry"
 
-tmpfile="/tmp/smoke$$"
-cli_command="kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --quiet --command"
+$cli_command "$onos_test/build/bin/check-topo-relations" "topo get relations"
 
-$cli_command /usr/local/bin/onos topo get relations >$tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-topo-relations <$tmpfile
+$cli_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
 
-$cli_command /usr/local/bin/onos topo get entities >$tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-topo-entities <$tmpfile
+$cli_command "$onos_test/build/bin/check-e2t-connections" "e2t list connections"
 
-$cli_command /usr/local/bin/onos e2t list connections >$tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-e2t-connections <$tmpfile
+$cli_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
-$cli_command /usr/local/bin/onos e2t list subscriptions > $tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-e2t-subscriptions 'onos-kpimon-v2' <$tmpfile
+$cli_command "$onos_test/build/bin/check-e2t-channels onos-kpimon onos-kpimon onos-kpimon-subscription" "e2t list channels"
 
-$cli_command /usr/local/bin/onos e2t list channels > $tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-e2t-channels 'onos-kpimon' 'onos-kpimon' 'onos-kpimon-subscription' <$tmpfile
-
-$cli_command /usr/local/bin/onos kpimon list metrics > $tmpfile
-cat $tmpfile
-$onos_test/build/bin/check-kpimon-list-metrics <$tmpfile
+$cli_command "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
 
 $onos_test/build/bin/check-kpimon-report-interval
-
-rm $tmpfile
 
 echo "E2T Smoke test completed successfully!"
