@@ -14,28 +14,34 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
- Reads the standard input for CLI command output from 'onos e2sub list endpoints'
+ Reads the standard input for CLI command output from 'onos mlb list ocns'
  and checks that the output is correct.
 """
 
 import check_cli
 
-expected_headers = ['UE', 'ID', 'Aspect', 'Types']
+expected_headers = ['UeID', 'CellGlobalID', 'RrcState']
 
-UE_ID_REGEX = r'UE-\d$'
-ASPECT_TYPE_REGEX = r'^(aspect\d[,]*)+$'
-
-expected_regexes = [
-    UE_ID_REGEX,
-    ASPECT_TYPE_REGEX,
-]
+UE_ID_REGEX = r'^[0-9a-f]{6}$'
+CELL_GLOBAL_ID_REGEX = r'^[0-9a-f]{15}$'
+RRC_STATE_REGEX = r'^CONNECTED|IDLE$'
 
 if __name__ == '__main__':
-    check = 'UE NIB Aspects'
-    ok,output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
+    success = int(0)
+    failure = int(1)
+
+    expected_regexes = [
+        UE_ID_REGEX,
+        CELL_GLOBAL_ID_REGEX,
+        RRC_STATE_REGEX,
+    ]
+    check = 'MHO UEs'
+    ok, output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
 
     if not ok:
-        print ("Check " + check + " failed")
-        exit(1)
+        print("Check " + check + " failed")
+        exit(failure)
 
-        print ("Check " + check + " passed")
+    print("Check " + check + " passed")
+
+    exit(success)

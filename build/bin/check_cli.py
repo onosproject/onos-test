@@ -42,7 +42,7 @@ def do_check(name, cli_lines, expected_headers, expected_regexes):
 
     for item in cli_lines[1:]:
         fields = item.split()
-        for index in range(int(0), int(len(expected_regexes)-1)):
+        for index in range(int(0), int(len(expected_regexes))):
             expected_field = expected_regexes[index]
 
             if int(len(fields)) != len(expected_regexes):

@@ -1,0 +1,51 @@
+#!/bin/bash
+# Copyright 2020-present Open Networking Foundation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script is intended to be run from the onos-test directory as part of CI
+
+set -eu -o pipefail
+onos_test=$PWD
+trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
+
+# configure proxy variables
+use_proxy="1"
+proxy="mirror.registry.opennetworking.org"
+cli_image="onosproject/onos-cli:latest"
+
+# set up the test KinD cluster
+. $onos_test/build/bin/setup-test-cluster
+setup_test_cluster
+
+# install sd-ran
+helm install -n micro-onos $registry \
+     --set global.image.tag=latest \
+     --set import.ran-simulator.enabled=true \
+     --set import.onos-config.enabled=false \
+     --set import.onos-topo.enabled=true \
+     --set import.onos-e2t.enabled=true \
+     --set import.onos-cli.enabled=false \
+     --set import.onos-uenib.enabled=true \
+     --set import.onos-mho.enabled=true \
+     --set import.onos-pci.enabled=true \
+     --set import.onos-kpimon.enabled=true \
+     --set import.ran-simulator.enabled=true \
+     sdran sdran/sd-ran --wait
+
+cli_command="$onos_test/build/bin/run-cli-command-with-retry"
+
+$cli_command "$onos_test/build/bin/check-mho-ues" "mho get ues"
+$cli_command "$onos_test/build/bin/check-mho-cells" "mho get cells"
+
+echo "ONOS MHO smoke test completed successfully!"
