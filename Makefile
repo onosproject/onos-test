@@ -104,6 +104,9 @@ mlb-underload-smoke:
 
 topo-smoke:
 	./build/bin/smoke-onos-topo
+	
+mho-smoke:
+	./build/bin/smoke-onos-mho
 
 help:
 	@grep -E '^.*: *# *@HELP' $(MAKEFILE_LIST) \
