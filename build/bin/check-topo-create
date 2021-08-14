@@ -30,7 +30,7 @@ expected_regexes = [
     ENTITY_ID_REGEX,
     ANYTHING_REGEX,
     NONE_REGEX,
-    NONE_REGEX,
+    ANYTHING_REGEX,
 ]
 error = int(1)
 
