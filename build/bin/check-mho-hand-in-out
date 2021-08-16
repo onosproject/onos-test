@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+""""
+ Copyright 2021-present Open Networking Foundation.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+ Checks that the MHO hand ins and hand outs are happening
+"""
+
+import subprocess
+import time
+
+
+if __name__ == '__main__':
+    check = "MHO IDs"
+    failure = int(1)
+    success = int(0)
+    UES_UE_ID = 0
+    UES_CGI = 1
+
+    CELLS_CGI = 0
+    CELLS_NUM_UES = 1
+    CELLS_HANDOVERS_IN = 2
+    CELLS_HANDOVERS_OUT = 3
+    kubectl_command = 'kubectl run onos-cli -n micro-onos --quiet'
+    base_cli_command = kubectl_command + ' --rm -it --image onosproject/onos-cli:latest --restart "Never" --command -- '
+    mho_cells_cli_command = base_cli_command + 'onos mho get cells --no-headers'
+
+    hand_ins = int(0)
+    hand_outs = int(0)
+
+    max_attempts = int(20)
+    done = False
+
+    while not done:
+
+        # capture CLI output from "cells" and "ues" commands
+        mho_cells_output = subprocess.check_output(args=mho_cells_cli_command, shell=True).decode("utf-8")
+
+        # Loop through the "cells" output
+        for item in mho_cells_output.splitlines():
+            fields = item.split()
+            cgi = fields[CELLS_CGI]
+            num_ues = int(fields[CELLS_NUM_UES])
+            hand_in = int(fields[CELLS_HANDOVERS_IN])
+            hand_out = int(fields[CELLS_HANDOVERS_OUT])
+            hand_ins += hand_in
+            hand_outs += hand_out
+
+        # total handins seen should equal total hand outs
+        if hand_ins != hand_outs:
+            print("Hand ins not equal to hand outs: " + str(hand_ins) + ":" + str(hand_outs))
+            exit(failure)
+
+        if hand_ins > 20:
+            done = True
+        else:
+            max_attempts -= 1
+            if max_attempts == 0:
+                print("Insufficient MHO handins/handouts")
+                print("cells CLI output:\n" + mho_cells_output)
+                exit(failure)
+            time.sleep(6)
+
+    print("Check " + check + " passed!")
+    exit(success)

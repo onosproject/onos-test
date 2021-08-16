@@ -48,4 +48,6 @@ cli_command="$onos_test/build/bin/run-cli-command-with-retry"
 $cli_command "$onos_test/build/bin/check-mho-ues" "mho get ues"
 $cli_command "$onos_test/build/bin/check-mho-cells" "mho get cells"
 
+$onos_test/build/bin/check-mho-hand-in-out
+
 echo "ONOS MHO smoke test completed successfully!"
