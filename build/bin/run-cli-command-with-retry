@@ -51,6 +51,7 @@ if __name__ == '__main__':
 
         try:
             checker_output = subprocess.check_output(args=checker, input=cli_output, shell=True)
+            print(checker_output.decode("utf-8"))
             exit(success)
         except subprocess.CalledProcessError as e:
             print("Checker error: " + e.output.decode("utf-8"))
