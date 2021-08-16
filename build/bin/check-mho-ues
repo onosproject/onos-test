@@ -14,7 +14,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
- Reads the standard input for CLI command output from 'onos mlb list ocns'
+ Reads the standard input for CLI command output from 'onos mho get ues'
  and checks that the output is correct.
 """
 

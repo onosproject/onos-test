@@ -14,22 +14,11 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
- Reads the standard input for CLI command output from 'onos mlb list ocns'
+ Reads the standard input for CLI command output from 'onos mho get cells'
  and checks that the output is correct.
 """
 
 import check_cli
-
-'''
-
-CLI output:
-CGI              Num UEs          Handovers-in     Handovers-out   
-13842601454c001  3                0                0               
-13842601454c003  2                0                0               
-138426014550002  1                0                1               
-138426014550003  0                1                0         
-
-'''
 
 expected_headers = ['CGI', 'Num', 'UEs', 'Handovers-in', 'Handovers-out']
 
@@ -48,7 +37,7 @@ if __name__ == '__main__':
         HANDOVERS_IN_REGEX,
         HANDOVERS_OUT_REGEX,
     ]
-    check = 'MHO UEs'
+    check = 'MHO Cells'
     ok, output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
 
     if not ok:
