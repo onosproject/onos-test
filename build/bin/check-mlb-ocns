@@ -25,7 +25,7 @@ expected_headers = ['sCell', 'node', 'ID', 'sCell', 'PLMN', 'ID', 'sCell', 'cell
                     'nCell', 'PLMN', 'ID', 'nCell', 'cell', 'ID', 'Ocn', '[dB]']
 
 
-SCELL_NODE_ID_REGEX = r'^[0-9a-f]{2,8}$'
+SCELL_NODE_ID_REGEX = r'^e2:([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+)$'
 SCELL_PLNMID_REGEX = r'^[0-9a-f]{5,6}$'
 SCELL_CELL_ID_REGEX = r'^[0-9a-f]{6,10}$'
 SCELL_OBJECT_ID_REGEX = r'^[0-9a-f]{12,15}$'
