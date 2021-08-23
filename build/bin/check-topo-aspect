@@ -19,13 +19,12 @@
 """
 
 import check_cli, sys
-
 expected_headers = ['Entity', 'ID', 'Kind', 'ID', 'Labels', 'Aspects']
 
 ENTITY_ID_REGEX = r'^[0-9a-zA-Z:-]+$'
 ANYTHING_REGEX = r'^.*$'
 NONE_REGEX = r'^<None>$'
-ASPECT_REGEX = r'^foo$'
+ASPECT_REGEX = r'^[a-zA-Z0-9.,]+$'
 
 expected_regexes = [
     ENTITY_ID_REGEX,
@@ -44,11 +43,12 @@ if __name__ == '__main__':
 
     id = sys.argv[1]
     aspect = sys.argv[2]
-    # Check that there abcde12345 is the only entity and that it has aspect foo
+
+    # Check that requested entity has the specified aspect
     cli_lines.pop(0) # remove headers
     for line in cli_lines:
         tokens = line.split()
-        if id in tokens[0]:
+        if id == tokens[0]:
             print("topo aspect is correct!")
             if not aspect in tokens[3]:
                 print("Did not find aspect: ", aspect)
