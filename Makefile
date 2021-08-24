@@ -70,7 +70,10 @@ onos-config-integration-tests:
 	./build/bin/run-integration-tests onos-config-tests
 
 onos-e2t-integration-tests:
-	bash -x ./build/bin/run-integration-tests onos-e2t-tests
+	./build/bin/run-integration-tests onos-e2t-tests
+
+onos-e2t-ha-integration-tests:
+	./build/bin/run-integration-tests onos-e2t-ha-tests
 
 ran-sim-integration-tests:
 	./build/bin/run-integration-tests ran-sim-tests

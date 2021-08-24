@@ -110,6 +110,14 @@ case "$testSuite" in
 
     run_integration_test_suite "e2" "./cmd/onos-e2t-tests" "sd-ran" ""
     kubectl delete ns $NAMESPACE
+    ;;
+
+"onos-e2t-ha-tests")
+    # onos-e2t HA tests
+    git clone git@github.com:onosproject/onos-e2t.git
+    cd onos-e2t
+    make kind
+
     run_integration_test_suite "ha" "./cmd/onos-e2t-tests" "sd-ran" ""
     kubectl delete ns $NAMESPACE
     ;;
