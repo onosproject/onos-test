@@ -18,85 +18,52 @@
 
 set -e -u -o pipefail
 
-cd ..
+# repos and targets to build
+declare -a components=(
+  "build-tools" "images"
+  "onos-lib-go" "test"
+  "helmit" "build"
+  "onos-topo" "images"
+  "onos-e2t" "images"
+  "onos-kpimon" "images"
+  "onos-mho" "images"
+  "onos-mlb" "images"
+  "onos-operator" "images"
+  "onos-pci" "images"
+  "onos-exporter" "images"
+  "onos-e2-sm" "images"
+  "onos-uenib" "images"
+  "ran-simulator" "images"
+  "config-models" "build"
+  "onos-config" "images"
+  "onos-cli" "images"
+  "onos-docs" "images"
+  "gnxi-simulators" "images"
+)
+
+length=${#components[@]}
+length=$((length - 1))
+
+rm -rf ./build-work-space
 mkdir ./build-work-space
 cd ./build-work-space
 
-# pull master branches of included components
-for component in build-tools onos-lib-go helmit onos-topo ran-simulator config-models onos-config onos-cli onos-helm-charts onos-docs onos-gui gnxi-simulators sdran-helm-charts onos-e2sub onos-e2t onos-ric-sdk-go
-do
+# pull and build master branches of included components
+for i in $(seq 0 2 $length); do
+  component=${components[$i]}
+  target=${components[$i+1]}
+
   echo "Cloning ${component}"
   git clone git@github.com:onosproject/${component}.git --quiet
+  cd ${component}
+  make ${target}
+  cd ..
 done
 
-# build-tools
-cd ./build-tools
-make images
-cd ..
-
-# onos-lib-go
-cd ./onos-lib-go
-make
-cd ..
-
-# helmit
-cd ./helmit
-make
-cd ..
-
-# onos-topo
-cd ./onos-topo
-make images
-cd ..
-
-# onos-ric-sdk-go
-cd ./onos-ric-sdk-go
-make test
-cd ..
-
-# onos-e2sub
-cd ./onos-e2sub
-make images
-cd ..
-
-# onos-e2t
-cd ./onos-e2t
-make images
-cd ..
-
-# ran-simulator
-cd ./ran-simulator
-make images
-cd ..
-
-# config-models
-cd ./config-models
-make build
-cd ..
-
-# onos-config
-cd ./onos-config
-make images
-cd ..
-
-# onos-cli
-cd ./onos-cli
-make images
-cd ..
-
-# onos-docs
-cd ./onos-docs
-make images
-cd ..
-
-# onos-gui
+# onos-gui - needs a special image to build
+git clone git@github.com:onosproject/onos-gui.git --quiet
 cd ./onos-gui
 docker container run --rm -v $(pwd):/opt -w /opt teracy/angular-cli make deps build
-cd ..
-
-# gnxi-simulators
-cd ./gnxi-simulators
-make images
 cd ..
 
 ARCHIVE="$WORKSPACE/published-logs"
