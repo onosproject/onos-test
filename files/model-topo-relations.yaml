@@ -1,49 +1,4 @@
 apiVersion: topo.onosproject.org/v1beta1
-kind: Entity
-metadata:
-  name: e2.1.5153
-spec:
-  uri: e2:1/5153
-  kind:
-    name: e2node
-  aspects:
-    onos.topo.E2Node:
-      service_models:
----
-apiVersion: topo.onosproject.org/v1beta1
-kind: Entity
-metadata:
-  name: e2.1.5154
-spec:
-  uri: e2:1/5154
-  kind:
-    name: e2node
-  aspects:
-    onos.topo.E2Node:
-      service_models:
----
-apiVersion: topo.onosproject.org/v1beta1
-kind: Entity
-metadata:
-  name: e2.1.5153.1
-spec:
-  uri: e2:1/5153/1
-  kind:
-    name: e2cell
-  aspects:
-    onos.topo.Location:
-      lat: 52.486405
-      lng: 13.412234
-    onos.topo.E2Cell:
-      earfcn: 42
-      cell_type: OUTDOOR_SMALL
-    onos.topo.Coverage:
-      arc_width: 120
-      tilt: 1
-      height: 43
-      azimuth: 0
----
-apiVersion: topo.onosproject.org/v1beta1
 kind: Relation
 metadata:
   name: rid.b3357e0d-243b-4b02-bb4d-ef7ffa60f98e
@@ -81,27 +36,6 @@ spec:
     uri: e2:1/5153/1
   target:
     uri: e2:1/5154/1
----
-apiVersion: topo.onosproject.org/v1beta1
-kind: Entity
-metadata:
-  name: e2.1.5153.2
-spec:
-  uri: e2:1/5153/2
-  kind:
-    name: e2cell
-  aspects:
-    onos.topo.Location:
-      lat: 52.486405
-      lng: 13.412234
-    onos.topo.E2Cell:
-      earfcn: 43
-      cell_type: OUTDOOR_SMALL
-    onos.topo.Coverage:
-      arc_width: 120
-      tilt: -10
-      height: 28
-      azimuth: 120
 ---
 apiVersion: topo.onosproject.org/v1beta1
 kind: Relation
@@ -143,27 +77,6 @@ spec:
     uri: e2:1/5154/2
 ---
 apiVersion: topo.onosproject.org/v1beta1
-kind: Entity
-metadata:
-  name: e2.1.5153.3
-spec:
-  uri: e2:1/5153/3
-  kind:
-    name: e2cell
-  aspects:
-    onos.topo.Location:
-      lat: 52.486405
-      lng: 13.412234
-    onos.topo.E2Cell:
-      earfcn: 44
-      cell_type: MACRO
-    onos.topo.Coverage:
-      arc_width: 120
-      tilt: -10
-      height: 22
-      azimuth: 240
----
-apiVersion: topo.onosproject.org/v1beta1
 kind: Relation
 metadata:
   name: rid.077c19f8-95ad-48e0-8bcb-df14019be87a
@@ -201,27 +114,6 @@ spec:
     uri: e2:1/5153/3
   target:
     uri: e2:1/5154/3
----
-apiVersion: topo.onosproject.org/v1beta1
-kind: Entity
-metadata:
-  name: e2.1.5154.1
-spec:
-  uri: e2:1/5154/1
-  kind:
-    name: e2cell
-  aspects:
-    onos.topo.Location:
-      lat: 52.504315
-      lng: 13.453262
-    onos.topo.E2Cell:
-      earfcn: 45
-      cell_type: OUTDOOR_SMALL
-    onos.topo.Coverage:
-      arc_width: 120
-      tilt: -15
-      height: 46
-      azimuth: 0
 ---
 apiVersion: topo.onosproject.org/v1beta1
 kind: Relation
@@ -263,27 +155,6 @@ spec:
     uri: e2:1/5154/2
 ---
 apiVersion: topo.onosproject.org/v1beta1
-kind: Entity
-metadata:
-  name: e2.1.5154.2
-spec:
-  uri: e2:1/5154/2
-  kind:
-    name: e2cell
-  aspects:
-    onos.topo.Location:
-      lat: 52.504315
-      lng: 13.453262
-    onos.topo.E2Cell:
-      earfcn: 46
-      cell_type: MACRO
-    onos.topo.Coverage:
-      arc_width: 120
-      tilt: 10
-      height: 49
-      azimuth: 120
----
-apiVersion: topo.onosproject.org/v1beta1
 kind: Relation
 metadata:
   name: rid.db862601-6a03-4cc8-aad7-04bae414164e
@@ -321,27 +192,6 @@ spec:
     uri: e2:1/5154/2
   target:
     uri: e2:1/5154/3
----
-apiVersion: topo.onosproject.org/v1beta1
-kind: Entity
-metadata:
-  name: e2.1.5154.3
-spec:
-  uri: e2:1/5154/3
-  kind:
-    name: e2cell
-  aspects:
-    onos.topo.Location:
-      lat: 52.504315
-      lng: 13.453262
-    onos.topo.E2Cell:
-      earfcn: 47
-      cell_type: FEMTO
-    onos.topo.Coverage:
-      arc_width: 120
-      tilt: -6
-      height: 29
-      azimuth: 240
 ---
 apiVersion: topo.onosproject.org/v1beta1
 kind: Relation
