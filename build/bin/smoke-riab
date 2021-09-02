@@ -72,17 +72,9 @@ docker rmi --force $(docker images -a -q) || true
 # override defaults for RIAB versions
 git checkout sdran-in-a-box*.yaml
 
-sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:v1.0.0#spgwc: docker.io/onosproject/riab-spgw:v1.0.0-onfvm-1#" sdran-in-a-box-values.yaml
-sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/onosproject/riab-bess-upf:v1.0.0-onfvm-1#" sdran-in-a-box-values.yaml
-sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values.yaml
-
-sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:v1.0.0#spgwc: docker.io/onosproject/riab-spgw:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
-sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/onosproject/riab-bess-upf:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
-sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values-v1.0.0.yaml
-
-sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:v1.0.0#spgwc: docker.io/onosproject/riab-spgw:v1.0.0-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
-sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:v1.0.0#bess: docker.io/onosproject/riab-bess-upf:v1.0.0-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
-sed -i -e "s#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0#pfcpiface: docker.io/onosproject/riab-pfcpiface:v1.0.0-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
+sed -i -e "s#spgwc: docker.io/onosproject/riab-spgw:master-d8b0987#spgwc: docker.io/onosproject/riab-spgw:master-d8b0987-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
+sed -i -e "s#bess: docker.io/onosproject/riab-bess-upf:master-635b4d4#bess: docker.io/onosproject/riab-bess-upf:master-635b4d4-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
+sed -i -e "s#docker.io/onosproject/riab-pfcpiface:master-635b4d4#pfcpiface: docker.io/onosproject/riab-pfcpiface:master-635b4d4-onfvm-1#" sdran-in-a-box-values-master-stable.yaml
 
 # restart Docker service to prevent occasional etcd installation failure
 sudo systemctl restart docker || true
