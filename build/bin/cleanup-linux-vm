@@ -31,6 +31,12 @@ go clean --modcache
 go clean -cache
 
 # docker
-docker system prune
+docker system prune -f
 
 df -h /
+
+ARCHIVE="$WORKSPACE/published-logs"
+rm -rf $ARCHIVE
+mkdir -p $ARCHIVE
+
+docker image ls >$ARCHIVE/all-images.log
