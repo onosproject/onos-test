@@ -69,6 +69,12 @@ onos-topo-integration-tests:
 onos-config-integration-tests:
 	./build/bin/run-integration-tests onos-config-tests
 
+onos-e2t-integration-tests-r1:
+	E2T_REPLICAS=1 ./build/bin/run-integration-tests onos-e2t-tests
+
+onos-e2t-integration-tests-r2:
+	E2T_REPLICAS=2 ./build/bin/run-integration-tests onos-e2t-tests
+
 onos-e2t-integration-tests:
 	./build/bin/run-integration-tests onos-e2t-tests
 
