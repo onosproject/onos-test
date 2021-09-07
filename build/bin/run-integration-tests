@@ -106,12 +106,13 @@ case "$testSuite" in
 
 "onos-e2t-tests")
     # onos-e2t
+    E2T_REPLICAS=${E2T_REPLICAS:-"2"}
     git clone git@github.com:onosproject/onos-e2t.git
     cd onos-e2t
     git log -1
     make kind
 
-    run_integration_test_suite "e2" "./cmd/onos-e2t-tests" "sd-ran" ""
+    run_integration_test_suite "e2" "./cmd/onos-e2t-tests" "sd-ran" "--set sd-ran.onos-e2t.replicaCount=$E2T_REPLICAS"
     kubectl delete ns $NAMESPACE
     ;;
 
