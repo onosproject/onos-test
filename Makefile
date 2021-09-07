@@ -117,6 +117,9 @@ topo-smoke:
 mho-smoke:
 	./build/bin/smoke-onos-mho
 
+clean-vm:
+	./build/bin/cleanup-linux-vm
+
 help:
 	@grep -E '^.*: *# *@HELP' $(MAKEFILE_LIST) \
     | sort \
