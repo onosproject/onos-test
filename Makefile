@@ -48,6 +48,12 @@ clean: # @HELP remove all the build artifacts
 e2t-smoke:
 	./build/bin/smoke-onos-e2t
 
+e2t-smoke-r1:
+	./build/bin/smoke-onos-e2t
+
+e2t-smoke-r2:
+	 STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS=standard STORE_CONSENSUS_REPLICAS=3 STORE_CONSENSUS_PARTITIONS=3 ./build/bin/smoke-onos-e2t
+
 riab-smoke:
 	./build/bin/smoke-riab
 
