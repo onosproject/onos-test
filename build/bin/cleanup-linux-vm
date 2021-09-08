@@ -21,6 +21,8 @@ set -eu -o pipefail
 
 df -h /
 
+kind delete cluster
+
 # helmit
 rm -rf /tmp/helmit/*
 
@@ -32,6 +34,9 @@ go clean -cache
 
 # docker
 docker system prune -f
+
+# etcd
+sudo rm -rf /var/backups/etcd-*
 
 df -h /
 
