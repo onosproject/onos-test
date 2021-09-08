@@ -24,6 +24,29 @@ use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
 cli_image="onosproject/onos-cli:latest"
 
+# configure clustering parameters
+E2T_REPLICAS=${E2T_REPLICAS:-"2"}
+STORE_CONSENSUS_REPLICAS=${STORE_CONSENSUS_REPLICAS:-""}
+STORE_CONSENSUS_PARTITIONS=${STORE_CONSENSUS_PARTITIONS:-""}
+STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS=${STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS:-""}
+
+clustering_args=""
+
+if [ "$STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS" != "" ]
+then
+  clustering_args="$clustering_args --set sd-ran.global.store.consensus.persistence.storageClass=$STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS"
+fi
+
+if [ "$STORE_CONSENSUS_REPLICAS" != "" ]
+then
+  clustering_args="$clustering_args --set sd-ran.global.store.consensus.replicas=$STORE_CONSENSUS_REPLICAS"
+fi
+
+if [ "$STORE_CONSENSUS_PARTITIONS" != "" ]
+then
+  clustering_args="$clustering_args --set sd-ran.global.store.consensus.partitions=$STORE_CONSENSUS_PARTITIONS"
+fi
+
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster
@@ -37,6 +60,7 @@ helm install -n micro-onos $registry \
      --set import.onos-uenib.enabled=true \
      --set import.onos-kpimon.enabled=true \
      --set onos-kpimon.logging.loggers.root.level=debug \
+     $clustering_args \
      sdran sdran/sd-ran --wait
 
 cli_command="$onos_test/build/bin/run-cli-command-with-retry"
