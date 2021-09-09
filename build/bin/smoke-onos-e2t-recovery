@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2020-present Open Networking Foundation.
+# Copyright 2021-present Open Networking Foundation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ onos_test=$PWD
 before_file=$(mktemp)-before
 after_file=$(mktemp)-after
 
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
+trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm $before_file $after_file" EXIT
 
 # configure proxy variables
 use_proxy="1"
@@ -101,7 +101,7 @@ cat $after_file
 
 if ! diff $before_file $after_file
 then
-  echo "Smoke test failed"
+  echo "E2t Recovery Smoke test failed"
   exit 1
 fi
 
