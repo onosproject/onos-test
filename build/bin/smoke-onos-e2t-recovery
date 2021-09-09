@@ -1,0 +1,111 @@
+#!/bin/bash
+# Copyright 2021-present Open Networking Foundation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script is intended to be run from the onos-test directory as part of CI
+
+# Tests that a disaster recovery scenario properly loads saved data from persistence
+
+set -eu -o pipefail
+onos_test=$PWD
+before_file=$(mktemp)-before
+after_file=$(mktemp)-after
+
+trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm $before_file $after_file" EXIT
+
+# configure proxy variables
+use_proxy="1"
+proxy="mirror.registry.opennetworking.org"
+cli_image="onosproject/onos-cli:latest"
+
+# configure clustering parameters
+E2T_REPLICAS=${E2T_REPLICAS:-"2"}
+STORE_CONSENSUS_REPLICAS=${STORE_CONSENSUS_REPLICAS:-""}
+STORE_CONSENSUS_PARTITIONS=${STORE_CONSENSUS_PARTITIONS:-""}
+STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS=${STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS:-""}
+
+clustering_args=""
+
+if [ "$STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS" != "" ]
+then
+  clustering_args="$clustering_args --set global.store.consensus.persistence.storageClass=$STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS"
+fi
+
+if [ "$STORE_CONSENSUS_REPLICAS" != "" ]
+then
+  clustering_args="$clustering_args --set global.store.consensus.replicas=$STORE_CONSENSUS_REPLICAS"
+fi
+
+if [ "$STORE_CONSENSUS_PARTITIONS" != "" ]
+then
+  clustering_args="$clustering_args --set global.store.consensus.partitions=$STORE_CONSENSUS_PARTITIONS"
+fi
+
+get_cells_command="kubectl -n micro-onos exec -it deploy/onos-cli -- onos topo get entities --kind e2cell --no-headers"
+
+# set up the test KinD cluster
+. $onos_test/build/bin/setup-test-cluster
+setup_test_cluster
+
+# install sd-ran
+helm install -n micro-onos $registry \
+     --set global.image.tag=latest \
+     --set import.ran-simulator.enabled=true \
+     --set import.onos-config.enabled=false \
+     --set import.onos-cli.enabled=true \
+     --set import.onos-uenib.enabled=true \
+     --set import.onos-kpimon.enabled=true \
+     --set onos-kpimon.logging.loggers.root.level=debug \
+     $clustering_args \
+     sdran sdran/sd-ran --wait
+
+sleep 30
+
+# grab the cells output
+$get_cells_command | sort >$before_file
+
+# simulate a cluster crash
+helm uninstall sdran -n micro-onos
+
+# recover sd-ran
+helm install -n micro-onos $registry \
+     --set global.image.tag=latest \
+     --set import.ran-simulator.enabled=false \
+     --set import.onos-config.enabled=false \
+     --set import.onos-cli.enabled=true \
+     --set import.onos-uenib.enabled=true \
+     --set import.onos-kpimon.enabled=true \
+     --set onos-kpimon.logging.loggers.root.level=debug \
+     $clustering_args \
+     sdran sdran/sd-ran --wait
+
+sleep 30
+
+# grab the cells output after recovery
+$get_cells_command | sort >$after_file
+
+echo Before:
+cat $before_file
+
+echo After:
+cat $after_file
+
+# make sure the cells are all still there
+if ! diff $before_file $after_file
+then
+  echo "E2t Recovery Smoke test failed"
+  exit 1
+fi
+
+echo "E2T Recovery Smoke test completed successfully!"
