@@ -54,7 +54,7 @@ e2t-smoke-r1:
 e2t-smoke-r2:
 	 STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS=standard STORE_CONSENSUS_REPLICAS=3 STORE_CONSENSUS_PARTITIONS=3 ./build/bin/smoke-onos-e2t
 
-e2t-recovery:
+e2t-smoke-recovery:
 	 STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS=standard STORE_CONSENSUS_REPLICAS=3 STORE_CONSENSUS_PARTITIONS=3 ./build/bin/smoke-onos-e2t-recovery
 
 riab-smoke:
