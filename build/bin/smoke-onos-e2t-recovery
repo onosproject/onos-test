@@ -15,6 +15,8 @@
 
 # This script is intended to be run from the onos-test directory as part of CI
 
+# Tests that a disaster recovery scenario properly loads saved data from persistence
+
 set -eu -o pipefail
 onos_test=$PWD
 before_file=$(mktemp)-before
@@ -50,6 +52,8 @@ then
   clustering_args="$clustering_args --set global.store.consensus.partitions=$STORE_CONSENSUS_PARTITIONS"
 fi
 
+get_cells_command="kubectl -n micro-onos exec -it deploy/onos-cli -- onos topo get entities --kind e2cell --no-headers"
+
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster
@@ -67,8 +71,11 @@ helm install -n micro-onos $registry \
      sdran sdran/sd-ran --wait
 
 sleep 30
-kubectl -n micro-onos exec -it deploy/onos-cli -- onos topo get entities  | grep e2cell | sort >$before_file
 
+# grab the cells output
+$get_cells_command | sort >$before_file
+
+# simulate a cluster crash
 helm uninstall sdran -n micro-onos
 
 # recover sd-ran
@@ -85,13 +92,8 @@ helm install -n micro-onos $registry \
 
 sleep 30
 
-kubectl -n micro-onos exec -it deploy/onos-cli -- onos topo get entities >$after_file
-if  grep e2cell $after_file
-then
-  grep e2cell $after_file | sort >$after_file.sort
-  mv $after_file.sort $after_file
-fi
-
+# grab the cells output after recovery
+$get_cells_command | sort >$after_file
 
 echo Before:
 cat $before_file
@@ -99,6 +101,7 @@ cat $before_file
 echo After:
 cat $after_file
 
+# make sure the cells are all still there
 if ! diff $before_file $after_file
 then
   echo "E2t Recovery Smoke test failed"
