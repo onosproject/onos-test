@@ -18,27 +18,23 @@
  and checks that the output is correct.
 """
 
-import check_cli
+import check_cli, re
 
-expected_headers = ['Connection', 'ID', 'PLMN', 'ID', 'Node', 'ID', 'Node', 'Type', 'IP', 'Addr', 'Port', 'Status']
+expected_headers = ['Entity', 'ID', 'Kind', 'ID', 'Labels', 'Aspects']
 
-ID_REGEX = r'uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-PLNMID_REGEX = r'^[0-9a-f]+$'
-NODEID_REGEX = r'^e2:([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+)$'
-NODE_TYPE_REGEX = r'^G_NB$'
-IP_REGEX = r'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'
-PORT_REGEX = r'[0-9]*'
-STATUS_REGEX = r'[0-9hms\.]*'
+ENTITY_ID_REGEX = r'^e2:([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+)$'
+KIND_ID_REGEX = r'^e2node|e2cell|e2t$'
+NONE_REGEX = r'^<None>$'
+ASPECTS_REGEX = r'^[0-9a-zA-Z-,\.]+|<None>$'
 
 expected_regexes = [
-    ID_REGEX,
-    PLNMID_REGEX,
-    NODEID_REGEX,
-    NODE_TYPE_REGEX,
-    IP_REGEX,
-    PORT_REGEX,
-    STATUS_REGEX
+    ENTITY_ID_REGEX,
+    KIND_ID_REGEX,
+    NONE_REGEX,
+    ASPECTS_REGEX,
 ]
+error = int(1)
+
 
 if __name__ == '__main__':
     check = 'E2T connections'
@@ -48,4 +44,15 @@ if __name__ == '__main__':
         print ("Check " + check + " failed")
         exit(1)
 
-        print ("Check " + check + " passed")
+    e2t_count = int(0)
+    for line in output:
+        tokens = line.split()
+        print(tokens[0])
+        if re.fullmatch(r'^e2:onos-e2t-.*$', tokens[0]):
+            e2t_count += 1
+
+    if e2t_count != 1:
+        print("Wrong number of e2t instances found: ", str(e2t_count))
+        exit(error)
+
+    print ("Check " + check + " passed")
