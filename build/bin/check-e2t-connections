@@ -20,18 +20,21 @@
 
 import check_cli, re
 
-expected_headers = ['Entity', 'ID', 'Kind', 'ID', 'Labels', 'Aspects']
+expected_headers = ['Relation', 'ID', 'Kind', 'ID', 'Source', 'ID', 'Target', 'ID', 'Labels', 'Aspects']
 
-ENTITY_ID_REGEX = r'^e2:([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+)$'
-KIND_ID_REGEX = r'^e2node|e2cell|e2t$'
+RELATION_ID_REGEX = r'^uuid:[0-9a-z-]+$'
+KIND_ID_REGEX = r'^contains|controls$'
+SOURCE_ID_REGEX = r'^e2:([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+)$'
+TARGET_ID_REGEX = r'^e2:1(\/[a-z0-9]+){1,2}$'
 NONE_REGEX = r'^<None>$'
-ASPECTS_REGEX = r'^[0-9a-zA-Z-,\.]+|<None>$'
 
 expected_regexes = [
-    ENTITY_ID_REGEX,
+    RELATION_ID_REGEX,
     KIND_ID_REGEX,
+    SOURCE_ID_REGEX,
+    TARGET_ID_REGEX,
     NONE_REGEX,
-    ASPECTS_REGEX,
+    NONE_REGEX
 ]
 error = int(1)
 
@@ -48,11 +51,11 @@ if __name__ == '__main__':
     for line in output:
         tokens = line.split()
         print(tokens[0])
-        if re.fullmatch(r'^e2:onos-e2t-.*$', tokens[0]):
+        if re.fullmatch(r'^e2:onos-e2t-.*$', tokens[2]):
             e2t_count += 1
 
-    if e2t_count != 1:
-        print("Wrong number of e2t instances found: ", str(e2t_count))
+    if e2t_count != 2:
+        print("Wrong number of control relations found: ", str(e2t_count))
         exit(error)
 
     print ("Check " + check + " passed")
