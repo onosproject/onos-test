@@ -138,8 +138,8 @@ do
     sleep 10
 done
 
-kubectl run cli-check-connections -n riab --rm -i --image onosproject/onos-cli:latest --restart Never --command -- /usr/local/bin/onos topo get relations 
-
+# For now, the OAI test can't generate connections - disable the check
+OAI_RIC_FLAG=true
 
 for ((i=1;i<=ITERATIONS;i++))
 do
