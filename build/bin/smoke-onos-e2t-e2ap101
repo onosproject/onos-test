@@ -1,0 +1,79 @@
+#!/bin/bash
+# Copyright 2020-present Open Networking Foundation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script is intended to be run from the onos-test directory as part of CI
+
+set -eu -o pipefail
+onos_test=$PWD
+trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
+
+# configure proxy variables
+use_proxy="1"
+proxy="mirror.registry.opennetworking.org"
+
+# configure clustering parameters
+E2T_REPLICAS=${E2T_REPLICAS:-"2"}
+STORE_CONSENSUS_REPLICAS=${STORE_CONSENSUS_REPLICAS:-""}
+STORE_CONSENSUS_PARTITIONS=${STORE_CONSENSUS_PARTITIONS:-""}
+STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS=${STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS:-""}
+
+clustering_args=""
+
+if [ "$STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS" != "" ]
+then
+  clustering_args="$clustering_args --set sd-ran.global.store.consensus.persistence.storageClass=$STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS"
+fi
+
+if [ "$STORE_CONSENSUS_REPLICAS" != "" ]
+then
+  clustering_args="$clustering_args --set sd-ran.global.store.consensus.replicas=$STORE_CONSENSUS_REPLICAS"
+fi
+
+if [ "$STORE_CONSENSUS_PARTITIONS" != "" ]
+then
+  clustering_args="$clustering_args --set sd-ran.global.store.consensus.partitions=$STORE_CONSENSUS_PARTITIONS"
+fi
+
+# set up the test KinD cluster
+. $onos_test/build/bin/setup-test-cluster
+setup_test_cluster
+
+# install sd-ran
+helm install -n micro-onos $registry \
+     --set import.ran-simulator.enabled=true \
+     --set import.onos-config.enabled=false \
+     --set import.onos-uenib.enabled=true \
+     --set import.onos-kpimon.enabled=true \
+     --set onos-kpimon.logging.loggers.root.level=debug \
+     $clustering_args \
+     sdran sdran/sd-ran --version 1.2.123 --wait
+
+cli_command="$onos_test/build/bin/run-cli-command-with-retry-use-chart-cli"
+
+$cli_command "$onos_test/build/bin/check-topo-relations" "topo get relations"
+
+$cli_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
+
+$cli_command "$onos_test/build/bin/check-e2t-connections" "topo get relations --kind controls"
+
+$cli_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
+
+$cli_command "$onos_test/build/bin/check-e2t-channels onos-kpimon onos-kpimon onos-kpimon-subscription" "e2t list channels"
+
+$cli_command "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
+
+$onos_test/build/bin/check-kpimon-report-interval
+
+echo "E2T Smoke test completed successfully!"
