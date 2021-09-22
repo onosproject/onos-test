@@ -36,7 +36,6 @@ setup_test_cluster () {
      registry=""
   else
      registry="--set global.image.registry=$proxy"
-     cli_image="$proxy/$cli_image"
   fi
 
   # Make a kind cluster
