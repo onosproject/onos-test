@@ -49,6 +49,8 @@ helm install -n micro-onos \
    --set import.fb-ah-gui.enabled=true \
    --set import.ah-eson-test-server.enabled=true \
    --set import.ran-simulator.enabled=true \
+   --set fb-ah-xapp.image.tag=latest \
+   --set ah-eson-test-server.image.tag=latest \
    $registry \
    $fb_registries \
    sd-ran sdran/sd-ran --wait --timeout 10m
