@@ -49,7 +49,7 @@ helm install -n $NAMESPACE \
    sd-ran sdran/sd-ran --wait
 
 # install FB KPIMON
-helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp --wait
+helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp  --set image.tag=latest --wait
 
 tmpfile="/tmp/smoke$$"
 cli_command="kubectl run onos-cli -n $NAMESPACE --rm -it --image $cli_image --restart Never --quiet --command -- "
