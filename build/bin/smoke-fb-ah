@@ -28,7 +28,6 @@ trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artif
 # configure proxy variables
 use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
-cli_image="onosproject/onos-cli:latest"
 
 if [ $proxy == "" ]; then
   fb_registries=""
@@ -57,8 +56,6 @@ helm install -n micro-onos \
 
 
 tmpfile="/tmp/smoke$$"
-cli_command="kubectl run onos-cli -n micro-onos --rm -i --image $cli_image --restart Never --quiet --command"
-cli_retry_command="$onos_test/build/bin/run-cli-command-with-retry"
 
 $cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
 
@@ -66,7 +63,7 @@ $cli_retry_command "$onos_test/build/bin/check-e2t-connections" "topo get relati
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
-$cli_command /usr/local/bin/onos e2t list subscriptions > $tmpfile
+$cli_command onos e2t list subscriptions > $tmpfile
 cat $tmpfile
 subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile || : )
 if (( subcount != 4 )); then
@@ -88,7 +85,7 @@ else
   echo Channel count is correct
 fi
 
-kubectl run onos-cli -n micro-onos --quiet --rm -i --image $cli_image --restart Never --command -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
+kubectl -n micro-onos exec -it deploy/onos-cli -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
 grep Alive $tmpfile
 if (( $? != 0 ))
 then

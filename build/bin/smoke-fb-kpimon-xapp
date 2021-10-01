@@ -24,7 +24,6 @@ trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artif
 # configure proxy variables
 use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
-cli_image="onosproject/onos-cli:latest"
 NAMESPACE="micro-onos"
 
 if [ $proxy == "" ]; then
@@ -43,7 +42,6 @@ helm install -n $NAMESPACE \
    --set import.ran-simulator.enabled=true \
    --set import.onos-kpimon.enabled=true \
    --set import.onos-config.enabled=false \
-   --set import.onos-cli.enabled=false \
    $registry \
    $fb_registries \
    sd-ran sdran/sd-ran --wait
@@ -52,8 +50,6 @@ helm install -n $NAMESPACE \
 helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp  --set image.tag=latest --wait
 
 tmpfile="/tmp/smoke$$"
-cli_command="kubectl run onos-cli -n $NAMESPACE --rm -it --image $cli_image --restart Never --quiet --command -- "
-cli_retry_command="$onos_test/build/bin/run-cli-command-with-retry"
 
 $cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
 
@@ -62,7 +58,7 @@ $cli_retry_command "$onos_test/build/bin/check-e2t-connections" "topo get relati
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
 # check that 2 subscriptions were created, 2 xapps should share the subscriptions to 2 nodes
-$cli_command /usr/local/bin/onos e2t get subscriptions --no-headers >$tmpfile
+$cli_command onos e2t get subscriptions --no-headers >$tmpfile
 cat $tmpfile
 subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile || : )
 if (( subcount != 2 )); then
@@ -73,7 +69,7 @@ else
 fi
 
 # check that 4 channels were created, 2 xapps with 2 nodes each
-$cli_command /usr/local/bin/onos e2t get channels --no-headers >$tmpfile
+$cli_command onos e2t get channels --no-headers >$tmpfile
 cat $tmpfile
 chancount=$(grep -c CHANNEL_OPEN $tmpfile || : )
 if (( chancount != 4 )); then
