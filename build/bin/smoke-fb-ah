@@ -85,7 +85,7 @@ else
   echo Channel count is correct
 fi
 
-kubectl -n micro-onos exec -it deploy/onos-cli -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
+kubectl -n micro-onos exec -t deploy/onos-cli -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
 grep Alive $tmpfile
 if (( $? != 0 ))
 then

@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     kubectl_command = 'kubectl run onos-cli -n micro-onos --quiet'
     base_cli_command = kubectl_command + \
-        ' --rm -it --image onosproject/onos-cli:latest --restart "Never" --command -- onos '
+        ' --rm -t --image onosproject/onos-cli:latest --restart "Never" --command -- onos '
 
     cli_command = base_cli_command
     checker = sys.argv[1]
