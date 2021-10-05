@@ -51,6 +51,7 @@ then
   clustering_args="$clustering_args --set global.store.consensus.partitions=$STORE_CONSENSUS_PARTITIONS"
 fi
 
+export cli_command="kubectl -n micro-onos exec -it deploy/onos-cli -- "
 get_cells_command="$cli_command onos topo get entities --kind e2cell --no-headers"
 
 # set up the test KinD cluster
