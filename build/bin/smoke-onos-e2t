@@ -22,7 +22,6 @@ trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artif
 # configure proxy variables
 use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
-cli_image="onosproject/onos-cli:latest"
 
 # configure clustering parameters
 E2T_REPLICAS=${E2T_REPLICAS:-"2"}
@@ -56,26 +55,23 @@ helm install -n micro-onos $registry \
      --set global.image.tag=latest \
      --set import.ran-simulator.enabled=true \
      --set import.onos-config.enabled=false \
-     --set import.onos-cli.enabled=false \
      --set import.onos-uenib.enabled=true \
      --set import.onos-kpimon.enabled=true \
      --set onos-kpimon.logging.loggers.root.level=debug \
      $clustering_args \
      sdran sdran/sd-ran --wait
 
-cli_command="$onos_test/build/bin/run-cli-command-with-retry"
+$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations"
 
-$cli_command "$onos_test/build/bin/check-topo-relations" "topo get relations"
+$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
 
-$cli_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
+$cli_retry_command "$onos_test/build/bin/check-e2t-connections" "topo get relations --kind controls"
 
-$cli_command "$onos_test/build/bin/check-e2t-connections" "topo get relations --kind controls"
+$cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
-$cli_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
+$cli_retry_command "$onos_test/build/bin/check-e2t-channels onos-kpimon onos-kpimon onos-kpimon-subscription" "e2t list channels"
 
-$cli_command "$onos_test/build/bin/check-e2t-channels onos-kpimon onos-kpimon onos-kpimon-subscription" "e2t list channels"
-
-$cli_command "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
+$cli_retry_command "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
 
 $onos_test/build/bin/check-kpimon-report-interval
 

@@ -22,7 +22,6 @@ trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artif
 # configure proxy variables
 use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
-cli_image="onosproject/onos-cli:latest"
 
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
@@ -33,20 +32,16 @@ setup_test_cluster
 helm install -n micro-onos $registry --set global.image.tag=latest \
                                      --set import.ran-simulator.enabled=false \
                                      --set import.onos-config.enabled=false \
-                                     --set import.onos-cli.enabled=false \
                                      --set import.onos-pci.enabled=false \
                                      --set import.onos-topo.enabled=true \
                                      --set import.onos-kpimon.enabled=false \
                                      --set onos-kpimon.logging.loggers.root.level=debug \
                                      sdran sdran/sd-ran --wait
 
-cli_command="kubectl run onos-cli -n micro-onos --rm -it --image $cli_image --restart Never --quiet --command"
-cli_retry_command="$onos_test/build/bin/run-cli-command-with-retry"
-
-$cli_command /usr/local/bin/onos topo create entity "abcde12345" -- --kind "kind-id"
+$cli_command /usr/local/bin/onos topo create entity "abcde12345" --kind "kind-id"
 $cli_retry_command "$onos_test/build/bin/check-topo-create abcde12345" "topo get entities"
 
-$cli_command /usr/local/bin/onos topo set entity "abcde12345" -- -a [foo=bar]
+$cli_command /usr/local/bin/onos topo set entity "abcde12345" -a [foo=bar]
 $cli_retry_command "$onos_test/build/bin/check-topo-aspect abcde12345 foo" "topo get entities"
 
 $cli_command /usr/local/bin/onos topo delete entity "abcde12345"

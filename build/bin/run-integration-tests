@@ -29,7 +29,6 @@ fi
 # configure proxy variables
 use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
-cli_image="onosproject/onos-cli:latest"
 
 # set up the test KinD cluster
 onos_test=$PWD

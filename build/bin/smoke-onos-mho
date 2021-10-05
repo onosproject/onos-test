@@ -22,7 +22,6 @@ trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artif
 # configure proxy variables
 use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
-cli_image="onosproject/onos-cli:latest"
 
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
@@ -35,7 +34,6 @@ helm install -n micro-onos $registry \
      --set import.onos-config.enabled=false \
      --set import.onos-topo.enabled=true \
      --set import.onos-e2t.enabled=true \
-     --set import.onos-cli.enabled=false \
      --set import.onos-uenib.enabled=true \
      --set import.onos-mho.enabled=true \
      --set import.onos-pci.enabled=true \
@@ -43,10 +41,8 @@ helm install -n micro-onos $registry \
      --set import.ran-simulator.enabled=true \
      sdran sdran/sd-ran --wait
 
-cli_command="$onos_test/build/bin/run-cli-command-with-retry"
-
-$cli_command "$onos_test/build/bin/check-mho-ues" "mho get ues"
-$cli_command "$onos_test/build/bin/check-mho-cells" "mho get cells"
+$cli_retry_command "$onos_test/build/bin/check-mho-ues" "mho get ues"
+$cli_retry_command "$onos_test/build/bin/check-mho-cells" "mho get cells"
 
 $onos_test/build/bin/check-mho-hand-in-out
 

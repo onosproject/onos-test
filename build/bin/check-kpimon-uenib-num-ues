@@ -30,8 +30,7 @@ if __name__ == '__main__':
     UENIB_KEY = 1
     ASPECT = 1
     UENIB_UE_COUNT = 1
-    kubectl_command = 'kubectl run onos-cli -n micro-onos --quiet'
-    base_cli_command = kubectl_command + ' --rm -it --image onosproject/onos-cli:latest --restart "Never" --command -- '
+    base_cli_command = 'kubectl -n micro-onos exec -it deploy/onos-cli -- '
     kpimon_cli_command = base_cli_command + 'onos kpimon list metrics --no-headers'
     uenib_cli_command = base_cli_command + 'onos uenib get ues --aspect RRC.Conn.Max --no-headers --verbose'
 

@@ -22,7 +22,6 @@ trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artif
 # configure proxy variables
 use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
-cli_image="onosproject/onos-cli:latest"
 
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
@@ -33,23 +32,20 @@ setup_test_cluster
 helm install -n micro-onos $registry --set global.image.tag=latest \
                                      --set import.ran-simulator.enabled=true \
                                      --set import.onos-config.enabled=false \
-                                     --set import.onos-cli.enabled=false \
                                      --set import.onos-pci.enabled=true \
                                      --set import.onos-kpimon.enabled=true \
                                      --set onos-kpimon.logging.loggers.root.level=debug \
                                      sdran sdran/sd-ran --wait
 
-cli_command="$onos_test/build/bin/run-cli-command-with-retry"
+$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations"
 
-$cli_command "$onos_test/build/bin/check-topo-relations" "topo get relations"
+$cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-pci\|onos-kpimon-v2" "e2t list subscriptions"
 
-$cli_command "$onos_test/build/bin/check-e2t-subscriptions onos-pci\|onos-kpimon-v2" "e2t list subscriptions"
+$cli_retry_command "$onos_test/build/bin/check-pci-get-cells" "pci get cells"
 
-$cli_command "$onos_test/build/bin/check-pci-get-cells" "pci get cells"
+$cli_retry_command "$onos_test/build/bin/check-resolved" "pci get resolved"
 
-$cli_command "$onos_test/build/bin/check-resolved" "pci get resolved"
-
-$cli_command "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
+$cli_retry_command "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
 
 $onos_test/build/bin/check-kpimon-report-interval
 
