@@ -33,7 +33,7 @@ if __name__ == '__main__':
     CELLS_HANDOVERS_IN = 2
     CELLS_HANDOVERS_OUT = 3
     kubectl_command = 'kubectl exec -n micro-onos'
-    base_cli_command = kubectl_command + ' -it deploy/onos-cli -- '
+    base_cli_command = kubectl_command + ' -t deploy/onos-cli -- '
     mho_cells_cli_command = base_cli_command + 'onos mho get cells --no-headers'
 
     hand_ins = int(0)
