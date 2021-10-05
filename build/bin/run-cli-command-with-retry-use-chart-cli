@@ -26,7 +26,7 @@ if __name__ == '__main__':
     failure = int(1)
     success = int(0)
 
-    base_cli_command = 'kubectl -n micro-onos exec -it deploy/onos-cli -- onos '
+    base_cli_command = 'kubectl -n micro-onos exec -t deploy/onos-cli -- onos '
 
     cli_command = base_cli_command
     checker = sys.argv[1]
