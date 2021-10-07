@@ -35,7 +35,7 @@ go clean -cache
 # docker
 docker system prune -f
 sudo service docker stop
-sudo rm -rf /var/lib/docker/*
+sudo rm -rf /var/lib/docker
 sudo service docker start
 
 
