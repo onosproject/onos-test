@@ -97,6 +97,14 @@ case "$testSuite" in
     git log -1
     make kind
 
+    # pre-load the config model init image
+    docker pull onosproject/config-model-init:v1.0.1
+    kind load docker-image onosproject/config-model-init:v1.0.1
+
+    # pre-load the config model registry image
+    docker pull onosproject/config-model-registry:v1.0.1
+    kind load docker-image onosproject/config-model-registry:v1.0.1
+
     run_integration_test_suite "cli" "./cmd/onos-config-tests" "onos-umbrella" ""
     kubectl delete ns $NAMESPACE
     run_integration_test_suite "gnmi" "./cmd/onos-config-tests" "onos-umbrella" ""
