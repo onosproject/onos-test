@@ -24,7 +24,7 @@ import subprocess
 if __name__ == '__main__':
     check = "KPIMON Report Period Interval"
     expected_report_interval = 1000
-    command = 'kubectl -n micro-onos logs deploy/onos-kpimon --tail=1 | awk \'{ print $1 }\''
+    command = 'kubectl -n micro-onos logs deploy/onos-kpimon onos-kpimon --tail=1 | awk \'{ print $1 }\''
 
     current_time = subprocess.check_output(args=command, shell=True).decode("utf-8").rstrip('\n')
     current_time = datetime.datetime.strptime(current_time, "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
