@@ -63,7 +63,7 @@ $cli_retry_command "$onos_test/build/bin/check-e2t-connections" "topo get relati
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
-for i in $(seq 1 15)
+for i in $(seq 1 10)
 do
   $cli_command onos e2t list subscriptions > $tmpfile
   cat $tmpfile
@@ -74,7 +74,7 @@ do
     echo Subscription count is correct
     break
   fi
-  sleep 1
+  sleep 6
 done
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-channels fb-ah fb-ah-xapp '(fb-kpimon_oran-e2sm-kpm_sub|fb-ah_oran-e2sm-rc-pre_sub)'" "e2t list channels"
