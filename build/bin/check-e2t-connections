@@ -18,7 +18,7 @@
  and checks that the output is correct.
 """
 
-import check_cli, re
+import check_cli, re, sys
 
 expected_headers = ['Relation', 'ID', 'Kind', 'ID', 'Source', 'ID', 'Target', 'ID', 'Labels', 'Aspects']
 
@@ -40,6 +40,8 @@ error = int(1)
 
 
 if __name__ == '__main__':
+    conn_count = int(sys.argv[1])
+
     check = 'E2T connections'
     ok,output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
 
@@ -54,7 +56,7 @@ if __name__ == '__main__':
         if re.fullmatch(r'^e2:onos-e2t-.*$', tokens[2]):
             e2t_count += 1
 
-    if e2t_count != 2:
+    if e2t_count != conn_count:
         print("Wrong number of control relations found: ", str(e2t_count))
         exit(error)
 
