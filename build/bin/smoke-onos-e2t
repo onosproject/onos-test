@@ -53,11 +53,13 @@ helm install -n micro-onos $registry \
      $clustering_args \
      sdran sdran/sd-ran --wait
 
-$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "4"
+let relCount=${E2T_REPLICAS:-1}*2
+$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "$relCount"
 
 $cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
 
-$cli_retry_command "$onos_test/build/bin/check-e2t-connections" "topo get relations --kind controls" "4"
+let connCount=${E2T_REPLICAS:-1}*2
+$cli_retry_command "$onos_test/build/bin/check-e2t-connections" "topo get relations --kind controls" "$connCount"
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
