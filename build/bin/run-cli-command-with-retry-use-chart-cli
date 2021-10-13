@@ -35,6 +35,12 @@ if __name__ == '__main__':
     for arg in cli_args[0:]:
         cli_command = cli_command + " " + arg
 
+    checker_command = checker
+    if len(sys.argv) > 3:
+        checker_args = sys.argv[3].split()
+        for arg in checker_args[0:]:
+            checker_command = checker_command + " " + arg
+
     result = failure
     # capture CLI output
     max_attempts = int(10)
@@ -50,7 +56,7 @@ if __name__ == '__main__':
             cli_output = ""
 
         try:
-            checker_output = subprocess.check_output(args=checker, input=cli_output, shell=True)
+            checker_output = subprocess.check_output(args=checker_command, input=cli_output, shell=True)
             print(checker_output.decode("utf-8"))
             exit(success)
         except subprocess.CalledProcessError as e:

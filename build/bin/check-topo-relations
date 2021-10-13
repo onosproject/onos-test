@@ -19,6 +19,7 @@
 """
 
 import check_cli
+import sys
 
 expected_headers = ['Relation', 'ID', 'Kind', 'ID', 'Source', 'ID', 'Target', 'ID', 'Labels', 'Aspects']
 
@@ -39,6 +40,8 @@ expected_regexes = [
 error = int(1)
 
 if __name__ == '__main__':
+    rel_count = int(sys.argv[1])
+
     # Check that the output is consistent
     ok, cli_lines = check_cli.check_cli_output('topo relations', expected_headers, expected_regexes)
 
@@ -52,7 +55,7 @@ if __name__ == '__main__':
         if tokens[1] == "controls" and "onos-e2t" in tokens[2]:
             e2t_found += 1
 
-    if e2t_found != 2:
+    if e2t_found != rel_count:
         print("Wrong number of e2t relations found: ", str(e2t_found))
         exit(error)
     print("topo relations are correct!")
