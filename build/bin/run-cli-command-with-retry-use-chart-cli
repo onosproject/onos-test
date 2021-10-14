@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     result = failure
     # capture CLI output
-    max_attempts = int(10)
+    max_attempts = int(15)
     done = False
     print("********* " + cli_command)
     while not done:
