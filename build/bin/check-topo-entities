@@ -18,7 +18,7 @@
  and checks that the output is correct.
 """
 
-import check_cli
+import check_cli, sys
 
 expected_headers = ['Entity', 'ID', 'Kind', 'ID', 'Labels', 'Aspects']
 
@@ -36,20 +36,26 @@ expected_regexes = [
 error = int(1)
 
 if __name__ == '__main__':
+    exp_counts = dict([arg.split('=', maxsplit=1) for arg in sys.argv[1:]])
+    counts = {}
+
     # Check that the output is consistent
     ok, cli_lines = check_cli.check_cli_output('topo entities', expected_headers, expected_regexes)
 
     if not ok:
         exit(error)
 
-    # Check that there two e2t nodes in the output
-    e2t_node_found = int(0)
-    for line in cli_lines:
+    # Count all entity kinds
+    count = int(0)
+    for line in cli_lines[1:]:
         tokens = line.split()
-        if tokens[1] == "e2node":
-            e2t_node_found += 1
+        counts[tokens[1]] = counts.get(tokens[1], 0) +1
 
-    if e2t_node_found != 2:
-        print("Wrong number of e2t nodes found: ", str(e2t_node_found))
-        exit(error)
+    # Validate all expected kind counts
+    for kind, exp in exp_counts.items():
+        count = counts.get(kind, 0)
+        if count != int(exp):
+            print("Wrong number of entities found: ", str(count))
+            exit(error)
+
     print("topo entities are correct!")

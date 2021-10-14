@@ -24,7 +24,7 @@ use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
 
 # configure clustering parameters
-E2T_REPLICAS=${E2T_REPLICAS:-"2"}
+E2T_REPLICAS=${E2T_REPLICAS:-2}
 STORE_CONSENSUS_REPLICAS=${STORE_CONSENSUS_REPLICAS:-""}
 STORE_CONSENSUS_PARTITIONS=${STORE_CONSENSUS_PARTITIONS:-""}
 STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS=${STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS:-""}
@@ -33,17 +33,17 @@ clustering_args=""
 
 if [ "$STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS" != "" ]
 then
-  clustering_args="$clustering_args --set sd-ran.global.store.consensus.persistence.storageClass=$STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS"
+  clustering_args="$clustering_args --set global.store.consensus.persistence.storageClass=$STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS"
 fi
 
 if [ "$STORE_CONSENSUS_REPLICAS" != "" ]
 then
-  clustering_args="$clustering_args --set sd-ran.global.store.consensus.replicas=$STORE_CONSENSUS_REPLICAS"
+  clustering_args="$clustering_args --set global.store.consensus.replicas=$STORE_CONSENSUS_REPLICAS"
 fi
 
 if [ "$STORE_CONSENSUS_PARTITIONS" != "" ]
 then
-  clustering_args="$clustering_args --set sd-ran.global.store.consensus.partitions=$STORE_CONSENSUS_PARTITIONS"
+  clustering_args="$clustering_args --set global.store.consensus.partitions=$STORE_CONSENSUS_PARTITIONS"
 fi
 
 # set up the test KinD cluster
@@ -60,11 +60,15 @@ helm install -n micro-onos $registry \
      $clustering_args \
      sdran sdran/sd-ran --version 1.2.123 --wait
 
-$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations"
+# Check E2T instance count
+instances=$(kubectl -n micro-onos get pods | egrep '^onos-e2t-' | wc -l)
+[ $instances -ne $E2T_REPLICAS ] && echo "Incorrect E2T count: $instances" && false
 
-$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
+# Check topo relations
+let ctlCount=$E2T_REPLICAS*2
+$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "controls=$ctlCount contains=6"
 
-$cli_retry_command "$onos_test/build/bin/check-e2t-connections" "topo get relations --kind controls"
+$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2t=$E2T_REPLICAS e2node=2 e2cell=6"
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 

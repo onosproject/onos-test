@@ -18,9 +18,7 @@
  and checks that the output is correct.
 """
 
-import sys
-import time
-import check_cli
+import check_cli, sys
 
 expected_headers = ['Subscription', 'ID', 'Revision', 'Service', 'Model', 'ID', 'E2', 'NodeID', 'Encoding', 'Phase', 'State']
 

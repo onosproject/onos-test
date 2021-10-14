@@ -37,7 +37,7 @@ helm install -n micro-onos $registry --set global.image.tag=latest \
                                      --set onos-kpimon.logging.loggers.root.level=debug \
                                      sdran sdran/sd-ran --wait
 
-$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations"
+$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "contains=6 controls=2"
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-pci\|onos-kpimon-v2" "e2t list subscriptions"
 
