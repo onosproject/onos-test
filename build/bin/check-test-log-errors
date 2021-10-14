@@ -19,10 +19,23 @@ set -u
 
 kubectl get pod -n "$NAMESPACE"
 
+# TODO - the list of exclusions should be test specific and passed in
+error_whitelist=("context canceled")
+whitelist=""
+for i in "${error_whitelist[@]}"
+do
+  if [ "$whitelist" == "" ]
+  then
+    whitelist=$i
+  else
+    whitelist="$whitelist\|$i"
+  fi
+done
+
 for pod in $(kubectl get pods -n "$NAMESPACE" | grep -v Terminating | grep -v Completed | awk '{print $1}' | tail -n +2)
 do
   # Check for any error conditions in the log file
-  errors=$( kubectl logs -n "$NAMESPACE" "$pod" --all-containers | grep '^....-..-..T..:..:......Z	ERROR' )
+  errors=$( kubectl logs -n "$NAMESPACE" "$pod" --all-containers | grep -v "$whitelist" | grep '^....-..-..T..:..:......Z	ERROR' )
   if (( $? == 0 ))
   then
     echo Errors found in namespace "$NAMESPACE" logs of "$pod" :
