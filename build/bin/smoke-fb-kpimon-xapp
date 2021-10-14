@@ -51,9 +51,9 @@ helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp  --set image.tag=
 
 tmpfile="/tmp/smoke$$"
 
-$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
+$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2node=2 e2cell=6 e2t=1"
 
-$cli_retry_command "$onos_test/build/bin/check-e2t-connections" "topo get relations --kind controls"
+$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "controls=2 contains=6"
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 

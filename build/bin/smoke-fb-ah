@@ -57,9 +57,9 @@ helm install -n micro-onos \
 
 tmpfile="/tmp/smoke$$"
 
-$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities"
+$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2node=2 e2cell=6 e2t=1"
 
-$cli_retry_command "$onos_test/build/bin/check-e2t-connections" "topo get relations --kind controls"
+$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities" "contains=6 controls=2"
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
@@ -77,17 +77,18 @@ do
   sleep 6
 done
 
-$cli_retry_command "$onos_test/build/bin/check-e2t-channels fb-ah fb-ah-xapp '(fb-kpimon_oran-e2sm-kpm_sub|fb-ah_oran-e2sm-rc-pre_sub)'" "e2t list channels"
-
-$cli_command /usr/local/bin/onos e2t list channels > $tmpfile
-cat $tmpfile
-chancount=$(grep -c CHANNEL_OPEN $tmpfile || : )
-if (( chancount != 4 )); then
-  echo Channel count is wrong: $chancount
-  exit 1
-else
-  echo Channel count is correct
-fi
+# Command usage removed; replace validation using different means
+#$cli_retry_command "$onos_test/build/bin/check-e2t-channels fb-ah fb-ah-xapp '(fb-kpimon_oran-e2sm-kpm_sub|fb-ah_oran-e2sm-rc-pre_sub)'" "e2t list channels"
+#
+#$cli_command /usr/local/bin/onos e2t list channels > $tmpfile
+#cat $tmpfile
+#chancount=$(grep -c CHANNEL_OPEN $tmpfile || : )
+#if (( chancount != 4 )); then
+#  echo Channel count is wrong: $chancount
+#  exit 1
+#else
+#  echo Channel count is correct
+#fi
 
 kubectl -n micro-onos exec -t deploy/onos-cli -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
 grep Alive $tmpfile
