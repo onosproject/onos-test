@@ -59,7 +59,7 @@ tmpfile="/tmp/smoke$$"
 
 $cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2node=2 e2cell=6 e2t=1"
 
-$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities" "contains=6 controls=2"
+$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "contains=6 controls=2"
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
