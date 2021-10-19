@@ -62,7 +62,7 @@ if __name__ == '__main__':
             print("Hand ins not equal to hand outs: " + str(hand_ins) + ":" + str(hand_outs))
             exit(failure)
 
-        if hand_ins > 20:
+        if hand_ins > 0:
             done = True
         else:
             max_attempts -= 1
