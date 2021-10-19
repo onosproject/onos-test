@@ -68,18 +68,6 @@ else
   echo Subscription count is correct
 fi
 
-# check that 4 channels were created, 2 xapps with 2 nodes each
-$cli_command onos e2t get channels --no-headers >$tmpfile
-cat $tmpfile
-chancount=$(grep -c CHANNEL_OPEN $tmpfile || : )
-if (( chancount != 4 )); then
-  echo Channel count is wrong: $chancount
-  exit 1
-else
-  echo Channel count is correct
-fi
-
-
 # check that the FB KPIMON is seeing connections
 $cli_command /usr/bin/curl -s http://fb-kpimon-xapp:8080/metrics >$tmpfile 2>/dev/null
 connections=$(grep xappkpimon_rrc_conn_avg{ $tmpfile | fgrep -c -v " 0.0 " || : )
@@ -91,6 +79,8 @@ else
   echo FB KPIMON xapp connections are correct
 fi
 
+sleep 15
+
 # check that the ONF KPIMON app is seeing connections
 $cli_command onos kpimon list metrics --no-headers >$tmpfile
 connections=$(grep -c -v "0 *0 *0 *0 *0 *0 *0 *0 *" $tmpfile || : )
@@ -100,16 +90,6 @@ then
   exit 1
 else
   echo ONF KPIMON xapp connections are correct
-fi
-
-# check that e2t is seeing channels
-$cli_command onos e2t get channels --no-headers >$tmpfile
-channels=$(grep -c -v "[^:]+:[^:]+:\d+:[^ ]+ *\d+ [^:]+v. *\d+ *ASN1_[PBX]ER *CHANNEL_[^ ]+ *CHANNEL_[^ ]+ *" $tmpfile || : )
-if (( channels != 4 && channels != 3 )); then
-  echo ONF e2t Channel count is wrong: $channels
-  exit 1
-else
-  echo ONF e2t Channel count is correct
 fi
 
 echo "FB/ONF KPIMON Smoke test completed successfully!"
