@@ -60,16 +60,17 @@ helm install -n micro-onos $registry \
      --set onos-kpimon.logging.loggers.root.level=debug \
      --set onos-e2t.replicaCount=$E2T_REPLICAS \
      $clustering_args \
-     sdran sdran/sd-ran --version 1.2.123 --wait
+     sdran sdran/sd-ran --version 1.2.124 --wait
 
 # Check E2T instance count
 instances=$(kubectl -n micro-onos get pods | egrep '^onos-e2t-' | wc -l)
 [ $instances -ne $E2T_REPLICAS ] && echo "Incorrect E2T count: $instances" && false
 
 # Check topo relations
-# TODO: Answer why controls relations are 2 and not E2T_REPLICAS * 2?
-$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "controls=$E2T_REPLICAS contains=6"
+let ctlCount=$E2T_REPLICAS*2
+$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "controls=$ctlCount contains=6"
 
+# Check topo entities
 $cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2t=$E2T_REPLICAS e2node=2 e2cell=6"
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
@@ -78,4 +79,4 @@ $cli_retry_command "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list
 
 $onos_test/build/bin/check-kpimon-report-interval
 
-echo "E2T Smoke test completed successfully!"
+echo "E2T e2ap101 Smoke test completed successfully!"
