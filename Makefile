@@ -105,6 +105,9 @@ onos-kpimon-integration-tests:
 onos-mlb-integration-tests:
 	./build/bin/run-integration-tests onos-mlb-tests
 
+onos-rsm-integration-tests:
+	./build/bin/run-integration-tests onos-rsm-tests
+
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 
