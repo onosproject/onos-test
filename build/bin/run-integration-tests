@@ -188,6 +188,23 @@ case "$testSuite" in
 
     ;;
 
+"onos-rsm-tests")
+    # rsm tests use the e2ap101 charts
+    cd sdran-helm-charts && git checkout e2ap101 && cd sd-ran && rm -rf Chart.lock charts/ && helm dep update && cd ../..
+
+    # onos-rsm
+    git clone git@github.com:onosproject/onos-rsm.git
+    cd onos-rsm
+    git log -1
+    make kind
+
+    run_integration_test_suite "slice" "./cmd/onos-rsm-tests" "sd-ran" "-c ../sdran-helm-charts/"
+    kubectl delete ns $NAMESPACE
+    run_integration_test_suite "scalability" "./cmd/onos-rsm-tests" "sd-ran" "-c ../sdran-helm-charts/"
+    kubectl delete ns $NAMESPACE
+
+    ;;
+
 "onos-helm-charts")
     # onos-helm-charts
 
