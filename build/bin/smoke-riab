@@ -217,7 +217,8 @@ UENIB_INFO=$(kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues 
 DU_UE_F1AP_ID=$(echo $UENIB_INFO | jq '.ueIdList.duUeF1apId.value' | sed "s/\"//g")
 
 echo install iperf
-kubectl exec -it router -- apt install iperf
+sudo apt install -y iperf
+kubectl exec -it router -- apt install -y iperf
 
 iperf_test "default_1.txt"
 
