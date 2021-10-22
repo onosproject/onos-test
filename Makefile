@@ -108,6 +108,9 @@ onos-mlb-integration-tests:
 onos-rsm-integration-tests:
 	./build/bin/run-integration-tests onos-rsm-tests
 
+onos-mho-integration-tests:
+	./build/bin/run-integration-tests onos-mho-tests
+
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 

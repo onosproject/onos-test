@@ -205,6 +205,20 @@ case "$testSuite" in
 
     ;;
 
+"onos-mho-tests")
+    # onos-mho
+    git clone git@github.com:onosproject/onos-mho.git
+    cd onos-mho
+    git log -1
+    make kind
+
+    run_integration_test_suite "mho" "./cmd/onos-mho-test" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
+    run_integration_test_suite "ha" "./cmd/onos-mho-test" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
+
+    ;;
+
 "onos-helm-charts")
     # onos-helm-charts
 
