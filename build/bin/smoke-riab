@@ -207,12 +207,20 @@ kubectl get po -n riab
 echo check R-NIB whether CU and DU are registered
 kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity -v
 NUMNODES=$(kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity -v | grep e2:4/e00 | wc -l)
-if [ $NUMNODES != 3 ]; then echo CU or DU does not exist - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $NUMNODES != 3 ]
+then
+    echo CU or DU does not exist - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 echo check UE-NIB whether one UE is registered
 kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v
 NUMUES=$(kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues --no-headers | wc -l)
-if [ $NUMUES != 1 ]; then echo The number of UEs should be one - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $NUMUES != 1 ]
+then
+    echo The number of UEs should be one - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 UENIB_INFO=$(kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v | grep RsmUeInfo | awk -F '=' '{print $2}')
 DU_UE_F1AP_ID=$(echo $UENIB_INFO | jq '.ueIdList.duUeF1apId.value' | sed "s/\"//g")
 
@@ -228,9 +236,21 @@ kubectl exec -it deployment/onos-cli -n riab -- onos rsm create slice --e2NodeID
 echo check R-NIB whether slice is created
 kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v
 SLICE_ITEM=$(kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v  | grep RSMSliceItemList | awk -F '=' '{print $2}')
-if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 1 ]; then echo ONOS-TOPO does not have added slice - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].sliceParameters.weight') != 30 ]; then echo Wrong weight value - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].id' | sed "s/\"//g") != 1 ]; then echo Wrong slice ID - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 1 ]
+then
+    echo ONOS-TOPO does not have added slice - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].sliceParameters.weight') != 30 ]
+then
+    echo Wrong weight value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].id' | sed "s/\"//g") != 1 ]
+then
+    echo Wrong slice ID - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 echo associate UE with slice - we should check DuUeF1apID in UE-NIB
 kubectl exec -it deployment/onos-cli -n riab -- onos rsm set association --dlSliceID 1 --e2NodeID e2:4/e00/3/c8 --drbID 5 --DuUeF1apID $DU_UE_F1AP_ID
@@ -238,18 +258,50 @@ kubectl exec -it deployment/onos-cli -n riab -- onos rsm set association --dlSli
 echo check R-NIB whether UE-Slice association is created
 kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v
 SLICE_ITEM=$(kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v  | grep RSMSliceItemList | awk -F '=' '{print $2}')
-if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 1 ]; then echo ONOS-TOPO does not have added slice - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].sliceParameters.weight') != 30 ]; then echo Wrong weight value - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].id' | sed "s/\"//g") != 1 ]; then echo Wrong slice ID - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList' | jq length) != 1 ]; then echo UE is not associated correctly - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList[0].duUeF1apId.value' | sed "s/\"//g") != $DU_UE_F1AP_ID ]; then echo Wrong UE ID in R-NIB - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 1 ]
+then
+    echo ONOS-TOPO does not have added slice - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].sliceParameters.weight') != 30 ]
+then
+    echo Wrong weight value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].id' | sed "s/\"//g") != 1 ]
+then
+    echo Wrong slice ID - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList' | jq length) != 1 ]
+then
+    echo UE is not associated correctly - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList[0].duUeF1apId.value' | sed "s/\"//g") != $DU_UE_F1AP_ID ]
+then
+    echo Wrong UE ID in R-NIB - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 echo check UE-NIB whether UE-Slice association is created
 kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v
 UENIB_INFO=$(kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v | grep RsmUeInfo | awk -F '=' '{print $2}')
-if [ $(echo $UENIB_INFO | jq '.sliceList' | jq length ) != 1 ]; then echo the number of slice is not 1 - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $UENIB_INFO | jq '.sliceList[0].id' | sed "s/\"//g") != 1 ]; then echo slice ID in UENIB is wrong - should be 1 - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $UENIB_INFO | jq '.sliceList[0].sliceParameters.weight' | sed "s/\"//g") != 30 ]; then echo weight is wrong - should be 30 - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $UENIB_INFO | jq '.sliceList' | jq length ) != 1 ]
+then
+    echo the number of slice is not 1 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $UENIB_INFO | jq '.sliceList[0].id' | sed "s/\"//g") != 1 ]
+then
+    echo slice ID in UENIB is wrong - should be 1 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $UENIB_INFO | jq '.sliceList[0].sliceParameters.weight' | sed "s/\"//g") != 30 ]
+then
+    echo weight is wrong - should be 30 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 iperf_test "s1_w30.txt"
 
@@ -259,18 +311,50 @@ kubectl exec -it deployment/onos-cli -n riab -- onos rsm update slice --e2NodeID
 echo check R-NIB whether slice is updated
 kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v
 SLICE_ITEM=$(kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v  | grep RSMSliceItemList | awk -F '=' '{print $2}')
-if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 1 ]; then echo ONOS-TOPO does not have added slice - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].sliceParameters.weight') != 50 ]; then echo Wrong weight value - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].id' | sed "s/\"//g") != 1 ]; then echo Wrong slice ID - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList' | jq length) != 1 ]; then echo UE is not associated correctly - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList[0].duUeF1apId.value' | sed "s/\"//g") != $DU_UE_F1AP_ID ]; then echo Wrong UE ID in R-NIB - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 1 ]
+then
+    echo ONOS-TOPO does not have added slice - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].sliceParameters.weight') != 50 ]
+then
+    echo Wrong weight value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].id' | sed "s/\"//g") != 1 ]
+then
+    echo Wrong slice ID - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList' | jq length) != 1 ]
+then
+    echo UE is not associated correctly - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList[0].duUeF1apId.value' | sed "s/\"//g") != $DU_UE_F1AP_ID ]
+then
+    echo Wrong UE ID in R-NIB - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 echo check UE-NIB whether slice is updated
 kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v
 UENIB_INFO=$(kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v | grep RsmUeInfo | awk -F '=' '{print $2}')
-if [ $(echo $UENIB_INFO | jq '.sliceList' | jq length ) != 1 ]; then echo the number of slice is not 1 - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $UENIB_INFO | jq '.sliceList[0].id' | sed "s/\"//g") != 1 ]; then echo slice ID in UENIB is wrong - should be 1 - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $UENIB_INFO | jq '.sliceList[0].sliceParameters.weight' | sed "s/\"//g") != 50 ]; then echo weight is wrong - should be 50 - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $UENIB_INFO | jq '.sliceList' | jq length ) != 1 ]
+then
+    echo the number of slice is not 1 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $UENIB_INFO | jq '.sliceList[0].id' | sed "s/\"//g") != 1 ]
+then
+    echo slice ID in UENIB is wrong - should be 1 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $UENIB_INFO | jq '.sliceList[0].sliceParameters.weight' | sed "s/\"//g") != 50 ]
+then
+    echo weight is wrong - should be 50 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 iperf_test "s1_w50.txt"
 
@@ -280,14 +364,46 @@ kubectl exec -it deployment/onos-cli -n riab -- onos rsm create slice --e2NodeID
 echo check R-NIB whether slice is created
 kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v
 SLICE_ITEM=$(kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v  | grep RSMSliceItemList | awk -F '=' '{print $2}')
-if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 2 ]; then echo ONOS-TOPO does not have added slice - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].sliceParameters.weight') != 50 ]; then echo Wrong weight value - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].id' | sed "s/\"//g") != 1 ]; then echo Wrong slice ID - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList' | jq length) != 1 ]; then echo UE is not associated correctly - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList[0].duUeF1apId.value' | sed "s/\"//g") != $DU_UE_F1AP_ID ]; then echo Wrong UE ID in R-NIB - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][1].sliceParameters.weight') != 30 ]; then echo Wrong weight value - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][1].id' | sed "s/\"//g") != 2 ]; then echo Wrong slice ID - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][1].ueIdList' | jq length) != 0 ]; then echo UE is not associated correctly - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 2 ]
+then
+    echo ONOS-TOPO does not have added slice - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].sliceParameters.weight') != 50 ]
+then
+    echo Wrong weight value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].id' | sed "s/\"//g") != 1 ]
+then
+    echo Wrong slice ID - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList' | jq length) != 1 ]
+then
+    echo UE is not associated correctly - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList[0].duUeF1apId.value' | sed "s/\"//g") != $DU_UE_F1AP_ID ]
+then
+    echo Wrong UE ID in R-NIB - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][1].sliceParameters.weight') != 30 ]
+then
+    echo Wrong weight value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][1].id' | sed "s/\"//g") != 2 ]
+then
+    echo Wrong slice ID - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][1].ueIdList' | jq length) != 0 ]
+then
+    echo UE is not associated correctly - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 echo switch UE from dedicated slice 1 to dedicated slice 2
 kubectl exec -it deployment/onos-cli -n riab -- onos rsm set association --dlSliceID 2 --e2NodeID e2:4/e00/3/c8 --drbID 5 --DuUeF1apID $DU_UE_F1AP_ID
@@ -295,21 +411,65 @@ kubectl exec -it deployment/onos-cli -n riab -- onos rsm set association --dlSli
 echo check R-NIB whether UE-Slice association is created
 kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v
 SLICE_ITEM=$(kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v  | grep RSMSliceItemList | awk -F '=' '{print $2}')
-if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 2 ]; then echo ONOS-TOPO does not have added slice - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].sliceParameters.weight') != 50 ]; then echo Wrong weight value - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].id' | sed "s/\"//g") != 1 ]; then echo Wrong slice ID - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList' | jq length) != 0 ]; then echo UE is not associated correctly - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][1].sliceParameters.weight') != 30 ]; then echo Wrong weight value - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][1].id' | sed "s/\"//g") != 2 ]; then echo Wrong slice ID - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][1].ueIdList' | jq length) != 1 ]; then echo UE is not associated correctly - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $SLICE_ITEM | jq '.[][1].ueIdList[0].duUeF1apId.value' | sed "s/\"//g") != $DU_UE_F1AP_ID ]; then echo Wrong UE ID in R-NIB - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 2 ]
+then
+    echo ONOS-TOPO does not have added slice - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].sliceParameters.weight') != 50 ]
+then
+    echo Wrong weight value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].id' | sed "s/\"//g") != 1 ]
+then
+    echo Wrong slice ID - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][0].ueIdList' | jq length) != 0 ]
+then
+    echo UE is not associated correctly - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][1].sliceParameters.weight') != 30 ]
+then
+    echo Wrong weight value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][1].id' | sed "s/\"//g") != 2 ]
+then
+    echo Wrong slice ID - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][1].ueIdList' | jq length) != 1 ]
+then
+    echo UE is not associated correctly - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $SLICE_ITEM | jq '.[][1].ueIdList[0].duUeF1apId.value' | sed "s/\"//g") != $DU_UE_F1AP_ID ]
+then
+    echo Wrong UE ID in R-NIB - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 echo check UE-NIB whether UE-Slice association is created
 kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v
 UENIB_INFO=$(kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v | grep RsmUeInfo | awk -F '=' '{print $2}')
-if [ $(echo $UENIB_INFO | jq '.sliceList' | jq length ) != 1 ]; then echo the number of slice is not 1 - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $UENIB_INFO | jq '.sliceList[0].id' | sed "s/\"//g") != 2 ]; then echo slice ID in UENIB is wrong - should be 1 - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $UENIB_INFO | jq '.sliceList[0].sliceParameters.weight' | sed "s/\"//g") != 30 ]; then echo weight is wrong - should be 30 - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $UENIB_INFO | jq '.sliceList' | jq length ) != 1 ]
+then
+    echo the number of slice is not 1 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $UENIB_INFO | jq '.sliceList[0].id' | sed "s/\"//g") != 2 ]
+then
+    echo slice ID in UENIB is wrong - should be 1 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $UENIB_INFO | jq '.sliceList[0].sliceParameters.weight' | sed "s/\"//g") != 30 ]
+then
+    echo weight is wrong - should be 30 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 iperf_test "s2_w30.txt"
 
@@ -322,43 +482,100 @@ sleep 10; kubectl exec -it deployment/onos-cli -n riab -- onos rsm delete slice 
 echo check R-NIB whether slice is deleted
 kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v
 SLICE_ITEM=$(kubectl exec -it deployment/onos-cli -n riab -- onos topo get entity e2:4/e00/3/c8 -v  | grep RSMSliceItemList | awk -F '=' '{print $2}')
-if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 1 ]; then echo the number of slice in R-NIB is not 1 - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $SLICE_ITEM | jq .[] | jq length) != 1 ]
+then
+    echo the number of slice in R-NIB is not 1 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 echo check UE-NIB whether slice is deleted
 kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v
 UENIB_INFO=$(kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v | grep RsmUeInfo | awk -F '=' '{print $2}')
-if [ $(echo $UENIB_INFO | jq '.sliceList' | jq length ) != 0 ]; then echo the number of slice in UENIB is not 0 - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $UENIB_INFO | jq '.sliceList' | jq length ) != 0 ]
+then
+    echo the number of slice in UENIB is not 0 - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 iperf_test "default_2.txt"
 
 echo print all TCP throughput
 list=$( ls | grep  '.txt')
-for i in $list; do echo $i; cat $i; echo; done
+for i in $list
+do
+    echo $i
+    cat $i
+    echo
+done
 
 echo compare TCP throughput
 TCP_DEFAULT_1=$(cat tcp_default_1.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
-if [ -z $TCP_DEFAULT_1 ]; then echo no TCP_DEFAULT_1 value - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ -z $TCP_DEFAULT_1 ]
+then
+    echo no TCP_DEFAULT_1 value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 TCP_S1_W30=$(cat tcp_s1_w30.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
-if [ -z $TCP_S1_W30 ]; then echo no TCP_S1_W30 value - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $TCP_DEFAULT_1">"$TCP_S1_W30 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ -z $TCP_S1_W30 ]
+then
+    echo no TCP_S1_W30 value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $TCP_DEFAULT_1">"$TCP_S1_W30 | bc -l) == 0 ]
+then
+    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 TCP_S1_W50=$(cat tcp_s1_w50.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
-if [ -z $TCP_S1_W50 ]; then echo no TCP_S1_W50 value - RiaB OAI option RSM use-case test failed; exit ``; fi
-if [ $(echo $TCP_DEFAULT_1">"$TCP_S1_W50 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $TCP_S1_W50">"$TCP_S1_W30 | bc -l) == 0 ]; then echo [WARN] slice 1 weight 30 TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ -z $TCP_S1_W50 ]
+then
+    echo no TCP_S1_W50 value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $TCP_DEFAULT_1">"$TCP_S1_W50 | bc -l) == 0 ]
+then
+    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $TCP_S1_W50">"$TCP_S1_W30 | bc -l) == 0 ]
+then
+    echo [WARN] slice 1 weight 30 TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 TCP_S2_W30=$(cat tcp_s2_w30.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
-if [ -z $TCP_S2_W30 ]; then echo no TCP_S2_W30 value - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $TCP_DEFAULT_1">"$TCP_S2_W30 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ -z $TCP_S2_W30 ]
+then
+    echo no TCP_S2_W30 value - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $TCP_DEFAULT_1">"$TCP_S2_W30 | bc -l) == 0 ]
+then
+    echo [WARN] Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
 TCP_DEFAULT_2=$(cat tcp_default_2.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
 if [ -z $TCP_DEFAULT_2 ]; then echo no TCP_DEFAULT_2 value - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $TCP_DEFAULT_2">"$TCP_S1_W30 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $TCP_DEFAULT_2">"$TCP_S1_W50 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed; exit 1; fi
-if [ $(echo $TCP_DEFAULT_2">"$TCP_S2_W30 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 1; fi
+if [ $(echo $TCP_DEFAULT_2">"$TCP_S1_W30 | bc -l) == 0 ]
+then
+    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $TCP_DEFAULT_2">"$TCP_S1_W50 | bc -l) == 0 ]
+then
+    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
+if [ $(echo $TCP_DEFAULT_2">"$TCP_S2_W30 | bc -l) == 0 ]
+then
+    echo [WARN] Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed
+    exit 1
+fi
 
-echo '***' RiaB oai option RSM use-case test '***'
+echo '***' RiaB oai option RSM use-case test PASSED! '***'
 
 echo OAI_RIC_FLAG: $OAI_RIC_FLAG
 echo OAI_PING_ROUTER_FLAG: $OAI_PING_ROUTER_FLAG
