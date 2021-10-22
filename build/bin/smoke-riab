@@ -330,32 +330,32 @@ if [ $(echo $UENIB_INFO | jq '.sliceList' | jq length ) != 0 ]; then echo the nu
 
 iperf_test "default_2.txt"
 
-# Uncomment below later - sometimes below logic is not working well
-# echo compare TCP throughput
-# TCP_DEFAULT_1=$(cat tcp_default_1.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
-# if [ -z $TCP_DEFAULT_1 ]; then echo no TCP_DEFAULT_1 value - RiaB OAI option RSM use-case test failed; exit 0; fi
-
-# TCP_S1_W30=$(cat tcp_s1_w30.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
-# if [ -z $TCP_S1_W30 ]; then echo no TCP_S1_W30 value; exit 0 - RiaB OAI option RSM use-case test failed; fi
-# if [ $(echo $TCP_DEFAULT_1">"$TCP_S1_W30 | bc -l) == 0 ]; then echo Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
-
-# TCP_S1_W50=$(cat tcp_s1_w50.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
-# if [ -z $TCP_S1_W50 ]; then echo no TCP_S1_W50 value; exit 0 - RiaB OAI option RSM use-case test failed; fi
-# if [ $(echo $TCP_DEFAULT_1">"$TCP_S1_W50 | bc -l) == 0 ]; then echo Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
-# if [ $(echo $TCP_S1_W50">"$TCP_S1_W30 | bc -l) == 0 ]; then echo slice 1 weight 30 TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
-
-# TCP_S2_W30=$(cat tcp_s2_w30.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
-# if [ -z $TCP_S2_W30 ]; then echo no TCP_S2_W30 value; exit 0 - RiaB OAI option RSM use-case test failed; fi
-# if [ $(echo $TCP_DEFAULT_1">"$TCP_S2_W30 | bc -l) == 0 ]; then echo Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
-
-# TCP_DEFAULT_2=$(cat tcp_default_2.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
-# if [ -z $TCP_DEFAULT_2 ]; then echo no TCP_DEFAULT_2 value; exit 0; fi
-# if [ $(echo $TCP_DEFAULT_2">"$TCP_S1_W30 | bc -l) == 0 ]; then echo Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
-# if [ $(echo $TCP_DEFAULT_2">"$TCP_S1_W50 | bc -l) == 0 ]; then echo Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
-# if [ $(echo $TCP_DEFAULT_2">"$TCP_S2_W30 | bc -l) == 0 ]; then echo Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
-
 echo print all TCP throughput
-for i in $list; do echo $i; cat $i; done
+list=$( ls | grep  '.txt')
+for i in $list; do echo $i; cat $i; echo; done
+
+echo compare TCP throughput
+TCP_DEFAULT_1=$(cat tcp_default_1.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
+if [ -z $TCP_DEFAULT_1 ]; then echo no TCP_DEFAULT_1 value - RiaB OAI option RSM use-case test failed; exit 0; fi
+
+TCP_S1_W30=$(cat tcp_s1_w30.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
+if [ -z $TCP_S1_W30 ]; then echo no TCP_S1_W30 value; exit 0 - RiaB OAI option RSM use-case test failed; exit 0; fi
+if [ $(echo $TCP_DEFAULT_1">"$TCP_S1_W30 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
+
+TCP_S1_W50=$(cat tcp_s1_w50.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
+if [ -z $TCP_S1_W50 ]; then echo no TCP_S1_W50 value; exit 0 - RiaB OAI option RSM use-case test failed; exit 0; fi
+if [ $(echo $TCP_DEFAULT_1">"$TCP_S1_W50 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
+if [ $(echo $TCP_S1_W50">"$TCP_S1_W30 | bc -l) == 0 ]; then echo [WARN] slice 1 weight 30 TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
+
+TCP_S2_W30=$(cat tcp_s2_w30.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
+if [ -z $TCP_S2_W30 ]; then echo no TCP_S2_W30 value; exit 0 - RiaB OAI option RSM use-case test failed; fi
+if [ $(echo $TCP_DEFAULT_1">"$TCP_S2_W30 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
+
+TCP_DEFAULT_2=$(cat tcp_default_2.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
+if [ -z $TCP_DEFAULT_2 ]; then echo no TCP_DEFAULT_2 value; exit 0; fi
+if [ $(echo $TCP_DEFAULT_2">"$TCP_S1_W30 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
+if [ $(echo $TCP_DEFAULT_2">"$TCP_S1_W50 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
+if [ $(echo $TCP_DEFAULT_2">"$TCP_S2_W30 | bc -l) == 0 ]; then echo [WARN] Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed; exit 0; fi
 
 echo '***' RiaB oai option RSM use-case test '***'
 
