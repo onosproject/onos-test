@@ -27,16 +27,16 @@ function post_test_clean {
 
 function iperf_test {
   echo check default slice performance - tcp
-  iperf -s -B $(ip a show oaitun_ue1 | grep inet | grep -v inet6 | awk '{print $2}' | awk -F '/' '{print $1}') -p 5001 &
-  kubectl exec -it router -- iperf -c $(ip a show oaitun_ue1 | grep inet | grep -v inet6 | awk '{print $2}' | awk -F '/' '{print $1}') -p 5001 > tcp_$1
-  sudo pkill -9 -ef iperf || true
+  iperf3 -s -B $(ip a show oaitun_ue1 | grep inet | grep -v inet6 | awk '{print $2}' | awk -F '/' '{print $1}') -p 5001 &
+  kubectl exec -it router -- iperf3 -c $(ip a show oaitun_ue1 | grep inet | grep -v inet6 | awk '{print $2}' | awk -F '/' '{print $1}') -p 5001 -O 2 -t 12 > tcp_$1
+  sudo pkill -9 -ef iperf3 || true
   sleep 5
 
 # Will uncomment below
 #   echo check default slice performance - udp
-#   iperf -s -u -B $(ip a show oaitun_ue1 | grep inet | grep -v inet6 | awk '{print $2}' | awk -F '/' '{print $1}') -p 5001 &
-#   kubectl exec -it router -- iperf -c $(ip a show oaitun_ue1 | grep inet | grep -v inet6 | awk '{print $2}' | awk -F '/' '{print $1}') -u -p 5001 -b18m > udp_$1
-#   sudo pkill -9 -ef iperf || true
+#   iperf3 -s -u -B $(ip a show oaitun_ue1 | grep inet | grep -v inet6 | awk '{print $2}' | awk -F '/' '{print $1}') -p 5001 &
+#   kubectl exec -it router -- iperf3 -c $(ip a show oaitun_ue1 | grep inet | grep -v inet6 | awk '{print $2}' | awk -F '/' '{print $1}') -u -p 5001 -b18m > udp_$1
+#   sudo pkill -9 -ef iperf3 || true
 #   sleep 5
 }
 
@@ -202,6 +202,8 @@ echo '***' RiaB OAI KPIMON and user plane tests passed '***'
 
 echo '***' Starting RiaB oai option RSM use-case test '***'
 
+rm -rf *.txt
+
 kubectl get po -n riab
 
 echo check R-NIB whether CU and DU are registered
@@ -224,9 +226,9 @@ fi
 UENIB_INFO=$(kubectl exec -it deployment/onos-cli -n riab -- onos uenib get ues -v | grep RsmUeInfo | awk -F '=' '{print $2}')
 DU_UE_F1AP_ID=$(echo $UENIB_INFO | jq '.ueIdList.duUeF1apId.value' | sed "s/\"//g")
 
-echo install iperf
-sudo apt install -y iperf
-kubectl exec -it router -- apt install -y iperf
+echo install iperf3
+sudo apt install -y iperf3
+kubectl exec -it router -- apt install -y iperf3
 
 iperf_test "default_1.txt"
 
@@ -509,62 +511,67 @@ do
 done
 
 echo compare TCP throughput
-TCP_DEFAULT_1=$(cat tcp_default_1.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
+TCP_DEFAULT_1=$(cat tcp_default_1.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | tail -1 | awk '{print $1}')
 if [ -z $TCP_DEFAULT_1 ]
 then
     echo no TCP_DEFAULT_1 value - RiaB OAI option RSM use-case test failed
+    exit 1
 fi
 
-TCP_S1_W30=$(cat tcp_s1_w30.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
+TCP_S1_W30=$(cat tcp_s1_w30.txt | grep -o -E '[0-9.]+ [M,K]bits/sec'  | tail -1 | awk '{print $1}')
 if [ -z $TCP_S1_W30 ]
 then
     echo no TCP_S1_W30 value - RiaB OAI option RSM use-case test failed
+    exit 1
 fi
 if [ $(echo $TCP_DEFAULT_1">"$TCP_S1_W30 | bc -l) == 0 ]
 then
-    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed
+    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput
 fi
 
-TCP_S1_W50=$(cat tcp_s1_w50.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
+TCP_S1_W50=$(cat tcp_s1_w50.txt | grep -o -E '[0-9.]+ [M,K]bits/sec'  | tail -1 | awk '{print $1}')
 if [ -z $TCP_S1_W50 ]
 then
     echo no TCP_S1_W50 value - RiaB OAI option RSM use-case test failed
+    exit 1
 fi
 if [ $(echo $TCP_DEFAULT_1">"$TCP_S1_W50 | bc -l) == 0 ]
 then
-    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed
+    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput
 fi
 if [ $(echo $TCP_S1_W50">"$TCP_S1_W30 | bc -l) == 0 ]
 then
-    echo [WARN] slice 1 weight 30 TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed
+    echo [WARN] slice 1 weight 30 TCP throughput should be better than slice 1 weight 50 TCP throughput
 fi
 
-TCP_S2_W30=$(cat tcp_s2_w30.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
+TCP_S2_W30=$(cat tcp_s2_w30.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | tail -1 | awk '{print $1}')
 if [ -z $TCP_S2_W30 ]
 then
     echo no TCP_S2_W30 value - RiaB OAI option RSM use-case test failed
+    exit 1
 fi
 if [ $(echo $TCP_DEFAULT_1">"$TCP_S2_W30 | bc -l) == 0 ]
 then
-    echo [WARN] Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed
+    echo [WARN] Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput
 fi
 
-TCP_DEFAULT_2=$(cat tcp_default_2.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | awk '{print $1}')
+TCP_DEFAULT_2=$(cat tcp_default_2.txt | grep -o -E '[0-9.]+ [M,K]bits/sec' | tail -1 | awk '{print $1}')
 if [ -z $TCP_DEFAULT_2 ]
 then
     echo no TCP_DEFAULT_2 value - RiaB OAI option RSM use-case test failed
+    exit 1
 fi
 if [ $(echo $TCP_DEFAULT_2">"$TCP_S1_W30 | bc -l) == 0 ]
 then
-    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed
+    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 30 TCP throughput
 fi
 if [ $(echo $TCP_DEFAULT_2">"$TCP_S1_W50 | bc -l) == 0 ]
 then
-    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput - RiaB OAI option RSM use-case test failed
+    echo [WARN] Default slice TCP throughput should be better than slice 1 weight 50 TCP throughput
 fi
 if [ $(echo $TCP_DEFAULT_2">"$TCP_S2_W30 | bc -l) == 0 ]
 then
-    echo [WARN] Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput - RiaB OAI option RSM use-case test failed
+    echo [WARN] Default slice TCP throughput should be better than slice 2 weight 30 TCP throughput
 fi
 
 echo '***' RiaB oai option RSM use-case test PASSED! '***'
