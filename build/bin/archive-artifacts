@@ -30,8 +30,6 @@ podstring=$(for pod in $(kubectl get pods -A | awk '{print $1 "/" $2}' | tail -n
 pods=($podstring)
 
 for pair in "${pods[@]}"; do
-  echo $pair
-
   IFS='/' read -ra tokens <<< "$pair"
   namespace=${tokens[0]}
   podname=${tokens[1]}
