@@ -1,0 +1,156 @@
+#!/bin/bash
+# Copyright 2020-present Open Networking Foundation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script is intended to be run from the onos-test directory as part of CI
+
+make_path () {
+  target=$1
+  path=$2
+  IFS=/ read -a elems <<< $path
+  result="<target: 'devicesim-1', "
+  for i in ${elems[@]}
+  do
+    result="$result elem: <name: '$i'> "
+  done
+  result="$result >"
+  echo $result
+}
+
+extract_timezone() {
+  grep json_val: $tmpfile | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >$tmpfile.json
+  timezone=$(jq '.[][][]."timezone-name"' $tmpfile.json)
+  echo $timezone
+}
+
+set -eu -o pipefail
+onos_test=$PWD
+tmpfile="/tmp/smoke$$"
+trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm -f $tmpfile*" EXIT
+
+# configure proxy variables
+use_proxy="1"
+proxy="mirror.registry.opennetworking.org"
+
+# set up the test KinD cluster
+. $onos_test/build/bin/setup-test-cluster
+setup_test_cluster
+
+# pre-load the config model init image
+docker pull $proxy/onosproject/config-model-init:v1.0.1
+kind load docker-image $proxy/onosproject/config-model-init:v1.0.1
+
+# pre-load the config model registry image
+docker pull $proxy/onosproject/config-model-registry:v1.0.1
+kind load docker-image $proxy/onosproject/config-model-registry:v1.0.1
+
+# install onos-config
+# FIXME latest version of the onos-config builds doesn't work due to problems with plugins.
+helm install -n micro-onos $registry \
+     --set FIXMEglobal.image.tag=latest \
+     --set onos-config.plugin.compiler.version=v1.0.1 \
+     --set import.onos-gui.enabled=false \
+     onos onos/onos-umbrella --wait
+
+helm install -n micro-onos device-1 $registry onos/device-simulator --wait
+
+common_args="-address onos-config:5150  -timeout 5s -en JSON -alsologtostderr \
+             -insecure -client_crt /etc/ssl/certs/client1.crt -client_key /etc/ssl/certs/client1.key \
+             -ca_crt /etc/ssl/certs/onfca.crt"
+
+common_extensions="extension: <registered_ext: <id: 101, msg:'1.0.0'>> extension: <registered_ext: <id: 102, msg:'Devicesim'>>"
+
+$cli_command onos topo create kind devicesim devicesim
+$cli_command onos topo create entity devicesim-1 -a \
+                  onos.topo.Configurable='{"address":"devicesim1-device-simulator:11161","version":"1.0.0","type":"Devicesim"}' \
+                  -a onos.topo.TLSOptions='{"insecure":true,"plain":true}' -a onos.topo.Asset='{"name":"Devicesim1"}' \
+                  -a onos.topo.MastershipState='{}' -k devicesim
+
+tzpath=$(make_path 'devicesim-1' '/system/clock/config/timezone-name')
+badpath=$(make_path 'devicesim-1' '/XXXsystemXXX/clock/config/timezone-name')
+
+# attempt to set a bad path - should result in an error
+bad_set=$($cli_command gnmi_cli -set $common_args -proto \
+               "update: <path: $badpath \
+                val: <string_val: 'Bad!Value'>> \
+                $common_extensions" 2>&1)
+if [[ "$bad_set" == *"code = InvalidArgument"* ]]
+then
+  echo "+++ Correct error returned for bad path"
+else
+  echo "*** Error not returned for query of bad path"
+  exit 1
+fi
+
+# set an initial timezone value
+initial_set=$($cli_command gnmi_cli -set $common_args -proto \
+               "update: <path: $tzpath \
+                val: <string_val: 'Europe/Paris'>> \
+                $common_extensions" 2>&1)
+if [[ "$initial_set" == *"op: UPDATE"* ]]
+then
+  echo "+++ Initial timezone set is correct"
+else
+  echo "*** Error setting initial timezone value"
+  exit 1
+fi
+
+# read the timezone value back and check it
+$cli_command gnmi_cli -get $common_args -proto "path: $tzpath" >$tmpfile
+
+timezone=$(extract_timezone)
+if [ "$timezone" == '"Europe/Paris"' ]
+then
+  echo "+++ Initial timezone setting is correct"
+else
+  echo "*** Initial timezone setting is incorrect"
+  exit 1
+fi
+
+# change the timezone
+change_set=$($cli_command gnmi_cli -set $common_args -proto \
+               "update: <path: $tzpath \
+                val: <string_val: 'Europe/Dublin'>> \
+                $common_extensions" 2>&1)
+if [[ "$change_set" == *"op: UPDATE"* ]]
+then
+  echo "+++ Change timezone set is correct"
+else
+  echo "*** Error changing timezone value"
+  exit 1
+fi
+
+# check that the modified timezone is correct
+$cli_command gnmi_cli -get $common_args -proto "path: $tzpath" >$tmpfile
+
+timezone=$(extract_timezone)
+if [ "$timezone" == '"Europe/Dublin"' ]
+then
+  echo "+++ Reset timezone setting is correct"
+else
+  echo "*** Reset timezone setting is incorrect"
+  exit 1
+fi
+
+# check capabilities
+models_count=$($cli_command gnmi_cli -capabilities $common_args | grep supported_models | wc -l)
+if [ "$models_count" == '25' ]
+then
+  echo "+++ Models count is correct"
+else
+  echo "*** Models count is incorrect"
+  exit 1
+fi
+
+echo "=== onos-config smoke test completed successfully!"
