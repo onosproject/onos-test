@@ -132,6 +132,9 @@ topo-smoke:
 mho-smoke:
 	./build/bin/smoke-onos-mho
 
+config-smoke:
+	./build/bin/smoke-onos-config
+
 clean-vm:
 	./build/bin/cleanup-linux-vm
 
