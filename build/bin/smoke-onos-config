@@ -56,27 +56,31 @@ docker pull $proxy/onosproject/config-model-registry:v1.0.1
 kind load docker-image $proxy/onosproject/config-model-registry:v1.0.1
 
 # install onos-config
-# FIXME latest version of the onos-config builds doesn't work due to problems with plugins.
 helm install -n micro-onos $registry \
-     --set FIXMEglobal.image.tag=latest \
+     --set global.image.tag=latest \
+     --set onos-config.image.tag=latest \
+     --set onos-topo.image.tag=latest \
      --set onos-config.plugin.compiler.version=v1.0.1 \
      --set import.onos-gui.enabled=false \
      onos onos/onos-umbrella --wait
 
+# install the device simulator
 helm install -n micro-onos device-1 $registry onos/device-simulator --wait
 
+# common gnmi_cli arguments
 common_args="-address onos-config:5150  -timeout 5s -en JSON -alsologtostderr \
              -insecure -client_crt /etc/ssl/certs/client1.crt -client_key /etc/ssl/certs/client1.key \
              -ca_crt /etc/ssl/certs/onfca.crt"
-
 common_extensions="extension: <registered_ext: <id: 101, msg:'1.0.0'>> extension: <registered_ext: <id: 102, msg:'Devicesim'>>"
 
+# Create topo entries for the simulated device
 $cli_command onos topo create kind devicesim devicesim
 $cli_command onos topo create entity devicesim-1 -a \
                   onos.topo.Configurable='{"address":"devicesim1-device-simulator:11161","version":"1.0.0","type":"Devicesim"}' \
                   -a onos.topo.TLSOptions='{"insecure":true,"plain":true}' -a onos.topo.Asset='{"name":"Devicesim1"}' \
                   -a onos.topo.MastershipState='{}' -k devicesim
 
+# gnmi paths
 tzpath=$(make_path 'devicesim-1' '/system/clock/config/timezone-name')
 badpath=$(make_path 'devicesim-1' '/XXXsystemXXX/clock/config/timezone-name')
 
@@ -87,9 +91,9 @@ bad_set=$($cli_command gnmi_cli -set $common_args -proto \
                 $common_extensions" 2>&1)
 if [[ "$bad_set" == *"code = InvalidArgument"* ]]
 then
-  echo "+++ Correct error returned for bad path"
+  echo "+++ Correct error returned for set of bad path"
 else
-  echo "*** Error not returned for query of bad path"
+  echo "*** Error not returned for get of bad path"
   exit 1
 fi
 
@@ -100,7 +104,7 @@ initial_set=$($cli_command gnmi_cli -set $common_args -proto \
                 $common_extensions" 2>&1)
 if [[ "$initial_set" == *"op: UPDATE"* ]]
 then
-  echo "+++ Initial timezone set is correct"
+  echo "+++ Initial timezone set operation successful"
 else
   echo "*** Error setting initial timezone value"
   exit 1
@@ -112,9 +116,9 @@ $cli_command gnmi_cli -get $common_args -proto "path: $tzpath" >$tmpfile
 timezone=$(extract_timezone)
 if [ "$timezone" == '"Europe/Paris"' ]
 then
-  echo "+++ Initial timezone setting is correct"
+  echo "+++ Get of initial timezone setting is correct"
 else
-  echo "*** Initial timezone setting is incorrect"
+  echo "*** Get of initial timezone setting is incorrect"
   exit 1
 fi
 
@@ -125,7 +129,7 @@ change_set=$($cli_command gnmi_cli -set $common_args -proto \
                 $common_extensions" 2>&1)
 if [[ "$change_set" == *"op: UPDATE"* ]]
 then
-  echo "+++ Change timezone set is correct"
+  echo "+++ Change timezone set operation successful"
 else
   echo "*** Error changing timezone value"
   exit 1
@@ -137,9 +141,9 @@ $cli_command gnmi_cli -get $common_args -proto "path: $tzpath" >$tmpfile
 timezone=$(extract_timezone)
 if [ "$timezone" == '"Europe/Dublin"' ]
 then
-  echo "+++ Reset timezone setting is correct"
+  echo "+++ Get of reset timezone setting is correct"
 else
-  echo "*** Reset timezone setting is incorrect"
+  echo "*** Get of reset timezone setting is incorrect"
   exit 1
 fi
 
@@ -147,9 +151,9 @@ fi
 models_count=$($cli_command gnmi_cli -capabilities $common_args | grep supported_models | wc -l)
 if [ "$models_count" == '25' ]
 then
-  echo "+++ Models count is correct"
+  echo "+++ Models count from capabilities is correct"
 else
-  echo "*** Models count is incorrect"
+  echo "*** Models count from capabilities is incorrect"
   exit 1
 fi
 
