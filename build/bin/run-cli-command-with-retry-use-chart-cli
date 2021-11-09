@@ -66,8 +66,8 @@ if __name__ == '__main__':
         if max_attempts == 0:
             done = True
             continue
-        print("start sleep\n")
+        print("start sleep\n", flush=True)
         time.sleep(6)
-        print("end sleep")
+        print("end sleep\n", flush=True)
 
     exit(failure)
