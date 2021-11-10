@@ -42,9 +42,11 @@ fi
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster
 
+# install base cluster
+# the fb-ah-xapp will give up eventually if it can't contact onos-e2t in time, so exclude it until the
+# cluster is up
 helm install -n micro-onos \
    --set global.image.tag=latest \
-   --set import.fb-ah-xapp.enabled=true \
    --set import.fb-ah-gui.enabled=true \
    --set import.ah-eson-test-server.enabled=true \
    --set import.ran-simulator.enabled=true \
@@ -54,6 +56,8 @@ helm install -n micro-onos \
    $fb_registries \
    sd-ran sdran/sd-ran --wait --timeout 10m
 
+# install fb-ah-xapp
+helm install $fb_registries -n micro-onos fb-ah-xapp --set fb-ah-xapp.enabled=true sdran/fb-ah-xapp --wait
 
 tmpfile="/tmp/smoke$$"
 
