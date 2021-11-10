@@ -18,8 +18,6 @@
 
 set -eu -o pipefail
 
-set -x
-
 onos_test=$PWD
 trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
 
@@ -81,17 +79,33 @@ else
   echo FB KPIMON xapp connections are correct
 fi
 
-sleep 15
-
 # check that the ONF KPIMON app is seeing connections
-$cli_command onos kpimon list metrics --no-headers >$tmpfile
-connections=$(grep -c -v "0 *0 *0 *0 *0 *0 *0 *0 *" $tmpfile || : )
-if (( connections == 0 ))
-then
-  echo ONF KPIMON xapp is not seeing connections
-  exit 1
-else
-  echo ONF KPIMON xapp connections are correct
-fi
 
-echo "FB/ONF KPIMON Smoke test completed successfully!"
+kpimon_started=0
+for i in $(seq 1 20)
+do
+  if ! $cli_command onos kpimon list metrics --no-headers >$tmpfile
+  then
+    sleep 3
+    continue
+  fi
+
+  connections=$(grep -c -v "0 *0 *0 *0 *0 *0 *0 *0 *" $tmpfile || : )
+  if (( connections == 0 ))
+  then
+    echo ONF KPIMON xapp is not seeing connections
+    exit 1
+  else
+    echo ONF KPIMON xapp connections are correct
+    kpimon_started=1
+    break
+  fi
+done
+
+if [ "$kpimon_started" == "1" ]
+then
+  echo "=== FB/ONF KPIMON Smoke test completed successfully!"
+else
+  echo "*** FB/ONF KPIMON Smoke test failed - ONF KPIMON never ready"
+  exit 1
+fi
