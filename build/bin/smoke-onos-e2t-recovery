@@ -69,10 +69,27 @@ helm install -n micro-onos $registry \
      $clustering_args \
      sdran sdran/sd-ran --wait
 
-sleep 30
 
 # grab the cells output
-$get_cells_command | sort >$before_file
+cells_found=0
+for i in $(seq 1 20)
+do
+  $get_cells_command | sort >$before_file
+  if ! grep e2cell $before_file >/dev/null
+  then
+    sleep 3
+    continue
+  fi
+  cells_found=1
+  break
+done
+
+if [ "$cells_found" == "0" ]
+then
+  echo '*** No cells found before restart'
+  exit 1
+fi
+
 
 # simulate a cluster crash
 helm uninstall sdran -n micro-onos
@@ -88,10 +105,25 @@ helm install -n micro-onos $registry \
      $clustering_args \
      sdran sdran/sd-ran --wait
 
-sleep 30
-
 # grab the cells output after recovery
-$get_cells_command | sort >$after_file
+cells_found=0
+for i in $(seq 1 20)
+do
+  $get_cells_command | sort >$after_file
+  if ! grep e2cell $after_file >/dev/null
+  then
+    sleep 3
+    continue
+  fi
+  cells_found=1
+  break
+done
+
+if [ "$cells_found" == "0" ]
+then
+  echo '*** No cells found after restart'
+  exit 1
+fi
 
 echo Before:
 cat $before_file
