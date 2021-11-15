@@ -15,17 +15,27 @@
 #
 # Script to install helm
 
-SKIP_HELM_INSTALL=${SKIP_HELM_INSTALL:-"0"}
+SKIP_K8S_TOOLS_INSTALL=${SKIP_K8S_TOOLS_INSTALL:-"0"}
 
-if [ "$SKIP_HELM_INSTALL" == "1" ]; then
+if [ "$SKIP_K8S_TOOLS_INSTALL" == "1" ]; then
   exit 0
 fi
 
+# Install helm if needed
 HELM_VERSION=3.5.4
 version=$(helm version)
-if [[ "$version" == *"v$HELM_VERSION"* ]]; then exit 0; fi
-
-
-curl -s https://get.helm.sh/helm-v${HELM_VERSION}-linux-386.tar.gz >/tmp/helm.tar.gz
-cd /tmp ; tar xf /tmp/helm.tar.gz ; sudo cp linux-386/helm /usr/local/bin/helm
+if [[ "$version" != *"v$HELM_VERSION"* ]]
+then
+  curl -s https://get.helm.sh/helm-v${HELM_VERSION}-linux-386.tar.gz >/tmp/helm.tar.gz
+  cd /tmp ; tar xf /tmp/helm.tar.gz ; sudo cp linux-386/helm /usr/local/bin/helm
+fi
 helm version
+
+# Install kubectl if needed
+if ! command -v kubectl
+then
+  curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  chmod +x /usr/local/bin/kubectl
+  sudo mv kubectl /usr/local/bin
+fi
+kubectl version
