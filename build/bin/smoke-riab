@@ -43,11 +43,10 @@ set -e -u -o pipefail
 onos_test=$PWD
 
 # post test job
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && $onos_test/build/bin/install-k8s-tools && post_test_clean" EXIT
+trap "$onos_test/build/bin/install-k8s-tools && $onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && post_test_clean" EXIT
 
 # set a default workspace if not running on Jenkins
 WORKSPACE=${WORKSPACE:-~}
-fffffff
 
 # command to access the ONOS CLI
 export cli_command="kubectl -n riab exec -t deploy/onos-cli -- "
