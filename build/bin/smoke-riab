@@ -23,6 +23,7 @@
 function post_test_clean {
     make clean-all >/dev/null 2>/dev/null
     sudo systemctl restart docker
+    ../build/bin/install-k8s-tools
 }
 
 function iperf_test {
