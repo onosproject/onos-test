@@ -32,6 +32,13 @@ setup_test_cluster () {
     exit 1
   fi
 
+  helm repo add cord https://charts.opencord.org
+  helm repo add atomix https://charts.atomix.io
+  helm repo add onos https://charts.onosproject.org
+  helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
+  helm repo add aether --username "$repo_user" --password "$repo_password" https://charts.aetherproject.org
+  helm repo update
+
   if [ $proxy == "" ]; then
      registry=""
   else
@@ -69,12 +76,6 @@ setup_test_cluster () {
   else
      helm install $registry -n kube-system onos-operator onos/onos-operator --wait
   fi
-
-  helm repo add cord https://charts.opencord.org
-  helm repo add atomix https://charts.atomix.io
-  helm repo add onos https://charts.onosproject.org
-  helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
-  helm repo update
 
   # create a namespace for ONOS
   kubectl create namespace $NAMESPACE

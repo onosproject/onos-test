@@ -135,6 +135,9 @@ mho-smoke:
 config-smoke:
 	./build/bin/smoke-onos-config
 
+config-smoke-roc:
+	./build/bin/smoke-onos-config-roc
+
 clean-vm:
 	./build/bin/cleanup-linux-vm
 
