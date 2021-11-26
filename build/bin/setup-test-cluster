@@ -32,7 +32,10 @@ setup_test_cluster () {
     exit 1
   fi
 
-# install the preferred versions of k8s tools
+  # Make a kind cluster
+  kind delete cluster && kind create cluster --quiet
+
+  # install the preferred versions of k8s tools
   build/bin/install-k8s-tools
 
   helm repo add cord https://charts.opencord.org
@@ -47,9 +50,6 @@ setup_test_cluster () {
   else
      registry="--set global.image.registry=$proxy"
   fi
-
-  # Make a kind cluster
-  kind delete cluster && kind create cluster --quiet
 
   # install Atomix
   helm repo update
