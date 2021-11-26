@@ -32,6 +32,9 @@ setup_test_cluster () {
     exit 1
   fi
 
+# install the preferred versions of k8s tools
+  build/bin/install-k8s-tools
+
   helm repo add cord https://charts.opencord.org
   helm repo add atomix https://charts.atomix.io
   helm repo add onos https://charts.onosproject.org
@@ -47,9 +50,6 @@ setup_test_cluster () {
 
   # Make a kind cluster
   kind delete cluster && kind create cluster --quiet
-
-  # install the preferred versions of k8s tools
-  build/bin/install-k8s-tools
 
   # install Atomix
   helm repo update
