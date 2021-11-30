@@ -21,6 +21,12 @@ extract_description() {
   echo $description
 }
 
+extract_description_from_device() {
+  grep json_val: $tmpfile | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >$tmpfile.json
+  description=$(jq '.[][]."description"' $tmpfile.json)
+  echo $description
+}
+
 set -eu -o pipefail
 onos_test=$PWD
 tmpfile="/tmp/smoke$$"
@@ -58,9 +64,11 @@ sleep 30
 kubectl wait pod -n micro-onos --for=condition=Ready -l type=config --timeout=300s
 
 # common gnmi_cli arguments
-common_args="-address onos-config:5150  -timeout 5s -en JSON -alsologtostderr \
+common_args="-timeout 5s -en JSON -alsologtostderr \
              -insecure -client_crt /etc/ssl/certs/client1.crt -client_key /etc/ssl/certs/client1.key \
              -ca_crt /etc/ssl/certs/onfca.crt"
+onos_config="-address onos-config:5150"
+sdcore_adapter="-address sdcore-adapter-v4:5150"
 
 # set known values for the connectivity service
 set_command=''
@@ -75,7 +83,7 @@ set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" valu
 set_command+='val:<string_val:"cs5gtest">> '
 set_command+='extension:<registered_ext:<id:101 msg:"4.0.0">> '
 set_command+='extension:<registered_ext:<id:102 msg:"Aether">>'
-initial_set=$( $cli_command gnmi_cli $common_args -set -proto "$set_command" 2>&1 )
+initial_set=$( $cli_command gnmi_cli $onos_config $common_args -set -proto "$set_command" 2>&1 )
 if echo $initial_set | grep "returned RPC error"
 then
   echo "*** Setting connectivity service returned an error"
@@ -84,16 +92,27 @@ else
     echo "+++ Setting connectivity service was correct"
 fi
 
-# check that values were properly set
-get_command=''
-get_command+='path:<target: "connectivity-service-v4", elem:<name:"connectivity-service" > elem:<name:"connectivity-service" key:<key:"id" value:"*" > > elem:<name:"description">>'
-$cli_command gnmi_cli $common_args -get -proto "$get_command" >$tmpfile
+# check that values were properly set in onos-config
+get_command='path:<target: "connectivity-service-v4", elem:<name:"connectivity-service" > elem:<name:"connectivity-service" key:<key:"id" value:"*" > > elem:<name:"description">>'
+$cli_command gnmi_cli $onos_config $common_args -get -proto "$get_command" >$tmpfile
 description=$(extract_description)
 if [ "$description" == '"5G Test"' ]
 then
   echo "+++ Get of connectivity service description is correct"
 else
   echo "*** Get of connectivity service description is incorrect"
+  exit 1
+fi
+
+# check that values were properly set in the sdcore adapter
+get_command='path:<target: "connectivity-service-v4", elem:<name:"connectivity-service" > >'
+$cli_command gnmi_cli $sdcore_adapter $common_args -get -proto "$get_command" >$tmpfile
+description_from_device=$(extract_description_from_device)
+if [ "$description_from_device" == '"5G Test"' ]
+then
+  echo "+++ Get of connectivity service description from device is correct"
+else
+  echo "*** Get of connectivity service description from device is incorrect"
   exit 1
 fi
 
