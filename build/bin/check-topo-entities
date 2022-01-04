@@ -22,8 +22,8 @@ import check_cli, sys
 
 expected_headers = ['Entity', 'ID', 'Kind', 'ID', 'Labels', 'Aspects']
 
-ENTITY_ID_REGEX = r'^e2:([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+)$'
-KIND_ID_REGEX = r'^e2node|e2cell|e2t$'
+ENTITY_ID_REGEX = r'^(gnmi:|(a1|e2):([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+))$'
+KIND_ID_REGEX = r'^e2node|e2cell|e2t|a1t|onos-config$'
 NONE_REGEX = r'^<None>$'
 ASPECTS_REGEX = r'^[0-9a-zA-Z-,\.]+|<None>$'
 
