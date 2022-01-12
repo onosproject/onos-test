@@ -47,7 +47,7 @@ pushd .. && GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit && po
 git clone https://github.com/onosproject/onos-helm-charts.git
 git clone git@github.com:onosproject/sdran-helm-charts.git
 
-common_args="--timeout 60m --secret sd-ran-username=$repo_user --secret sd-ran-password=$repo_password --no-teardown"
+common_args="--timeout 60m --secret sd-ran-username=$repo_user --secret sd-ran-password=$repo_password --secret keycloak-password=$keycloak_password --no-teardown"
 if [ $use_proxy = "1" ]; then
    common_args="$common_args --args registry=mirror.registry.opennetworking.org --image mirror.registry.opennetworking.org/onosproject/helmit-runner:latest"
 fi
