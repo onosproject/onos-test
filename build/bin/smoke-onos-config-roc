@@ -49,8 +49,9 @@ docker pull $proxy/onosproject/config-model-registry:v1.0.1
 kind load docker-image $proxy/onosproject/config-model-registry:v1.0.1
 
 # install aether-roc
+# disable using latest onos-config image until ROC umbrella chart is updated
+
 helm install -n micro-onos $registry aether-roc-umbrella \
-      --set onos-config.image.tag=latest \
       --set import.aether-roc-gui.v3.enabled=false \
       --set import.aether-roc-gui.v4.enabled=false \
       --set import.grafana.enabled=false \
