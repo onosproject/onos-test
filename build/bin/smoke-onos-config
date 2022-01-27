@@ -47,14 +47,6 @@ proxy="mirror.registry.opennetworking.org"
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster
 
-# pre-load the config model init image
-docker pull $proxy/onosproject/config-model-init:v1.0.1
-kind load docker-image $proxy/onosproject/config-model-init:v1.0.1
-
-# pre-load the config model registry image
-docker pull $proxy/onosproject/config-model-registry:v1.0.1
-kind load docker-image $proxy/onosproject/config-model-registry:v1.0.1
-
 # install onos-config
 helm install -n micro-onos $registry \
      --set global.image.tag=latest \
@@ -71,14 +63,12 @@ helm install -n micro-onos device-1 $registry onos/device-simulator --wait
 common_args="-address onos-config:5150  -timeout 5s -en JSON -alsologtostderr \
              -insecure -client_crt /etc/ssl/certs/client1.crt -client_key /etc/ssl/certs/client1.key \
              -ca_crt /etc/ssl/certs/onfca.crt"
-common_extensions="extension: <registered_ext: <id: 101, msg:'1.0.0'>> extension: <registered_ext: <id: 102, msg:'Devicesim'>>"
 
 # Create topo entries for the simulated device
 $cli_command onos topo create kind devicesim devicesim
 $cli_command onos topo create entity devicesim-1 -a \
-                  onos.topo.Configurable='{"address":"devicesim1-device-simulator:11161","version":"1.0.0","type":"Devicesim"}' \
-                  -a onos.topo.TLSOptions='{"insecure":true,"plain":true}' -a onos.topo.Asset='{"name":"Devicesim1"}' \
-                  -a onos.topo.MastershipState='{}' -k devicesim
+                  onos.topo.Configurable='{"address":"devicesim1-device-simulator:11161","version":"1.0.0","type":"devicesim-1.0.x"}' \
+                  -a onos.topo.TLSOptions='{"insecure":true,"plain":true}' -k devicesim
 
 # gnmi paths
 tzpath=$(make_path 'devicesim-1' '/system/clock/config/timezone-name')
@@ -87,8 +77,7 @@ badpath=$(make_path 'devicesim-1' '/XXXsystemXXX/clock/config/timezone-name')
 # attempt to set a bad path - should result in an error
 bad_set=$($cli_command gnmi_cli -set $common_args -proto \
                "update: <path: $badpath \
-                val: <string_val: 'Bad!Value'>> \
-                $common_extensions" 2>&1)
+                val: <string_val: 'Bad!Value'>>" 2>&1)
 if [[ "$bad_set" == *"code = InvalidArgument"* ]]
 then
   echo "+++ Correct error returned for set of bad path"
@@ -100,8 +89,7 @@ fi
 # set an initial timezone value
 initial_set=$($cli_command gnmi_cli -set $common_args -proto \
                "update: <path: $tzpath \
-                val: <string_val: 'Europe/Paris'>> \
-                $common_extensions" 2>&1)
+                val: <string_val: 'Europe/Paris'>>" 2>&1)
 if [[ "$initial_set" == *"op: UPDATE"* ]]
 then
   echo "+++ Initial timezone set operation successful"
@@ -125,8 +113,7 @@ fi
 # change the timezone
 change_set=$($cli_command gnmi_cli -set $common_args -proto \
                "update: <path: $tzpath \
-                val: <string_val: 'Europe/Dublin'>> \
-                $common_extensions" 2>&1)
+                val: <string_val: 'Europe/Dublin'>>" 2>&1)
 if [[ "$change_set" == *"op: UPDATE"* ]]
 then
   echo "+++ Change timezone set operation successful"
@@ -148,13 +135,13 @@ else
 fi
 
 # check capabilities
-models_count=$($cli_command gnmi_cli -capabilities $common_args | grep supported_models | wc -l)
-if [ "$models_count" == '25' ]
-then
-  echo "+++ Models count from capabilities is correct"
-else
-  echo "*** Models count from capabilities is incorrect"
-  exit 1
-fi
+#models_count=$($cli_command gnmi_cli -capabilities $common_args | grep supported_models | wc -l)
+#if [ "$models_count" == '25' ]
+#then
+#  echo "+++ Models count from capabilities is correct"
+#else
+#  echo "*** Models count from capabilities is incorrect"
+#  exit 1
+#fi
 
 echo "=== onos-config smoke test completed successfully!"
