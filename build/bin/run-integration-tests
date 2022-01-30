@@ -97,7 +97,7 @@ case "$testSuite" in
     git log -1
     make kind
 
-    run_integration_test_suite "gnmi" "./cmd/onos-config-tests" "onos-umbrella" ""
+    run_integration_test_suite "config" "./cmd/onos-config-tests" "onos-umbrella" ""
     kubectl delete ns $NAMESPACE
     run_integration_test_suite "rbac" "./cmd/onos-config-tests" "onos-umbrella" ""
     #run_integration_test_suite "ha" "./cmd/onos-config-tests" "onos-umbrella" ""
