@@ -135,13 +135,13 @@ else
 fi
 
 # check capabilities
-#models_count=$($cli_command gnmi_cli -capabilities $common_args | grep supported_models | wc -l)
-#if [ "$models_count" == '25' ]
-#then
-#  echo "+++ Models count from capabilities is correct"
-#else
-#  echo "*** Models count from capabilities is incorrect"
-#  exit 1
-#fi
+models_count=$($cli_command gnmi_cli -capabilities $common_args | grep supported_models | wc -l)
+if [ "$models_count" == '8' ]
+then
+  echo "+++ Models count from capabilities is correct"
+else
+  echo "*** Models count from capabilities is incorrect"
+  exit 1
+fi
 
 echo "=== onos-config smoke test completed successfully!"
