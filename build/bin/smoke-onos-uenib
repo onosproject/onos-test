@@ -34,6 +34,7 @@ helm install -n micro-onos $registry \
      --set import.onos-config.enabled=false \
      --set import.onos-topo.enabled=false \
      --set import.onos-e2t.enabled=false \
+     --set import.onos-a1t.enabled=false \
      --set import.onos-uenib.enabled=true \
      sdran sdran/sd-ran --wait
 
