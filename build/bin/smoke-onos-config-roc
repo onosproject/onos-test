@@ -58,31 +58,28 @@ helm install -n micro-onos $registry aether-roc-umbrella \
       --set import.prometheus.amp.enabled=false \
       --set import.prometheus.acc.enabled=false \
       --set import.prometheus.ace.enabled=false \
-      aether/aether-roc-umbrella
-
-sleep 30
-
-kubectl wait pod -n micro-onos --for=condition=Ready -l type=config --timeout=300s
+      --set sdcore-adapter-v2.image.tag=latest \
+      aether/aether-roc-umbrella --wait
 
 # common gnmi_cli arguments
 common_args="-timeout 5s -en JSON -alsologtostderr \
              -insecure -client_crt /etc/ssl/certs/client1.crt -client_key /etc/ssl/certs/client1.key \
              -ca_crt /etc/ssl/certs/onfca.crt"
 onos_config="-address onos-config:5150"
-sdcore_adapter="-address sdcore-adapter-v4:5150"
+sdcore_adapter="-address sdcore-adapter-v2:5150"
 
 # set known values for the connectivity service
 set_command=''
-set_command+='prefix:<elem:<name:"connectivity-service"> target:"connectivity-service-v4"> '
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"core-5g-endpoint"> target:"connectivity-service-v4"> '
+set_command+='prefix:<elem:<name:"connectivity-services"> target:"connectivity-service-v2"> '
+set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"core-5g-endpoint"> > '
 set_command+='val:<string_val:"http://aether-roc-umbrella-sdcore-test-dummy/v1/config/5g">>'
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"description"> target:"connectivity-service-v4"> '
+set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"description"> > '
 set_command+='val:<string_val:"5G Test">> '
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"display-name"> target:"connectivity-service-v4"> '
+set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"display-name"> > '
 set_command+='val:<string_val:"ROC 5G Test Connectivity Service">> '
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"id"> target:"connectivity-service-v4"> '
+set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"id"> > '
 set_command+='val:<string_val:"cs5gtest">> '
-set_command+='extension:<registered_ext:<id:101 msg:"4.0.0">> '
+set_command+='extension:<registered_ext:<id:101 msg:"2.0.0">> '
 set_command+='extension:<registered_ext:<id:102 msg:"Aether">>'
 initial_set=$( $cli_command gnmi_cli $onos_config $common_args -set -proto "$set_command" 2>&1 )
 if echo $initial_set | grep "returned RPC error"
@@ -94,7 +91,7 @@ else
 fi
 
 # check that values were properly set in onos-config
-get_command='path:<target: "connectivity-service-v4", elem:<name:"connectivity-service" > elem:<name:"connectivity-service" key:<key:"id" value:"*" > > elem:<name:"description">>'
+get_command='path:<target: "connectivity-service-v2", elem:<name:"connectivity-services" > elem:<name:"connectivity-service" key:<key:"id" value:"*" > > elem:<name:"description">>'
 $cli_command gnmi_cli $onos_config $common_args -get -proto "$get_command" >$tmpfile
 description=$(extract_description)
 if [ "$description" == '"5G Test"' ]
@@ -106,7 +103,7 @@ else
 fi
 
 # check that values were properly set in the sdcore adapter
-get_command='path:<target: "connectivity-service-v4", elem:<name:"connectivity-service" > >'
+get_command='path:<elem:<name:"connectivity-services" > >'
 $cli_command gnmi_cli $sdcore_adapter $common_args -get -proto "$get_command" >$tmpfile
 description_from_device=$(extract_description_from_device)
 if [ "$description_from_device" == '"5G Test"' ]
