@@ -41,6 +41,9 @@ if [ -n "$STORE_CONSENSUS_PARTITIONS" ]; then
   clustering_args="$clustering_args --set global.store.consensus.partitions=$STORE_CONSENSUS_PARTITIONS"
 fi
 
+# use an older version of onos-operator
+onos_operator_version="0.4.14"
+
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster
