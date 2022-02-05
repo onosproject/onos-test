@@ -82,40 +82,40 @@ onos-config-integration-tests:
 	./build/bin/run-integration-tests onos-config-tests
 
 onos-e2t-integration-tests-r1:
-	E2T_REPLICAS=1 ./build/bin/run-integration-tests onos-e2t-tests
+	onos_operator_version="0.4.14" E2T_REPLICAS=1 ./build/bin/run-integration-tests onos-e2t-tests
 
 onos-e2t-integration-tests-r2:
-	E2T_REPLICAS=2 ./build/bin/run-integration-tests onos-e2t-tests
+	onos_operator_version="0.4.14" E2T_REPLICAS=2 ./build/bin/run-integration-tests onos-e2t-tests
 
 onos-e2t-integration-tests:
-	./build/bin/run-integration-tests onos-e2t-tests
+	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-e2t-tests
 
 ran-sim-integration-tests:
-	./build/bin/run-integration-tests ran-sim-tests
+	onos_operator_version="0.4.14" ./build/bin/run-integration-tests ran-sim-tests
 
 onos-pci-integration-tests:
-	./build/bin/run-integration-tests onos-pci-tests
+	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-pci-tests
 
 onos-uenib-integration-tests:
-	./build/bin/run-integration-tests onos-uenib-tests
+	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-uenib-tests
 
 onos-kpimon-integration-tests:
-	./build/bin/run-integration-tests onos-kpimon-tests
+	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-kpimon-tests
 
 onos-mlb-integration-tests:
-	./build/bin/run-integration-tests onos-mlb-tests
+	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-mlb-tests
 
 onos-rsm-integration-tests:
-	./build/bin/run-integration-tests onos-rsm-tests
+	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-rsm-tests
 
 onos-mho-integration-tests:
-	./build/bin/run-integration-tests onos-mho-tests
+	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-mho-tests
 
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 
 sdran-helm-charts-tests:
-	./build/bin/run-integration-tests sdran-helm-charts
+	onos_operator_version="0.4.14" ./build/bin/run-integration-tests sdran-helm-charts
 
 onos-master-build-test:
 	./build/bin/run-integration-tests master-build
