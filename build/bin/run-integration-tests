@@ -47,7 +47,7 @@ pushd .. && GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit && po
 git clone https://github.com/onosproject/onos-helm-charts.git
 git clone git@github.com:onosproject/sdran-helm-charts.git
 
-common_args="--timeout 60m --secret sd-ran-username=$repo_user --secret sd-ran-password=$repo_password --secret keycloak-password=$keycloak_password --no-teardown"
+common_args="--timeout 60m --secret keycloak-password=$keycloak_password --no-teardown"
 if [ $use_proxy = "1" ]; then
    common_args="$common_args --args registry=mirror.registry.opennetworking.org --image mirror.registry.opennetworking.org/onosproject/helmit-runner:latest"
 fi
@@ -100,7 +100,6 @@ case "$testSuite" in
     run_integration_test_suite "config" "./cmd/onos-config-tests" "onos-umbrella" ""
     kubectl delete ns $NAMESPACE
     run_integration_test_suite "rbac" "./cmd/onos-config-tests" "onos-umbrella" ""
-    #run_integration_test_suite "ha" "./cmd/onos-config-tests" "onos-umbrella" ""
     ;;
 
 "onos-e2t-tests")
@@ -207,6 +206,19 @@ case "$testSuite" in
     run_integration_test_suite "mho" "./cmd/onos-mho-test" "sd-ran" ""
     kubectl delete ns $NAMESPACE
     run_integration_test_suite "ha" "./cmd/onos-mho-test" "sd-ran" ""
+    kubectl delete ns $NAMESPACE
+
+    ;;
+
+"onos-a1t-tests")
+    # onos-mho
+    git clone git@github.com:onosproject/onos-a1t.git
+    cd onos-a1t
+    git log -1
+    make kind
+    cd test/utils/xapp && make kind && cd -
+
+    run_integration_test_suite "a1pm" "./cmd/onos-a1t-test" "sd-ran" "--context ./test/utils/charts/"
     kubectl delete ns $NAMESPACE
 
     ;;

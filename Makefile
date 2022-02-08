@@ -111,6 +111,9 @@ onos-rsm-integration-tests:
 onos-mho-integration-tests:
 	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-mho-tests
 
+onos-a1t-integration-tests:
+	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-a1t-tests
+
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 
