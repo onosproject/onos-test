@@ -81,7 +81,7 @@ fi
 # Create topo entries for the simulated device
 $cli_command onos topo create kind devicesim devicesim
 $cli_command onos topo create entity devicesim-1 -a \
-                  onos.topo.Configurable='{"address":"devicesim1-device-simulator:11161","version":"1.0.0","type":"devicesim-1.0.x"}' \
+                  onos.topo.Configurable='{"address":"devicesim1-device-simulator:11161","version":"1.0.0","type":"devicesim"}' \
                   -a onos.topo.TLSOptions='{"insecure":true,"plain":true}' -k devicesim
 
 # gnmi paths
