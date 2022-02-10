@@ -80,17 +80,9 @@ setup_test_cluster () {
 
   # initialize the operator
   if [ $proxy == "" ]; then
-    if [ -z $onos_operator_version ]; then
-      helm install -n kube-system onos-operator onos/onos-operator --wait
-    else
-      helm install -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
-    fi
+    helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
   else
-    if [ -z $onos_operator_version ]; then
-      helm install $registry -n kube-system onos-operator onos/onos-operator --wait
-    else
-      helm install $registry -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
-    fi
+    helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
   fi
 
   # create a namespace for ONOS
