@@ -74,13 +74,13 @@ sdcore_adapter="-address sdcore-adapter-v2:5150"
 # set known values for the connectivity service
 set_command=''
 set_command+='prefix:<elem:<name:"connectivity-services"> target:"connectivity-service-v2"> '
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"core-5g-endpoint"> > '
+set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"cs5gtest">> elem:<name:"core-5g-endpoint"> > '
 set_command+='val:<string_val:"http://aether-roc-umbrella-sdcore-test-dummy/v1/config/5g">>'
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"description"> > '
+set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"cs5gtest">> elem:<name:"description"> > '
 set_command+='val:<string_val:"5G Test">> '
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"display-name"> > '
+set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"cs5gtest">> elem:<name:"display-name"> > '
 set_command+='val:<string_val:"ROC 5G Test Connectivity Service">> '
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"id" value:"cs5gtest">> elem:<name:"id"> > '
+set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"cs5gtest">> elem:<name:"connectivity-service-id"> > '
 set_command+='val:<string_val:"cs5gtest">> '
 set_command+='extension:<registered_ext:<id:101 msg:"2.0.0">> '
 set_command+='extension:<registered_ext:<id:102 msg:"Aether">>'
@@ -94,7 +94,7 @@ else
 fi
 
 # check that values were properly set in onos-config
-get_command='path:<target: "connectivity-service-v2", elem:<name:"connectivity-services" > elem:<name:"connectivity-service" key:<key:"id" value:"*" > > elem:<name:"description">>'
+get_command='path:<target: "connectivity-service-v2", elem:<name:"connectivity-services" > elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"*" > > elem:<name:"description">>'
 $cli_command gnmi_cli $onos_config $common_args -get -proto "$get_command" >$tmpfile
 description=$(extract_description)
 if [ "$description" == '"5G Test"' ]
