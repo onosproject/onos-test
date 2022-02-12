@@ -38,9 +38,6 @@ else
        --set fb-ah-xapp.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-xapp "
 fi
 
-# use an older version of onos-operator
-onos_operator_version="0.4.14"
-
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster

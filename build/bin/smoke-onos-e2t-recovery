@@ -54,9 +54,6 @@ fi
 export cli_command="kubectl -n micro-onos exec -t deploy/onos-cli -- "
 get_cells_command="$cli_command onos topo get entities --kind e2cell --no-headers"
 
-# use an older version of onos-operator
-onos_operator_version="0.4.14"
-
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster
