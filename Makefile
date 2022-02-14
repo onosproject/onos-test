@@ -58,7 +58,7 @@ e2t-smoke-recovery:
 	 STORE_CONSENSUS_PERSISTENCE_STORAGE_CLASS=standard STORE_CONSENSUS_REPLICAS=3 STORE_CONSENSUS_PARTITIONS=3 E2T_REPLICAS=2 ./build/bin/smoke-onos-e2t-recovery
 
 e2t-smoke-e2ap101:
-	E2T_REPLICAS=1 ./build/bin/smoke-onos-e2t-e2ap101
+	onos_operator_version="0.4.14" E2T_REPLICAS=1 ./build/bin/smoke-onos-e2t-e2ap101
 
 riab-smoke:
 	./build/bin/smoke-riab
@@ -82,43 +82,43 @@ onos-config-integration-tests:
 	./build/bin/run-integration-tests onos-config-tests
 
 onos-e2t-integration-tests-r1:
-	onos_operator_version="0.4.14" E2T_REPLICAS=1 ./build/bin/run-integration-tests onos-e2t-tests
+	E2T_REPLICAS=1 ./build/bin/run-integration-tests onos-e2t-tests
 
 onos-e2t-integration-tests-r2:
-	onos_operator_version="0.4.14" E2T_REPLICAS=2 ./build/bin/run-integration-tests onos-e2t-tests
+	E2T_REPLICAS=2 ./build/bin/run-integration-tests onos-e2t-tests
 
 onos-e2t-integration-tests:
-	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-e2t-tests
+	./build/bin/run-integration-tests onos-e2t-tests
 
 ran-sim-integration-tests:
-	onos_operator_version="0.4.14" ./build/bin/run-integration-tests ran-sim-tests
+	./build/bin/run-integration-tests ran-sim-tests
 
 onos-pci-integration-tests:
-	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-pci-tests
+	./build/bin/run-integration-tests onos-pci-tests
 
 onos-uenib-integration-tests:
-	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-uenib-tests
+	./build/bin/run-integration-tests onos-uenib-tests
 
 onos-kpimon-integration-tests:
-	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-kpimon-tests
+	./build/bin/run-integration-tests onos-kpimon-tests
 
 onos-mlb-integration-tests:
-	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-mlb-tests
+	./build/bin/run-integration-tests onos-mlb-tests
 
 onos-rsm-integration-tests:
-	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-rsm-tests
+	./build/bin/run-integration-tests onos-rsm-tests
 
 onos-mho-integration-tests:
-	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-mho-tests
+	./build/bin/run-integration-tests onos-mho-tests
 
 onos-a1t-integration-tests:
-	onos_operator_version="0.4.14" ./build/bin/run-integration-tests onos-a1t-tests
+	./build/bin/run-integration-tests onos-a1t-tests
 
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 
 sdran-helm-charts-tests:
-	onos_operator_version="0.4.14" ./build/bin/run-integration-tests sdran-helm-charts
+	./build/bin/run-integration-tests sdran-helm-charts
 
 onos-master-build-test:
 	./build/bin/run-integration-tests master-build
