@@ -28,7 +28,7 @@ setup_test_cluster () {
      registry="--set global.image.registry=$proxy"
   fi
 
-  if [[ "${START_KIND_CLUSTER}" == "false" ]]; then
+  if [ "${START_KIND_CLUSTER}" == "false" ]; then
     echo -e "Not creating kind cluster as START_KIND_CLUSTER is set to ${START_KIND_CLUSTER}, cleaning namespace ${NAMESPACE}"
     kubectl delete ns $NAMESPACE || true
   else
@@ -50,46 +50,46 @@ setup_test_cluster () {
 
     # install the preferred versions of k8s tools
     build/bin/install-k8s-tools
-  fi
 
-  helm repo add cord https://charts.opencord.org
-  helm repo add atomix https://charts.atomix.io
-  helm repo add onos https://charts.onosproject.org
-  helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
-  helm repo add aether --username "$repo_user" --password "$repo_password" https://charts.aetherproject.org
-  helm repo update
+    helm repo add cord https://charts.opencord.org
+    helm repo add atomix https://charts.atomix.io
+    helm repo add onos https://charts.onosproject.org
+    helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
+    helm repo add aether --username "$repo_user" --password "$repo_password" https://charts.aetherproject.org
+    helm repo update
 
-  # install Atomix
-  helm repo update
-  if [ $proxy == "" ]; then
-     kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
-     kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
-     kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
-     registry=""
-  else
-     helm upgrade --install --set image.registry=$proxy \
-                  --set init.image.registry=$proxy \
-                  --set broker.image.registry=$proxy \
-                  atomix-controller atomix/atomix-controller -n kube-system --wait
-     helm upgrade --install --set image.registry=$proxy \
-                  --set driver.image.registry=$proxy \
-                  --set node.image.registry=$proxy \
-                  atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
-     registry="--set global.image.registry=$proxy --set global.store.consensus.image.registry=$proxy --set global.storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
-  fi
-
-  # initialize the operator
-  if [ $proxy == "" ]; then
-    if [ -z $onos_operator_version ]; then
-      helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait
+    # install Atomix
+    helm repo update
+    if [ $proxy == "" ]; then
+       kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
+       kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
+       kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
+       registry=""
     else
-      helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
+       helm upgrade --install --set image.registry=$proxy \
+                    --set init.image.registry=$proxy \
+                    --set broker.image.registry=$proxy \
+                    atomix-controller atomix/atomix-controller -n kube-system --wait
+       helm upgrade --install --set image.registry=$proxy \
+                    --set driver.image.registry=$proxy \
+                    --set node.image.registry=$proxy \
+                    atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
+       registry="--set global.image.registry=$proxy --set global.store.consensus.image.registry=$proxy --set global.storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
     fi
-  else
-    if [ -z $onos_operator_version ]; then
-      helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait
+
+    # initialize the operator
+    if [ $proxy == "" ]; then
+      if [ -z $onos_operator_version ]; then
+        helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait
+      else
+        helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
+      fi
     else
-      helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
+      if [ -z $onos_operator_version ]; then
+        helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait
+      else
+        helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
+      fi
     fi
   fi
 
