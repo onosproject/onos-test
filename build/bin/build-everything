@@ -21,7 +21,7 @@ set -e -u -o pipefail
 # repos and targets to build
 declare -a components=(
   "build-tools" "images"
-  "onos-lib-go" "test"
+  "onos-lib-go" "build"
   "helmit" "build"
   "onos-topo" "images"
   "onos-e2t" "images"
@@ -33,6 +33,12 @@ declare -a components=(
   "onos-exporter" "images"
   "onos-e2-sm" "images"
   "onos-uenib" "images"
+  "onos-a1t" "images"
+  "onos-rsm" "images"
+  "onos-operator" "images"
+  "onos-ric-sdk-go" "all"
+  "onos-ric-sdk-go" "test"
+  "onos-proxy" "images"
   "ran-simulator" "images"
   "config-models" "build"
   "onos-config" "images"
