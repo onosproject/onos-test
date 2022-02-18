@@ -36,33 +36,22 @@ trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artif
 use_proxy="1"
 proxy="mirror.registry.opennetworking.org"
 
-# use an older version of onos-operator
-onos_operator_version="0.4.14"
-
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster
 
-# pre-load the config model init image
-docker pull $proxy/onosproject/config-model-init:v1.0.1
-kind load docker-image $proxy/onosproject/config-model-init:v1.0.1
-
-# pre-load the config model registry image
-docker pull $proxy/onosproject/config-model-registry:v1.0.1
-kind load docker-image $proxy/onosproject/config-model-registry:v1.0.1
-
 # install aether-roc
-# disable using latest onos-config image until ROC umbrella chart is updated
 
 helm install -n micro-onos $registry aether-roc-umbrella \
       --set import.aether-roc-gui.v3.enabled=false \
       --set import.aether-roc-gui.v4.enabled=false \
+      --set import.aether-roc-gui.v2.enabled=false \
       --set import.grafana.enabled=false \
       --set import.prometheus.amp.enabled=false \
       --set import.prometheus.acc.enabled=false \
       --set import.prometheus.ace.enabled=false \
       --set sdcore-adapter-v2.image.tag=latest \
-      aether/aether-roc-umbrella --wait
+      aether/aether-roc-umbrella --wait --timeout 5m
 
 # common gnmi_cli arguments
 common_args="-timeout 5s -en JSON -alsologtostderr \
@@ -82,8 +71,10 @@ set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"connecti
 set_command+='val:<string_val:"ROC 5G Test Connectivity Service">> '
 set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"cs5gtest">> elem:<name:"connectivity-service-id"> > '
 set_command+='val:<string_val:"cs5gtest">> '
+set_command+='extension:<registered_ext:<id:111 msg:"\x08\x01">> '
+set_command+='extension:<registered_ext:<id:102 msg:"Aether">> '
 set_command+='extension:<registered_ext:<id:101 msg:"2.0.0">> '
-set_command+='extension:<registered_ext:<id:102 msg:"Aether">>'
+
 initial_set=$( $cli_command gnmi_cli $onos_config $common_args -set -proto "$set_command" 2>&1 )
 if echo $initial_set | grep "returned RPC error"
 then
