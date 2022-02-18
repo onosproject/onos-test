@@ -36,7 +36,6 @@ declare -a components=(
   "onos-mho" "images"
   "onos-mlb" "images"
   "onos-operator" "images"
-  "onos-operator" "images"
   "onos-pci" "images"
   "onos-proxy" "images"
   "onos-ric-sdk-go" "all"
