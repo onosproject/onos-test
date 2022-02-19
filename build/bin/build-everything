@@ -39,7 +39,7 @@ declare -a components=(
   "onos-pci" "images"
   "onos-proxy" "images"
   "onos-ric-sdk-go" "all"
-  "onos-ric-sdk-go" "test"
+  "onos-ric-sdk-py" "test"
   "onos-rsm" "images"
   "onos-topo" "images"
   "onos-uenib" "images"
