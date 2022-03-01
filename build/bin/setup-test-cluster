@@ -55,8 +55,8 @@ setup_test_cluster () {
   helm repo add cord https://charts.opencord.org
   helm repo add atomix https://charts.atomix.io
   helm repo add onos https://charts.onosproject.org
-  helm repo add sdran --username "$repo_user" --password "$repo_password" https://sdrancharts.onosproject.org
-  helm repo add aether --username "$repo_user" --password "$repo_password" https://charts.aetherproject.org
+  helm repo add sdran https://sdrancharts.onosproject.org
+  helm repo add aether https://charts.aetherproject.org
   helm repo update
 
   # install Atomix
