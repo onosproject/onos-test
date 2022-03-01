@@ -51,6 +51,8 @@ setup_test_cluster () {
     # install the preferred versions of k8s tools
     build/bin/install-k8s-tools
 
+    helm repo remove cord atomix onos sdran aether
+
     helm repo add cord https://charts.opencord.org
     helm repo add atomix https://charts.atomix.io
     helm repo add onos https://charts.onosproject.org
