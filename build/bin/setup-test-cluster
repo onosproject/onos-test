@@ -22,7 +22,7 @@ onos_operator_version=${onos_operator_version:-} # some charts need to load onos
 
 setup_test_cluster () {
 
-  if [ $proxy == "" ]; then
+  if [[ "${proxy}" == "" ]]; then
      registry=""
   else
      registry="--set global.image.registry=$proxy"
@@ -62,11 +62,12 @@ setup_test_cluster () {
 
     # install Atomix
     helm repo update
-    if [ $proxy == "" ]; then
-       kubectl create -f https://raw.githubusercontent.com/atomix/kubernetes-controller/master/deploy/atomix-controller.yaml
-       kubectl create -f https://raw.githubusercontent.com/atomix/raft-storage-controller/master/deploy/raft-storage-controller.yaml
-       kubectl create -f https://raw.githubusercontent.com/atomix/cache-storage-controller/master/deploy/cache-storage-controller.yaml
-       registry=""
+    if [[ "${proxy}" == "" ]]; then
+     helm upgrade --install \
+                  atomix-controller atomix/atomix-controller -n kube-system --wait
+     helm upgrade --install \
+                  atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
+     registry=""
     else
        helm upgrade --install --set image.registry=$proxy \
                     --set init.image.registry=$proxy \
@@ -80,7 +81,7 @@ setup_test_cluster () {
     fi
 
     # initialize the operator
-    if [ $proxy == "" ]; then
+    if [[ "${proxy}" == "" ]]; then
       if [ -z $onos_operator_version ]; then
         helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait
       else
