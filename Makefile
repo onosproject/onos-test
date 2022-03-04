@@ -113,6 +113,9 @@ onos-mho-integration-tests:
 
 onos-a1t-integration-tests:
 	./build/bin/run-integration-tests onos-a1t-tests
+	
+onos-a1t-integration-tests:
+	./build/bin/run-integration-tests rimedo-ts-tests
 
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
