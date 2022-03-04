@@ -208,7 +208,7 @@ case "$testSuite" in
     ;;
 
 "onos-a1t-tests")
-    # onos-mho
+    # onos-a1t
     git clone git@github.com:onosproject/onos-a1t.git
     cd onos-a1t
     git log -1
@@ -216,6 +216,18 @@ case "$testSuite" in
     cd test/utils/xapp && make kind && cd -
 
     run_integration_test_suite "a1pm" "./cmd/onos-a1t-test" "sd-ran" "--context ./test/utils/charts/"
+    kubectl delete ns $NAMESPACE
+
+    ;;
+
+"rimedo-ts-tests")
+    # rimedo-ts
+    git clone git@github.com:onosproject/rimedo-ts.git
+    cd rimedo-ts
+    git log -1
+    make kind
+
+    run_integration_test_suite "ts" "./cmd/rimedo-ts-test" "sd-ran" ""
     kubectl delete ns $NAMESPACE
 
     ;;
