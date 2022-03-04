@@ -32,19 +32,6 @@ setup_test_cluster () {
     echo -e "Not creating kind cluster as START_KIND_CLUSTER is set to ${START_KIND_CLUSTER}, cleaning namespace ${NAMESPACE}"
     kubectl delete ns $NAMESPACE || true
   else
-    repo_user=${repo_user:-}
-    repo_password=${repo_password:-}
-
-    if [ -z $repo_user ]; then
-      echo "repo_user must be set"
-      exit 1
-    fi
-
-    if [ -z $repo_password ]; then
-      echo "repo_password must be set"
-      exit 1
-    fi
-
     # Make a kind cluster
     kind delete cluster && kind create cluster --quiet
 
