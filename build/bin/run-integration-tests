@@ -225,10 +225,6 @@ case "$testSuite" in
 
     cd onos-helm-charts
     git log -1
-    helm repo add cord https://charts.opencord.org
-    helm repo add atomix https://charts.atomix.io
-    helm repo add onos https://charts.onosproject.org
-    helm repo update
     run_integration_test_suite "onos-topo" "./test" "onos-topo" ""
     kubectl delete ns $NAMESPACE
     run_integration_test_suite "onos-config" "./test" "onos-config" ""
@@ -241,11 +237,6 @@ case "$testSuite" in
     # sdran-helm-charts
     cd sdran-helm-charts
     git log -1
-    helm repo add sdran --username ${repo_user} --password ${repo_password} https://sdrancharts.onosproject.org
-    helm repo add cord https://charts.opencord.org
-    helm repo add atomix https://charts.atomix.io
-    helm repo add onos https://charts.onosproject.org
-    helm repo update
     run_integration_test_suite "sd-ran" "./test" "sd-ran" ""
     kubectl delete ns $NAMESPACE
     ;;
