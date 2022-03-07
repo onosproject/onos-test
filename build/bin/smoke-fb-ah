@@ -67,6 +67,7 @@ $cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relatio
 
 $cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
+subcount=0
 for i in $(seq 1 10)
 do
   $cli_command onos e2t list subscriptions > $tmpfile
@@ -81,26 +82,18 @@ do
   sleep 6
 done
 
-# Command usage removed; replace validation using different means
-#$cli_retry_command "$onos_test/build/bin/check-e2t-channels fb-ah fb-ah-xapp '(fb-kpimon_oran-e2sm-kpm_sub|fb-ah_oran-e2sm-rc-pre_sub)'" "e2t list channels"
-#
-#$cli_command /usr/local/bin/onos e2t list channels > $tmpfile
-#cat $tmpfile
-#chancount=$(grep -c CHANNEL_OPEN $tmpfile || : )
-#if (( chancount != 4 )); then
-#  echo Channel count is wrong: $chancount
-#  exit 1
-#else
-#  echo Channel count is correct
-#fi
+if (( subcount != 4)); then
+  echo *** FB AH Smoke test failed - Subscription count too small
+  exit 1
+fi
 
 kubectl -n micro-onos exec -t deploy/onos-cli -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
 grep Alive $tmpfile
 if (( $? != 0 ))
 then
-  echo FB AH xapp is not reporting alive status
+  echo *** FB AH Smoke test failed - FB AH xapp is not reporting alive status
   exit 1
 fi
 rm $tmpfile
 
-echo "FB AH Smoke test completed successfully!"
+echo "=== FB AH Smoke test completed successfully!"
