@@ -36,6 +36,8 @@ fi
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster
 
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.54.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+
 # install SD RAN, ONF KPIMON and ransim
 helm install -n $NAMESPACE \
    --set global.image.tag=latest \
