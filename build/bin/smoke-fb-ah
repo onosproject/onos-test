@@ -17,19 +17,19 @@
 
 set -eu -o pipefail
 
-if [ "$#" -gt 1 ]; then
-  echo "Usage: smoke-onos-fb-ah [--no-installs]"
-  exit 1
-fi
-
 onos_test=$PWD
 trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
 
 # configure proxy variables
-use_proxy="1"
-proxy="mirror.registry.opennetworking.org"
+use_proxy=${use_proxy:-"1"}
 
-if [ $proxy == "" ]; then
+if [ $use_proxy == "1" ]; then
+  proxy="mirror.registry.opennetworking.org"
+else
+  proxy=""
+fi
+
+if [ "$proxy" == "" ]; then
   fb_registries=""
 else
     fb_registries=" \
@@ -74,16 +74,16 @@ do
   cat $tmpfile
   subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile || : )
   if (( subcount != 4 )); then
-    echo Subscription count is wrong: $subcount ", retrying"
+    echo "Subscription count is wrong: $subcount, retrying"
   else
-    echo Subscription count is correct
+    echo "+++ Subscription count is correct"
     break
   fi
   sleep 6
 done
 
 if (( subcount != 4)); then
-  echo *** FB AH Smoke test failed - Subscription count too small
+  echo "*** FB AH Smoke test failed - Subscription count too small"
   exit 1
 fi
 
@@ -91,7 +91,7 @@ kubectl -n micro-onos exec -t deploy/onos-cli -- /usr/bin/curl -s http://fb-ah-x
 grep Alive $tmpfile
 if (( $? != 0 ))
 then
-  echo *** FB AH Smoke test failed - FB AH xapp is not reporting alive status
+  echo "*** FB AH Smoke test failed - FB AH xapp is not reporting alive status"
   exit 1
 fi
 rm $tmpfile
