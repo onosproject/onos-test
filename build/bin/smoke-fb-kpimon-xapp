@@ -22,14 +22,18 @@ onos_test=$PWD
 trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
 
 # configure proxy variables
-use_proxy="1"
-proxy="mirror.registry.opennetworking.org"
-NAMESPACE="micro-onos"
+use_proxy=${use_proxy:-"1"}
 
-if [ $proxy == "" ]; then
+if [ $use_proxy == "1" ]; then
+  proxy="mirror.registry.opennetworking.org"
+else
+  proxy=""
+fi
+
+if [ "$proxy" == "" ]; then
   fb_registries=""
 else
-    fb_registries=" --set fb-kpimon-xapp.image.repository=mirror.registry.opennetworking.org/onosproject/fb-kpimon-xapp "
+  fb_registries=" --set fb-kpimon-xapp.image.repository=mirror.registry.opennetworking.org/onosproject/fb-kpimon-xapp "
 fi
 
 # set up the test KinD cluster
@@ -64,10 +68,10 @@ $cli_command onos e2t get subscriptions --no-headers >$tmpfile
 cat $tmpfile
 subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile || : )
 if (( subcount != 2 )); then
-  echo Subscription count is wrong: $subcount
+  echo "*** Subscription count is wrong: $subcount"
   exit 1
 else
-  echo Subscription count is correct
+  echo "+++ Subscription count is correct"
 fi
 
 # check that the FB KPIMON is seeing connections
@@ -75,10 +79,10 @@ $cli_command /usr/bin/curl -s http://fb-kpimon-xapp:8080/metrics >$tmpfile 2>/de
 connections=$(grep xappkpimon_rrc_conn_avg{ $tmpfile | fgrep -c -v " 0.0 " || : )
 if (( connections == 0 ))
 then
-  echo FB KPIMON xapp is not seeing connections
+  echo "*** FB KPIMON xapp is not seeing connections"
   exit 1
 else
-  echo FB KPIMON xapp connections are correct
+  echo "+++ FB KPIMON xapp connections are correct"
 fi
 
 # check that the ONF KPIMON app is seeing connections
@@ -95,10 +99,10 @@ do
   connections=$(grep -c -v "0 *0 *0 *0 *0 *0 *0 *0 *" $tmpfile || : )
   if (( connections == 0 ))
   then
-    echo ONF KPIMON xapp is not seeing connections
+    echo "*** ONF KPIMON xapp is not seeing connections"
     exit 1
   else
-    echo ONF KPIMON xapp connections are correct
+    echo "+++ ONF KPIMON xapp connections are correct"
     kpimon_started=1
     break
   fi
