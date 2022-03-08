@@ -32,7 +32,7 @@ fi
 if [ "$proxy" == "" ]; then
   fb_registries=""
 else
-    fb_registries=" \
+  fb_registries=" \
        --set ah-eson-test-server.image.repository=mirror.registry.opennetworking.org/onosproject/ah-eson-test-server \
        --set fb-ah-gui.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-gui \
        --set fb-ah-xapp.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-xapp "
@@ -57,7 +57,7 @@ helm install -n micro-onos \
    sd-ran sdran/sd-ran --wait --timeout 10m
 
 # install fb-ah-xapp
-helm install $fb_registries -n micro-onos fb-ah-xapp --set fb-ah-xapp.enabled=true sdran/fb-ah-xapp --wait
+helm install $fb_registries -n micro-onos fb-ah-xapp --set fb-ah-xapp.enabled=true sdran/fb-ah-xapp --set image.tag=latest --wait
 
 tmpfile="/tmp/smoke$$"
 
