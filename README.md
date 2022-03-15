@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2020-present Open Networking Foundation <info@opennetworking.org>
+SPDX-License-Identifier: Apache-2.0
+-->
+
 ## onos-test : µONOS Architecture Integration Tests and documentation publishing
 [![Go Report Card](https://goreportcard.com/badge/github.com/onosproject/onos-test)](https://goreportcard.com/report/github.com/onosproject/onos-test)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/gojp/goreportcard/blob/master/LICENSE)
