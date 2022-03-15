@@ -27,7 +27,7 @@ test: mod-lint build linters license
 
 jenkins-test:  # @HELP run the unit tests and source code validation producing a junit style report for Jenkins
 jenkins-test: mod-lint build linters license
-	TEST_PACKAGES=github.com/onosproject/onos-test/pkg/... ./../build-tools/build/jenkins/make-unit
+	TEST_PACKAGES=github.com/onosproject/onos-test/pkg/... ./build/build-tools/build/jenkins/make-unit
 
 coverage: # @HELP generate unit test coverage data
 coverage: test
