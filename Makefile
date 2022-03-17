@@ -29,14 +29,11 @@ jenkins-test:  # @HELP run the unit tests and source code validation producing a
 jenkins-test: mod-lint build linters license
 	TEST_PACKAGES=github.com/onosproject/onos-test/pkg/... ./build/build-tools/build/jenkins/make-unit
 
-coverage: # @HELP generate unit test coverage data
-coverage: test
-
 publish: # @HELP publish version on github and dockerhub
-	bash -x ./../build-tools/publish-version ${VERSION}
+	bash -x ./build/build-tools/publish-version ${VERSION}
 
-jenkins-publish: build-tools jenkins-tools # @HELP Jenkins calls this to publish artifacts
-	../build-tools/release-merge-commit
+jenkins-publish: # @HELP Jenkins calls this to publish artifacts
+	./build/build-tools/release-merge-commit
 
 all: test
 
