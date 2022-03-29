@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+""""
+ SPDX-FileCopyrightText: 2021-present Open Networking Foundation <info@opennetworking.org>
+
+ SPDX-License-Identifier: Apache-2.0
+"""
+
+import check_cli, sys
+
+expected_headers = ['xApp', 'ID','xApp', 'A1', 'Interface', 'A1', 'Service', 'A1', 'Service', 'Type', 'ID']
+
+ID_REGEX = r'^a1:sdran-rimedo-ts-[0-9a-z-]+'
+INTRFACE_REGEX = r'^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}:[0-9]{4}$'
+SERVICE_REGEX = r'^[a-zA-Z]+$'
+TYPE_REGEX = r'^ORAN_TrafficSteeringPreference_2.0.0|<None>'
+
+expected_regexes = [
+    ID_REGEX,
+    INTRFACE_REGEX,
+    SERVICE_REGEX,
+    TYPE_REGEX,
+]
+
+if __name__ == '__main__':
+    check = 'A1T subscriptions'
+    ok,output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
+
+    if not ok:
+        print ("Check " + check + " failed")
+        exit(int(1))
+
+        print ("Check " + check + " passed")

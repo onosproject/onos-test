@@ -11,6 +11,15 @@ START_KIND_CLUSTER=${START_KIND_CLUSTER:-"true"}
 onos_operator_version=${onos_operator_version:-} # some charts need to load onos-config Models in the old format (eg: ric and e2node in sd-ran)
 
 setup_test_cluster () {
+  # configure proxy variables
+  use_proxy=${use_proxy:-"1"}
+
+  if [ $use_proxy == "1" ]; then
+    proxy="mirror.registry.opennetworking.org"
+  else
+    echo Skipping proxy configuration because use_proxy is disabled
+    proxy=""
+  fi
 
   if [[ "${proxy}" == "" ]]; then
      registry=""

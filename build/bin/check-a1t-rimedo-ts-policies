@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+""""
+ SPDX-FileCopyrightText: 2021-present Open Networking Foundation <info@opennetworking.org>
+
+ SPDX-License-Identifier: Apache-2.0
+"""
+
+import check_cli, sys
+
+expected_headers = ['PolicyTypeID', 'List(PolicyObjectID)' ]
+
+expected_regexes = [
+    'ORAN_TrafficSteeringPreference_2.0.0',
+    '\\[\\]',
+]
+
+if __name__ == '__main__':
+    check = 'A1T policy types'
+    ok,output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
+
+    if not ok:
+        print ("Check " + check + " failed")
+        exit(int(1))
+
+        print ("Check " + check + " passed")

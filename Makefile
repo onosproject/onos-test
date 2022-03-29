@@ -70,6 +70,9 @@ uenib-smoke:
 fb-kpimon-smoke:
 	./build/bin/smoke-fb-kpimon-xapp
 
+rimedo-ts-smoke:
+	./build/bin/smoke-rimedo-ts
+
 onos-topo-integration-tests:
 	./build/bin/run-integration-tests onos-topo-tests
 
