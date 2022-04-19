@@ -3,15 +3,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# Smoke test for the onos-e2t component
 # This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail
 onos_test=$PWD
 trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
-
-# configure proxy variables
-use_proxy="1"
-proxy="mirror.registry.opennetworking.org"
 
 # configure clustering parameters
 clustering_args=""
@@ -39,7 +36,7 @@ export E2T_REPLICAS=${E2T_REPLICAS:-1}
 
 # install sd-ran
 helm install -n micro-onos $registry \
-     --set global.image.tag=latest \
+     $TAG_OPTIONS \
      --set import.ran-simulator.enabled=true \
      --set import.onos-config.enabled=false \
      --set import.onos-uenib.enabled=true \
@@ -47,7 +44,7 @@ helm install -n micro-onos $registry \
      --set onos-kpimon.logging.loggers.root.level=debug \
      --set onos-e2t.replicaCount=$E2T_REPLICAS \
      $clustering_args \
-     sdran sdran/sd-ran --wait
+     sdran ${SDRAN_CHART_REPO}/sd-ran --wait
 
 # Check E2T instance count
 instances=$(kubectl -n micro-onos get pods | egrep '^onos-e2t-' | wc -l)

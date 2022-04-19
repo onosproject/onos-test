@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# Smoke test for the onos-config component using the Aether ROC charts
 # This script is intended to be run from the onos-test directory as part of CI
 
 extract_description() {
@@ -21,10 +22,6 @@ set -eu -o pipefail
 onos_test=$PWD
 tmpfile="/tmp/smoke$$"
 trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm -f $tmpfile*" EXIT
-
-# configure proxy variables
-use_proxy="1"
-proxy="mirror.registry.opennetworking.org"
 
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster

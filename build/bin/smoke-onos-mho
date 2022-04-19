@@ -3,15 +3,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# Smoke test for the onos-mho xApp
 # This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail
 onos_test=$PWD
 trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
-
-# configure proxy variables
-use_proxy="1"
-proxy="mirror.registry.opennetworking.org"
 
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
@@ -19,7 +16,7 @@ setup_test_cluster
 
 # install sd-ran
 helm install -n micro-onos $registry \
-     --set global.image.tag=latest \
+     $TAG_OPTIONS \
      --set import.ran-simulator.enabled=true \
      --set import.onos-config.enabled=false \
      --set import.onos-topo.enabled=true \
@@ -29,7 +26,7 @@ helm install -n micro-onos $registry \
      --set import.onos-pci.enabled=true \
      --set import.onos-kpimon.enabled=true \
      --set import.ran-simulator.enabled=true \
-     sdran sdran/sd-ran --wait
+     sdran $SDRAN_CHART_REPO/sd-ran --wait
 
 $cli_retry_command "$onos_test/build/bin/check-mho-ues" "mho get ues"
 $cli_retry_command "$onos_test/build/bin/check-mho-cells" "mho get cells"
