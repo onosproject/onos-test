@@ -1,10 +1,11 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2022-present Intel Corporation
 # SPDX-FileCopyrightText: 2021-present Open Networking Foundation <info@opennetworking.org>
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# This script is intended to be run from the onos-test directory as part of CI
 # Smoke test to test FB KPIMON app along with ONF KPIMON app
+# This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail
 
@@ -32,13 +33,13 @@ setup_test_cluster
 
 # install SD RAN, ONF KPIMON and ransim
 helm install -n $NAMESPACE \
-   --set global.image.tag=latest \
+   $TAG_OPTIONS \
    --set import.ran-simulator.enabled=true \
    --set import.onos-kpimon.enabled=true \
    --set import.onos-config.enabled=false \
    $registry \
    $fb_registries \
-   sd-ran sdran/sd-ran --wait
+   sd-ran $SDRAN_CHART_REPO/sd-ran --wait
 
 # install FB KPIMON
 helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp  --set image.tag=latest --wait

@@ -1,8 +1,10 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2022-present Intel Corporation
 # SPDX-FileCopyrightText: 2020-present Open Networking Foundation <info@opennetworking.org>
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# Smoke test for the onos-config component
 # This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail
@@ -33,25 +35,19 @@ onos_test=$PWD
 tmpfile="/tmp/smoke$$"
 trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm -f $tmpfile*" EXIT
 
-# configure proxy variables
-use_proxy="1"
-proxy="mirror.registry.opennetworking.org"
-
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster
 
 # install onos-config
 helm install -n $NAMESPACE $registry \
-     --set global.image.tag=latest \
-     --set onos-config.image.tag=latest \
-     --set onos-topo.image.tag=latest \
+     $TAG_OPTIONS \
      --set onos-config.plugin.compiler.version=v1.0.1 \
      --set import.onos-gui.enabled=false \
-     onos onos/onos-umbrella --wait
+     onos "$ONOS_CHART_REPO/onos-umbrella" --wait
 
 # install the device simulator
-helm install -n $NAMESPACE device-1 $registry onos/device-simulator --wait
+helm install -n $NAMESPACE device-1 $registry $ONOS_CHART_REPO/device-simulator --wait
 
 # common gnmi_cli arguments
 common_args="-address onos-config:5150  -timeout 5s -en JSON -alsologtostderr \
@@ -60,8 +56,8 @@ common_args="-address onos-config:5150  -timeout 5s -en JSON -alsologtostderr \
 
 # Check that plugin models have been loaded correctly
 # By default 3 model-plugins are loaded
-plugin_count=$($cli_command onos config get plugins --no-headers | grep Loaded | wc -l)
-if [[ "$plugin_count" == 3 ]]; then
+plugin_count=$($cli_command onos config get plugins --no-headers | grep -c Loaded)
+if [[ "$plugin_count" -eq 3 ]]; then
   echo "+++ Correct number of plugins loaded"
 else
   echo "*** Error: Wrong number of plugins loaded"
@@ -138,8 +134,10 @@ else
   exit 1
 fi
 
+sleep 5
+
 # check capabilities
-models_count=$($cli_command gnmi_cli -capabilities $common_args | grep supported_models | wc -l)
+models_count=$($cli_command gnmi_cli -capabilities $common_args | grep -c supported_models)
 if [ "$models_count" == '8' ]
 then
   echo "+++ Models count from capabilities is correct"

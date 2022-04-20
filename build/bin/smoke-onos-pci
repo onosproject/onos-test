@@ -1,17 +1,15 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2022-present Intel Corporation
 # SPDX-FileCopyrightText: 2020-present Open Networking Foundation <info@opennetworking.org>
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# Smoke test for the onos-pci xApp
 # This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail
 onos_test=$PWD
 trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
-
-# configure proxy variables
-use_proxy="1"
-proxy="mirror.registry.opennetworking.org"
 
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
@@ -19,13 +17,15 @@ setup_test_cluster
 
 
 # install sd-ran
-helm install -n micro-onos $registry --set global.image.tag=latest \
-                                     --set import.ran-simulator.enabled=true \
-                                     --set import.onos-config.enabled=false \
-                                     --set import.onos-pci.enabled=true \
-                                     --set import.onos-kpimon.enabled=true \
-                                     --set onos-kpimon.logging.loggers.root.level=debug \
-                                     sdran sdran/sd-ran --wait
+helm install -n micro-onos \
+      $registry \
+      $TAG_OPTIONS \
+      --set import.ran-simulator.enabled=true \
+      --set import.onos-config.enabled=false \
+      --set import.onos-pci.enabled=true \
+      --set import.onos-kpimon.enabled=true \
+      --set onos-kpimon.logging.loggers.root.level=debug \
+      sdran $SDRAN_CHART_REPO/sd-ran --wait
 
 $cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "contains=6 controls=2"
 

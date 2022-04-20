@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# Smoke test for the onos-config component version ap101
 # This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail

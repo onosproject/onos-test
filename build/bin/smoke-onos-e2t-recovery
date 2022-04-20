@@ -1,11 +1,11 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2022-present Intel Corporation
 # SPDX-FileCopyrightText: 2021-present Open Networking Foundation <info@opennetworking.org>
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# This script is intended to be run from the onos-test directory as part of CI
-
 # Tests that a disaster recovery scenario properly loads saved data from persistence
+# This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail
 onos_test=$PWD
@@ -13,10 +13,6 @@ before_file=$(mktemp)-before
 after_file=$(mktemp)-after
 
 trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm $before_file $after_file" EXIT
-
-# configure proxy variables
-use_proxy="1"
-proxy="mirror.registry.opennetworking.org"
 
 # configure clustering parameters
 E2T_REPLICAS=${E2T_REPLICAS:-"2"}
@@ -50,14 +46,14 @@ setup_test_cluster
 
 # install sd-ran
 helm install -n micro-onos $registry \
-     --set global.image.tag=latest \
+     $TAG_OPTIONS \
      --set import.ran-simulator.enabled=true \
      --set import.onos-config.enabled=false \
      --set import.onos-uenib.enabled=true \
      --set import.onos-kpimon.enabled=true \
      --set onos-kpimon.logging.loggers.root.level=debug \
      $clustering_args \
-     sdran sdran/sd-ran --wait
+     sdran $SDRAN_CHART_REPO/sd-ran --wait
 
 
 # grab the cells output

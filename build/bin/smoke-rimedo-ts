@@ -1,9 +1,11 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2022-present Intel Corporation
 # SPDX-FileCopyrightText: 2020-present Open Networking Foundation <info@opennetworking.org>
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# This script is intended to be run from the onos-test directory as part of CI
+# Smoke test for the Rimedo Labs traffic steering xApp
+# This script is intended to be run from the onos-test directory
 
 set -eu -o pipefail
 onos_test=$PWD
@@ -15,11 +17,11 @@ export NAMESPACE="micro-onos"
 setup_test_cluster
 
 # install sd-ran with Rimedo Labs TS xApp and a RAN simulator
-helm install -n $NAMESPACE $registry --set global.image.tag=latest \
+helm install -n $NAMESPACE $registry $TAG_OPTIONS \
                                      --set import.ran-simulator.enabled=true \
                                      --set import.onos-config.enabled=false \
                                      --set import.rimedo-ts.enabled=true \
-                                     sdran sdran/sd-ran --wait
+                                     sdran $SDRAN_CHART_REPO/sd-ran --wait
 
 # Check a1t subscriptions
 $cli_retry_command "$onos_test/build/bin/check-a1t-rimedo-ts-subscriptions" "a1t get subscription"

@@ -1,32 +1,32 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2022-present Intel Corporation
 # SPDX-FileCopyrightText: 2020-present Open Networking Foundation <info@opennetworking.org>
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# Smoke test for the onos-uenib component
 # This script is intended to be run from the onos-test directory as part of CI
 
 set -eu -o pipefail
+
 onos_test=$PWD
 trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
-
-# configure proxy variables
-use_proxy="1"
-proxy="mirror.registry.opennetworking.org"
 
 # set up the test KinD cluster
 . $onos_test/build/bin/setup-test-cluster
 setup_test_cluster
 
 # install sd-ran
-helm install -n micro-onos $registry \
-     --set global.image.tag=latest \
+helm install -n micro-onos \
+     $registry \
+     $TAG_OPTIONS \
      --set import.ran-simulator.enabled=false \
      --set import.onos-config.enabled=false \
      --set import.onos-topo.enabled=false \
      --set import.onos-e2t.enabled=false \
      --set import.onos-a1t.enabled=false \
      --set import.onos-uenib.enabled=true \
-     sdran sdran/sd-ran --wait
+     sdran $SDRAN_CHART_REPO/sd-ran --wait
 
 $cli_command /usr/local/bin/onos uenib create ue UE-1 --aspect aspect1=value1,aspect2=value2,aspect3=value3
 $cli_command /usr/local/bin/onos uenib create ue UE-2 --aspect aspect2=value2,aspect3=value3,aspect4=value4
