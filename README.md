@@ -41,8 +41,10 @@ The behavior of smoke tests can be parameterized by setting environment variable
     Defaults to "sdran", override to use local charts
 * ONOS_CHART_REPO - repo name for helm for the ONOS charts.
     Defaults to "onos", override to use local charts
-* USE_LATEST - spcifies if the tag "latest" should be used for images.
+* USE_LATEST - specifies if the tag "latest" should be used for images.
     Defaults to "true", set to "false" to run the tags defined in the charts
+* USE_PROXY - specifies if the ONF docker image proxy should be used to fetch images.
+    Defaults to "true", set to "false" if you want to use locally built images that were previously loaded into `kind`.
 
 [Kubernetes]: https://kubernetes.io
 [onos project]: https://github.com/onosproject
