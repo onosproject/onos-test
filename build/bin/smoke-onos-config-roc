@@ -9,13 +9,13 @@
 
 extract_description() {
   grep json_val: $tmpfile | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >$tmpfile.json
-  description=$(jq '.[][][]."description"' $tmpfile.json)
+  description=$(jq '.[][]."description"' $tmpfile.json)
   echo $description
 }
 
 extract_description_from_device() {
   grep json_val: $tmpfile | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >$tmpfile.json
-  description=$(jq '.[][]."description"' $tmpfile.json)
+  description=$(jq '."description"' $tmpfile.json)
   echo $description
 }
 
@@ -33,12 +33,13 @@ setup_test_cluster
 helm install -n micro-onos $registry aether-roc-umbrella \
       --set import.aether-roc-gui.v3.enabled=false \
       --set import.aether-roc-gui.v4.enabled=false \
-      --set import.aether-roc-gui.v2.enabled=false \
+      --set import.aether-roc-gui.v2-0.enabled=false \
+      --set import.aether-roc-gui.v2-1.enabled=false \
       --set import.grafana.enabled=false \
       --set import.prometheus.amp.enabled=false \
       --set import.prometheus.acc.enabled=false \
       --set import.prometheus.ace.enabled=false \
-      --set sdcore-adapter-v2.image.tag=latest \
+      --set sdcore-adapter-v2-1.image.tag=latest \
       aether/aether-roc-umbrella --wait --timeout 5m
 
 # common gnmi_cli arguments
@@ -46,53 +47,56 @@ common_args="-timeout 5s -en JSON -alsologtostderr \
              -insecure -client_crt /etc/ssl/certs/client1.crt -client_key /etc/ssl/certs/client1.key \
              -ca_crt /etc/ssl/certs/onfca.crt"
 onos_config="-address onos-config:5150"
-sdcore_adapter="-address sdcore-adapter-v2:5150"
+sdcore_adapter="-address sdcore-adapter-v2-1:5150"
 
-# set known values for the connectivity service
+# set known values for the application
 set_command=''
-set_command+='prefix:<elem:<name:"connectivity-services"> target:"connectivity-service-v2"> '
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"cs5gtest">> elem:<name:"core-5g-endpoint"> > '
-set_command+='val:<string_val:"http://aether-roc-umbrella-sdcore-test-dummy/v1/config/5g">>'
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"cs5gtest">> elem:<name:"description"> > '
-set_command+='val:<string_val:"5G Test">> '
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"cs5gtest">> elem:<name:"display-name"> > '
-set_command+='val:<string_val:"ROC 5G Test Connectivity Service">> '
-set_command+='update:<path:<elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"cs5gtest">> elem:<name:"connectivity-service-id"> > '
-set_command+='val:<string_val:"cs5gtest">> '
+set_command+='prefix:< target:"defaultent"> '
+set_command+='update:<path:<elem:<name:"application" key:<key:"application-id" value:"test-app">> elem:<name:"application-id"> > '
+set_command+='val:<string_val:"test-app">>'
+set_command+='update:<path:<elem:<name:"application" key:<key:"application-id" value:"test-app">> elem:<name:"description"> > '
+set_command+='val:<string_val:"ROC Default Ent Test App">> '
+set_command+='update:<path:<elem:<name:"application" key:<key:"application-id" value:"test-app">> elem:<name:"display-name"> > '
+set_command+='val:<string_val:"ROC Default Ent Test App">> '
 set_command+='extension:<registered_ext:<id:111 msg:"\x08\x01">> '
 set_command+='extension:<registered_ext:<id:102 msg:"Aether">> '
-set_command+='extension:<registered_ext:<id:101 msg:"2.0.0">> '
+set_command+='extension:<registered_ext:<id:101 msg:"2.1.0">> '
 
 initial_set=$( $cli_command gnmi_cli $onos_config $common_args -set -proto "$set_command" 2>&1 )
 if echo $initial_set | grep "returned RPC error"
 then
-  echo "*** Setting connectivity service returned an error"
+  echo "*** Setting application returned an error"
+  echo $initial_set
   exit 1
 else
-    echo "+++ Setting connectivity service was correct"
+    echo "+++ Setting application was correct"
 fi
 
 # check that values were properly set in onos-config
-get_command='path:<target: "connectivity-service-v2", elem:<name:"connectivity-services" > elem:<name:"connectivity-service" key:<key:"connectivity-service-id" value:"*" > > elem:<name:"description">>'
+get_command='path:<target: "defaultent", elem:<name:"application" key:<key:"application-id" value:"*" > > elem:<name:"description">>'
 $cli_command gnmi_cli $onos_config $common_args -get -proto "$get_command" >$tmpfile
 description=$(extract_description)
-if [ "$description" == '"5G Test"' ]
+if [ "$description" == '"ROC Default Ent Test App"' ]
 then
-  echo "+++ Get of connectivity service description is correct"
+  echo "+++ Get of application description is correct"
 else
-  echo "*** Get of connectivity service description is incorrect"
+  echo "*** Get of application description is incorrect $description"
+  cat $tmpfile
+  cat $tmpfile.json
   exit 1
 fi
 
 # check that values were properly set in the sdcore adapter
-get_command='path:<elem:<name:"connectivity-services" > >'
+get_command='path:<target: "defaultent", elem:<name:"application" key:<key:"application-id" value:"test-app"> >>'
 $cli_command gnmi_cli $sdcore_adapter $common_args -get -proto "$get_command" >$tmpfile
 description_from_device=$(extract_description_from_device)
-if [ "$description_from_device" == '"5G Test"' ]
+if [ "$description_from_device" == '"ROC Default Ent Test App"' ]
 then
-  echo "+++ Get of connectivity service description from device is correct"
+  echo "+++ Get of application description from device is correct"
 else
-  echo "*** Get of connectivity service description from device is incorrect"
+  echo "*** Get of application description from device is incorrect"
+  cat $tmpfile
+  cat $tmpfile.json
   exit 1
 fi
 
