@@ -44,10 +44,6 @@ export cli_command="kubectl -n riab exec -t deploy/onos-cli -- "
 # in case there is a left over KinD cluster, delete it
 kind delete cluster
 
-# import sdran chart repo credentials
-export SDRAN_USERNAME=$repo_user
-export SDRAN_PASSWORD=$repo_password
-
 # clone the RIAB sources
 rm -rf riab-workspace && mkdir riab-workspace
 pushd riab-workspace
