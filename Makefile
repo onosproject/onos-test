@@ -142,5 +142,8 @@ config-smoke:
 config-smoke-roc:
 	./build/bin/smoke-onos-config-roc
 
+all-components-smoke:
+	./build/bin/smoke-all-components
+
 clean-vm:
 	./build/bin/cleanup-linux-vm

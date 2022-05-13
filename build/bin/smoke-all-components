@@ -1,0 +1,71 @@
+#!/bin/bash
+# SPDX-FileCopyrightText: 2022-present Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Test that brings up all of the sd-ran components and checks
+# that the charts load correctly and the components start up properly
+# This script is intended to be run from the onos-test directory
+
+set -eu -o pipefail
+onos_test=$PWD
+tmpfile="/tmp/smoke$$"
+
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm -f $tmpfile' EXIT
+
+# set up the test KinD cluster
+. "$onos_test/build/bin/setup-test-cluster"
+export NAMESPACE="micro-onos"
+setup_test_cluster
+
+# configure proxy variables
+use_proxy=${use_proxy:-"1"}
+
+if [ $use_proxy == "1" ]; then
+  proxy="mirror.registry.opennetworking.org"
+else
+  proxy=""
+fi
+
+if [ "$proxy" == "" ]; then
+  fb_registries=""
+else
+  fb_registries=" \
+       --set ah-eson-test-server.image.repository=mirror.registry.opennetworking.org/onosproject/ah-eson-test-server \
+       --set fb-ah-gui.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-gui \
+       --set fb-ah-xapp.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-xapp "
+fi
+
+# install sd-ran
+helm install -n $NAMESPACE $registry $TAG_OPTIONS \
+           --set import.onos-e2t.enabled=true \
+           --set import.onos-a1t.enabled=true \
+           --set import.onos-o1t.enabled=true \
+           --set import.onos-topo.enabled=true \
+           --set import.onos-uenib.enabled=true \
+           --set import.onos-config.enabled=true \
+           --set import.ran-simulator.enabled=true \
+           --set import.onos-cli.enabled=true \
+           --set import.onos-kpimon.enabled=true \
+           --set import.onos-pci.enabled=true \
+           --set import.onos-mho.enabled=true \
+           --set import.onos-rsm.enabled=true \
+           --set import.onos-mlb.enabled=true \
+           --set import.ah-eson-test-server.enabled=true \
+           --set import.rimedo-ts.enabled=true \
+           sdran "$SDRAN_CHART_REPO/sd-ran" --wait
+
+# The FB python apps do not gracefully handle coming up before onos-e2t is ready and may crash.
+# Bring them up separately here after onos-e2t is known to be up
+
+# install fb-ah-xapp
+helm install -n $NAMESPACE $fb_registries fb-ah-xapp --set fb-ah-xapp.enabled=true sdran/fb-ah-xapp --set image.tag=latest --wait
+
+# install FB KPIMON
+helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp  --set image.tag=latest --wait
+
+# check that all pods are running and have not restarted
+kubectl get pods -n $NAMESPACE >$tmpfile
+build/bin/check-pods-running <$tmpfile
+
+echo "All components enabled smoke test completed successfully!"

@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+""""
+ SPDX-FileCopyrightText: 2022-present Intel Corporation
+
+ SPDX-License-Identifier: Apache-2.0
+"""
+
+import check_cli
+
+"""
+NAME                                   READY   STATUS    RESTARTS   AGE
+ah-eson-test-server-7966d6fdc6-wgd2r   1/1     Running   0          21m
+fb-ah-xapp-7697d6949b-sj6lb            2/2     Running   0          20m
+fb-kpimon-xapp-5895d87898-xwlft        2/2     Running   0          20m
+"""
+
+expected_headers = ['NAME', 'READY', 'STATUS', 'RESTARTS', 'AGE']
+
+NAME_REGEX = r'^.*$'
+READY_REGEX = r'^([0-9]+)\/\1$'
+STATUS_REGEX = r'^Running$'
+RESTARTS_REGEX = r'^0$'
+AGE_REGEX = r'^.*$'
+
+if __name__ == '__main__':
+    success = int(0)
+    failure = int(1)
+
+    expected_regexes = [
+        NAME_REGEX,
+        READY_REGEX,
+        STATUS_REGEX,
+        RESTARTS_REGEX,
+        AGE_REGEX
+    ]
+    check = 'All pods Ready'
+    ok, output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
+
+    if not ok:
+        print("Check " + check + " failed")
+        exit(failure)
+
+    print("Check " + check + " passed")
+
+    exit(success)
