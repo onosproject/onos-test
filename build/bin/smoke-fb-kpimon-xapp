@@ -46,14 +46,14 @@ helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp  --set image.tag=
 
 tmpfile="/tmp/smoke$$"
 
-$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2node=2 e2cell=6 e2t=1"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2node=2 e2cell=6 e2t=1"
 
-$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "controls=2 contains=6"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-relations" "topo get relations" "controls=2 contains=6"
 
-$cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
 # check that 2 subscriptions were created, 2 xapps should share the subscriptions to 2 nodes
-$cli_command onos e2t get subscriptions --no-headers >$tmpfile
+$CLI_COMMAND  onos e2t get subscriptions --no-headers >$tmpfile
 cat $tmpfile
 subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile || : )
 if (( subcount != 2 )); then
@@ -64,7 +64,7 @@ else
 fi
 
 # check that the FB KPIMON is seeing connections
-$cli_command /usr/bin/curl -s http://fb-kpimon-xapp:8080/metrics >$tmpfile 2>/dev/null
+$CLI_COMMAND  /usr/bin/curl -s http://fb-kpimon-xapp:8080/metrics >$tmpfile 2>/dev/null
 connections=$(grep xappkpimon_rrc_conn_avg{ $tmpfile | fgrep -c -v " 0.0 " || : )
 if (( connections == 0 ))
 then
@@ -79,7 +79,7 @@ fi
 kpimon_started=0
 for i in $(seq 1 20)
 do
-  if ! $cli_command onos kpimon list metrics --no-headers >$tmpfile
+  if ! $CLI_COMMAND  onos kpimon list metrics --no-headers >$tmpfile
   then
     sleep 3
     continue

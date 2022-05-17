@@ -28,14 +28,14 @@ helm install -n micro-onos \
      --set import.onos-uenib.enabled=true \
      sdran $SDRAN_CHART_REPO/sd-ran --wait
 
-$cli_command /usr/local/bin/onos uenib create ue UE-1 --aspect aspect1=value1,aspect2=value2,aspect3=value3
-$cli_command /usr/local/bin/onos uenib create ue UE-2 --aspect aspect2=value2,aspect3=value3,aspect4=value4
-$cli_command /usr/local/bin/onos uenib create ue UE-3 --aspect aspect3=value3,aspect4=value4,aspect5=value5
+$CLI_COMMAND  /usr/local/bin/onos uenib create ue UE-1 --aspect aspect1=value1,aspect2=value2,aspect3=value3
+$CLI_COMMAND  /usr/local/bin/onos uenib create ue UE-2 --aspect aspect2=value2,aspect3=value3,aspect4=value4
+$CLI_COMMAND  /usr/local/bin/onos uenib create ue UE-3 --aspect aspect3=value3,aspect4=value4,aspect5=value5
 
-$cli_retry_command "$onos_test/build/bin/check-uenib-aspects" "uenib get ues --aspect aspect2"
-$cli_retry_command "$onos_test/build/bin/check-uenib-aspects" "uenib get ues --aspect aspect3"
-$cli_retry_command "$onos_test/build/bin/check-uenib-aspects" "uenib get ues --aspect aspect4"
-$cli_retry_command "$onos_test/build/bin/check-uenib-aspects" "uenib get ue UE-1"
-$cli_retry_command "$onos_test/build/bin/check-uenib-aspects" "uenib get ues"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-uenib-aspects" "uenib get ues --aspect aspect2"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-uenib-aspects" "uenib get ues --aspect aspect3"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-uenib-aspects" "uenib get ues --aspect aspect4"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-uenib-aspects" "uenib get ue UE-1"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-uenib-aspects" "uenib get ues"
 
 echo "UE NIB Smoke test completed successfully!"

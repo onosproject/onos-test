@@ -27,15 +27,15 @@ helm install -n micro-onos \
       --set onos-kpimon.logging.loggers.root.level=debug \
       sdran $SDRAN_CHART_REPO/sd-ran --wait
 
-$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "contains=6 controls=2"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-relations" "topo get relations" "contains=6 controls=2"
 
-$cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-pci\|onos-kpimon-v2" "e2t list subscriptions"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-e2t-subscriptions onos-pci\|onos-kpimon-v2" "e2t list subscriptions"
 
-$cli_retry_command "$onos_test/build/bin/check-pci-get-cells" "pci get cells"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-pci-get-cells" "pci get cells"
 
-$cli_retry_command "$onos_test/build/bin/check-resolved" "pci get resolved"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-resolved" "pci get resolved"
 
-$cli_retry_command "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
 
 $onos_test/build/bin/check-kpimon-report-interval
 

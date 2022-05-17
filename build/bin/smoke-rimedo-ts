@@ -24,10 +24,10 @@ helm install -n $NAMESPACE $registry $TAG_OPTIONS \
                                      sdran $SDRAN_CHART_REPO/sd-ran --wait
 
 # Check a1t subscriptions
-$cli_retry_command "$onos_test/build/bin/check-a1t-rimedo-ts-subscriptions" "a1t get subscription"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-a1t-rimedo-ts-subscriptions" "a1t get subscription"
 
 #check a1t policies
-$cli_retry_command "$onos_test/build/bin/check-a1t-rimedo-ts-policies" "a1t get policy type"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-a1t-rimedo-ts-policies" "a1t get policy type"
 
 
 $onos_test/build/bin/check-test-log-errors

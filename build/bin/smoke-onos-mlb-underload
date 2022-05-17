@@ -32,6 +32,6 @@ helm install -n micro-onos $registry \
      --set onos-mlb.config.mlb.config_json.controller.interval=1 \
      sdran $SDRAN_CHART_REPO/sd-ran --wait
 
-$cli_retry_command "$onos_test/build/bin/check-mlb-ocns underload" "mlb list ocns"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-mlb-ocns underload" "mlb list ocns"
 
 echo "ONOS MLB underload smoke test completed successfully!"

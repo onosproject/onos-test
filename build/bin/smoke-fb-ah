@@ -53,16 +53,16 @@ helm install $fb_registries -n micro-onos fb-ah-xapp --set fb-ah-xapp.enabled=tr
 
 tmpfile="/tmp/smoke$$"
 
-$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2node=2 e2cell=6 e2t=1"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2node=2 e2cell=6 e2t=1"
 
-$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "contains=6 controls=2"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-relations" "topo get relations" "contains=6 controls=2"
 
-$cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
 subcount=0
 for i in $(seq 1 10)
 do
-  $cli_command onos e2t list subscriptions > $tmpfile
+  $CLI_COMMAND  onos e2t list subscriptions > $tmpfile
   cat $tmpfile
   subcount=$(grep -c SUBSCRIPTION_OPEN $tmpfile || : )
   if (( subcount != 4 )); then

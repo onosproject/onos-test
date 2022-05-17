@@ -29,8 +29,8 @@ helm install -n micro-onos $registry \
      --set import.ran-simulator.enabled=true \
      sdran $SDRAN_CHART_REPO/sd-ran --wait
 
-$cli_retry_command "$onos_test/build/bin/check-mho-ues" "mho get ues"
-$cli_retry_command "$onos_test/build/bin/check-mho-cells" "mho get cells"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-mho-ues" "mho get ues"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-mho-cells" "mho get cells"
 
 $onos_test/build/bin/check-mho-hand-in-out
 

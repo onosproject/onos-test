@@ -56,7 +56,7 @@ common_args="-address onos-config:5150  -timeout 5s -en JSON -alsologtostderr \
 
 # Check that plugin models have been loaded correctly
 # By default 3 model-plugins are loaded
-plugin_count=$($cli_command onos config get plugins --no-headers | grep -c Loaded)
+plugin_count=$($CLI_COMMAND  onos config get plugins --no-headers | grep -c Loaded)
 if [[ "$plugin_count" -eq 3 ]]; then
   echo "+++ Correct number of plugins loaded"
 else
@@ -65,8 +65,8 @@ else
 fi
 
 # Create topo entries for the simulated device
-$cli_command onos topo create kind devicesim devicesim
-$cli_command onos topo create entity devicesim-1 -a \
+$CLI_COMMAND  onos topo create kind devicesim devicesim
+$CLI_COMMAND  onos topo create entity devicesim-1 -a \
                   onos.topo.Configurable='{"address":"devicesim1-device-simulator:11161","version":"1.0.0","type":"devicesim"}' \
                   -a onos.topo.TLSOptions='{"insecure":true,"plain":true}' -k devicesim
 
@@ -75,7 +75,7 @@ tzpath=$(make_path 'devicesim-1' '/system/clock/config/timezone-name')
 badpath=$(make_path 'devicesim-1' '/XXXsystemXXX/clock/config/timezone-name')
 
 # attempt to set a bad path - should result in an error
-bad_set=$($cli_command gnmi_cli -set $common_args -proto \
+bad_set=$($CLI_COMMAND  gnmi_cli -set $common_args -proto \
                "update: <path: $badpath \
                 val: <string_val: 'Bad!Value'>>" 2>&1)
 if [[ "$bad_set" == *"code = InvalidArgument"* ]]
@@ -87,7 +87,7 @@ else
 fi
 
 # set an initial timezone value
-initial_set=$($cli_command gnmi_cli -set $common_args -proto \
+initial_set=$($CLI_COMMAND  gnmi_cli -set $common_args -proto \
                "update: <path: $tzpath \
                 val: <string_val: 'Europe/Paris'>>" 2>&1)
 if [[ "$initial_set" == *"op: UPDATE"* ]]
@@ -99,7 +99,7 @@ else
 fi
 
 # read the timezone value back and check it
-$cli_command gnmi_cli -get $common_args -proto "path: $tzpath" >$tmpfile
+$CLI_COMMAND  gnmi_cli -get $common_args -proto "path: $tzpath" >$tmpfile
 
 timezone=$(extract_timezone)
 if [ "$timezone" == '"Europe/Paris"' ]
@@ -111,7 +111,7 @@ else
 fi
 
 # change the timezone
-change_set=$($cli_command gnmi_cli -set $common_args -proto \
+change_set=$($CLI_COMMAND  gnmi_cli -set $common_args -proto \
                "update: <path: $tzpath \
                 val: <string_val: 'Europe/Dublin'>>" 2>&1)
 if [[ "$change_set" == *"op: UPDATE"* ]]
@@ -123,7 +123,7 @@ else
 fi
 
 # check that the modified timezone is correct
-$cli_command gnmi_cli -get $common_args -proto "path: $tzpath" >$tmpfile
+$CLI_COMMAND  gnmi_cli -get $common_args -proto "path: $tzpath" >$tmpfile
 
 timezone=$(extract_timezone)
 if [ "$timezone" == '"Europe/Dublin"' ]
@@ -137,7 +137,7 @@ fi
 sleep 5
 
 # check capabilities
-models_count=$($cli_command gnmi_cli -capabilities $common_args | grep -c supported_models)
+models_count=$($CLI_COMMAND  gnmi_cli -capabilities $common_args | grep -c supported_models)
 if [ "$models_count" == '8' ]
 then
   echo "+++ Models count from capabilities is correct"
