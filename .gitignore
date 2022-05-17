@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-cmd/onos-test/onit
-cmd/onos-test/onit-k8s
 vendor
 **/_output
 **/__pycache__
@@ -18,4 +16,5 @@ coverage.txt
 *-output.out
 integration-tests/*
 build/build-tools
+build-work-space/
 
