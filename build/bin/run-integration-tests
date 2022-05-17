@@ -7,13 +7,13 @@
 
 set -eu -o pipefail
 
-if [ -z $1 ]
+if [ -z "$1" ]
 then
   testSuite="*** Unknown Test Suite ***"
-elif [ -n $1 ]
+elif [ -n "$1" ]
 then
 # otherwise make first arg as a rental
-  testSuite=$1
+  testSuite="$1"
 fi
 
 # configure proxy variables
@@ -22,10 +22,10 @@ proxy="mirror.registry.opennetworking.org"
 
 # set up the test KinD cluster
 onos_test=$PWD
-. $onos_test/build/bin/setup-test-cluster
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
 
-$onos_test/build/bin/setup-artifacts
+"$onos_test/build/bin/setup-artifacts"
 
 # make a directory to hold the downloaded source trees
 rm -rf integration-tests && mkdir integration-tests && pushd integration-tests
@@ -33,10 +33,7 @@ rm -rf integration-tests && mkdir integration-tests && pushd integration-tests
 # Download helmit
 pushd .. && GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit && popd
 
-# Download the onos helm charts
-git clone https://github.com/onosproject/onos-helm-charts.git
-git clone git@github.com:onosproject/sdran-helm-charts.git
-
+keycloak_password=${keycloak_password:""}
 common_args="--timeout 60m --secret keycloak-password=$keycloak_password --no-teardown"
 if [ $use_proxy = "1" ]; then
    common_args="$common_args --args registry=mirror.registry.opennetworking.org --image mirror.registry.opennetworking.org/onosproject/helmit-runner:latest"
@@ -52,19 +49,22 @@ run_integration_test_suite() {
      if [ $use_proxy = "1" ]; then
          proxy_args="--set $chart_name.global.image.registry=$proxy --set $chart_name.global.image.registry=$proxy --set $chart_name.global.storage.consensus.image=$proxy/atomix/raft-storage-node:$atomix_storage_version"
      fi
-     export NAMESPACE=$(echo $suite_name | tr "[:upper:]" "[:lower:]" )
-     export NAMESPACE=${NAMESPACE}-ns
-     echo $NAMESPACE
+     NAMESPACE=$(echo "$suite_name" | tr "[:upper:]" "[:lower:]" )
+     NAMESPACE=${NAMESPACE}-ns
+     export NAMESPACE
+     echo "$NAMESPACE"
      err="0"
      ( kubectl delete ns "$NAMESPACE" || true ) && kubectl create ns "$NAMESPACE"
-     if ! helmit test -n "$NAMESPACE" $common_args "$binary_name" --suite "$suite_name" --no-teardown $proxy_args $extra_helmit_args; then
+     helmit_args="test -n $NAMESPACE $common_args $binary_name --suite $suite_name --no-teardown $proxy_args $extra_helmit_args"
+     read -ra helmit_args <<<"${helmit_args}" # prevents globbing
+     if ! helmit "${helmit_args[@]}"; then
          err=${PIPESTATUS[0]}
          echo "helmit returned error $err"
      fi
      ../../build/bin/archive-artifacts
      if [ "$err" -ne "0" ]; then
          echo "Smoke test failed"
-         exit $err
+         exit "$err"
      fi
      ../../build/bin/check-test-log-errors
 }
@@ -88,7 +88,7 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "config" "./cmd/onos-config-tests" "onos-umbrella" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     run_integration_test_suite "rbac" "./cmd/onos-config-tests" "onos-umbrella" ""
     ;;
 
@@ -101,7 +101,7 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "e2" "./cmd/onos-e2t-tests" "sd-ran" "--set sd-ran.onos-e2t.replicaCount=$E2T_REPLICAS"
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     ;;
 
 "ran-sim-tests")
@@ -122,9 +122,9 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "pci" "./cmd/onos-pci-tests" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     run_integration_test_suite "scale" "./cmd/onos-pci-tests" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
 
     ;;
 
@@ -146,10 +146,10 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "kpm" "./cmd/onos-kpimon-test" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
 
     run_integration_test_suite "ha" "./cmd/onos-kpimon-test" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
 
     ;;
 
@@ -161,11 +161,11 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "overload" "./cmd/onos-mlb-test" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     run_integration_test_suite "underload" "./cmd/onos-mlb-test" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     run_integration_test_suite "targetload" "./cmd/onos-mlb-test" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
 
     ;;
 
@@ -177,9 +177,9 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "slice" "./cmd/onos-rsm-tests" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     run_integration_test_suite "scalability" "./cmd/onos-rsm-tests" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
 
     ;;
 
@@ -191,9 +191,9 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "mho" "./cmd/onos-mho-test" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     run_integration_test_suite "ha" "./cmd/onos-mho-test" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
 
     ;;
 
@@ -206,7 +206,7 @@ case "$testSuite" in
     cd test/utils/xapp && make kind && cd -
 
     run_integration_test_suite "a1pm" "./cmd/onos-a1t-test" "sd-ran" "--context ./test/utils/charts/"
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
 
     ;;
 
@@ -218,7 +218,7 @@ case "$testSuite" in
     make kind
 
     run_integration_test_suite "ts" "./cmd/rimedo-ts-test" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
 
     ;;
 
@@ -228,11 +228,11 @@ case "$testSuite" in
     cd onos-helm-charts
     git log -1
     run_integration_test_suite "onos-topo" "./test" "onos-topo" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     run_integration_test_suite "onos-config" "./test" "onos-config" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     run_integration_test_suite "onos-umbrella" "./test" "onos-umbrella" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     ;;
 
 "sdran-helm-charts")
@@ -240,7 +240,7 @@ case "$testSuite" in
     cd sdran-helm-charts
     git log -1
     run_integration_test_suite "sd-ran" "./test" "sd-ran" ""
-    kubectl delete ns $NAMESPACE
+    kubectl delete ns "$NAMESPACE"
     ;;
 
 "master-build")
