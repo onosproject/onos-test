@@ -25,14 +25,16 @@ SDRAN_CHART_REPO=${SDRAN_CHART_REPO:-"sdran"}
 ONOS_CHART_REPO=${ONOS_CHART_REPO:-"onos"}
 USE_LATEST=${USE_LATEST:-"true"}
 USE_PROXY=${USE_PROXY:="true"}
+onos_test=${onos_test:=$PWD}
+
 
 echo 'Setting up cluster with these parameters:'
-echo 'Namespace (NAMESPACE):' $NAMESPACE
-echo 'Start kind cluster (START_KIND_CLUSTER):' $START_KIND_CLUSTER
-echo 'SD-RAN helm chart repo (SDRAN_CHART_REPO):' $SDRAN_CHART_REPO
-echo 'ONOS helm chart repo (ONOS_CHART_REPO):' $ONOS_CHART_REPO
-echo 'Use latest version of images (USE_LATEST):' $USE_LATEST
-echo 'Use Open Networking docker proxy (USE_PROXY):' $USE_PROXY
+echo 'Namespace (NAMESPACE):' "$NAMESPACE"
+echo 'Start kind cluster (START_KIND_CLUSTER):' "$START_KIND_CLUSTER"
+echo 'SD-RAN helm chart repo (SDRAN_CHART_REPO):' "$SDRAN_CHART_REPO"
+echo 'ONOS helm chart repo (ONOS_CHART_REPO):' "$ONOS_CHART_REPO"
+echo 'Use latest version of images (USE_LATEST):' "$USE_LATEST"
+echo 'Use Open Networking docker proxy (USE_PROXY):' "$USE_PROXY"
 
 onos_operator_version=${onos_operator_version:-} # some charts need to load onos-config Models in the old format (eg: ric and e2node in sd-ran)
 
@@ -53,14 +55,14 @@ setup_test_cluster () {
 
   # configure the tag options
   export TAG_OPTIONS=""
-  if [ $USE_LATEST == "true" ];
+  if [ "$USE_LATEST" == "true" ];
   then
     TAG_OPTIONS="--set global.image.tag=latest"
   fi
 
   if [ "${START_KIND_CLUSTER}" == "false" ]; then
     echo -e "Not creating kind cluster as START_KIND_CLUSTER is set to ${START_KIND_CLUSTER}, cleaning namespace ${NAMESPACE}"
-    kubectl delete ns $NAMESPACE || true
+    kubectl delete ns "$NAMESPACE" || true
   else
     # Make a kind cluster
     kind delete cluster && kind create cluster --quiet
@@ -92,35 +94,35 @@ setup_test_cluster () {
                   atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
      registry=""
     else
-       helm upgrade --install --set image.registry=$proxy \
-                    --set init.image.registry=$proxy \
-                    --set broker.image.registry=$proxy \
+       helm upgrade --install --set "image.registry=$proxy" \
+                    --set "init.image.registry=$proxy" \
+                    --set "broker.image.registry=$proxy" \
                     atomix-controller atomix/atomix-controller -n kube-system --wait
-       helm upgrade --install --set image.registry=$proxy \
-                    --set driver.image.registry=$proxy \
-                    --set node.image.registry=$proxy \
+       helm upgrade --install --set "image.registry=$proxy" \
+                    --set "driver.image.registry=$proxy" \
+                    --set "node.image.registry=$proxy" \
                     atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
        registry="--set global.image.registry=$proxy --set global.store.consensus.image.registry=$proxy --set global.storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
     fi
 
     # initialize the operator
     if [[ "${proxy}" == "" ]]; then
-      if [ -z $onos_operator_version ]; then
+      if [ -z "$onos_operator_version" ]; then
         helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait
       else
-        helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
+        helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait --version "$onos_operator_version"
       fi
     else
-      if [ -z $onos_operator_version ]; then
+      if [ -z "$onos_operator_version" ]; then
         helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait
       else
-        helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
+        helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait --version "$onos_operator_version"
       fi
     fi
   fi
 
   # create a namespace for ONOS
-  kubectl create namespace $NAMESPACE
+  kubectl create namespace "$NAMESPACE"
 }
 
 export cli_command="kubectl -n micro-onos exec -t deploy/onos-cli -- "
