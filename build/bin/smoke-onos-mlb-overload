@@ -9,14 +9,15 @@
 
 set -eu -o pipefail
 onos_test=$PWD
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts' EXIT
 
 # set up the test KinD cluster
-. $onos_test/build/bin/setup-test-cluster
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
 
 # install sd-ran
-helm install -n micro-onos $registry \
+helm install -n "$NAMESPACE" \
+     $REGISTRY_OPTIONS \
      $TAG_OPTIONS \
      --set import.ran-simulator.enabled=true \
      --set import.onos-config.enabled=false \
@@ -30,7 +31,7 @@ helm install -n micro-onos $registry \
      --set onos-mlb.config.mlb.thresholds.overload=101 \
      --set onos-mlb.config.mlb.thresholds.target=101 \
      --set onos-mlb.config.mlb.config_json.controller.interval=1 \
-     sdran $SDRAN_CHART_REPO/sd-ran --wait
+     sdran "$SDRAN_CHART_REPO/sd-ran" --wait
 
 $CLI_RETRY_COMMAND  "$onos_test/build/bin/check-mlb-ocns overload" "mlb list ocns"
 

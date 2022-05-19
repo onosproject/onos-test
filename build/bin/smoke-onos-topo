@@ -9,37 +9,39 @@
 
 set -eu -o pipefail
 onos_test=$PWD
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts' EXIT
 
 # set up the test KinD cluster
-. $onos_test/build/bin/setup-test-cluster
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
 
 # install sd-ran
-helm install -n micro-onos $registry $TAG_OPTIONS \
-                                     --set import.ran-simulator.enabled=false \
-                                     --set import.onos-config.enabled=false \
-                                     --set import.onos-pci.enabled=false \
-                                     --set import.onos-topo.enabled=true \
-                                     --set import.onos-kpimon.enabled=false \
-                                     --set onos-kpimon.logging.loggers.root.level=debug \
-                                     sdran $SDRAN_CHART_REPO/sd-ran --wait
+helm install -n "$NAMESPACE" \
+             $REGISTRY_OPTIONS \
+             $TAG_OPTIONS \
+             --set import.ran-simulator.enabled=false \
+             --set import.onos-config.enabled=false \
+             --set import.onos-pci.enabled=false \
+             --set import.onos-topo.enabled=true \
+             --set import.onos-kpimon.enabled=false \
+             --set onos-kpimon.logging.loggers.root.level=debug \
+             sdran "$SDRAN_CHART_REPO/sd-ran" --wait
 
 $CLI_COMMAND  /usr/local/bin/onos topo create entity "abcde12345" --kind "kind-id"
 $CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-create abcde12345" "topo get entities"
 
-$CLI_COMMAND  /usr/local/bin/onos topo set entity "abcde12345" -a [foo=bar]
+$CLI_COMMAND  /usr/local/bin/onos topo set entity "abcde12345" -a '[foo=bar]'
 $CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-aspect abcde12345 foo" "topo get entities"
 
 $CLI_COMMAND  /usr/local/bin/onos topo delete entity "abcde12345"
 $CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-delete abcde12345" "topo get entities"
 
 # Exercise the topo operator
-kubectl -n micro-onos create -f $onos_test/files/model-topo-entities.yaml
-kubectl -n micro-onos create -f $onos_test/files/model-topo-relations.yaml
+kubectl -n "$NAMESPACE" create -f $onos_test/files/model-topo-entities.yaml
+kubectl -n "$NAMESPACE" create -f $onos_test/files/model-topo-relations.yaml
 $CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-create e2:1/5154/1" "topo get entities"
 
-kubectl -n micro-onos delete -f $onos_test/files/model-topo-entities.yaml
+kubectl -n "$NAMESPACE" delete -f $onos_test/files/model-topo-entities.yaml
 
 $CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-delete e2:1/5154" "topo get entities"
 $CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-delete e2:1/5154/1" "topo get entities"

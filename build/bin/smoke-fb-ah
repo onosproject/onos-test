@@ -10,46 +10,36 @@
 set -eu -o pipefail
 
 onos_test=$PWD
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
-
-# configure proxy variables
-use_proxy=${use_proxy:-"1"}
-
-if [ $use_proxy == "1" ]; then
-  proxy="mirror.registry.opennetworking.org"
-else
-  proxy=""
-fi
-
-if [ "$proxy" == "" ]; then
-  fb_registries=""
-else
-  fb_registries=" \
-       --set ah-eson-test-server.image.repository=mirror.registry.opennetworking.org/onosproject/ah-eson-test-server \
-       --set fb-ah-gui.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-gui \
-       --set fb-ah-xapp.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-xapp "
-fi
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts' EXIT
 
 # set up the test KinD cluster
-. $onos_test/build/bin/setup-test-cluster
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
+
+if [ "$USE_PROXY" == "true" ]; then
+  fb_registries="--set ah-eson-test-server.image.repository=mirror.registry.opennetworking.org/onosproject/ah-eson-test-server \
+                 --set fb-ah-gui.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-gui \
+                 --set fb-ah-xapp.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-xapp"
+else
+  fb_registries=""
+fi
 
 # install base cluster
 # the fb-ah-xapp will give up eventually if it can't contact onos-e2t in time, so exclude it until the
 # cluster is up
-helm install -n micro-onos \
-   $TAG_OPTIONS \
+helm install -n "${NAMESPACE}" \
+   ${REGISTRY_OPTIONS} \
+   ${TAG_OPTIONS} \
    --set import.fb-ah-gui.enabled=true \
    --set import.ah-eson-test-server.enabled=true \
    --set import.ran-simulator.enabled=true \
    --set fb-ah-xapp.image.tag=latest \
    --set ah-eson-test-server.image.tag=latest \
-   $registry \
-   $fb_registries \
-   sd-ran $SDRAN_CHART_REPO/sd-ran --wait --timeout 10m
+   ${fb_registries} \
+   sd-ran "$SDRAN_CHART_REPO/sd-ran" --wait --timeout 10m
 
 # install fb-ah-xapp
-helm install $fb_registries -n micro-onos fb-ah-xapp --set fb-ah-xapp.enabled=true sdran/fb-ah-xapp --set image.tag=latest --wait
+helm install ${fb_registries[@]:+} -n "$NAMESPACE" fb-ah-xapp --set fb-ah-xapp.enabled=true sdran/fb-ah-xapp --set image.tag=latest --wait
 
 tmpfile="/tmp/smoke$$"
 
@@ -60,7 +50,7 @@ $CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-relations" "topo get relati
 $CLI_RETRY_COMMAND  "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
 subcount=0
-for i in $(seq 1 10)
+for _ in $(seq 1 10)
 do
   $CLI_COMMAND  onos e2t list subscriptions > $tmpfile
   cat $tmpfile
@@ -79,9 +69,8 @@ if (( subcount != 4)); then
   exit 1
 fi
 
-kubectl -n micro-onos exec -t deploy/onos-cli -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
-grep Alive $tmpfile
-if (( $? != 0 ))
+kubectl -n "$NAMESPACE" exec -t deploy/onos-cli -- /usr/bin/curl -s http://fb-ah-xapp:8080/status >$tmpfile 2>/dev/null
+if ! grep Alive $tmpfile
 then
   echo "*** FB AH Smoke test failed - FB AH xapp is not reporting alive status"
   exit 1

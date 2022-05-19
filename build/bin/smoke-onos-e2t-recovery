@@ -12,7 +12,7 @@ onos_test=$PWD
 before_file=$(mktemp)-before
 after_file=$(mktemp)-after
 
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm $before_file $after_file" EXIT
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm $before_file $after_file' EXIT
 
 # configure clustering parameters
 E2T_REPLICAS=${E2T_REPLICAS:-"2"}
@@ -37,15 +37,14 @@ then
   clustering_args="$clustering_args --set global.store.consensus.partitions=$STORE_CONSENSUS_PARTITIONS"
 fi
 
-export cli_command="kubectl -n micro-onos exec -t deploy/onos-cli -- "
-get_cells_command="$CLI_COMMAND  onos topo get entities --kind e2cell --no-headers"
-
 # set up the test KinD cluster
-. $onos_test/build/bin/setup-test-cluster
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
 
+get_cells_command="$CLI_COMMAND onos topo get entities --kind e2cell --no-headers"
+
 # install sd-ran
-helm install -n micro-onos $registry \
+helm install -n "$NAMESPACE" $REGISTRY_OPTIONS \
      $TAG_OPTIONS \
      --set import.ran-simulator.enabled=true \
      --set import.onos-config.enabled=false \
@@ -53,15 +52,15 @@ helm install -n micro-onos $registry \
      --set import.onos-kpimon.enabled=true \
      --set onos-kpimon.logging.loggers.root.level=debug \
      $clustering_args \
-     sdran $SDRAN_CHART_REPO/sd-ran --wait
+     sdran "$SDRAN_CHART_REPO/sd-ran" --wait
 
 
 # grab the cells output
 cells_found=0
-for i in $(seq 1 20)
+for _ in $(seq 1 20)
 do
-  $get_cells_command | sort >$before_file
-  if ! grep e2cell $before_file >/dev/null
+  $get_cells_command | sort >"$before_file"
+  if ! grep e2cell "$before_file" >/dev/null
   then
     sleep 3
     continue
@@ -78,10 +77,10 @@ fi
 
 
 # simulate a cluster crash
-helm uninstall sdran -n micro-onos
+helm uninstall sdran -n "$NAMESPACE"
 
 # recover sd-ran
-helm install -n micro-onos $registry \
+helm install -n "$NAMESPACE" $REGISTRY_OPTIONS \
      --set global.image.tag=latest \
      --set import.ran-simulator.enabled=false \
      --set import.onos-config.enabled=false \
@@ -89,14 +88,14 @@ helm install -n micro-onos $registry \
      --set import.onos-kpimon.enabled=true \
      --set onos-kpimon.logging.loggers.root.level=debug \
      $clustering_args \
-     sdran sdran/sd-ran --wait
+     sdran "$SDRAN_CHART_REPO/sd-ran" --wait
 
 # grab the cells output after recovery
 cells_found=0
-for i in $(seq 1 20)
+for _ in $(seq 1 20)
 do
-  $get_cells_command | sort >$after_file
-  if ! grep e2cell $after_file >/dev/null
+  $get_cells_command | sort >"$after_file"
+  if ! grep e2cell "$after_file" >/dev/null
   then
     sleep 3
     continue
@@ -112,13 +111,13 @@ then
 fi
 
 echo Before:
-cat $before_file
+cat "$before_file"
 
 echo After:
-cat $after_file
+cat "$after_file"
 
 # make sure the cells are all still there
-if ! diff $before_file $after_file
+if ! diff "$before_file" "$after_file"
 then
   echo "E2t Recovery Smoke test failed"
   exit 1

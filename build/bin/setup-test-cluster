@@ -7,14 +7,14 @@
 # setup-test-cluster initializes the kubernetes KinD environment for running tests
 # parameters are passed through the environment:
 # NAMESPACE - k8s namespace to use for the test.
-#    Defaults to "micro-onos". Not always obeyed, needs work
+#    Defaults to "micro-onos", override to use a different k8s namespace
 # START_KIND_CLUSTER - determines if the KinD cluster should be created.
 #    Defaults to "true", set to false to use an existing cluster.
 # SDRAN_CHART_REPO - repo name for helm for the sd-ran charts.
 #    Defaults to "sdran", override to use local charts
 # ONOS_CHART_REPO - repo name for helm for the ONOS charts.
 #    Defaults to "onos", override to use local charts
-# USE_LATEST - spcifies if the tag "latest" should be used for images.
+# USE_LATEST - specifies if the tag "latest" should be used for images.
 #    Defaults to "true", set to "false" to run the tags defined in the charts
 # This script is intended to be run from the onos-test directory as part of test scripts
 
@@ -48,16 +48,17 @@ setup_test_cluster () {
   fi
 
   if [[ "${proxy}" == "" ]]; then
-     registry=""
+     REGISTRY_OPTIONS=""
   else
-     registry="--set global.image.registry=$proxy"
+     REGISTRY_OPTIONS="--set global.image.registry=$proxy"
   fi
 
   # configure the tag options
-  export TAG_OPTIONS=""
   if [ "$USE_LATEST" == "true" ];
   then
     TAG_OPTIONS="--set global.image.tag=latest"
+  else
+    TAG_OPTIONS=""
   fi
 
   if [ "${START_KIND_CLUSTER}" == "false" ]; then
@@ -92,7 +93,7 @@ setup_test_cluster () {
                   atomix-controller atomix/atomix-controller -n kube-system --wait
      helm upgrade --install \
                   atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
-     registry=""
+     REGISTRY_OPTIONS=""
     else
        helm upgrade --install --set "image.registry=$proxy" \
                     --set "init.image.registry=$proxy" \
@@ -102,7 +103,7 @@ setup_test_cluster () {
                     --set "driver.image.registry=$proxy" \
                     --set "node.image.registry=$proxy" \
                     atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
-       registry="--set global.image.registry=$proxy --set global.store.consensus.image.registry=$proxy --set global.storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
+       REGISTRY_OPTIONS="--set global.image.registry=$proxy --set global.store.consensus.image.registry=$proxy --set global.storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
     fi
 
     # initialize the operator
@@ -114,16 +115,19 @@ setup_test_cluster () {
       fi
     else
       if [ -z "$onos_operator_version" ]; then
-        helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait
+        helm upgrade --install ${REGISTRY_OPTIONS} -n kube-system onos-operator onos/onos-operator --wait
       else
-        helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait --version "$onos_operator_version"
+        helm upgrade --install ${REGISTRY_OPTIONS} -n kube-system onos-operator onos/onos-operator --wait --version "$onos_operator_version"
       fi
     fi
   fi
 
   # create a namespace for ONOS
   kubectl create namespace "$NAMESPACE"
+
+  export REGISTRY_OPTIONS
+  export TAG_OPTIONS
 }
 
-export CLI_COMMAND="kubectl -n micro-onos exec -t deploy/onos-cli -- "
-export CLI_RETRY_COMMAND="$onos_test/build/bin/run-cli-command-with-retry-use-chart-cli"
+export CLI_COMMAND="kubectl -n $NAMESPACE exec -t deploy/onos-cli -- "
+export CLI_RETRY_COMMAND="$onos_test/build/bin/run-cli-command-with-retry"

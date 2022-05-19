@@ -6,6 +6,7 @@
 """
 
 import subprocess
+import os
 
 if __name__ == '__main__':
     check = "KPIMON and UE NIB num UEs"
@@ -17,7 +18,8 @@ if __name__ == '__main__':
     UENIB_KEY = 1
     ASPECT = 1
     UENIB_UE_COUNT = 1
-    base_cli_command = 'kubectl -n micro-onos exec -t deploy/onos-cli -- '
+    namespace = os.environ['NAMESPACE']
+    base_cli_command = 'kubectl -n ' + namespace + ' exec -t deploy/onos-cli -- '
     kpimon_cli_command = base_cli_command + 'onos kpimon list metrics --no-headers'
     uenib_cli_command = base_cli_command + 'onos uenib get ues --aspect RRC.Conn.Max --no-headers --verbose'
 

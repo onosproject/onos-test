@@ -15,29 +15,20 @@ trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artif
 
 # set up the test KinD cluster
 . "$onos_test/build/bin/setup-test-cluster"
-export NAMESPACE="micro-onos"
 setup_test_cluster
 
-# configure proxy variables
-use_proxy=${use_proxy:-"1"}
-
-if [ $use_proxy == "1" ]; then
-  proxy="mirror.registry.opennetworking.org"
-else
-  proxy=""
-fi
-
-if [ "$proxy" == "" ]; then
+if [ "$USE_PROXY" == "" ]; then
   fb_registries=""
 else
-  fb_registries=" \
-       --set ah-eson-test-server.image.repository=mirror.registry.opennetworking.org/onosproject/ah-eson-test-server \
-       --set fb-ah-gui.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-gui \
-       --set fb-ah-xapp.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-xapp "
+  fb_registries="--set ah-eson-test-server.image.repository=mirror.registry.opennetworking.org/onosproject/ah-eson-test-server \
+                 --set fb-ah-gui.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-gui \
+                 --set fb-ah-xapp.image.repository=mirror.registry.opennetworking.org/onosproject/fb-ah-xapp"
 fi
 
 # install sd-ran
-helm install -n $NAMESPACE $registry $TAG_OPTIONS \
+helm install -n "$NAMESPACE" \
+           $REGISTRY_OPTIONS \
+           $TAG_OPTIONS \
            --set import.onos-e2t.enabled=true \
            --set import.onos-a1t.enabled=true \
            --set import.onos-o1t.enabled=true \
@@ -59,13 +50,13 @@ helm install -n $NAMESPACE $registry $TAG_OPTIONS \
 # Bring them up separately here after onos-e2t is known to be up
 
 # install fb-ah-xapp
-helm install -n $NAMESPACE $fb_registries fb-ah-xapp --set fb-ah-xapp.enabled=true sdran/fb-ah-xapp --set image.tag=latest --wait
+helm install -n "$NAMESPACE" $fb_registries fb-ah-xapp --set fb-ah-xapp.enabled=true sdran/fb-ah-xapp --set image.tag=latest --wait
 
 # install FB KPIMON
-helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp  --set image.tag=latest --wait
+helm install -n "$NAMESPACE" $fb_registries fb-kpimon-xapp sdran/fb-kpimon-xapp  --set image.tag=latest --wait
 
 # check that all pods are running and have not restarted
-kubectl get pods -n $NAMESPACE >$tmpfile
+kubectl get pods -n "$NAMESPACE" >$tmpfile
 build/bin/check-pods-running <$tmpfile
 
 echo "All components enabled smoke test completed successfully!"

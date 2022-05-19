@@ -9,50 +9,46 @@
 
 set -eu -o pipefail
 
-NAMESPACE=${NAMESPACE:-"micro-onos"}
-
 make_path () {
-  target=$1
-  path=$2
-  IFS=/ read -a elems <<< $path
-  result="<target: 'devicesim-1', "
-  for i in ${elems[@]}
+  result=("<target: 'devicesim-1',")
+  for i in "$@"
   do
-    result="$result elem: <name: '$i'> "
+    result+=(" elem: <name: '$i'> ")
   done
-  result="$result >"
-  echo $result
+  result+=(" >")
+  echo "${result[@]}"
 }
 
 extract_timezone() {
-  grep json_val: $tmpfile | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >$tmpfile.json
-  timezone=$(jq '.[][][]."timezone-name"' $tmpfile.json)
-  echo $timezone
+  grep json_val: "$tmpfile" | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >"$tmpfile.json"
+  timezone=$(jq '.[][][]."timezone-name"' "$tmpfile.json")
+  echo "$timezone"
 }
 
 set -eu -o pipefail
 onos_test=$PWD
 tmpfile="/tmp/smoke$$"
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm -f $tmpfile*" EXIT
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm -f $tmpfile*' EXIT
 
 # set up the test KinD cluster
-. $onos_test/build/bin/setup-test-cluster
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
 
 # install onos-config
-helm install -n $NAMESPACE $registry \
+helm install -n "$NAMESPACE" \
+     $REGISTRY_OPTIONS \
      $TAG_OPTIONS \
      --set onos-config.plugin.compiler.version=v1.0.1 \
      --set import.onos-gui.enabled=false \
      onos "$ONOS_CHART_REPO/onos-umbrella" --wait
 
 # install the device simulator
-helm install -n $NAMESPACE device-1 $registry $ONOS_CHART_REPO/device-simulator --wait
+helm install -n "$NAMESPACE" device-1 $REGISTRY_OPTIONS "$ONOS_CHART_REPO/device-simulator" --wait
 
 # common gnmi_cli arguments
-common_args="-address onos-config:5150  -timeout 5s -en JSON -alsologtostderr \
-             -insecure -client_crt /etc/ssl/certs/client1.crt -client_key /etc/ssl/certs/client1.key \
-             -ca_crt /etc/ssl/certs/onfca.crt"
+common_args=("-address" "onos-config:5150"  "-timeout" "5s" "-en" "JSON" "-alsologtostderr"
+             "-insecure" "-client_crt" "/etc/ssl/certs/client1.crt" "-client_key" "/etc/ssl/certs/client1.key"
+             "-ca_crt" "/etc/ssl/certs/onfca.crt")
 
 # Check that plugin models have been loaded correctly
 # By default 3 model-plugins are loaded
@@ -71,11 +67,13 @@ $CLI_COMMAND  onos topo create entity devicesim-1 -a \
                   -a onos.topo.TLSOptions='{"insecure":true,"plain":true}' -k devicesim
 
 # gnmi paths
-tzpath=$(make_path 'devicesim-1' '/system/clock/config/timezone-name')
-badpath=$(make_path 'devicesim-1' '/XXXsystemXXX/clock/config/timezone-name')
+tzelems=('system' 'clock' 'config' 'timezone-name')
+tzpath=$(make_path "${tzelems[@]}")
+badelems=('XXXsystemXXX' 'clock' 'config' 'timezone-name')
+badpath=$(make_path "${badelems[@]}")
 
 # attempt to set a bad path - should result in an error
-bad_set=$($CLI_COMMAND  gnmi_cli -set $common_args -proto \
+bad_set=$($CLI_COMMAND  gnmi_cli -set "${common_args[@]}" -proto \
                "update: <path: $badpath \
                 val: <string_val: 'Bad!Value'>>" 2>&1)
 if [[ "$bad_set" == *"code = InvalidArgument"* ]]
@@ -87,7 +85,7 @@ else
 fi
 
 # set an initial timezone value
-initial_set=$($CLI_COMMAND  gnmi_cli -set $common_args -proto \
+initial_set=$($CLI_COMMAND  gnmi_cli -set "${common_args[@]}" -proto \
                "update: <path: $tzpath \
                 val: <string_val: 'Europe/Paris'>>" 2>&1)
 if [[ "$initial_set" == *"op: UPDATE"* ]]
@@ -99,7 +97,7 @@ else
 fi
 
 # read the timezone value back and check it
-$CLI_COMMAND  gnmi_cli -get $common_args -proto "path: $tzpath" >$tmpfile
+$CLI_COMMAND  gnmi_cli -get "${common_args[@]}" -proto "path: $tzpath" >$tmpfile
 
 timezone=$(extract_timezone)
 if [ "$timezone" == '"Europe/Paris"' ]
@@ -111,7 +109,7 @@ else
 fi
 
 # change the timezone
-change_set=$($CLI_COMMAND  gnmi_cli -set $common_args -proto \
+change_set=$($CLI_COMMAND  gnmi_cli -set "${common_args[@]}" -proto \
                "update: <path: $tzpath \
                 val: <string_val: 'Europe/Dublin'>>" 2>&1)
 if [[ "$change_set" == *"op: UPDATE"* ]]
@@ -123,7 +121,7 @@ else
 fi
 
 # check that the modified timezone is correct
-$CLI_COMMAND  gnmi_cli -get $common_args -proto "path: $tzpath" >$tmpfile
+$CLI_COMMAND  gnmi_cli -get "${common_args[@]}" -proto "path: $tzpath" >$tmpfile
 
 timezone=$(extract_timezone)
 if [ "$timezone" == '"Europe/Dublin"' ]
@@ -137,7 +135,7 @@ fi
 sleep 5
 
 # check capabilities
-models_count=$($CLI_COMMAND  gnmi_cli -capabilities $common_args | grep -c supported_models)
+models_count=$($CLI_COMMAND  gnmi_cli -capabilities "${common_args[@]}" | grep -c supported_models)
 if [ "$models_count" == '8' ]
 then
   echo "+++ Models count from capabilities is correct"

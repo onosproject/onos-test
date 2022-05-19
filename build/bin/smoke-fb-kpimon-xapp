@@ -10,12 +10,12 @@
 set -eu -o pipefail
 
 onos_test=$PWD
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts' EXIT
 
 # configure proxy variables
 use_proxy=${use_proxy:-"1"}
 
-if [ $use_proxy == "1" ]; then
+if [ "$use_proxy" == "1" ]; then
   proxy="mirror.registry.opennetworking.org"
 else
   proxy=""
@@ -28,21 +28,21 @@ else
 fi
 
 # set up the test KinD cluster
-. $onos_test/build/bin/setup-test-cluster
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
 
 # install SD RAN, ONF KPIMON and ransim
-helm install -n $NAMESPACE \
+helm install -n "$NAMESPACE" \
    $TAG_OPTIONS \
    --set import.ran-simulator.enabled=true \
    --set import.onos-kpimon.enabled=true \
    --set import.onos-config.enabled=false \
-   $registry \
+   $REGISTRY_OPTIONS \
    $fb_registries \
-   sd-ran $SDRAN_CHART_REPO/sd-ran --wait
+   sd-ran "$SDRAN_CHART_REPO/sd-ran" --wait
 
 # install FB KPIMON
-helm install -n $NAMESPACE fb-kpimon-xapp sdran/fb-kpimon-xapp  --set image.tag=latest --wait
+helm install -n "$NAMESPACE" fb-kpimon-xapp sdran/fb-kpimon-xapp  --set image.tag=latest --wait
 
 tmpfile="/tmp/smoke$$"
 
@@ -65,7 +65,7 @@ fi
 
 # check that the FB KPIMON is seeing connections
 $CLI_COMMAND  /usr/bin/curl -s http://fb-kpimon-xapp:8080/metrics >$tmpfile 2>/dev/null
-connections=$(grep xappkpimon_rrc_conn_avg{ $tmpfile | fgrep -c -v " 0.0 " || : )
+connections=$(grep 'xappkpimon_rrc_conn_avg{' $tmpfile | grep -F -c -v " 0.0 " || : )
 if (( connections == 0 ))
 then
   echo "*** FB KPIMON xapp is not seeing connections"
@@ -77,7 +77,7 @@ fi
 # check that the ONF KPIMON app is seeing connections
 
 kpimon_started=0
-for i in $(seq 1 20)
+for _ in $(seq 1 20)
 do
   if ! $CLI_COMMAND  onos kpimon list metrics --no-headers >$tmpfile
   then
