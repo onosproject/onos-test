@@ -7,14 +7,14 @@
 # setup-test-cluster initializes the kubernetes KinD environment for running tests
 # parameters are passed through the environment:
 # NAMESPACE - k8s namespace to use for the test.
-#    Defaults to "micro-onos". Not always obeyed, needs work
+#    Defaults to "micro-onos", override to use a different k8s namespace
 # START_KIND_CLUSTER - determines if the KinD cluster should be created.
 #    Defaults to "true", set to false to use an existing cluster.
 # SDRAN_CHART_REPO - repo name for helm for the sd-ran charts.
 #    Defaults to "sdran", override to use local charts
 # ONOS_CHART_REPO - repo name for helm for the ONOS charts.
 #    Defaults to "onos", override to use local charts
-# USE_LATEST - spcifies if the tag "latest" should be used for images.
+# USE_LATEST - specifies if the tag "latest" should be used for images.
 #    Defaults to "true", set to "false" to run the tags defined in the charts
 # This script is intended to be run from the onos-test directory as part of test scripts
 
@@ -25,14 +25,16 @@ SDRAN_CHART_REPO=${SDRAN_CHART_REPO:-"sdran"}
 ONOS_CHART_REPO=${ONOS_CHART_REPO:-"onos"}
 USE_LATEST=${USE_LATEST:-"true"}
 USE_PROXY=${USE_PROXY:="true"}
+onos_test=${onos_test:=$PWD}
+
 
 echo 'Setting up cluster with these parameters:'
-echo 'Namespace (NAMESPACE):' $NAMESPACE
-echo 'Start kind cluster (START_KIND_CLUSTER):' $START_KIND_CLUSTER
-echo 'SD-RAN helm chart repo (SDRAN_CHART_REPO):' $SDRAN_CHART_REPO
-echo 'ONOS helm chart repo (ONOS_CHART_REPO):' $ONOS_CHART_REPO
-echo 'Use latest version of images (USE_LATEST):' $USE_LATEST
-echo 'Use Open Networking docker proxy (USE_PROXY):' $USE_PROXY
+echo 'Namespace (NAMESPACE):' "$NAMESPACE"
+echo 'Start kind cluster (START_KIND_CLUSTER):' "$START_KIND_CLUSTER"
+echo 'SD-RAN helm chart repo (SDRAN_CHART_REPO):' "$SDRAN_CHART_REPO"
+echo 'ONOS helm chart repo (ONOS_CHART_REPO):' "$ONOS_CHART_REPO"
+echo 'Use latest version of images (USE_LATEST):' "$USE_LATEST"
+echo 'Use Open Networking docker proxy (USE_PROXY):' "$USE_PROXY"
 
 onos_operator_version=${onos_operator_version:-} # some charts need to load onos-config Models in the old format (eg: ric and e2node in sd-ran)
 
@@ -46,21 +48,22 @@ setup_test_cluster () {
   fi
 
   if [[ "${proxy}" == "" ]]; then
-     registry=""
+     REGISTRY_OPTIONS=""
   else
-     registry="--set global.image.registry=$proxy"
+     REGISTRY_OPTIONS="--set global.image.registry=$proxy"
   fi
 
   # configure the tag options
-  export TAG_OPTIONS=""
-  if [ $USE_LATEST == "true" ];
+  if [ "$USE_LATEST" == "true" ];
   then
     TAG_OPTIONS="--set global.image.tag=latest"
+  else
+    TAG_OPTIONS=""
   fi
 
   if [ "${START_KIND_CLUSTER}" == "false" ]; then
     echo -e "Not creating kind cluster as START_KIND_CLUSTER is set to ${START_KIND_CLUSTER}, cleaning namespace ${NAMESPACE}"
-    kubectl delete ns $NAMESPACE || true
+    kubectl delete ns "$NAMESPACE" || true
   else
     # Make a kind cluster
     kind delete cluster && kind create cluster --quiet
@@ -90,38 +93,41 @@ setup_test_cluster () {
                   atomix-controller atomix/atomix-controller -n kube-system --wait
      helm upgrade --install \
                   atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
-     registry=""
+     REGISTRY_OPTIONS=""
     else
-       helm upgrade --install --set image.registry=$proxy \
-                    --set init.image.registry=$proxy \
-                    --set broker.image.registry=$proxy \
+       helm upgrade --install --set "image.registry=$proxy" \
+                    --set "init.image.registry=$proxy" \
+                    --set "broker.image.registry=$proxy" \
                     atomix-controller atomix/atomix-controller -n kube-system --wait
-       helm upgrade --install --set image.registry=$proxy \
-                    --set driver.image.registry=$proxy \
-                    --set node.image.registry=$proxy \
+       helm upgrade --install --set "image.registry=$proxy" \
+                    --set "driver.image.registry=$proxy" \
+                    --set "node.image.registry=$proxy" \
                     atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
-       registry="--set global.image.registry=$proxy --set global.store.consensus.image.registry=$proxy --set global.storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
+       REGISTRY_OPTIONS="--set global.image.registry=$proxy --set global.store.consensus.image.registry=$proxy --set global.storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
     fi
 
     # initialize the operator
     if [[ "${proxy}" == "" ]]; then
-      if [ -z $onos_operator_version ]; then
+      if [ -z "$onos_operator_version" ]; then
         helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait
       else
-        helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
+        helm upgrade --install -n kube-system onos-operator onos/onos-operator --wait --version "$onos_operator_version"
       fi
     else
-      if [ -z $onos_operator_version ]; then
-        helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait
+      if [ -z "$onos_operator_version" ]; then
+        helm upgrade --install ${REGISTRY_OPTIONS} -n kube-system onos-operator onos/onos-operator --wait
       else
-        helm upgrade --install $registry -n kube-system onos-operator onos/onos-operator --wait --version $onos_operator_version
+        helm upgrade --install ${REGISTRY_OPTIONS} -n kube-system onos-operator onos/onos-operator --wait --version "$onos_operator_version"
       fi
     fi
   fi
 
   # create a namespace for ONOS
-  kubectl create namespace $NAMESPACE
+  kubectl create namespace "$NAMESPACE"
+
+  export REGISTRY_OPTIONS
+  export TAG_OPTIONS
 }
 
-export cli_command="kubectl -n micro-onos exec -t deploy/onos-cli -- "
-export cli_retry_command="$onos_test/build/bin/run-cli-command-with-retry-use-chart-cli"
+export CLI_COMMAND="kubectl -n $NAMESPACE exec -t deploy/onos-cli -- "
+export CLI_RETRY_COMMAND="$onos_test/build/bin/run-cli-command-with-retry"

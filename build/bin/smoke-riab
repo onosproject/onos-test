@@ -92,7 +92,7 @@ ITERATIONS=6
 RANSIM_FLAG=false
 for ((i=1;i<=ITERATIONS;i++))
 do
-    if $cli_command onos topo get relations --kind controls | grep --text e2:1
+    if $CLI_COMMAND  onos topo get relations --kind controls | grep --text e2:1
     then
         echo '***' RiaB ransim option smoke test passed! '***'
         RANSIM_FLAG=true
@@ -132,7 +132,7 @@ OAI_PING_INTERNET_FLAG=false
 OAI_PING_DNS_FLAG=false
 for ((i=1;i<=ITERATIONS;i++))
 do
-    if $cli_command onos topo get relations --kind controls | grep --text e2:1
+    if $CLI_COMMAND  onos topo get relations --kind controls | grep --text e2:1
     then
         echo [RiaB OAI smoke test] RIC Control plane is working!
         OAI_RIC_FLAG=true

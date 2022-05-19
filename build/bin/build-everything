@@ -8,8 +8,14 @@
 
 set -e -u -o pipefail
 
+WORKSPACE=${WORKSPACE:-/tmp}
+ARCHIVE="$WORKSPACE/published-logs"
+
 # repos and targets to build
 declare -a components=(
+  "onos-api" "protos"
+  "onos-helm-charts" "deps"
+  "sdran-helm-charts" "deps"
   "build-tools" "images"
   "config-models" "build"
   "gnxi-simulators" "images"
@@ -44,13 +50,13 @@ cd ./build-work-space
 
 # pull and build master branches of included components
 for i in $(seq 0 2 $length); do
-  component=${components[$i]}
-  target=${components[$i+1]}
+  component="${components[$i]}"
+  target="${components[$i+1]}"
 
   echo "Cloning ${component}"
-  git clone git@github.com:onosproject/${component}.git --quiet
-  cd ${component}
-  make ${target}
+  git clone "git@github.com:onosproject/${component}.git" --quiet
+  cd "${component}"
+  make "${target}"
   cd ..
 done
 
@@ -58,13 +64,12 @@ done
 git clone git@github.com:onosproject/onos-gui.git --quiet
 cd ./onos-gui
 docker pull mirror.registry.opennetworking.org/teracy/angular-cli
-docker container run --rm -v $(pwd):/opt -w /opt teracy/angular-cli make deps build
+docker container run --rm -v "$(pwd):/opt" -w /opt -u node teracy/angular-cli make deps build
 cd ..
 
-ARCHIVE="$WORKSPACE/published-logs"
-rm -rf $ARCHIVE
-mkdir -p $ARCHIVE
+# Save the image listing as an artifact
+rm -rf "$ARCHIVE"
+mkdir -p "$ARCHIVE"
+docker image ls >"$ARCHIVE/all-images.log"
 
-docker image ls >$ARCHIVE/all-images.log
-
-sudo chown -R jenkins .
+echo "=== Master build test completed successfully!"

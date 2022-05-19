@@ -9,14 +9,15 @@
 
 set -eu -o pipefail
 onos_test=$PWD
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts' EXIT
 
 # set up the test KinD cluster
-. $onos_test/build/bin/setup-test-cluster
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
 
 # install sd-ran
-helm install -n micro-onos $registry \
+helm install -n "$NAMESPACE" \
+     $REGISTRY_OPTIONS \
      $TAG_OPTIONS \
      --set import.ran-simulator.enabled=true \
      --set import.onos-config.enabled=false \
@@ -27,11 +28,11 @@ helm install -n micro-onos $registry \
      --set import.onos-pci.enabled=true \
      --set import.onos-kpimon.enabled=true \
      --set import.ran-simulator.enabled=true \
-     sdran $SDRAN_CHART_REPO/sd-ran --wait
+     sdran "$SDRAN_CHART_REPO/sd-ran" --wait
 
-$cli_retry_command "$onos_test/build/bin/check-mho-ues" "mho get ues"
-$cli_retry_command "$onos_test/build/bin/check-mho-cells" "mho get cells"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-mho-ues" "mho get ues"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-mho-cells" "mho get cells"
 
-$onos_test/build/bin/check-mho-hand-in-out
+"$onos_test/build/bin/check-mho-hand-in-out"
 
 echo "ONOS MHO smoke test completed successfully!"

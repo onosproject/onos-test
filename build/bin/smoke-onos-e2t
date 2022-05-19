@@ -9,7 +9,7 @@
 
 set -eu -o pipefail
 onos_test=$PWD
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts' EXIT
 
 # configure clustering parameters
 clustering_args=""
@@ -30,38 +30,39 @@ if [ -n "$STORE_CONSENSUS_PARTITIONS" ]; then
 fi
 
 # set up the test KinD cluster
-. $onos_test/build/bin/setup-test-cluster
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
 
 export E2T_REPLICAS=${E2T_REPLICAS:-1}
 
 # install sd-ran
-helm install -n micro-onos $registry \
+helm install -n "$NAMESPACE" \
+     $REGISTRY_OPTIONS \
      $TAG_OPTIONS \
      --set import.ran-simulator.enabled=true \
      --set import.onos-config.enabled=false \
      --set import.onos-uenib.enabled=true \
      --set import.onos-kpimon.enabled=true \
      --set onos-kpimon.logging.loggers.root.level=debug \
-     --set onos-e2t.replicaCount=$E2T_REPLICAS \
+     --set "onos-e2t.replicaCount=$E2T_REPLICAS" \
      $clustering_args \
-     sdran ${SDRAN_CHART_REPO}/sd-ran --wait
+     sdran "${SDRAN_CHART_REPO}/sd-ran" --wait
 
 # Check E2T instance count
-instances=$(kubectl -n micro-onos get pods | egrep '^onos-e2t-' | wc -l)
-[ $instances -ne $E2T_REPLICAS ] && echo "Incorrect E2T count: $instances" && false
+instances=$(kubectl -n "$NAMESPACE" get pods | grep -c -E '^onos-e2t-')
+[ "$instances" -ne "$E2T_REPLICAS" ] && echo "Incorrect E2T count: $instances" && false
 
 # Check topo relations
-let ctlCount=$E2T_REPLICAS*2
-$cli_retry_command "$onos_test/build/bin/check-topo-relations" "topo get relations" "controls=$ctlCount contains=6"
+ctlCount=$(( E2T_REPLICAS*2 ))
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-relations" "topo get relations" "controls=$ctlCount contains=6"
 
 # Check topo entities
-$cli_retry_command "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2t=$E2T_REPLICAS e2node=2 e2cell=6"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-topo-entities" "topo get entities" "e2t=$E2T_REPLICAS e2node=2 e2cell=6"
 
-$cli_retry_command "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-e2t-subscriptions onos-kpimon-v2" "e2t list subscriptions"
 
-$cli_retry_command "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-kpimon-list-metrics" "kpimon list metrics"
 
-$onos_test/build/bin/check-kpimon-report-interval
+"$onos_test/build/bin/check-kpimon-report-interval"
 
 echo "E2T Smoke test completed successfully!"

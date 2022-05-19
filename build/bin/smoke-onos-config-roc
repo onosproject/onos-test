@@ -8,29 +8,29 @@
 # This script is intended to be run from the onos-test directory as part of CI
 
 extract_description() {
-  grep json_val: $tmpfile | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >$tmpfile.json
-  description=$(jq '.[][]."description"' $tmpfile.json)
-  echo $description
+  grep json_val: "$tmpfile" | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >"$tmpfile.json"
+  description=$(jq '.[][]."description"' "$tmpfile.json")
+  echo "$description"
 }
 
 extract_description_from_device() {
-  grep json_val: $tmpfile | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >$tmpfile.json
-  description=$(jq '."description"' $tmpfile.json)
-  echo $description
+  grep json_val: "$tmpfile" | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >"$tmpfile.json"
+  description=$(jq '."description"' "$tmpfile.json")
+  echo "$description"
 }
 
 set -eu -o pipefail
 onos_test=$PWD
 tmpfile="/tmp/smoke$$"
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm -f $tmpfile*" EXIT
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm -f $tmpfile*' EXIT
 
 # set up the test KinD cluster
-. $onos_test/build/bin/setup-test-cluster
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
 
 # install aether-roc
 
-helm install -n micro-onos $registry aether-roc-umbrella \
+helm install -n "$NAMESPACE" $REGISTRY_OPTIONS aether-roc-umbrella \
       --set import.aether-roc-gui.v3.enabled=false \
       --set import.aether-roc-gui.v4.enabled=false \
       --set import.aether-roc-gui.v2-0.enabled=false \
@@ -62,11 +62,11 @@ set_command+='extension:<registered_ext:<id:111 msg:"\x08\x01">> '
 set_command+='extension:<registered_ext:<id:102 msg:"Aether">> '
 set_command+='extension:<registered_ext:<id:101 msg:"2.1.0">> '
 
-initial_set=$( $cli_command gnmi_cli $onos_config $common_args -set -proto "$set_command" 2>&1 )
-if echo $initial_set | grep "returned RPC error"
+initial_set=$( $CLI_COMMAND  gnmi_cli $onos_config $common_args -set -proto "$set_command" 2>&1 )
+if echo "$initial_set" | grep "returned RPC error"
 then
   echo "*** Setting application returned an error"
-  echo $initial_set
+  echo "$initial_set"
   exit 1
 else
     echo "+++ Setting application was correct"
@@ -74,29 +74,29 @@ fi
 
 # check that values were properly set in onos-config
 get_command='path:<target: "defaultent", elem:<name:"application" key:<key:"application-id" value:"*" > > elem:<name:"description">>'
-$cli_command gnmi_cli $onos_config $common_args -get -proto "$get_command" >$tmpfile
+$CLI_COMMAND  gnmi_cli $onos_config $common_args -get -proto "$get_command" >"$tmpfile"
 description=$(extract_description)
 if [ "$description" == '"ROC Default Ent Test App"' ]
 then
   echo "+++ Get of application description is correct"
 else
   echo "*** Get of application description is incorrect $description"
-  cat $tmpfile
-  cat $tmpfile.json
+  cat "$tmpfile"
+  cat "$tmpfile.json"
   exit 1
 fi
 
 # check that values were properly set in the sdcore adapter
 get_command='path:<target: "defaultent", elem:<name:"application" key:<key:"application-id" value:"test-app"> >>'
-$cli_command gnmi_cli $sdcore_adapter $common_args -get -proto "$get_command" >$tmpfile
+$CLI_COMMAND  gnmi_cli $sdcore_adapter $common_args -get -proto "$get_command" >"$tmpfile"
 description_from_device=$(extract_description_from_device)
 if [ "$description_from_device" == '"ROC Default Ent Test App"' ]
 then
   echo "+++ Get of application description from device is correct"
 else
   echo "*** Get of application description from device is incorrect"
-  cat $tmpfile
-  cat $tmpfile.json
+  cat "$tmpfile"
+  cat "$tmpfile.json"
   exit 1
 fi
 

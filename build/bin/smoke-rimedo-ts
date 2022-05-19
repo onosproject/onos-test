@@ -9,27 +9,28 @@
 
 set -eu -o pipefail
 onos_test=$PWD
-trap "$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts" EXIT
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts' EXIT
 
 # set up the test KinD cluster
-. $onos_test/build/bin/setup-test-cluster
-export NAMESPACE="micro-onos"
+. "$onos_test/build/bin/setup-test-cluster"
 setup_test_cluster
 
 # install sd-ran with Rimedo Labs TS xApp and a RAN simulator
-helm install -n $NAMESPACE $registry $TAG_OPTIONS \
-                                     --set import.ran-simulator.enabled=true \
-                                     --set import.onos-config.enabled=false \
-                                     --set import.rimedo-ts.enabled=true \
-                                     sdran $SDRAN_CHART_REPO/sd-ran --wait
+helm install -n "$NAMESPACE" \
+             $REGISTRY_OPTIONS \
+             $TAG_OPTIONS \
+             --set import.ran-simulator.enabled=true \
+             --set import.onos-config.enabled=false \
+             --set import.rimedo-ts.enabled=true \
+             sdran "$SDRAN_CHART_REPO/sd-ran" --wait
 
 # Check a1t subscriptions
-$cli_retry_command "$onos_test/build/bin/check-a1t-rimedo-ts-subscriptions" "a1t get subscription"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-a1t-rimedo-ts-subscriptions" "a1t get subscription"
 
 #check a1t policies
-$cli_retry_command "$onos_test/build/bin/check-a1t-rimedo-ts-policies" "a1t get policy type"
+$CLI_RETRY_COMMAND  "$onos_test/build/bin/check-a1t-rimedo-ts-policies" "a1t get policy type"
 
 
-$onos_test/build/bin/check-test-log-errors
+"$onos_test/build/bin/check-test-log-errors"
 
 echo "Rimedo Labs TS xApp smoke test completed successfully!"
