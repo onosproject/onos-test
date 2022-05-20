@@ -31,9 +31,9 @@ setup_test_cluster
 rm -rf integration-tests && mkdir integration-tests && pushd integration-tests
 
 # Download helmit
-pushd .. && GO111MODULE=on go get github.com/onosproject/helmit/cmd/helmit && popd
+pushd .. && GO111MODULE=on go install github.com/onosproject/helmit/cmd/helmit@latest && popd
 
-keycloak_password=${keycloak_password:""}
+keycloak_password=${keycloak_password:-""}
 common_args="--timeout 60m --secret keycloak-password=$keycloak_password --no-teardown"
 if [ $use_proxy = "1" ]; then
    common_args="$common_args --args registry=mirror.registry.opennetworking.org --image mirror.registry.opennetworking.org/onosproject/helmit-runner:latest"
