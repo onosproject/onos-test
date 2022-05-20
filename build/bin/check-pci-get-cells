@@ -9,7 +9,7 @@ import sys
 import time
 import check_cli
 
-expected_headers = ['ID', 'Node', 'ID', 'Dlearfcn', 'Cell', 'Type', 'PCI', 'PCI', 'Pool']
+expected_headers = ['ID', 'Node', 'ID', 'ARFCN', 'Cell', 'Type', 'PCI', 'PCI', 'Pool']
 
 ID_REGEX = r'[0-9a-f]{15}'
 NODE_ID_REGEX = r'^e2:([a-zA-Z0-9-]+|1(\/[a-z0-9]+)+)$'
