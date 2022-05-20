@@ -127,6 +127,7 @@ setup_test_cluster () {
 
   export REGISTRY_OPTIONS
   export TAG_OPTIONS
+  export NAMESPACE
 }
 
 export CLI_COMMAND="kubectl -n $NAMESPACE exec -t deploy/onos-cli -- "
