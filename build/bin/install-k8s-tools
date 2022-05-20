@@ -5,6 +5,8 @@
 
 # Script to install helm
 
+exit 0 # none of this works on the new Jenkins executor nodes due to no sudo access
+
 SKIP_K8S_TOOLS_INSTALL=${SKIP_K8S_TOOLS_INSTALL:-"0"}
 
 if [ "$SKIP_K8S_TOOLS_INSTALL" == "1" ]; then
