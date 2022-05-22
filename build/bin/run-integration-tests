@@ -237,7 +237,7 @@ case "$testSuite" in
 
 "sdran-helm-charts")
     # sdran-helm-charts
-    git clone https://github.com/onosproject/onos-helm-charts.git
+    git clone https://github.com/onosproject/sdran-helm-charts.git
     cd sdran-helm-charts
     git log -1
     run_integration_test_suite "sd-ran" "./test" "sd-ran" ""
