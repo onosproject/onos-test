@@ -17,7 +17,7 @@ declare -a components=(
   "onos-helm-charts" "deps"
   "sdran-helm-charts" "deps"
   "build-tools" "images"
-  "config-models" "build"
+  "config-models" "jenkins-test"
   "gnxi-simulators" "images"
   "helmit" "build"
   "onos-a1t" "images"
