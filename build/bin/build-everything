@@ -63,6 +63,7 @@ done
 # onos-gui - needs a special image to build
 git clone git@github.com:onosproject/onos-gui.git --quiet
 cd ./onos-gui
+make license
 docker pull mirror.registry.opennetworking.org/teracy/angular-cli
 docker container run --rm -v "$(pwd):/opt" -w /opt -u node teracy/angular-cli make deps build
 cd ..
