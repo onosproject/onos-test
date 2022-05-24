@@ -65,7 +65,7 @@ git clone git@github.com:onosproject/onos-gui.git --quiet
 cd ./onos-gui
 make license
 docker pull mirror.registry.opennetworking.org/teracy/angular-cli
-docker container run --rm -v "$(pwd):/opt" -w /opt -u node teracy/angular-cli make deps build
+docker container run --rm -v "$(pwd):/opt" -w /opt teracy/angular-cli make deps build
 cd ..
 
 # Save the image listing as an artifact
