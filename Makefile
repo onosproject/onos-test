@@ -142,6 +142,9 @@ config-smoke:
 config-smoke-roc:
 	./build/bin/smoke-onos-config-roc
 
+config-smoke-tvo:
+	./build/bin/smoke-onos-config-tvo
+
 all-components-smoke:
 	./build/bin/smoke-all-components
 
