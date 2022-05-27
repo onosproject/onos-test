@@ -50,6 +50,9 @@ common_args=("-address" "onos-config:5150"  "-timeout" "5s" "-en" "JSON" "-alsol
              "-insecure" "-client_crt" "/etc/ssl/certs/client1.crt" "-client_key" "/etc/ssl/certs/client1.key"
              "-ca_crt" "/etc/ssl/certs/onfca.crt")
 
+sim_args=("-address" "device-1-device-simulator:11161"  "-timeout" "5s" "-en" "JSON" "-alsologtostderr"
+            "-insecure" "-tlsDisabled" )
+
 # Check that plugin models have been loaded correctly
 # By default 3 model-plugins are loaded
 plugin_count=$($CLI_COMMAND  onos config get plugins --no-headers | grep -c Loaded)
@@ -129,6 +132,18 @@ then
   echo "+++ Get of reset timezone setting is correct"
 else
   echo "*** Get of reset timezone setting is incorrect"
+  exit 1
+fi
+
+# check that the modified timezone is correct on the target simulator
+$CLI_COMMAND  gnmi_cli -get "${sim_args[@]}" -proto "path: $tzpath" >$tmpfile
+
+timezone_from_sim=$(grep string_val $tmpfile | sed 's/.* "/"/')
+if [ "$timezone_from_sim" == '"Europe/Dublin"' ]
+then
+  echo "+++ Get of reset timezone setting from simulator is correct"
+else
+  echo "*** Get of reset timezone setting from simulator is incorrect"
   exit 1
 fi
 
