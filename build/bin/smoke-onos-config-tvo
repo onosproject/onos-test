@@ -1,0 +1,160 @@
+#!/bin/bash
+# SPDX-FileCopyrightText: 2022-present Intel Corporation
+# SPDX-FileCopyrightText: 2020-present Open Networking Foundation <info@opennetworking.org>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Smoke test for the onos-config component
+# This script is intended to be run from the onos-test directory as part of CI
+
+set -eu -o pipefail
+
+make_path () {
+  result=("<target: 'devicesim-1',")
+  for i in "$@"
+  do
+    result+=(" elem: <name: '$i'> ")
+  done
+  result+=(" >")
+  echo "${result[@]}"
+}
+
+extract_timezone() {
+  grep json_val: "$tmpfile" | sed 's/\\n//g' | sed 's/\\//g' | sed -e 's/json_val...//' | sed -e 's/"$//' >"$tmpfile.json"
+  timezone=$(jq '.[][][]."timezone-name"' "$tmpfile.json")
+  echo "$timezone"
+}
+
+set -eu -o pipefail
+onos_test=$PWD
+tmpfile="/tmp/smoke$$"
+trap '$onos_test/build/bin/setup-artifacts && $onos_test/build/bin/archive-artifacts && rm -f $tmpfile*' EXIT
+
+# set up the test KinD cluster
+. "$onos_test/build/bin/setup-test-cluster"
+setup_test_cluster
+
+# install onos-config
+helm install -n "$NAMESPACE" \
+     $REGISTRY_OPTIONS \
+     $TAG_OPTIONS \
+     --set onos-config.plugin.compiler.version=v1.0.1 \
+     --set import.onos-gui.enabled=false \
+     onos "$ONOS_CHART_REPO/onos-umbrella" --wait
+
+# install the device simulator
+helm install -n "$NAMESPACE" device-1 $REGISTRY_OPTIONS "$ONOS_CHART_REPO/device-simulator" --wait
+
+# common gnmi_cli arguments
+common_args=("-address" "onos-config:5150"  "-timeout" "5s" "-en" "JSON" "-alsologtostderr"
+             "-insecure" "-client_crt" "/etc/ssl/certs/client1.crt" "-client_key" "/etc/ssl/certs/client1.key"
+             "-ca_crt" "/etc/ssl/certs/onfca.crt")
+
+sim_args=("-address" "device-1-device-simulator:11161"  "-timeout" "5s" "-en" "JSON" "-alsologtostderr"
+            "-insecure" "-tlsDisabled" )
+
+failed=false
+
+# Check that plugin models have been loaded correctly
+# By default 3 model-plugins are loaded
+plugin_count=$($CLI_COMMAND  onos config get plugins --no-headers | grep -c Loaded)
+if [[ "$plugin_count" -eq 3 ]]; then
+  echo "+++ Correct number of plugins loaded"
+else
+  echo "*** Error: Wrong number of plugins loaded"
+  failed=true
+fi
+
+# Create topo entries for the simulated device
+$CLI_COMMAND  onos topo create kind devicesim devicesim
+$CLI_COMMAND  onos topo create entity devicesim-1 -a \
+                  onos.topo.Configurable='{"address":"devicesim1-device-simulator:11161","version":"7.0.0","type":"devicesim"}' \
+                  -a onos.topo.TLSOptions='{"insecure":true,"plain":true}' -k devicesim
+
+# gnmi paths
+tzelems=('system' 'clock' 'config' 'timezone-name')
+tzpath=$(make_path "${tzelems[@]}")
+badelems=('XXXsystemXXX' 'clock' 'config' 'timezone-name')
+badpath=$(make_path "${badelems[@]}")
+
+# attempt to set a bad path - should result in an error
+bad_set=$($CLI_COMMAND  gnmi_cli -set "${common_args[@]}" -proto \
+               "update: <path: $badpath \
+                val: <string_val: 'Bad!Value'>>" 2>&1)
+if [[ "$bad_set" == *"model devicesim (v7.0.0) plugin not found"* ]]
+then
+  echo "+++ Correct error returned for set of bad path"
+else
+  echo "*** Error not returned for get of bad path"
+  failed=true
+fi
+
+# set an initial timezone value
+initial_set=$($CLI_COMMAND  gnmi_cli -set "${common_args[@]}" -proto \
+               "update: <path: $tzpath \
+                val: <string_val: 'Europe/Paris'>> \
+                extension:<registered_ext:<id:112 msg:'\n!\n\x0bdevicesim-1\x12\x12\n\tdevicesim\x12\x051.0.0'>>" 2>&1)
+if [[ "$initial_set" == *"op: UPDATE"* ]]
+then
+  echo "+++ Initial timezone set operation successful"
+else
+  echo "*** Error setting initial timezone value"
+  failed=true
+fi
+
+# read the timezone value back and check it
+$CLI_COMMAND  gnmi_cli -get "${common_args[@]}" -proto "extension:<registered_ext:<id:112 msg:'\n!\n\x0bdevicesim-1\x12\x12\n\tdevicesim\x12\x051.0.0'>> path: $tzpath" >$tmpfile
+
+timezone=$(extract_timezone)
+if [ "$timezone" == '"Europe/Paris"' ]
+then
+  echo "+++ Get of initial timezone setting is correct"
+else
+  echo "*** Get of initial timezone setting is incorrect"
+  failed=true
+fi
+
+# change the timezone
+change_set=$($CLI_COMMAND  gnmi_cli -set "${common_args[@]}" -proto \
+               "update: <path: $tzpath \
+                val: <string_val: 'Europe/Dublin'>> \
+                extension:<registered_ext:<id:112 msg:'\n!\n\x0bdevicesim-1\x12\x12\n\tdevicesim\x12\x051.0.0'>>" 2>&1)
+if [[ "$change_set" == *"op: UPDATE"* ]]
+then
+  echo "+++ Change timezone set operation successful"
+else
+  echo "*** Error changing timezone value"
+  failed=true
+fi
+
+# check that the modified timezone is correct
+$CLI_COMMAND  gnmi_cli -get "${common_args[@]}" -proto "extension:<registered_ext:<id:112 msg:'\n!\n\x0bdevicesim-1\x12\x12\n\tdevicesim\x12\x051.0.0'>> path: $tzpath" >$tmpfile
+
+timezone=$(extract_timezone)
+if [ "$timezone" == '"Europe/Dublin"' ]
+then
+  echo "+++ Get of reset timezone setting is correct"
+else
+  echo "*** Get of reset timezone setting is incorrect"
+  failed=true
+fi
+
+# check that the modified timezone is correct on the target simulator
+$CLI_COMMAND  gnmi_cli -get "${sim_args[@]}" -proto "path: $tzpath" >$tmpfile
+
+timezone_from_sim=$(grep string_val $tmpfile | sed 's/.* "/"/')
+if [ "$timezone_from_sim" == '"Europe/Dublin"' ]
+then
+  echo "+++ Get of reset timezone setting from simulator is correct"
+else
+  echo "*** Get of reset timezone setting from simulator is incorrect"
+  failed=true
+fi
+
+if [ "$failed" == "false" ]
+then
+  echo "=== onos-config TVO smoke test completed successfully!"
+else
+  echo "*** onos-config TVO smoke test failed!"
+  exit 1
+fi
