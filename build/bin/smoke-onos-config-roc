@@ -31,6 +31,8 @@ setup_test_cluster
 # install aether-roc
 
 helm install -n "$NAMESPACE" $REGISTRY_OPTIONS aether-roc-umbrella \
+      $REGISTRY_OPTIONS \
+      $TAG_OPTIONS \
       --set import.aether-roc-gui.v3.enabled=false \
       --set import.aether-roc-gui.v4.enabled=false \
       --set import.aether-roc-gui.v2-0.enabled=false \
