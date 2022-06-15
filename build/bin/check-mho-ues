@@ -9,7 +9,7 @@ import check_cli
 
 expected_headers = ['UeID', 'CellGlobalID', 'RrcState']
 
-UE_ID_REGEX = r'^[0-9a-f]{5,6}$'
+UE_ID_REGEX = r'^[0-9a-f]{4,6}$'
 CELL_GLOBAL_ID_REGEX = r'^[0-9a-f]{15}$'
 RRC_STATE_REGEX = r'^CONNECTED|IDLE$'
 
