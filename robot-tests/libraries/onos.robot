@@ -40,6 +40,11 @@ Setup Cluster
     # Configure variables
     Set Suite Variable    ${NAMESPACE}     %{NAMESPACE=onos-test}
 
+    # set up artifacts directory
+    ${result}=    Run Process    ${CURDIR}/../../build/bin/setup-artifacts      shell=yes
+    Should Be Equal As Integers    ${result.rc}    0
+
+
     # Make sure the helm repos are up to date
     ${repos_update}=    Catenate    helm repo remove cord atomix onos sdran aether ;
                                     ...    helm repo add cord https://charts.opencord.org &&
@@ -97,11 +102,10 @@ Setup Cluster
         Set Suite Variable    ${TAG_OPTIONS}   ${EMPTY}
     END
 
-    # set up artifacts directory
-    Run Process    ../build/bin/setup-artifacts      shell=yes
-
 Teardown Suite
-    Run Process    ../build/bin/archive-artifacts    shell=yes
+    ${result}=     Run Process    ${CURDIR}/../../build/bin/archive-artifacts    shell=yes
+    Should Be Equal As Integers    ${result.rc}    0
+
 
 ONOS CLI No Headers
     [Arguments]             ${command}
