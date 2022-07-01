@@ -139,6 +139,9 @@ mho-smoke:
 config-smoke:
 	./build/bin/smoke-onos-config
 
+config-robot-smoke:
+	cd robot-tests/test-cases && robot ./onos-config.robot
+
 config-smoke-roc:
 	./build/bin/smoke-onos-config-roc
 
