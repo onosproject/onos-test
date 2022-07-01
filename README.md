@@ -33,18 +33,20 @@ Integration tests are run in one of 3 ways (onos-config is used here for example
 Smoke tests are scripts written in bash and python that exercise multiple components working together in a cluster.
 These tests load the ONOS charts into a [kind] instance and use the [onos CLI] to interrogate the components to be
 sure they are operating properly. Smoke tests are intended to run either as part of Jenkins CI or by developers to test changes.
-
+Smoke tests either run as shell scripts, or using the [Robot Framework].
 The behavior of smoke tests can be parameterized by setting environment variables:
-* START_KIND_CLUSTER - determines if the kind cluster should be created.
+* `START_KIND_CLUSTER` - determines if the kind cluster should be created.
     Defaults to "true", set to false to use an existing cluster.
-* SDRAN_CHART_REPO - repo name for helm for the sd-ran charts.
+* `SDRAN_CHART_REPO` - repo name for helm for the sd-ran charts.
     Defaults to "sdran", override to use local charts
-* ONOS_CHART_REPO - repo name for helm for the ONOS charts.
+* `ONOS_CHART_REPO` - repo name for helm for the ONOS charts.
     Defaults to "onos", override to use local charts
-* USE_LATEST - specifies if the tag "latest" should be used for images.
+* `USE_LATEST` - specifies if the tag "latest" should be used for images.
     Defaults to "true", set to "false" to run the tags defined in the charts
-* USE_PROXY - specifies if the ONF docker image proxy should be used to fetch images.
+* `USE_PROXY` - specifies if the ONF docker image proxy should be used to fetch images.
     Defaults to "true", set to "false" if you want to use locally built images that were previously loaded into `kind`.
+* `NAMESPACE` - specifies the kubernetes namespace to run the tests in.
+    Default values are set by the individual tests
 
 [Kubernetes]: https://kubernetes.io
 [onos project]: https://github.com/onosproject
@@ -54,5 +56,6 @@ The behavior of smoke tests can be parameterized by setting environment variable
 [onos MLB]: https://github.com/onosproject/onos-mlb/tree/master/test
 [onos CLI]: https://github.com/onosproject/onos-cli
 [kind]: https://kind.sigs.k8s.io/
+[Robot Framework]: https://robotframework.org/
 
 

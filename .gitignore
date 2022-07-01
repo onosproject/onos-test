@@ -18,3 +18,7 @@ integration-tests/*
 build/build-tools
 build-work-space/
 
+# Robot files
+**/log.html
+**/output.xml
+**/report.html
