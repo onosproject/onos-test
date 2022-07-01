@@ -8,9 +8,7 @@
 Documentation             Smoke test for onos-config
 Suite Setup               Setup Suite
 Suite Teardown            Teardown Suite
-Library                   String
-Library                   Process
-Resource                  ../libraries/onos.robot
+Resource                  ${CURDIR}/../libraries/onos.robot
 
 *** Variables ***
 ${NAMESPACE}              onos-test

@@ -25,6 +25,10 @@ mod-lint: mod-update # @HELP ensure that the required dependencies are in place
 test: # @HELP run the unit tests and source code validation
 test: mod-lint build linters license
 
+robot: #@HELP Download and install the robot package if needed
+	python3 -m robot --version || ( python3 -m pip install --upgrade pip && pip3 install robotframework )
+
+
 jenkins-test:  # @HELP run the unit tests and source code validation producing a junit style report for Jenkins
 jenkins-test: mod-lint build linters license
 	TEST_PACKAGES=github.com/onosproject/onos-test/pkg/... ./build/build-tools/build/jenkins/make-unit
@@ -139,8 +143,8 @@ mho-smoke:
 config-smoke:
 	./build/bin/smoke-onos-config
 
-config-robot-smoke:
-	cd robot-tests/test-cases && robot ./onos-config.robot
+config-robot-smoke: robot
+	robot robot-tests/test-cases/onos-config.robot
 
 config-smoke-roc:
 	./build/bin/smoke-onos-config-roc
