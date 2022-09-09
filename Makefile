@@ -119,6 +119,9 @@ onos-a1t-integration-tests:
 rimedo-ts-integration-tests:
 	./build/bin/run-integration-tests rimedo-ts-tests
 
+fabric-sim-integration-tests:
+	./build/bin/run-integration-tests fabric-sim-tests
+
 onos-helm-charts-tests:
 	./build/bin/run-integration-tests onos-helm-charts
 

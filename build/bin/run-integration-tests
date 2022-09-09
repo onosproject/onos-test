@@ -222,6 +222,17 @@ case "$testSuite" in
 
     ;;
 
+"fabric-sim-tests")
+    # fabric-sim
+    git clone git@github.com:onosproject/fabric-sim.git
+    cd fabric-sim
+    git log -1
+    make kind
+    NAMESPACE="test"
+
+    make integration-tests
+    ;;
+
 "onos-helm-charts")
     # onos-helm-charts
     git clone https://github.com/onosproject/onos-helm-charts.git
