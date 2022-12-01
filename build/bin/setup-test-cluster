@@ -90,19 +90,13 @@ setup_test_cluster () {
     helm repo update
     if [[ "${proxy}" == "" ]]; then
      helm upgrade --install \
-                  atomix-controller atomix/atomix-controller -n kube-system --wait
-     helm upgrade --install \
-                  atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
+                  atomix-runtime atomix/atomix-runtime -n kube-system --wait
      REGISTRY_OPTIONS=""
     else
        helm upgrade --install --set "image.registry=$proxy" \
-                    --set "init.image.registry=$proxy" \
-                    --set "broker.image.registry=$proxy" \
-                    atomix-controller atomix/atomix-controller -n kube-system --wait
-       helm upgrade --install --set "image.registry=$proxy" \
                     --set "driver.image.registry=$proxy" \
                     --set "node.image.registry=$proxy" \
-                    atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait
+                    atomix-runtime atomix/atomix-runtime -n kube-system --wait
        REGISTRY_OPTIONS="--set global.image.registry=$proxy --set global.store.consensus.image.registry=$proxy --set global.storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
     fi
 
