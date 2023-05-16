@@ -24,7 +24,7 @@ declare -a components=(
   "onos-cli" "images"
   "onos-config" "images"
   "onos-docs" "images"
-  "onos-e2-sm" "images"
+#  "onos-e2-sm" "images"
   "onos-e2t" "images"
   "onos-exporter" "images"
   "onos-kpimon" "images"
