@@ -60,19 +60,19 @@ run_integration_test_suite() {
          err=${PIPESTATUS[0]}
          echo "helmit returned error $err"
      fi
-     #../../build/bin/archive-artifacts
-     #if [ "$err" -ne "0" ]; then
-     #    echo "Smoke test failed"
-     #    exit "$err"
-     #fi
-     #../../build/bin/check-test-log-errors
+     ../../build/bin/archive-artifacts
+     if [ "$err" -ne "0" ]; then
+         echo "Smoke test failed"
+         exit "$err"
+     fi
+     ../../build/bin/check-test-log-errors
 }
 
 case "$testSuite" in
 "onos-topo-tests")
      # onos-topo
      git clone https://github.com/onosproject/onos-topo.git
-     cd ~/work/onosproject/onos-topo
+     cd onos-topo
      git log -1
      make kind
 
