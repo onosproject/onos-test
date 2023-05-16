@@ -60,12 +60,12 @@ run_integration_test_suite() {
          err=${PIPESTATUS[0]}
          echo "helmit returned error $err"
      fi
-     ../../build/bin/archive-artifacts
+     "$onos_test/build/bin/archive-artifacts"
      if [ "$err" -ne "0" ]; then
          echo "Smoke test failed"
          exit "$err"
      fi
-     ../../build/bin/check-test-log-errors
+     "$onos_test/build/bin/check-test-log-errors"
 }
 
 case "$testSuite" in
