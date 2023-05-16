@@ -66,7 +66,19 @@ setup_test_cluster () {
     kubectl delete ns "$NAMESPACE" || true
   else
     # Make a kind cluster
-    kind delete cluster && kind create cluster --quiet
+    kind delete cluster
+    if [[ "${proxy}" == "" ]]; then
+       kind create cluster --quiet
+    else
+      kind create cluster --quiet --image $proxy/kindest/node:v1.24.7
+      # Preload images
+      docker pull "$proxy/atomix/sidecar:v1.1.3"
+      docker pull "$proxy/atomix/raft-node"
+      docker tag "$proxy/atomix/sidecar:v1.1.3" atomix/sidecar:v1.1.3
+      docker tag "$proxy/atomix/raft-node" atomix/raft-node
+      kind load docker-image atomix/sidecar:v1.1.3
+      kind load docker-image atomix/raft-node
+    fi
 
     # install the preferred versions of k8s tools
     build/bin/install-k8s-tools
@@ -90,13 +102,11 @@ setup_test_cluster () {
     helm repo update
     if [[ "${proxy}" == "" ]]; then
      helm upgrade --install \
-                  atomix-runtime atomix/atomix-runtime -n kube-system --wait
+                  atomix atomix/atomix -n kube-system --wait
      REGISTRY_OPTIONS=""
     else
-       helm upgrade --install --set "image.registry=$proxy" \
-                    --set "driver.image.registry=$proxy" \
-                    --set "node.image.registry=$proxy" \
-                    atomix-runtime atomix/atomix-runtime -n kube-system --wait
+       helm upgrade --install -f "${onos_test}/build/bin/atomix-proxy-values.yaml" \
+                    atomix atomix/atomix -n kube-system --wait
        REGISTRY_OPTIONS="--set global.image.registry=$proxy --set global.store.consensus.image.registry=$proxy --set global.storage.consensus.image=$proxy/atomix/raft-storage-node:v0.5.3"
     fi
 

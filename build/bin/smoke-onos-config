@@ -43,7 +43,11 @@ helm install -n "$NAMESPACE" \
      onos "$ONOS_CHART_REPO/onos-umbrella" --wait
 
 # install the device simulator
-helm install -n "$NAMESPACE" device-1 $REGISTRY_OPTIONS "$ONOS_CHART_REPO/device-simulator" --wait
+SIM_IMAGE=""
+if [[ "${proxy}" == "" ]]; then
+  SIM_IMAGE="--set image.repository=$proxy/onosproject/device-simulator"
+fi
+helm install -n "$NAMESPACE" device-1 $REGISTRY_OPTIONS $SIM_IMAGE "$ONOS_CHART_REPO/device-simulator" --wait
 
 # common gnmi_cli arguments
 common_args=("-address" "onos-config:5150"  "-timeout" "5s" "-en" "JSON" "-alsologtostderr"
