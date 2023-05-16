@@ -1,0 +1,43 @@
+sidecar-controller:
+   image:
+      repository: mirror.registry.opennetworking.org/atomix/sidecar-controller
+   init:
+      image:
+         repository: mirror.registry.opennetworking.org/atomix/controller-init      
+consensus-controller:
+   image:
+      repository: mirror.registry.opennetworking.org/atomix/consensus-controller
+   init:
+      image:
+         repository: mirror.registry.opennetworking.org/atomix/controller-init      
+pod-memory-controller:
+   image:
+      repository: mirror.registry.opennetworking.org/atomix/pod-memory-controller
+   init:
+      image:
+         repository: mirror.registry.opennetworking.org/atomix/controller-init
+raft-controller:
+   image:
+      repository: mirror.registry.opennetworking.org/atomix/raft-controller
+   init:
+      image:
+         repository: mirror.registry.opennetworking.org/atomix/controller-init
+runtime-controller:
+   controller:
+      image:
+         repository: mirror.registry.opennetworking.org/atomix/runtime-controller
+   init:
+      image:
+         repository: mirror.registry.opennetworking.org/atomix/runtime-controller-init
+shared-memory-controller:
+   image:
+      repository: mirror.registry.opennetworking.org/atomix/shared-memory-controller
+   init:
+      image:
+         repository: mirror.registry.opennetworking.org/atomix/controller-init
+controller:
+   image:
+      repository: mirror.registry.opennetworking.org/atomix/controller
+   init:
+      image:
+         repository: mirror.registry.opennetworking.org/atomix/controller-init
