@@ -96,4 +96,4 @@ Check GNMI Capabilities
     Should Contain    ${gnmi_caps.stdout}            supported_encodings: JSON
     Should Contain    ${gnmi_caps.stdout}            supported_encodings: JSON_IETF
     Should Contain    ${gnmi_caps.stdout}            supported_encodings: PROTO
-    Should Contain    ${gnmi_caps.stdout}            gNMI_version: "0.7.0"
+    Should Contain    ${gnmi_caps.stdout}            gNMI_version: "0.8.0"
