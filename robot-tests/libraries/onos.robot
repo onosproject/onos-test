@@ -59,7 +59,7 @@ Setup Cluster
     # Create a kind cluster
     Set Local Variable    ${start_kind_cluster}    %{START_KIND_CLUSTER=true}
     IF    "${start_kind_cluster}" == "true"
-        Run Process    kind delete cluster -q && kind create cluster -q    shell=yes
+        Run Process    kind delete cluster -q && kind create cluster -q --image ${ONF_PROXY}/kindest/node:v1.24.7   shell=yes
     END
     ${result}=   Run Process    kubectl delete ns ${NAMESPACE}; kubectl create ns ${NAMESPACE}   shell=yes
     Should Be Equal As Integers    ${result.rc}    0
@@ -68,15 +68,21 @@ Setup Cluster
     Set Local Variable    ${use_proxy}    %{USE_PROXY=true}
     IF    "${use_proxy}" == "true"
         ${proxy}=    Catenate    mirror.registry.opennetworking.org
-        Set Suite Variable     ${REGISTRY_SETTINGS}    --set global.image.registry\=${proxy} --set global.store.consensus.image.registry\=${proxy} --set global.storage.consensus.image\=${proxy}/atomix/raft-storage-node:v0.5.3
+        Set Suite Variable     ${REGISTRY_SETTINGS}    --set global.image.registry\=${ONF_PROXY}
     ELSE
         Set Suite Variable    ${REGISTRY_SETTINGS}     ${EMPTY}
     END
 
     # Install Atomix charts
     IF    "${start_kind_cluster}" == "true"
-        Run Process    helm install --set image.registry\=${ONF_PROXY} --set init.image.registry\=${ONF_PROXY} --set broker.image.registry\=${ONF_PROXY} atomix-controller atomix/atomix-controller -n kube-system --wait    shell=yes
-        Run Process    helm install --set image.registry\=${ONF_PROXY} --set driver.image.registry\=${ONF_PROXY} --set node.image.registry\=${ONF_PROXY} atomix-raft-storage atomix/atomix-raft-storage -n kube-system --wait    shell=yes
+          # Preload images
+        Run Process    docker pull "${ONF_PROXY}/atomix/sidecar:v1.1.3"    shell=yes
+        Run Process    docker pull "${ONF_PROXY}/atomix/raft-node"    shell=yes
+        Run Process    docker tag "${ONF_PROXY}/atomix/sidecar:v1.1.3" atomix/sidecar:v1.1.3    shell=yes
+        Run Process    docker tag "${ONF_PROXY}/atomix/raft-node" atomix/raft-node    shell=yes
+        Run Process    kind load docker-image atomix/sidecar:v1.1.3    shell=yes
+        Run Process    kind load docker-image atomix/raft-node    shell=yes
+        Run Process    helm upgrade --install -f "${CURDIR}/../../build/bin/atomix-proxy-values.yaml" atomix atomix/atomix -n kube-system --wait    shell=yes
 
         # Install onos-operator chart
         Run Process    helm install --set global.image.registry\=${ONF_PROXY} -n kube-system  onos-operator onos/onos-operator --wait    shell=yes
@@ -151,7 +157,7 @@ Install onos-config helm chart
     Should Be Equal As Integers    ${result.rc}    0
 
 Install device simulator helm chart
-    ${sim_helm_cmd}=    Catenate    helm install -n ${NAMESPACE} device-1 ${ONOS_CHART_REPO}/device-simulator ${TAG_OPTIONS} ${REGISTRY_SETTINGS} --wait
+    ${sim_helm_cmd}=    Catenate    helm install -n ${NAMESPACE} device-1 ${ONOS_CHART_REPO}/device-simulator ${TAG_OPTIONS} ${REGISTRY_SETTINGS} --set image.repository=${ONF_PROXY}/onosproject/device-simulator --wait
     ${result}=  Run Process       ${sim_helm_cmd}   shell=yes
     Should Be Equal As Integers    ${result.rc}    0
 
