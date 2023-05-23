@@ -22,6 +22,7 @@ helm install -n "$NAMESPACE" \
              --set import.ran-simulator.enabled=false \
              --set import.onos-config.enabled=false \
              --set import.onos-pci.enabled=false \
+             --set import.onos-e2t.enabled=false \
              --set import.onos-topo.enabled=true \
              --set import.onos-kpimon.enabled=false \
              --set onos-kpimon.logging.loggers.root.level=debug \
