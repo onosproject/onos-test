@@ -70,7 +70,7 @@ fi
 # Create topo entries for the simulated device
 $CLI_COMMAND  onos topo create kind devicesim devicesim
 $CLI_COMMAND  onos topo create entity devicesim-1 -a \
-                  onos.topo.Configurable='{"address":"devicesim1-device-simulator:11161","version":"1.0.0","type":"devicesim"}' \
+                  onos.topo.Configurable='{"address":"devicesim1-device-simulator:11161","version":"1.0.x","type":"devicesim"}' \
                   -a onos.topo.TLSOptions='{"insecure":true,"plain":true}' -k devicesim
 
 # gnmi paths
@@ -155,7 +155,7 @@ sleep 5
 
 # check capabilities
 models_count=$($CLI_COMMAND  gnmi_cli -capabilities "${common_args[@]}" | grep -c supported_models)
-if [ "$models_count" == '8' ]
+if [ "$models_count" == '11' ]
 then
   echo "+++ Models count from capabilities is correct"
 else

@@ -84,7 +84,7 @@ setup_test_cluster () {
       kind load docker-image atomix/raft-node:latest
       kind load docker-image onosproject/onos-proxy:v0.1.2
     fi
- exit 1
+
     # install the preferred versions of k8s tools
     build/bin/install-k8s-tools
 
