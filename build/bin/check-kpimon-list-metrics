@@ -8,6 +8,9 @@
 import check_cli
 
 expected_headers = ['Node', 'ID', 'Cell', 'Object', 'ID', 'Cell', 'Global', 'ID', 'Time',
+                    'PDUSessionSetupFail', 'PDUSessionSetupReq', 'PDUSessionSetupSucc',
+                    'PdcpPduVolumeDL', 'PdcpPduVolumeUL', 'PdcpRatePerPRBDL',
+                    'PdcpRatePerPRBUL', 'PrbUsedDL', 'PrbUsedUL',
                     'RRC.Conn.Avg', 'RRC.Conn.Max', 'RRC.ConnEstabAtt.Sum', 'RRC.ConnEstabSucc.Sum',
                     'RRC.ConnReEstabAtt.HOFail', 'RRC.ConnReEstabAtt.Other', 'RRC.ConnReEstabAtt.Sum',
                     'RRC.ConnReEstabAtt.reconfigFail']
@@ -23,6 +26,15 @@ expected_regexes = [
     CELL_ID_REGEX,
     CELL_GLOBAL_ID_REGEX,
     TIME_REGEX,
+    RRC_CONN_REGEX,
+    RRC_CONN_REGEX,
+    RRC_CONN_REGEX,
+    RRC_CONN_REGEX,
+    RRC_CONN_REGEX,
+    RRC_CONN_REGEX,
+    RRC_CONN_REGEX,
+    RRC_CONN_REGEX,
+    RRC_CONN_REGEX,
     RRC_CONN_REGEX,
     RRC_CONN_REGEX,
     RRC_CONN_REGEX,
