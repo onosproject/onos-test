@@ -7,20 +7,20 @@
 
 import check_cli
 
-expected_headers = ['UeID', 'CellGlobalID', 'RrcState']
+expected_headers = ['AMF-UE-NGAP-ID', 'CellGlobalID', 'HOState']
 
-UE_ID_REGEX = r'^[0-9a-f]{4,6}$'
+UE_NGAP_ID_REGEX = r'^[0-9a-f]+$'
 CELL_GLOBAL_ID_REGEX = r'^[0-9a-f]{15}$'
-RRC_STATE_REGEX = r'^CONNECTED|IDLE$'
+HO_STATE_REGEX = r'^Done$'
 
 if __name__ == '__main__':
     success = int(0)
     failure = int(1)
 
     expected_regexes = [
-        UE_ID_REGEX,
+        UE_NGAP_ID_REGEX,
         CELL_GLOBAL_ID_REGEX,
-        RRC_STATE_REGEX,
+        HO_STATE_REGEX,
     ]
     check = 'MHO UEs'
     ok, output = check_cli.check_cli_output(check, expected_headers, expected_regexes)

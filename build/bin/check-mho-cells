@@ -7,12 +7,10 @@
 
 import check_cli
 
-expected_headers = ['CGI', 'Num', 'UEs', 'Handovers-in', 'Handovers-out']
+expected_headers = ['CGI', 'Num', 'UEs']
 
 CID_REGEX = r'^[0-9a-f]{15}$'
 NUM_UES_REGEX = r'^[\d]+$'
-HANDOVERS_IN_REGEX = r'^[\d]+$'
-HANDOVERS_OUT_REGEX = r'^[\d]+$'
 
 if __name__ == '__main__':
     success = int(0)
@@ -21,8 +19,6 @@ if __name__ == '__main__':
     expected_regexes = [
         CID_REGEX,
         NUM_UES_REGEX,
-        HANDOVERS_IN_REGEX,
-        HANDOVERS_OUT_REGEX,
     ]
     check = 'MHO Cells'
     ok, output = check_cli.check_cli_output(check, expected_headers, expected_regexes)
