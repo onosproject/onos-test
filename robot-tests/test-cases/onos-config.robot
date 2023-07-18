@@ -92,7 +92,7 @@ Check GNMI All Targets
 Check GNMI Capabilities
     [Tags]      check_gnmi_capabilities
     ${gnmi_caps}=    GNMI CLI Capabilities
-    Should Contain X Times    ${gnmi_caps.stdout}    supported_models    8
+    Should Contain X Times    ${gnmi_caps.stdout}    supported_models    11
     Should Contain    ${gnmi_caps.stdout}            supported_encodings: JSON
     Should Contain    ${gnmi_caps.stdout}            supported_encodings: JSON_IETF
     Should Contain    ${gnmi_caps.stdout}            supported_encodings: PROTO
